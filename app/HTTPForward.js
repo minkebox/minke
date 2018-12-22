@@ -1,5 +1,7 @@
 const fetch = require('node-fetch');
 const Router = require('koa-router');
+const WebSocket = require('ws');
+
 
 function Forward(args) {
   const target = `${args.port === 443 ? 'https' : 'http'}://${args.IP4Address || 'localhost'}:${args.port || 80}${args.path || ''}/`;
@@ -30,12 +32,41 @@ function Forward(args) {
       }
     }
   });
+  const wstarget = `${args.port === 443 ? 'wss' : 'ws'}://${args.IP4Address || 'localhost'}:${args.port || 80}${args.path || ''}/`;
+  this._wsrouter = Router({
+    prefix: args.prefix
+  });
+  this._wsrouter.all('/:path', async (ctx) => {
+    const client = new WebSocket(`${wstarget}${ctx.params.path || ''}`);
+    client.on('message', (msg) => {
+      ctx.websocket.send(msg);
+    });
+    ctx.websocket.on('message', (msg) => {
+      client.send(msg);
+    });
+    client.on('close', () => {
+      ctx.websocket.close();
+    });
+    ctx.websocket.on('close', () => {
+      client.close();
+    });
+    client.on('error', () => {
+      ctx.websocket.close();
+    });
+    ctx.websocket.on('error', () => {
+      client.close();
+    });
+  });
 }
 
 const HTTPForward = {
 
   createForward: function(args) {
-    return new Forward(args)._router.middleware();
+    const f = new Forward(args);
+    return {
+      http: f._router.middleware(),
+      ws: f._wsrouter.middleware()
+    };
   }
 
 }

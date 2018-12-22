@@ -86,8 +86,9 @@ async function _MinkeApp(args) {
   
   const bridgeIP4Address = this._containerInfo.NetworkSettings.Networks.bridge.IPAddress;
   if (config.ExposedPorts[TCP_HTTP]) {
-    this._http = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: bridgeIP4Address, port: parseInt(TCP_HTTP) });
-    _MinkeApp._app.use(this._http);
+    this._forward = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: bridgeIP4Address, port: parseInt(TCP_HTTP) });
+    _MinkeApp._app.use(this._forward.http);
+    _MinkeApp._app.ws.use(this._forward.ws);
   }
   if (config.ExposedPorts[TCP_DNS] && config.ExposedPorts[UDP_DNS]) {
     this._dns = DNSForward.createForward({ name: this._name, IP4Address: bridgeIP4Address });
@@ -115,10 +116,14 @@ MinkeApp.shutdown = async function() {
     if (app._dns) {
       DNSForward.removeForward(app._dns);
     }
-    if (app._http) {
-      const idx = _MinkeApp._app.middleware.indexOf(app._http);
+    if (app._forward) {
+      const idx = _MinkeApp._app.middleware.indexOf(app._forward.http);
       if (idx !== -1) {
         _MinkeApp._app.middleware.splice(idx, 1);
+      }
+      const widx = _MinkeApp._app.ws.middleware.indexOf(app._forward.ws);
+      if (widx !== -1) {
+        _MinkeApp._app.ws.middleware.splice(widx, 1);
       }
     }
     if (app._ip4Address) {

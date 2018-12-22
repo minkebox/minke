@@ -2,11 +2,12 @@
 
 const Koa = require('koa');
 const Router = require('koa-router');
+const Websockify = require('koa-websocket');
 const Docker = require('dockerode');
 
 const MinkeApp = require('./MinkeApp');
 
-const App = new Koa();
+const App = Websockify(new Koa());
 global.docker = new Docker({socketPath: '/var/run/docker.sock'});
 
 App.on('error', (err) => {
