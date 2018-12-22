@@ -30,7 +30,7 @@ const Network = {
     return `06:${hash[0]}${hash[1]}:${hash[2]}${hash[3]}:${hash[4]}${hash[5]}:${hash[6]}${hash[7]}:${hash[8]}${hash[9]}`;
   },
 
-  getHomeIP4Address: async function(macAddress) {
+  getHomeIP4: async function(macAddress) {
     return new Promise((resolve) => {
       const dhcpClient = Dhcp.createClient({
         mac: macAddress,
@@ -42,7 +42,10 @@ const Network = {
         if (pending) {
           pending = false;
           leases[state.address] = {};
-          resolve(state.address);
+          resolve({
+            address: state.address,
+            gateway: state.options.router
+          });
         }
         clearTimeout(leases[state.address].renewTimer);
         leases[state.address].renewTimer = setTimeout(() => {
