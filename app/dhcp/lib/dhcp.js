@@ -642,7 +642,7 @@ Client.prototype = {
       htype: 1, // RFC1700, hardware types: 1=Ethernet, 2=Experimental, 3=AX25, 4=ProNET Token Ring, 5=Chaos, 6=Tokenring, 7=Arcnet, 8=FDDI, 9=Lanstar (keep it constant)
       hlen: 6, // Mac addresses are 6 byte
       hops: 0,
-      xid: this._state.xid = this._newXid(), // Selected by client on DHCPDISCOVER
+      xid: this._newXid(), // Selected by client on DHCPDISCOVER
       secs: 0, // 0 or seconds since DHCP process started
       flags: 0x8000, // 0 or 0x80 (if client requires broadcast reply)
       ciaddr: INADDR_ANY, // 0 for DHCPDISCOVER, other implementations send currently assigned IP - but we follow RFC
@@ -696,7 +696,7 @@ Client.prototype = {
       htype: 1, // RFC1700, hardware types: 1=Ethernet, 2=Experimental, 3=AX25, 4=ProNET Token Ring, 5=Chaos, 6=Tokenring, 7=Arcnet, 8=FDDI, 9=Lanstar (keep it constant)
       hlen: 6, // Mac addresses are 6 byte
       hops: 0,
-      xid: req.xid, // 'xid' from server DHCPOFFER message
+      xid: this._newXid(), // 'xid' from server DHCPOFFER message
       secs: 0, // 0 or seconds since DHCP process started
       flags: 0x8000, // 0 or 0x80 (if client requires broadcast reply)
       ciaddr: req.yiaddr, // 0 for DHCPREQUEST
@@ -712,7 +712,7 @@ Client.prototype = {
         50: req.yiaddr,
         61: this.config('mac'), // MAY
         55: this.config('features'), // MAY
-        50: this._state.address, // requested IP, TODO: MUST (selecting or INIT REBOOT) MUST NOT (BOUND, RENEW)
+        // 50: this._state.address, // requested IP, TODO: MUST (selecting or INIT REBOOT) MUST NOT (BOUND, RENEW)
         // TODO: server identifier: MUST (after selecting) MUST NOT (INIT REBOOT, BOUND, RENEWING, REBINDING)
       }
     };
@@ -814,7 +814,7 @@ Client.prototype = {
       htype: 1, // RFC1700, hardware types: 1=Ethernet, 2=Experimental, 3=AX25, 4=ProNET Token Ring, 5=Chaos, 6=Tokenring, 7=Arcnet, 8=FDDI, 9=Lanstar (keep it constant)
       hlen: 6, // Mac addresses are 6 byte
       hops: 0,
-      xid: this._state.xid = this._newXid, // Selected by client on DHCPRELEASE
+      xid: this._newXid(), // Selected by client on DHCPRELEASE
       secs: 0, // 0 or seconds since DHCP process started
       flags: 0,
       ciaddr: this.config('server'),
@@ -853,7 +853,7 @@ Client.prototype = {
       htype: 1, // RFC1700, hardware types: 1=Ethernet, 2=Experimental, 3=AX25, 4=ProNET Token Ring, 5=Chaos, 6=Tokenring, 7=Arcnet, 8=FDDI, 9=Lanstar (keep it constant)
       hlen: 6, // Mac addresses are 6 byte
       hops: 0,
-      xid: this._state.xid = this._newXid(), // Selected by client on DHCPRELEASE
+      xid: this._newXid(), // Selected by client on DHCPRELEASE
       secs: 0, // 0 or seconds since DHCP process started
       flags: 0x8000,
       ciaddr: this._state.address,
@@ -866,8 +866,9 @@ Client.prototype = {
       options: {
         53: DHCPREQUEST,
         50: this._state.address,
+        61: this.config('mac'), // MAY
         // TODO: MAY clientID
-        54: this._state.server // MUST server identifier
+        // 54: this._state.server // MUST server identifier
       }
     };
 
@@ -890,7 +891,7 @@ Client.prototype = {
       htype: 1, // RFC1700, hardware types: 1=Ethernet, 2=Experimental, 3=AX25, 4=ProNET Token Ring, 5=Chaos, 6=Tokenring, 7=Arcnet, 8=FDDI, 9=Lanstar (keep it constant)
       hlen: 6, // Mac addresses are 6 byte
       hops: 0,
-      xid: this._state.xid = this._newXid(), // Selected by client on DHCPRELEASE
+      xid: this._newXid(), // Selected by client on DHCPRELEASE
       secs: 0, // 0 or seconds since DHCP process started
       flags: 0,
       ciaddr: this.config('server'),
@@ -945,7 +946,8 @@ Client.prototype = {
   },
 
   _newXid: function() {
-    return Math.floor(Math.random() * 0xFFFFFFFF);
+    this._state.xid = Math.floor(Math.random() * 0xFFFFFFFF);
+    return this._state.xid;
   }
 
 };
