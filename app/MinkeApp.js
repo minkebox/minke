@@ -32,18 +32,20 @@ async function _MinkeApp(args) {
           HostPort: `${parseInt(port)}`
         }];
       }
+      const iface = await Network.getActiveInterface();
+      this._env.push(`MINKE_HOME_IP4_ADDRESS=${iface.network.ip_address}`, `MINKE_HOME_IP4_GATEWAY=${iface.network.gateway_ip}`);
       break;
 
     case 'host':
       const hostnet = await Network.getHostNetwork();
       this._macAddress = Network.generateMacAddress(`${this._name}/${this._imageName}`);
-      this._ip4Address = await Network.getHomeIP4Address(this._macAddress);
+      this._ip4 = await Network.getHomeIP4(this._macAddress);
       config.NetworkingConfig = {
         EndpointsConfig: {
           [hostnet.id]: {
             IPAMConfig: {
-              IPv4Address: this._ip4Address
-            },
+              IPv4Address: this._ip4.address
+            }
           }
         }
       };
@@ -51,16 +53,20 @@ async function _MinkeApp(args) {
       config.HostConfig = {
         NetworkMode: hostnet.id
       }
-      this._env.push(`MINKE_HOME_IP4ADDRESS=${this._ip4Address}`);
+      this._env.push(`MINKE_HOME_IP4_ADDRESS=${this._ip4.address}`, `MINKE_HOME_IP4_GATEWAY=${this._ip4.gateway}`);
       break;
 
     case 'hidden':
+      this._env.push(`MINKE_HOME_IP4_ADDRESS=__HIDDEN__`, `MINKE_HOME_IP4_GATEWAY=__HIDDEN__`);
+      break;
+
     default:
       break;
   }
 
   config.Env = config.Env.concat(this._env);
   this._container = await docker.createContainer(config);
+  await this._container.start();
 
   switch (this._type) {
     case 'host':
@@ -76,7 +82,6 @@ async function _MinkeApp(args) {
       break;
   }
 
-  await this._container.start();
   this._containerInfo = await this._container.inspect();
   
   const bridgeIP4Address = this._containerInfo.NetworkSettings.Networks.bridge.IPAddress;
