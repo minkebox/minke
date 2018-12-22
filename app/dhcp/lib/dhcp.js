@@ -514,7 +514,6 @@ function Client(config) {
       self.emit('error', e);
       return;
     }
-    console.log('message', req);
 
     if (req.xid != self._state.xid) {
       return; // Not for us
@@ -710,6 +709,7 @@ Client.prototype = {
       options: {
         57: 1500, // Max message size
         53: DHCPREQUEST,
+        50: req.yiaddr,
         61: this.config('mac'), // MAY
         55: this.config('features'), // MAY
         50: this._state.address, // requested IP, TODO: MUST (selecting or INIT REBOOT) MUST NOT (BOUND, RENEW)
@@ -855,8 +855,8 @@ Client.prototype = {
       hops: 0,
       xid: this._state.xid = this._newXid(), // Selected by client on DHCPRELEASE
       secs: 0, // 0 or seconds since DHCP process started
-      flags: 0,
-      ciaddr: this.config('server'),
+      flags: 0x8000,
+      ciaddr: this._state.address,
       yiaddr: INADDR_ANY,
       siaddr: INADDR_ANY,
       giaddr: INADDR_ANY,
@@ -934,7 +934,6 @@ Client.prototype = {
   },
 
   _send: function(host, data) {
-console.log('_send', data);
     const sb = Protocol.format(data);
     this._sock.send(sb._data, 0, sb._w, SERVER_PORT, host, function(err, bytes) {
       if (err) {
