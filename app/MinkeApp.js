@@ -23,7 +23,6 @@ async function _MinkeApp(args) {
   const config = this._imageInfo.ContainerConfig;
   config.Image = args.image; // Use the human-readable name
   config.Labels.MinkeName = this._name;
-  console.log('image', config);
 
   switch (this._type) {
     case 'map':
@@ -36,13 +35,9 @@ async function _MinkeApp(args) {
       break;
 
     case 'host':
-    console.log('host');
       const hostnet = await Network.getHostNetwork();
-    console.log(hostnet);
       this._macAddress = Network.generateMacAddress(`${this._name}/${this._imageName}`);
-    console.log(this._macAddress);
       this._ip4Address = await Network.getHomeIP4Address(this._macAddress);
-    console.log(this._ip4Address);
       config.NetworkingConfig = {
         EndpointsConfig: {
           [hostnet.id]: {
@@ -66,7 +61,6 @@ async function _MinkeApp(args) {
 
   config.Env = config.Env.concat(this._env);
   this._container = await docker.createContainer(config);
-  console.log('container', this._container);
 
   switch (this._type) {
     case 'host':
@@ -84,7 +78,6 @@ async function _MinkeApp(args) {
 
   await this._container.start();
   this._containerInfo = await this._container.inspect();
-  console.log('containerInfo', this._containerInfo);
   
   const bridgeIP4Address = this._containerInfo.NetworkSettings.Networks.bridge.IPAddress;
   if (config.ExposedPorts[TCP_HTTP]) {

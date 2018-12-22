@@ -39,7 +39,6 @@ const Network = {
 
       let pending = true;
       dhcpClient.on('bound', (state) => {
-        console.log('bound', state);
         if (pending) {
           pending = false;
           leases[state.address] = {};
