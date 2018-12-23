@@ -36,7 +36,7 @@ function Forward(args) {
   this._wsrouter = Router({
     prefix: args.prefix
   });
-  this._wsrouter.all('/:path', async (ctx) => {
+  this._wsrouter.all('/:path*', async (ctx) => {
     const client = new WebSocket(`${wstarget}${ctx.params.path || ''}`);
     client.on('message', (msg) => {
       ctx.websocket.send(msg);
