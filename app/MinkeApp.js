@@ -1,6 +1,7 @@
 const HTTPForward = require('./HTTPForward');
 const DNSForward = require('./DNSForward');
 const Network = require('./Network');
+const Filesystem = require('./Filesystem');
 
 const TCP_HTTP = '80/tcp';
 const TCP_DNS = '53/udp';
@@ -13,6 +14,7 @@ async function _MinkeApp(args) {
   this._name = args.name;
   this._imageName = args.image;
   this._type = args.type;
+  this._fsmap = args.fsmap;
   this._forwarder = null;
   this._macAddress = null;
   this._ip4Address = null;
@@ -23,10 +25,10 @@ async function _MinkeApp(args) {
   const config = this._imageInfo.ContainerConfig;
   config.Image = args.image; // Use the human-readable name
   config.Labels.MinkeName = this._name;
+  config.HostConfig = { PortBindings: {}, Binds: [] };
 
   switch (this._type) {
     case 'map':
-      config.HostConfig = { PortBindings: {} };
       for (let port in config.ExposedPorts) {
         config.HostConfig.PortBindings[port] = [{
           HostPort: `${parseInt(port)}`
@@ -61,6 +63,21 @@ async function _MinkeApp(args) {
 
     default:
       break;
+  }
+
+  if (config.Volumes || this._fsmap) {
+    const fsmap = this._fsmap || {};
+    this._fs = Filesystem.createAppFS(this);
+    const volumes = Object.assign({}, config.Volume, this._fsmap);
+    for (let path in volumes) {
+      const map = fsmap[path];
+      if (!map || map.type === 'private') {
+        config.HostConfig.Binds.push(this._fs.mapPrivateVolume(path));
+      }
+      else {
+        config.HostConfig.Binds.push(this._fs.mapSharedVolume(path));
+      }
+    }
   }
 
   config.Env = config.Env.concat(this._env);
