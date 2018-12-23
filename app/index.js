@@ -20,10 +20,10 @@ root.get('/', async (ctx) => {
   ctx.body = 'Hello\n';
 });
 
-MinkeApp.setApp(App);
 
 (async function() {
-  await MinkeApp({ name: 'speedtest', type: 'hidden', image: 'timwilkinson/docker-speedtest-analyser' });
+  await MinkeApp.setApp(App);
+  //await MinkeApp({ name: 'speedtest', type: 'hidden', image: 'timwilkinson/docker-speedtest-analyser' });
   await MinkeApp({ name: 'proxy',     type: 'host',   image: 'timwilkinson/dnsproxy' });
   await MinkeApp({ name: 'wsdemo',    type: 'hidden', image: 'timwilkinson/websocketdemo' });
 })();

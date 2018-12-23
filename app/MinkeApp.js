@@ -68,14 +68,14 @@ async function _MinkeApp(args) {
   if (config.Volumes || this._fsmap) {
     const fsmap = this._fsmap || {};
     this._fs = Filesystem.createAppFS(this);
-    const volumes = Object.assign({}, config.Volume, this._fsmap);
+    const volumes = Object.assign({}, config.Volumes, this._fsmap);
     for (let path in volumes) {
       const map = fsmap[path];
       if (!map || map.type === 'private') {
         config.HostConfig.Binds.push(this._fs.mapPrivateVolume(path));
       }
       else {
-        config.HostConfig.Binds.push(this._fs.mapSharedVolume(path));
+        config.HostConfig.Binds.push(this._fs.mapShareableVolume(path));
       }
     }
   }
@@ -122,8 +122,21 @@ const MinkeApp = async function(args) {
   return self;
 }
 
-MinkeApp.setApp = function(app) {
+MinkeApp.setApp = async function(app) {
   _MinkeApp._app = app;
+
+  // Find ourself
+  const containers = await docker.listContainers({});
+  containers.forEach((container) => {
+    if (container.Image.endsWith('/minke')) {
+      MinkeApp._container = container;
+      container.Mounts.forEach((mount) => {
+        if (mount.Type === 'bind' && mount.Destination === '/minke') {
+          Filesystem.setHostPrefix(mount.Source);
+        }
+      })
+    }
+  });
 }
 
 MinkeApp.shutdown = async function() {
