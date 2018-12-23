@@ -30,6 +30,12 @@ MinkeApp.setApp(App);
 
 
 App.use(root.middleware());
+App.ws.use(async (ctx, next) => {
+  await next(ctx);
+  if (ctx.websocket.listenerCount('message') === 0) {
+    ctx.websocket.close();
+  }
+});
 App.listen(8080);
 
 process.on('SIGINT', async () => {
