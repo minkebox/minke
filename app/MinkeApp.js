@@ -38,8 +38,7 @@ async function _MinkeApp(args) {
 
     case 'host':
       const hostnet = await Network.getHostNetwork();
-      this._macAddress = Network.generateMacAddress(`${this._name}/${this._imageName}`);
-      this._ip4 = await Network.getHomeIP4(this._macAddress);
+      this._ip4 = await Network.getHomeIP4(`${this._name}/${this._imageName}`);
       config.NetworkingConfig = {
         EndpointsConfig: {
           [hostnet.id]: {
@@ -49,7 +48,7 @@ async function _MinkeApp(args) {
           }
         }
       };
-      config.MacAddress = this._macAddress;
+      config.MacAddress = this._ip4.mac;
       config.HostConfig = {
         NetworkMode: hostnet.id
       }

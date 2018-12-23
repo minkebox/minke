@@ -625,6 +625,10 @@ Client.prototype = {
         return def;
       }
 
+    } else if (key === 'hostname') {
+
+      return this._conf.hostname;
+
     } else {
       throw new Error('Unknown config key ' + key);
     }
@@ -653,6 +657,7 @@ Client.prototype = {
       sname: '', // unused
       file: '', // unused
       options: {
+        12: this.config('hostname'),
         57: 1500, // Max message size
         53: DHCPDISCOVER,
         61: mac, // MAY
@@ -707,6 +712,7 @@ Client.prototype = {
       sname: '', // unused
       file: '', // unused
       options: {
+        12: this.config('hostname'),
         57: 1500, // Max message size
         53: DHCPREQUEST,
         50: req.yiaddr,
@@ -864,6 +870,7 @@ Client.prototype = {
       sname: '', // unused
       file: '', // unused
       options: {
+        12: this.config('hostname'),
         53: DHCPREQUEST,
         50: this._state.address,
         61: this.config('mac'), // MAY

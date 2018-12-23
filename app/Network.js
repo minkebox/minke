@@ -25,16 +25,18 @@ const Network = {
     });
   },
 
-  generateMacAddress: function(name) {
+  _generateMacAddress: function(name) {
     const hash = Crypto.createHash('sha256').update(name).digest('hex');
     return `06:${hash[0]}${hash[1]}:${hash[2]}${hash[3]}:${hash[4]}${hash[5]}:${hash[6]}${hash[7]}:${hash[8]}${hash[9]}`;
   },
 
-  getHomeIP4: async function(macAddress) {
+  getHomeIP4: async function(hostname) {
     return new Promise((resolve) => {
+      const macAddress = Network._generateMacAddress(hostname);
       const dhcpClient = Dhcp.createClient({
         mac: macAddress,
-        features: 0
+        features: 0,
+        hostname: hostname.replace(/\//g, '-')
       });
 
       let pending = true;
@@ -44,7 +46,8 @@ const Network = {
           leases[state.address] = {};
           resolve({
             address: state.address,
-            gateway: state.options.router
+            gateway: state.options.router,
+            mac: macAddress
           });
         }
         clearTimeout(leases[state.address].renewTimer);
