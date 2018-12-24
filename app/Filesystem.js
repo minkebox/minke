@@ -12,7 +12,7 @@ function Filesystem(app) {
   this._hostroot = `${FS_HOSTPREFIX}/fs/app/${this._name}`;
   FS.mkdirSync(this._root, { recursive: true });
   FS.mkdirSync(`${this._root}/private`, { recursive: true });
-  FS.mkdirSync(`${this._root}/shared`, { recursive: true });
+  FS.mkdirSync(`${this._root}/shareable`, { recursive: true });
 }
 
 Filesystem.prototype = {
@@ -20,15 +20,15 @@ Filesystem.prototype = {
   _map: {},
 
   mapPrivateVolume: function(path) {
-    this._map[path] = { type: 'private', path: path, dest: `${this._hostroot}/private/${path}` };
+    this._map[path] = { type: 'private', path: path, dest: `${this._root}/private/${path}` };
     FS.mkdirSync(this._map[path].dest, { recursive: true });
-    return `${this._map[path].dest}:${path}`;
+    return `${this._hostroot}/private/${path}:${path}`;
   },
 
   mapShareableVolume: function(path) {
-    this._map[path] = { type: 'shared', path: path, dest: `${this._hostroot}/shared/${path}` };
+    this._map[path] = { type: 'shareable', path: path, dest: `${this._root}/shareable/${path}` };
     FS.mkdirSync(this._map[path].dest, { recursive: true });
-    return `${this._map[path].dest}:${path}`;
+    return `${this._hostroot}/shareable/${path}:${path}`;
   },
 
   isShared: function(sharename) {
@@ -37,10 +37,10 @@ Filesystem.prototype = {
 
   makeShared: function(path, sharename) {
     const map = this._map[path];
-    if (map.type === 'shared' && !shared[sharename]) {
+    if (map.type === 'shareable' && !shared[sharename]) {
       map.share = {
         name: sharename,
-        dest: `${FS_PREFIX}/fs/shared/${sharename}`,
+        dest: `${FS_PREFIX}/fs/shareable/${sharename}`,
       };
       shares[sharename] = map;
       FS.mkdirSync(map.share.dest, { recursive: true });
