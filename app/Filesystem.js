@@ -74,6 +74,7 @@ const _Filesystem = {
 
   setHostPrefix: function(prefix) {
     FS_HOSTPREFIX = prefix;
+    FS.mkdirSync(`${FS_PREFIX}/fs/shareable`, { recursive: true });
   }
 
 };
