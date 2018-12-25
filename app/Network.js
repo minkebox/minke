@@ -29,13 +29,14 @@ const Network = {
     const hash = Crypto.createHash('sha256').update(name).digest('hex');
     return `06:${hash[0]}${hash[1]}:${hash[2]}${hash[3]}:${hash[4]}${hash[5]}:${hash[6]}${hash[7]}:${hash[8]}${hash[9]}`;
   },
-
-  getHomeIP4: async function(hostname) {
+  
+  getHomeIP4: async function(hostname, ip4) {
     return new Promise((resolve) => {
-      const macAddress = Network._generateMacAddress(hostname);
+      const macAddress = ip4.mac || Network._generateMacAddress(hostname);
       const dhcpClient = Dhcp.createClient({
         mac: macAddress,
         features: 0,
+        address: ip4.address,
         hostname: hostname.replace(/\//g, '-')
       });
 
@@ -46,7 +47,6 @@ const Network = {
           leases[state.address] = {};
           resolve({
             address: state.address,
-            gateway: state.options.router,
             mac: macAddress
           });
         }
@@ -55,16 +55,26 @@ const Network = {
           dhcpClient.sendRenew();
         }, state.renewPeriod * 1000);
       });
+
+      dhcpClient.on('unbound', (state) => {
+        if (pending) {
+          console.error('Unbound from DHCP server!');
+        }
+        ip4.address = null;
+        dhcpClient.sendDiscover();
+      });
+
       dhcpClient.listen(null, null, () => {
         dhcpClient.sendDiscover();
       });
     });
   },
 
-  releaseHomeIPAddress: function(ipaddr) {
-    if (leases[ipaddr]) {
-      clearTimeout(leases[ipaddr].renewTimer);
-      delete leases[ipaddr];
+
+  releaseHomeIP4: function(ip) {
+    if (ip.address && leases[ip.address]) {
+      clearTimeout(leases[ip.address].renewTimer);
+      delete leases[ip.address];
     }
   },
 

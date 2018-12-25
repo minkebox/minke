@@ -22,10 +22,14 @@ root.get('/', async (ctx) => {
 
 
 (async function() {
-  await MinkeApp.setApp(App);
-  //await MinkeApp({ name: 'speedtest', type: 'hidden', image: 'timwilkinson/docker-speedtest-analyser' });
-  await MinkeApp({ name: 'proxy',     type: 'host',   image: 'timwilkinson/dnsproxy' });
-  await MinkeApp({ name: 'wsdemo',    type: 'hidden', image: 'timwilkinson/websocketdemo' });
+  await MinkeApp.startApps(App);
+  //await MinkeApp({ name: 'speedtest', style: 'hidden', image: 'timwilkinson/docker-speedtest-analyser' });
+  //await MinkeApp({ name: 'proxy',     style: 'host',   image: 'timwilkinson/dnsproxy' });
+  //await MinkeApp({ name: 'wsdemo',    style: 'hidden', image: 'timwilkinson/websocketdemo' });
+  //const a = await new MinkeApp().createFromConfig({ name: 'wsdemo2', style: 'hidden', image: 'timwilkinson/websocketdemo' });
+  //console.log(a);
+  //await a.start();
+  //await a.save();
 })();
 
 

@@ -629,6 +629,14 @@ Client.prototype = {
 
       return this._conf.hostname;
 
+    } else if (key === 'address') {
+
+      return this._state.address || this._conf.address;
+
+    } else if (key === 'server') {
+
+      return this._state.server || this._conf.server;
+
     } else {
       throw new Error('Unknown config key ' + key);
     }
@@ -807,6 +815,9 @@ Client.prototype = {
 
     } else {
       // We're sorry, today we have no IP for you...
+      this._state.address = undefined;
+      this._state.options = {};
+      this.emit('unbound', this._state);
     }
   },
 
@@ -862,7 +873,7 @@ Client.prototype = {
       xid: this._newXid(), // Selected by client on DHCPRELEASE
       secs: 0, // 0 or seconds since DHCP process started
       flags: 0x8000,
-      ciaddr: this._state.address,
+      ciaddr: this.config('address'),
       yiaddr: INADDR_ANY,
       siaddr: INADDR_ANY,
       giaddr: INADDR_ANY,
@@ -872,7 +883,7 @@ Client.prototype = {
       options: {
         12: this.config('hostname'),
         53: DHCPREQUEST,
-        50: this._state.address,
+        50: this.config('address'),
         61: this.config('mac'), // MAY
         // TODO: MAY clientID
         // 54: this._state.server // MUST server identifier
@@ -900,7 +911,7 @@ Client.prototype = {
       hops: 0,
       xid: this._newXid(), // Selected by client on DHCPRELEASE
       secs: 0, // 0 or seconds since DHCP process started
-      flags: 0,
+      flags: 0x8000,
       ciaddr: this.config('server'),
       yiaddr: INADDR_ANY,
       siaddr: INADDR_ANY,
@@ -909,10 +920,11 @@ Client.prototype = {
       sname: '', // unused
       file: '', // unused
       options: {
+        12: this.config('hostname'),
         53: DHCPREQUEST,
-        50: this._state.address,
+        50: this.config('address'),
         // TODO: MAY clientID
-        54: this._state.server // MUST server identifier
+        54: this.config('server') // MUST server identifier
       }
     };
 

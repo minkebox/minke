@@ -1,4 +1,5 @@
 const FS = require('fs');
+const Path = require('path');
 const ChildProcess = require('child_process');
 
 const FS_PREFIX = process.env.DEBUG ? '/tmp/minke' : '/minke';
@@ -20,15 +21,15 @@ Filesystem.prototype = {
   _map: {},
 
   mapPrivateVolume: function(path) {
-    this._map[path] = { type: 'private', path: path, dest: `${this._root}/private/${path}` };
+    this._map[path] = { type: 'private', path: path, dest: Path.normalize(`${this._root}/private/${path}`) };
     FS.mkdirSync(this._map[path].dest, { recursive: true });
-    return `${this._hostroot}/private/${path}:${path}`;
+    return `${Path.normalize(`${this._hostroot}/private/${path}`)}:${path}`;
   },
 
   mapShareableVolume: function(path) {
-    this._map[path] = { type: 'shareable', path: path, dest: `${this._root}/shareable/${path}` };
+    this._map[path] = { type: 'shareable', path: path, dest: Path.normalize(`${this._root}/shareable/${path}`) };
     FS.mkdirSync(this._map[path].dest, { recursive: true });
-    return `${this._hostroot}/shareable/${path}:${path}`;
+    return `${Path.normalize(`${this._hostroot}/shareable/${path}`)}:${path}`;
   },
 
   isShared: function(sharename) {
