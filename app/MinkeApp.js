@@ -11,6 +11,7 @@ const TCP_DNS = '53/udp';
 const UDP_DNS = '53/udp';
 
 const applications = {};
+let koaApp = null;
 
 function MinkeApp() {
 }
@@ -49,22 +50,10 @@ MinkeApp.prototype = {
       for (let path in volumes) {
         const map = fsmap[path];
         if (!map || map.type === 'private') {
-          const binding = fs.mapPrivateVolume(path).split(':');
-          this._binds.push({
-            name: `${this._name}:${binding[1]}`,
-            shareable: false,
-            host: binding[0],
-            target: binding[1]
-          });
+          this._binds.push(fs.mapPrivateVolume(path));
         }
         else {
-          const binding = fs.mapShareableVolume(path).split(':');
-          this._binds.push({
-            name: `${this._name}:${binding[1]}`,
-            shareable: true,
-            host: binding[0],
-            target: binding[1]
-          });
+          this._binds.push(fs.mapShareableVolume(path));
         }
       }
     }
@@ -114,8 +103,15 @@ MinkeApp.prototype = {
       Image: this._image, // Use the human-readable name
       HostConfig: {
         PortBindings: {},
-        Binds: this._binds.map((bind) => {
-          return `${bind.host}:${bind.target}`;
+        Mounts: this._binds.map((bind) => {
+          return {
+            Type: 'bind',
+            Source: bind.host,
+            Target: bind.target,
+            BindOptions: {
+              Propagation: 'rshared'
+            }
+          }
         }),
         PortBindings: Object.assign.apply({}, [{}].concat(this._ports.map((port) => {
           return { [port.target]: [{ HostPort: port.host }] }
@@ -166,12 +162,34 @@ MinkeApp.prototype = {
     const bridgeIP4Address = containerInfo.NetworkSettings.Networks.bridge.IPAddress;
     if (this._needLink) {
       this._forward = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: bridgeIP4Address, port: parseInt(TCP_HTTP) });
-      MinkeApp._app.use(this._forward.http);
-      MinkeApp._app.ws.use(this._forward.ws);
+      koaApp.use(this._forward.http);
+      koaApp.ws.use(this._forward.ws);
     }
     if (this._needDNS) {
       this._dns = DNSForward.createForward({ name: this._name, IP4Address: bridgeIP4Address });
     }
+
+    return this;
+  },
+
+  stop: async function() {
+    if (this._dns) {
+      DNSForward.removeForward(this._dns);
+    }
+    if (this._forward) {
+      const idx = koaApp.middleware.indexOf(this._forward.http);
+      if (idx !== -1) {
+        koaApp.middleware.splice(idx, 1);
+      }
+      const widx = koaApp.ws.middleware.indexOf(this._forward.ws);
+      if (widx !== -1) {
+        koaApp.ws.middleware.splice(widx, 1);
+      }
+    }
+    if (this._ip4) {
+      Network.releaseHomeIP4(this._ip4);
+    }
+    await this._container.stop();
 
     return this;
   },
@@ -185,16 +203,14 @@ MinkeApp.prototype = {
 
 MinkeApp.startApps = async function(app) {
 
-  MinkeApp._app = app;
+  koaApp = app;
 
   // Start DB
   await Database.init();
 
   // Find ourself
-  const containers = await docker.listContainers({});
-  containers.forEach((container) => {
+  (await docker.listContainers({})).forEach((container) => {
     if (container.Image.endsWith('/minke')) {
-      MinkeApp._container = container;
       container.Mounts.forEach((mount) => {
         if (mount.Type === 'bind' && mount.Destination === '/minke') {
           Filesystem.setHostPrefix(mount.Source);
@@ -205,31 +221,14 @@ MinkeApp.startApps = async function(app) {
 
   // Start all the apps
   await Promise.all((await Database.getApps()).map(async (info) => {
-    await new MinkeApp().createFromJSON(info).start();
+    return new MinkeApp().createFromJSON(info).start();
   }));
 }
 
 MinkeApp.shutdown = async function() {
-  for (let name in applications) {
-    const app = applications[name];
-    if (app._dns) {
-      DNSForward.removeForward(app._dns);
-    }
-    if (app._forward) {
-      const idx = MinkeApp._app.middleware.indexOf(app._forward.http);
-      if (idx !== -1) {
-        MinkeApp._app.middleware.splice(idx, 1);
-      }
-      const widx = MinkeApp._app.ws.middleware.indexOf(app._forward.ws);
-      if (widx !== -1) {
-        MinkeApp._app.ws.middleware.splice(widx, 1);
-      }
-    }
-    if (app._ip4) {
-      Network.releaseHomeIP4(app._ip4);
-    }
-    await app._container.stop();
-  }
+  return Promise.all(Object.values(applications).map(async (app) => {
+    return app.stop();
+  }));
 }
 
 module.exports = MinkeApp;
