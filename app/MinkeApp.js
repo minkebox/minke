@@ -100,6 +100,7 @@ MinkeApp.prototype = {
   start: async function() {
   
     const config = {
+      Hostname: this._name,
       Image: this._image, // Use the human-readable name
       HostConfig: {
         PortBindings: {},
@@ -220,8 +221,22 @@ MinkeApp.startApps = async function(app) {
   });
 
   // Start all the apps
-  await Promise.all((await Database.getApps()).map(async (info) => {
-    return new MinkeApp().createFromJSON(info).start();
+  const running = await docker.listContainers();
+  const runningNames = running.reduce((accumulator, container) => {
+    if (container.Config && Container.Config.Hostname) {
+      accumulator.push(Container.Config.Hostname);
+    }
+    return accumulator;
+  }, []);
+  const apps = await Database.getApps();
+  await Promise.all(apps.map(async (info) => {
+    const app = new MinkeApp().createFromJSON(info);
+    // Stop if running
+    const idx = runningNames.indexOf(app._name);
+    if (idx !== -1) {
+      await running[idx].stop();
+    }
+    await app.start();
   }));
 }
 
