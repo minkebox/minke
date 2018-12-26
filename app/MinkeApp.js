@@ -222,12 +222,7 @@ MinkeApp.startApps = async function(app) {
 
   // Start all the apps
   const running = await docker.listContainers();
-  const runningNames = running.reduce((accumulator, container) => {
-    if (container.Config && Container.Config.Hostname) {
-      accumulator.push(Container.Config.Hostname);
-    }
-    return accumulator;
-  }, []);
+  const runningNames = running.map(container => (container.Config || {}).Hostname || '-');
   const apps = await Database.getApps();
   await Promise.all(apps.map(async (info) => {
     const app = new MinkeApp().createFromJSON(info);
