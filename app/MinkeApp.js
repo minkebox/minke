@@ -116,7 +116,7 @@ MinkeApp.prototype = {
         PortBindings: Object.assign.apply({}, [{}].concat(this._ports.map((port) => {
           return { [port.target]: [{ HostPort: port.host }] }
         }))),
-        RestartPolicy: { Name: 'unless-stopped' }
+        RestartPolicy: { Name: 'on-failure' }
       },
       Env: this._env
     };
