@@ -3,6 +3,7 @@ const DNSForward = require('./DNSForward');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
+const UPNP = require('./UPNP');
 
 const DEBUG = !!process.env.DEBUG;
 
@@ -31,10 +32,11 @@ MinkeApp.prototype = {
     if (config.type === 'map') {
       this._ports = Object.keys(containerConfig.ExposedPorts).map((port) => {
         return {
-          style: 'portmap',
           name: `${this._name}:${port}`,
           target: port,
-          host: parseInt(port)
+          host: parseInt(port),
+          protocol: port.split('/')[1].toLocaleUpperCase(),
+          nat: false
         }
       });
     }
@@ -114,18 +116,22 @@ MinkeApp.prototype = {
             }
           }
         }),
-        PortBindings: Object.assign.apply({}, [{}].concat(this._ports.map((port) => {
-          return { [port.target]: [{ HostPort: port.host }] }
-        }))),
         RestartPolicy: { Name: 'on-failure' }
       },
       Env: this._env
     };
 
+    // If we don't have our own IP, then we might need to forward some ports
+    if (!this._ip4) {
+      config.PortBindings = Object.assign.apply({}, [{}].concat(this._ports.map((port) => {
+        return { [port.target]: [{ HostPort: port.host }] }
+      })));
+    }
+
     // Primary network is the host network, not the bridge
     if (this._ip4) {
       const hostnet = await Network.getHostNetwork();
-      this._ip4 = await Network.getHomeIP4(`${this._name}/${this._image}`, this._ip4);
+      this._ip4 = await Network.getHomeIP4(`minke-${this._name}`, this._ip4);
       config.NetworkingConfig = {
         EndpointsConfig: {
           [hostnet.id]: {
@@ -137,6 +143,21 @@ MinkeApp.prototype = {
       };
       config.MacAddress = this._ip4.mac;
       config.HostConfig.NetworkMode = hostnet.id;
+    }
+
+    if (this._ports.length) {
+      await Promise.all(this._ports.map(async (port) => {
+        if (port.nat) {
+          if (!this._upnp) {
+            const ipaddr = this._ip4 ? this._ip4.address : (await Network.getActiveInterface()).network.ip_address;
+            this._upnp = await UPNP.create(ipaddr);
+          }
+          await this._upnp.exposePort(port.protocol, port.host);
+        }
+      }));
+      if (this._upnp) {
+        this._upnp.sleep();
+      }
     }
 
     if (DEBUG) {
@@ -192,6 +213,10 @@ MinkeApp.prototype = {
     }
     await this._container.stop();
 
+    if (this._upnp) {
+      await this._upnp.unexposeAll();
+    }
+
     return this;
   },
 
@@ -237,7 +262,8 @@ MinkeApp.startApps = async function(app) {
 
 MinkeApp.shutdown = async function() {
   return Promise.all(Object.values(applications).map(async (app) => {
-    return app.stop();
+    await app.stop();
+    await app.save();
   }));
 }
 
