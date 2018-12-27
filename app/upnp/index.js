@@ -457,7 +457,7 @@ class UPNPService {
       ['NewInternalClient', local],
       ['NewInternalPort', dest],
       ['NewEnabled', '1'],
-      ['NewPortMappingDescription', 'upnp:nodejs'],
+      ['NewPortMappingDescription', 'upnp:minke'],
       ['NewLeaseDuration', ttl || 0]
     ], local);
 
