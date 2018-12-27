@@ -1,7 +1,5 @@
 {
   "dependencies": {
-    "binet": "^0.3.3",
-    "brq": "^0.1.4",
     "bsert": "0.0.7",
     "bupnp": "^0.2.4",
     "dockerode": "^2.5.7",

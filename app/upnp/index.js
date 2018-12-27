@@ -9,8 +9,6 @@
 const assert = require('bsert');
 const dgram = require('dgram');
 const url = require('url');
-const brq = require('brq');
-const IP = require('binet');
 const Http = require('http');
 const Https = require('https');
 
@@ -182,11 +180,28 @@ class UPNP {
     if (!targets)
       targets = UPNP.WAN_SERVICES;
 
-    const res = await brq({
-      method: 'GET',
-      url: location,
-      timeout: UPNP.RESPONSE_TIMEOUT,
-      expect: 'xml'
+    const res = await new Promise((resolve, reject) => {
+      const protocol = location.substring(0, 5) === 'https' ? Https : Http;
+      const r = protocol.request(location, {
+        method: 'GET',
+        timeout: UPNP.RESPONSE_TIMEOUT,
+      }, (conn) => {
+        let b = null;
+        conn.on('data', (chunk) => {
+          b = b ? Buffer.concat([ b, chunk ]) : chunk;
+        });
+        conn.on('end', () => {
+          resolve({
+            text: () => {
+              return b.toString('utf8');
+            }
+          });
+        });
+      });
+      r.on('error', (e) => {
+        reject(e);
+      });
+      r.end();
     });
 
     const xml = XMLElement.fromRaw(res.text());
@@ -690,7 +705,7 @@ function findIP(el) {
   if (!child)
     return null;
 
-  return IP.normalize(child.text);
+  return child.text;
 }
 
 function findError(el) {
