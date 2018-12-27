@@ -44,15 +44,15 @@ const UPNP = {
         if (woke++ === 0 && iface.network.ip_address != ipaddress) {
           // We're creating a NAT for another service. The NAT service may be secure and not support this
           // unless the request comes from the same ip as the service.
-          ChildProcess.spawnSync('/bin/ip', [ 'address', 'add', `${ipaddress}/${iface.netmask.bitmask}`, 'dev', iface.network.name ]);
-          //console.log('/bin/ip', [ 'address', 'add', `${ipaddress}/${iface.netmask.bitmask}`, 'dev', iface.network.name ]);
+          ChildProcess.spawnSync('ip', [ 'address', 'add', `${ipaddress}/${iface.netmask.bitmask}`, 'dev', iface.network.name ]);
+          //console.log('ip', [ 'address', 'add', `${ipaddress}/${iface.netmask.bitmask}`, 'dev', iface.network.name ]);
         }
       },
 
       sleep: function() {
         if (--woke === 0 && iface.network.ip_address != ipaddress) {
-          ChildProcess.spawnSync('/bin/ip', [ 'address', 'del', `${ipaddress}/${iface.netmask.bitmask}`, 'dev', iface.network.name ]);
-          //console.log('/bin/ip', [ 'address', 'del', `${ipaddress}/${iface.netmask.bitmask}`, 'dev', iface.network.name ]);
+          ChildProcess.spawnSync('ip', [ 'address', 'del', `${ipaddress}/${iface.netmask.bitmask}`, 'dev', iface.network.name ]);
+          //console.log('ip', [ 'address', 'del', `${ipaddress}/${iface.netmask.bitmask}`, 'dev', iface.network.name ]);
         }
       }
     }
