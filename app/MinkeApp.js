@@ -3,9 +3,10 @@ const DNSForward = require('./DNSForward');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
-const UPNP = require('./UPNP');
 
 const DEBUG = !!process.env.DEBUG;
+
+const MINKE_HELPER_IMAGE = 'timwilkinson/minke-helper';
 
 const TCP_HTTP = '80/tcp';
 const TCP_DNS = '53/udp';
@@ -30,13 +31,14 @@ MinkeApp.prototype = {
     const containerConfig = imageInfo.ContainerConfig;
 
     if (config.type === 'map') {
+      const portmap = config.portmap || {};
       this._ports = Object.keys(containerConfig.ExposedPorts).map((port) => {
         return {
           name: `${this._name}:${port}`,
           target: port,
-          host: parseInt(port),
+          host: (portmap[port] && portmap[port].port) || parseInt(port),
           protocol: port.split('/')[1].toLocaleUpperCase(),
-          nat: false
+          nat: (portmap[port] && portmap[port].nat) || false
         }
       });
     }
@@ -60,12 +62,14 @@ MinkeApp.prototype = {
       }
     }
 
+    // Host's need their own real ip addresses
     if (config.type === 'host') {
-      this._ip4 = {}; // IP4 will be created when app is started
+      this._ip4 = true;
     }
     else {
-      this._ip4 = null;
+      this._ip4 = false;
     }
+  
     this._needLink = !!containerConfig.ExposedPorts[TCP_HTTP];
     this._needDNS = !!(containerConfig.ExposedPorts[TCP_DNS] && containerConfig.ExposedPorts[UDP_DNS]);
 
@@ -102,7 +106,8 @@ MinkeApp.prototype = {
   start: async function() {
   
     const config = {
-      Hostname: this._name,
+      name: this._name,
+      Hostname: `minke-${this._name}`,
       Image: this._image, // Use the human-readable name
       HostConfig: {
         PortBindings: {},
@@ -116,7 +121,7 @@ MinkeApp.prototype = {
             }
           }
         }),
-        RestartPolicy: { Name: 'on-failure' }
+        AutoRemove: true
       },
       Env: this._env
     };
@@ -131,44 +136,18 @@ MinkeApp.prototype = {
     // Primary network is the host network, not the bridge
     if (this._ip4) {
       const hostnet = await Network.getHostNetwork();
-      this._ip4 = await Network.getHomeIP4(`minke-${this._name}`, this._ip4);
-      config.NetworkingConfig = {
-        EndpointsConfig: {
-          [hostnet.id]: {
-            IPAMConfig: {
-              IPv4Address: this._ip4.address
-            }
-          }
-        }
-      };
-      config.MacAddress = this._ip4.mac;
       config.HostConfig.NetworkMode = hostnet.id;
     }
 
-    if (this._ports.length) {
-      await Promise.all(this._ports.map(async (port) => {
-        if (port.nat) {
-          if (!this._upnp) {
-            const ipaddr = this._ip4 ? this._ip4.address : (await Network.getActiveInterface()).network.ip_address;
-            this._upnp = await UPNP.create(ipaddr);
-          }
-          await this._upnp.exposePort(port.protocol, port.host);
-        }
-      }));
-      if (this._upnp) {
-        this._upnp.sleep();
-      }
-    }
-
     if (DEBUG) {
-      config.HostConfig.AutoRemove = true;
       config.StopTimeout = 1;
-      delete config.HostConfig.RestartPolicy;
     }
   
     this._container = await docker.createContainer(config);
     await this._container.start();
     applications[this._name] = this;
+
+    this._startHelper();
 
     // If we're connected to the host network, we also need a bridge network. We have to add it after
     // the container is started otherwise it becomes eth0 (which we don't want).
@@ -195,9 +174,11 @@ MinkeApp.prototype = {
   },
 
   stop: async function() {
+
     if (this._dns) {
       DNSForward.removeForward(this._dns);
     }
+
     if (this._forward) {
       const idx = koaApp.middleware.indexOf(this._forward.http);
       if (idx !== -1) {
@@ -208,14 +189,12 @@ MinkeApp.prototype = {
         koaApp.ws.middleware.splice(widx, 1);
       }
     }
-    if (this._ip4) {
-      Network.releaseHomeIP4(this._ip4);
-    }
-    await this._container.stop();
 
-    if (this._upnp) {
-      await this._upnp.unexposeAll();
+    if (this._helperContainer) {
+      await this._helperContainer.stop();
     }
+
+    await this._container.stop();
 
     return this;
   },
@@ -223,6 +202,41 @@ MinkeApp.prototype = {
   save: async function() {
     await Database.saveApp(this);
     return this;
+  },
+
+  _startHelper: async function() {
+    const env = [];
+
+    if (this._ip4) {
+      env.push('ENABLE_DHCP=1');
+    }
+  
+    if (this._ports.length) {
+      const nat = [];
+      this._ports.map((port) => {
+        if (port.nat) {
+          nat.push(`${port.host}:${port.protocol}`);
+        }
+      });
+      if (nat.length) {
+        env.push(`ENABLE_NAT=${nat.join(' ')}`);
+      }
+    }
+  
+    if (env.length) {
+      const config = {
+        name: `${this._name}-helper`,
+        Image: MINKE_HELPER_IMAGE,
+        HostConfig: {
+          NetworkMode: `container:${this._container.id}`,
+          AutoRemove: true,
+          CapAdd: [ 'NET_ADMIN' ]
+        },
+        Env: env
+      };
+      this._helperContainer = await docker.createContainer(config);
+      await this._helperContainer.start();
+    }
   }
 
 }
@@ -247,14 +261,18 @@ MinkeApp.startApps = async function(app) {
 
   // Start all the apps
   const running = await docker.listContainers();
-  const runningNames = running.map(container => (container.Config || {}).Hostname || '-');
+  const runningNames = running.map(container => container.Names[0]);
   const apps = await Database.getApps();
   await Promise.all(apps.map(async (info) => {
     const app = new MinkeApp().createFromJSON(info);
     // Stop if running
-    const idx = runningNames.indexOf(app._name);
+    let idx = runningNames.indexOf(`/${app._name}`);
     if (idx !== -1) {
-      await running[idx].stop();
+      await (await docker.getContainer(running[idx].Id)).stop();
+      idx = runningNames.indexOf(`/${app._name}-helper`);
+      if (idx !== -1) {
+        await (await docker.getContainer(running[idx].Id)).stop();
+      }
     }
     await app.start();
   }));

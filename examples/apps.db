@@ -1,4 +1,4 @@
 {"$$indexCreated":{"fieldName":"name","unique":true,"sparse":false}}
 {"name":"proxy","image":"timwilkinson/dnsproxy","env":[],"link":true,"dns":true,"ip4":{},"ports":[],"binds":[],"_id":"kMjcw2UONgEIGwtX"}
 {"name":"wsdemo","image":"timwilkinson/websocketdemo","env":[],"link":true,"dns":false,"ip4":null,"ports":[],"binds":[{"name":"wsdemo:/public","shareable":false,"host":"/tmp/minke/fs/app/wsdemo/private/public","target":"/public"}],"_id":"K8s1XwUi7CK0KdRu"}
-{"name":"samba","image":"timwilkinson/samba","env":[],"link":true,"dns":true,"ip4":{},"ports":[],"binds":[{"name":"samba:/shareable","shareable":false,"host":"/tmp/minke/fs/shareable","target":"/shareable"}],"_id":"kMjcw2UONgEIGwtI"}
+{"name":"samba","image":"timwilkinson/samba","env":[],"link":false,"dns":false,"ip4":{},"ports":[{"target":"445/tcp","host":445,"protocol":"TCP","nat":true}],"binds":[{"name":"samba:/shareable","shareable":false,"host":"/tmp/minke/fs/shareable","target":"/shareable"}],"_id":"kMjcw2UONgEIGwtI"}
