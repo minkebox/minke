@@ -37,7 +37,7 @@ const Network = {
         mac: macAddress,
         features: 0,
         address: ip4.address,
-        hostname: hostname.replace(/\//g, '-')
+        hostname: hostname
       });
 
       let pending = true;
