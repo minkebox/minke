@@ -120,7 +120,7 @@ MinkeApp.prototype = {
             }
           }
         }),
-        Privileged: true,
+        //Privileged: true,
         AutoRemove: true
       },
       Env: this._env
@@ -239,43 +239,6 @@ MinkeApp.prototype = {
   save: async function() {
     await Database.saveApp(this);
     return this;
-  },
-
-  _createHelper: async function() {
-    const env = [];
-
-    if (this._ip4) {
-      env.push('ENABLE_DHCP=1');
-    }
-  
-    if (this._ports.length) {
-      const nat = [];
-      this._ports.map((port) => {
-        if (port.nat) {
-          nat.push(`${port.host}:${port.protocol}`);
-        }
-      });
-      if (nat.length) {
-        env.push(`ENABLE_NAT=${nat.join(' ')}`);
-      }
-    }
-  
-    if (env.length) {
-      const config = {
-        name: `${this._name}-helper`,
-        Image: MINKE_HELPER_IMAGE,
-        HostConfig: {
-          NetworkMode: `container:${this._container.id}`,
-          AutoRemove: true,
-          CapAdd: [ 'NET_ADMIN' ]
-        },
-        Env: env
-      };
-      return await docker.createContainer(config);
-    }
-    else {
-      return null;
-    }
   }
 
 }
