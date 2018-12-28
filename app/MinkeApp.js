@@ -110,7 +110,6 @@ MinkeApp.prototype = {
       Hostname: `minke-${this._name}`,
       Image: this._image, // Use the human-readable name
       HostConfig: {
-        PortBindings: {},
         Mounts: this._binds.map((bind) => {
           return {
             Type: 'bind',
@@ -121,6 +120,7 @@ MinkeApp.prototype = {
             }
           }
         }),
+        Privileged: true,
         AutoRemove: true
       },
       Env: this._env
@@ -142,24 +142,61 @@ MinkeApp.prototype = {
     if (DEBUG) {
       config.StopTimeout = 1;
     }
+
+    // Build the helper
+    const helperConfig = {
+      name: `${this._name}-helper`,
+      Hostname: config.Hostname,
+      Image: MINKE_HELPER_IMAGE,
+      HostConfig: {
+        NetworkMode: config.HostConfig.NetworkMode,
+        AutoRemove: true,
+        CapAdd: [ 'NET_ADMIN' ],
+        //Privileged: true
+      },
+      Env: []
+    };
+
+    if (this._ip4) {
+      helperConfig.Env.push('ENABLE_DHCP=1');
+    }
   
-    this._container = await docker.createContainer(config);
-    await this._container.start();
+    if (this._ports.length) {
+      const nat = [];
+      this._ports.map((port) => {
+        if (port.nat) {
+          nat.push(`${port.host}:${port.protocol}`);
+        }
+      });
+      if (nat.length) {
+        helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
+      }
+    }
+
     applications[this._name] = this;
 
-    this._startHelper();
+    if (helperConfig.Env.length) {
+      this._helperContainer = await docker.createContainer(helperConfig);
 
-    // If we're connected to the host network, we also need a bridge network. We have to add it after
-    // the container is started otherwise it becomes eth0 (which we don't want).
-    if (this._ip4) {
+      config.Hostname = null;
+      config.HostConfig.NetworkMode = `container:${this._helperContainer.id}`;
+
+      await this._helperContainer.start();
+
       const bridge = await Network.getBridgeNetwork();
       await bridge.connect({
-        Container: this._container.id
+        Container: this._helperContainer.id
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 5000);
       });
     }
 
-    const containerInfo = await this._container.inspect();
+    this._container = await docker.createContainer(config);
+    await this._container.start();
 
+    const containerInfo = await (this._helperContainer || this._container).inspect();
     const bridgeIP4Address = containerInfo.NetworkSettings.Networks.bridge.IPAddress;
     if (this._needLink) {
       this._forward = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: bridgeIP4Address, port: parseInt(TCP_HTTP) });
@@ -204,7 +241,7 @@ MinkeApp.prototype = {
     return this;
   },
 
-  _startHelper: async function() {
+  _createHelper: async function() {
     const env = [];
 
     if (this._ip4) {
@@ -234,8 +271,10 @@ MinkeApp.prototype = {
         },
         Env: env
       };
-      this._helperContainer = await docker.createContainer(config);
-      await this._helperContainer.start();
+      return await docker.createContainer(config);
+    }
+    else {
+      return null;
     }
   }
 
