@@ -105,21 +105,17 @@ MinkeApp.prototype = {
 
   start: async function() {
   
+    // Build the helper
+    const fs = Filesystem.createAppFS(this);
+    const helperVolume = fs.mapHelperVolume();
+    this._helperFsPath = fs.getLocal(helperVolume);
+  
     const config = {
       name: this._name,
       Hostname: `minke-${this._name}`,
       Image: this._image, // Use the human-readable name
       HostConfig: {
-        Mounts: this._binds.map((bind) => {
-          return {
-            Type: 'bind',
-            Source: bind.host,
-            Target: bind.target,
-            BindOptions: {
-              Propagation: 'rshared'
-            }
-          }
-        }),
+        Mounts: this._binds.concat([ helperVolume ]).map(bind => fs.makeBind(bind)),
         //Privileged: true,
         AutoRemove: true
       },
@@ -142,8 +138,7 @@ MinkeApp.prototype = {
     if (DEBUG) {
       config.StopTimeout = 1;
     }
-
-    // Build the helper
+  
     const helperConfig = {
       name: `${this._name}-helper`,
       Hostname: config.Hostname,
@@ -183,13 +178,15 @@ MinkeApp.prototype = {
 
       await this._helperContainer.start();
 
-      const bridge = await Network.getBridgeNetwork();
-      await bridge.connect({
-        Container: this._helperContainer.id
-      });
+      if (this._ip4) {
+        const bridge = await Network.getBridgeNetwork();
+        await bridge.connect({
+          Container: this._helperContainer.id
+        });
+      }
 
       await new Promise((resolve) => {
-        setTimeout(resolve, 5000);
+        setTimeout(resolve, DEBUG ? 1000 : 5000);
       });
     }
 
