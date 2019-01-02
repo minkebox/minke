@@ -8,43 +8,54 @@ let FS_HOSTPREFIX = FS_PREFIX;
 
 function Filesystem(app) {
   this._name = app._name;
+  this._mappings = app._binds;
   this._root = `${FS_PREFIX}/fs/app/${this._name}`;
   this._hostroot = `${FS_HOSTPREFIX}/fs/app/${this._name}`;
   FS.mkdirSync(`${this._root}/private`, { recursive: true });
   FS.mkdirSync(`${this._root}/shareable`, { recursive: true });
-  FS.mkdirSync(`${this._root}/helper`, { recursive: true });
+  //FS.mkdirSync(`${this._root}/helper`, { recursive: true });
 }
 
 Filesystem.prototype = {
 
   mapPrivateVolume: function(path) {
-    return {
+    const map = {
       name: `${this._name}:${path}`,
       shareable: false,
       host: Path.normalize(`/private/${path}`),
       target: path
     }
+    this._mappings.push(map);
+    return map;
   },
 
   mapShareableVolume: function(path) {
-    return {
+    const map = {
       name: `${this._name}:${path}`,
       shareable: true,
       host: Path.normalize(`/shareable/${path}`),
       target: path
-    }
+    };
+    this._mappings.push(map);
+    return map;
   },
 
-  mapHelperVolume: function() {
-    return {
+  /*mapHelperVolume: function() {
+    const map = {
       name: `${this._name}:/helper`,
       shareable: false,
       host: '/helper',
       target: '/minkehelper'
-    }
+    };
+    this._mappings.push(map);
+    return map;
+  },*/
+
+  getAllMounts: function() {
+    return this._mappings.map(map => this._makeMount(map));
   },
 
-  makeBind: function(bind) {
+  _makeMount: function(bind) {
     const src = Path.normalize(`${this._hostroot}/${bind.host}`);
     FS.mkdirSync(`${this._root}/${bind.host}`, { recursive: true });
     return {
@@ -59,6 +70,16 @@ Filesystem.prototype = {
 
   getLocal: function(bind) {
     return `${this._root}/${bind.host}`;
+  },
+
+  mapFilenameToLocal: function(filename) {
+    for (let i = 0; i < this._mappings.length; i++) {
+      const bind = this._mappings[i];
+      if (filename.indexOf(bind.target) === 0) {
+        return Path.normalize(`${getLocal(bind)}/${filename.substring(bind.target.length)}`);
+      }
+    }
+    return null;
   }
 
 }
