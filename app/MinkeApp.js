@@ -1,8 +1,11 @@
+const EventEmitter = require('events').EventEmitter;
+const Util = require('util');
 const HTTPForward = require('./HTTPForward');
 const DNSForward = require('./DNSForward');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
+const Render = require('./Render');
 
 const DEBUG = !!process.env.DEBUG;
 
@@ -16,6 +19,7 @@ const applications = {};
 let koaApp = null;
 
 function MinkeApp() {
+  EventEmitter.call(this);
 }
 
 MinkeApp.prototype = {
@@ -104,18 +108,18 @@ MinkeApp.prototype = {
   },
 
   start: async function() {
+
+    this.emit('starting');
   
     // Build the helper
-    const fs = Filesystem.createAppFS(this);
-    const helperVolume = fs.mapHelperVolume();
-    this._helperFsPath = fs.getLocal(helperVolume);
+    this._fs = Filesystem.createAppFS(this);
   
     const config = {
       name: this._name,
       Hostname: `minke-${this._name}`,
       Image: this._image, // Use the human-readable name
       HostConfig: {
-        Mounts: this._binds.concat([ helperVolume ]).map(bind => fs.makeBind(bind)),
+        Mounts: this._fs.getAllMounts(),
         //Privileged: true,
         AutoRemove: true
       },
@@ -185,8 +189,21 @@ MinkeApp.prototype = {
         });
       }
 
+      // Wait while the helper configures everything.
+      const log = await this._helperContainer.logs({
+        follow: true,
+        stdout: true,
+        stderr: false
+      });
       await new Promise((resolve) => {
-        setTimeout(resolve, DEBUG ? 1000 : 5000);
+        docker.modem.demuxStream(log, {
+          write: (data) => {
+            if (data.toString('utf8').indexOf('MINKE:UP') !== -1) {
+              log.destroy();
+              resolve();
+            }
+          }
+        }, null);
       });
     }
 
@@ -204,10 +221,14 @@ MinkeApp.prototype = {
       this._dns = DNSForward.createForward({ name: this._name, IP4Address: bridgeIP4Address });
     }
 
+    this.emit('started');
+
     return this;
   },
 
   stop: async function() {
+
+    this.emit('stopping');
 
     if (this._dns) {
       DNSForward.removeForward(this._dns);
@@ -225,10 +246,22 @@ MinkeApp.prototype = {
     }
 
     if (this._helperContainer) {
-      await this._helperContainer.stop();
+      try {
+        await this._helperContainer.stop();
+      }
+      catch (_) {
+      }
     }
 
-    await this._container.stop();
+    try {
+      await this._container.stop();
+    }
+    catch (_) {
+    }
+
+    delete applications[this._name];
+
+    this.emit('stopped');
 
     return this;
   },
@@ -236,9 +269,42 @@ MinkeApp.prototype = {
   save: async function() {
     await Database.saveApp(this);
     return this;
+  }, 
+
+  _test: async function() {
+    // date,ping,down,up
+    this._createStatusRenderer({
+      watch: '/var/www/html/data/result.csv',
+      cmd: 'tail -1 /var/www/html/data/result.csv', 
+      parser: `const args = input.split(',');
+      output = {
+        date: new Date(args[0]),
+        pingMs: parseFloat(args[1]),
+        downloadMB: parseFloat(args[2]),
+        uploadMB: parseFloat(args[3])
+      }`,
+      template: '<div>Ping: {{ping}} ms</div><div>Download: {{downloadMB}} MB/s</div><div>Upload: {{uploadMB}} MB/s</div>'
+    });
+  },
+
+  _createStatusRenderer: async function(args) {
+    this._statusRender = Render.create({
+      app: this,
+      cmd: args.cmd,
+      parser: args.parser,
+      template: args.template,
+      watch: args.watch,
+      callback: (html) => {
+        this._statusHTML = html;
+        this.emit('status.update', { app: this, html: this._statusHTML });
+      }
+    });
+    this._statusHTML = await this._statusRender.run();
+    this.emit('status.update', { app: this, html: this._statusHTML });
   }
 
 }
+Util.inherits(MinkeApp, EventEmitter);
 
 MinkeApp.startApps = async function(app) {
 
@@ -268,10 +334,10 @@ MinkeApp.startApps = async function(app) {
     let idx = runningNames.indexOf(`/${app._name}`);
     if (idx !== -1) {
       await (await docker.getContainer(running[idx].Id)).stop();
-      idx = runningNames.indexOf(`/${app._name}-helper`);
-      if (idx !== -1) {
-        await (await docker.getContainer(running[idx].Id)).stop();
-      }
+    }
+    idx = runningNames.indexOf(`/${app._name}-helper`);
+    if (idx !== -1) {
+      await (await docker.getContainer(running[idx].Id)).stop();
     }
     await app.start();
   }));
@@ -282,6 +348,10 @@ MinkeApp.shutdown = async function() {
     await app.stop();
     await app.save();
   }));
+}
+
+MinkeApp.getRunningApps = function() {
+  return applications;
 }
 
 module.exports = MinkeApp;

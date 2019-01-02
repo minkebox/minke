@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "dockerode": "^2.5.7",
+    "handlebars": "^4.0.12",
     "koa": "^2.6.2",
     "koa-router": "^7.4.0",
     "koa-websocket": "^5.0.1",
@@ -8,6 +9,7 @@
     "netmask": "^1.0.6",
     "network": "^0.4.1",
     "node-fetch": "^2.3.0",
+    "stream-buffers": "^3.0.2",
     "ws": "^6.1.2"
   }
 }
