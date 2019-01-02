@@ -1,10 +1,12 @@
 #! /usr/bin/node
 
+const FS = require('fs');
 const Koa = require('koa');
 const Router = require('koa-router');
 const Websockify = require('koa-websocket');
 const Docker = require('dockerode');
 
+const MainPage = require('./MainPage');
 const MinkeApp = require('./MinkeApp');
 
 const App = Websockify(new Koa());
@@ -15,11 +17,19 @@ App.on('error', (err) => {
 });
 
 const root = Router();
+const wsroot = Router();
 
-root.get('/', async (ctx) => {
-  ctx.body = 'Hello\n';
+root.get('/', MainPage.HTML);
+wsroot.get('/ws', MainPage.WS);
+
+root.get('/script.js', async (ctx) => {
+  ctx.body = FS.readFileSync(`${__dirname}/script/script.js`, { encoding: 'utf8' });
+  ctx.type = 'text/javascript';
 });
-
+root.get('/style.css', async (ctx) => {
+  ctx.body = FS.readFileSync(`${__dirname}/css/style.css`, { encoding: 'utf8' });
+  ctx.type = 'text/css';
+});
 
 (async function() {
   await MinkeApp.startApps(App);
@@ -29,6 +39,7 @@ root.get('/', async (ctx) => {
 
 
 App.use(root.middleware());
+App.ws.use(wsroot.middleware());
 App.ws.use(async (ctx, next) => {
   await next(ctx);
   if (ctx.websocket.listenerCount('message') === 0) {
