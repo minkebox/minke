@@ -1,5 +1,43 @@
-.applications {}
-.application {}
-.application .name {}
-.application .status {}
-.applicaiton .link {}
+html {
+  background-color: rgb(158, 180, 255);
+  font-family: sans-serif;
+}
+.applications {
+}
+.application-box {
+  box-sizing: border-box;
+  width: 50%;
+  min-width: 500px;
+  float: left;
+  padding: 5px;
+}
+.application {
+  min-height: 150px;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0px 0px 4px 1px rgb(112, 134, 255);
+  padding: 10px;
+}
+.application .name {
+  display: inline-block;
+  font-size: 20px;
+  padding-bottom: 5px;
+}
+.application .ready {
+  display: inline-block;
+  padding-left: 5px;
+  color: red;
+}
+.application .ready .online {
+  color: green;
+}
+.application .status {
+  height: 100px;
+  max-height: 100px;
+  overflow: hidden;
+  border-top: 1px solid lightgrey;
+  padding-top: 5px;
+}
+.application .link {
+  float: right;
+}

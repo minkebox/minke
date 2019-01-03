@@ -7,12 +7,13 @@
   <body>
     <div class="applications">
       {{#each apps}}
-        <div id="application-{{name}}" class="application">
-          <div class="name">{{name}}</div>
-          <div class="status">{{status}}</div>
-          {{#if link}}
-          <a class="link" href="/a/{{name}}/">Link</a>
-          {{/if}}
+        <div class="application-box">
+          <div id="application-{{name}}" class="application">
+            <div class="name">{{name}}</div>
+            <div class="ready">{{#if online}}<span class="online">online</span>{{else}}<span class="offline">offline</span>{{/if}}</div>
+            <div class="status">{{status}}</div>
+            {{#if link}}<a class="link" href="/a/{{name}}/">Link</a>{{/if}}
+          </div>
         </div>
       {{/each}}
     </div>
