@@ -1,9 +1,10 @@
 const VM = require('vm');
 const FS = require('fs');
 const Handlebars = require('handlebars');
-const StreamBuffers = require('stream-buffers');
 
-async function runCmd(app, cmd, parser) {
+const DEFAULT_POLLING = 60; // Default polling is 60 seconds
+
+async function runCmd(app, cmd) {
   const exec = await app._container.exec({
     AttachStdin: false,
     AttachStdout: true,
@@ -12,40 +13,54 @@ async function runCmd(app, cmd, parser) {
     Cmd: typeof cmd === 'string' ? cmd.split(' ') : cmd
   });
   const stream = await exec.start();
-  const buffer = new StreamBuffers.WritableStreamBuffer();
-  docker.modem.demuxStream(stream.output, buffer, null);
+  let buffer = '';
+  docker.modem.demuxStream(stream.output, {
+    write: (data) => {
+      buffer += data.toString('utf8');
+    }
+  }, null);
   return new Promise((resolve) => {
     stream.output.on('close', () => {
-      const sandbox = { input: buffer.getContentsAsString('utf8'), output: {} };
-      VM.runInNewContext(parser || 'output=input', sandbox);
-      resolve(sandbox.output);
+      resolve(buffer);
     });
   });
 }
 
-function RenderWatchCmd(app, cmd, parser, template, watch, callback) {
+function RenderWatchCmd(app, cmd, parser, template, watch, polling, callback) {
   const ctemplate = template ? Handlebars.compile(template) : (input) => { return input; };
-  let iswatching = !watch;
-  let enabled = true;
+  let watcher = null;
+  let clock = null;
+  const listener = async () => {
+    callback(await this.run());
+  }
   this.run = async () => {
-    enabled = true;
-    if (!iswatching) {
-      iswatching = true;
-      if (watch) {
-        FS.watch(watch, {
-          persistent: false,
-          recursive: false
-        }, async () => {
-          if (enabled) {
-            callback(await this.run());
-          }
-        });
+    if (callback) {
+      if (watch && !watcher) {
+        watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
+      }
+      else if (!watch && !clock) {
+        clock = setInterval(listener, polling * 1000);
       }
     }
-    return ctemplate(await runCmd(app, cmd, parser));
+    try {
+      const sandbox = { input: await runCmd(app, cmd), output: {} };
+      VM.runInNewContext(parser || 'output=input', sandbox);
+      return ctemplate(sandbox.output);
+    }
+    catch (e) {
+      console.error(e);
+      return '';
+    }
   }
-  this.stopWatching = () => {
-    enabled = false;
+  this.stop = () => {
+    if (watcher) {
+      watcher.close();
+      watcher = null;
+    }
+    if (clock) {
+      clearInterval(clock);
+      clock = null;
+    }
   }
 }
 
@@ -56,11 +71,10 @@ const _Render = {
     if (args.watch) {
       lwatch = args.app._fs.mapFilenameToLocal(args.watch);
       if (!lwatch) {
-        console.error(`Cannot watch ${args.watch} as it isn't reachable from a bind mount`);
-        return null;
+        console.warn(`Cannot watch ${args.watch} as it isn't reachable - falling back on polling`);
       }
     }
-    return new RenderWatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.callback);
+    return new RenderWatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling || DEFAULT_POLLING, args.callback);
   }
 
 };
