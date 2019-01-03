@@ -6,9 +6,7 @@ async function MainPageHTML(ctx) {
   const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
   const apps = Object.values(MinkeApp.getRunningApps()).map((app) => {
     return {
-      online: true,
       name: app._name,
-      status: app._statusHTML,
       link: !!app._forward
     }
   })
@@ -32,8 +30,7 @@ async function MainPageWS(ctx) {
 
   ctx.websocket.on('close', () => {
     for (let name in apps) {
-      const app = apps[name];
-      app.removeListener('status.update', update);
+      apps[name].off('status.update', update);
     }
   });
 
@@ -42,19 +39,16 @@ async function MainPageWS(ctx) {
   });
 
   for (let name in apps) {
-    const app = apps[name];
-    app.on('status.update', update);
+    apps[name].on('status.update', update);
   }
 
   let count = 1;
   let clock = setInterval(() => {
     try {
-      ctx.websocket.send(JSON.stringify({
-        type: 'html.update',
-        id: 'wsdemo',
-        html: `<div>${count}</div>`
-      }));
-      count++;
+      update({
+        app: { _name: 'wsdemo' },
+        html: `<div>${count++}</div>`
+      });
     }
     catch (_) {
       clearInterval(clock);

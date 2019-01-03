@@ -9,7 +9,6 @@
     "netmask": "^1.0.6",
     "network": "^0.4.1",
     "node-fetch": "^2.3.0",
-    "stream-buffers": "^3.0.2",
     "ws": "^6.1.2"
   }
 }

@@ -74,7 +74,7 @@ MinkeApp.prototype = {
       this._ip4 = false;
     }
   
-    this._needLink = !!containerConfig.ExposedPorts[TCP_HTTP];
+    this._needLink = !!containerConfig.ExposedPorts[TCP_HTTP] && !!this._ip4;
     this._needDNS = !!(containerConfig.ExposedPorts[TCP_DNS] && containerConfig.ExposedPorts[UDP_DNS]);
 
     return this;
@@ -221,6 +221,8 @@ MinkeApp.prototype = {
       this._dns = DNSForward.createForward({ name: this._name, IP4Address: bridgeIP4Address });
     }
 
+    this._test2();
+
     this.emit('started');
 
     return this;
@@ -287,20 +289,56 @@ MinkeApp.prototype = {
     });
   },
 
-  _createStatusRenderer: async function(args) {
+  _test2: async function() {
+    this._createStatusRenderer({
+      polling: 10,
+      cmd: 'ls /', 
+      parser: `const args = input.split('\\n');
+      output = {
+        first: args[0]
+      }`,
+      template: '<div>{{first}} item</div>'
+    });
+  },
+
+  _createStatusRenderer: function(args) {
+    let listenerCount = this.listenerCount('status.update');
+    let statusHTML = '';
+  
     this._statusRender = Render.create({
       app: this,
       cmd: args.cmd,
       parser: args.parser,
       template: args.template,
       watch: args.watch,
+      polling: args.polling,
       callback: (html) => {
-        this._statusHTML = html;
-        this.emit('status.update', { app: this, html: this._statusHTML });
+        statusHTML = html;
+        this.emit('status.update', { app: this, html: statusHTML });
       }
     });
-    this._statusHTML = await this._statusRender.run();
-    this.emit('status.update', { app: this, html: this._statusHTML });
+
+    this.on('newListener', async (event, listener) => {
+      if (event === 'status.update') {
+        if (listenerCount++ === 0) {
+          statusHTML = await this._statusRender.run();
+        }
+        listener({ app: this, html: statusHTML });
+      }
+    });
+    this.on('removeListener', (event, listener) => {
+      if (event === 'status.update') {
+        if (--listenerCount === 0) {
+          this._statusRender.stop();
+        }
+      }
+    });
+    if (listenerCount > 0) {
+      (async () => {
+        statusHTML = await this._statusRender.run();
+        this.emit('status.update', { app: this, html: statusHTML });
+      })();
+    }
   }
 
 }
