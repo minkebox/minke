@@ -15,11 +15,12 @@ const TCP_HTTP = '80/tcp';
 const TCP_DNS = '53/udp';
 const UDP_DNS = '53/udp';
 
-const applications = {};
+let applications = null;
 let koaApp = null;
 
 function MinkeApp() {
   EventEmitter.call(this);
+  this._setupUpdateListeners();
 }
 
 MinkeApp.prototype = {
@@ -77,6 +78,8 @@ MinkeApp.prototype = {
     this._needLink = !!containerConfig.ExposedPorts[TCP_HTTP] && !!this._ip4;
     this._needDNS = !!(containerConfig.ExposedPorts[TCP_DNS] && containerConfig.ExposedPorts[UDP_DNS]);
 
+    this._setOnline(false);
+
     return this;
   },
 
@@ -90,6 +93,8 @@ MinkeApp.prototype = {
     this._ip4 = app.ip4;
     this._needLink = app.link;
     this._needDNS = app.dns;
+
+    this._setOnline(false);
 
     return this;
   },
@@ -108,8 +113,6 @@ MinkeApp.prototype = {
   },
 
   start: async function() {
-
-    this.emit('starting');
   
     // Build the helper
     this._fs = Filesystem.createAppFS(this);
@@ -172,8 +175,6 @@ MinkeApp.prototype = {
       }
     }
 
-    applications[this._name] = this;
-
     if (helperConfig.Env.length) {
       this._helperContainer = await docker.createContainer(helperConfig);
 
@@ -221,16 +222,16 @@ MinkeApp.prototype = {
       this._dns = DNSForward.createForward({ name: this._name, IP4Address: bridgeIP4Address });
     }
 
-    this._test2();
+    this._test2(); // XXX
 
-    this.emit('started');
+    this._setOnline(true);
 
     return this;
   },
 
   stop: async function() {
 
-    this.emit('stopping');
+    this._statusRender.stop();
 
     if (this._dns) {
       DNSForward.removeForward(this._dns);
@@ -261,10 +262,8 @@ MinkeApp.prototype = {
     catch (_) {
     }
 
-    delete applications[this._name];
-
-    this.emit('stopped');
-
+    this._setOnline(false);
+  
     return this;
   },
 
@@ -302,8 +301,8 @@ MinkeApp.prototype = {
   },
 
   _createStatusRenderer: function(args) {
-    let listenerCount = this.listenerCount('status.update');
-    let statusHTML = '';
+    const eventName = 'update.status';
+    let listenerCount = this.listenerCount('update.status');
   
     this._statusRender = Render.create({
       app: this,
@@ -313,32 +312,64 @@ MinkeApp.prototype = {
       watch: args.watch,
       polling: args.polling,
       callback: (html) => {
-        statusHTML = html;
-        this.emit('status.update', { app: this, html: statusHTML });
+        this._emit(eventName, { html: html });
       }
     });
 
-    this.on('newListener', async (event, listener) => {
-      if (event === 'status.update') {
-        if (listenerCount++ === 0) {
-          statusHTML = await this._statusRender.run();
-        }
-        listener({ app: this, html: statusHTML });
+    this._eventState[eventName] = {
+      data: '',
+      start: async () => {
+        this._emit(eventName, { html: await this._statusRender.run() });
+      },
+      stop: async () => {
+        await this._statusRender.stop();
       }
-    });
-    this.on('removeListener', (event, listener) => {
-      if (event === 'status.update') {
-        if (--listenerCount === 0) {
-          this._statusRender.stop();
-        }
-      }
-    });
-    if (listenerCount > 0) {
-      (async () => {
-        statusHTML = await this._statusRender.run();
-        this.emit('status.update', { app: this, html: statusHTML });
-      })();
+    };
+
+    if (this.listenerCount(eventName) > 0) {
+      this._eventState[eventName].start();
     }
+  },
+
+  _setOnline: function(online) {
+    if (this._online === online) {
+      return;
+    }
+    this._online = online;
+    this._emit('update.online', { online: online });
+  },
+
+  _setupUpdateListeners: function() {
+
+    this._eventState = {};
+
+    this.on('newListener', async (event, listener) => {
+      const state = this._eventState[event];
+      if (state) {
+        if (this.listenerCount(event) === 0 && state.start) {
+          await state.start();
+        }
+        listener(state.data);
+      }
+    });
+
+    this.on('removeListener', async (event, listener) => {
+      const state = this._eventState[event];
+      if (state) {
+        if (this.listenerCount(event) === 0 && state.stop) {
+          await state.stop();
+        }
+      }
+    });
+  },
+
+  _emit: function(event, data) {
+    if (!this._eventState[event]) {
+      this._eventState[event] = {};
+    }
+    data.app = this;
+    this._eventState[event].data = data;
+    this.emit(event, data);
   }
 
 }
@@ -362,12 +393,16 @@ MinkeApp.startApps = async function(app) {
     }
   });
 
-  // Start all the apps
   const running = await docker.listContainers();
   const runningNames = running.map(container => container.Names[0]);
-  const apps = await Database.getApps();
-  await Promise.all(apps.map(async (info) => {
-    const app = new MinkeApp().createFromJSON(info);
+
+  // Load all the apps
+  applications = (await Database.getApps()).map((json) => {
+    return new MinkeApp().createFromJSON(json);
+  });
+
+  // Start all the apps
+  await Promise.all(applications.map(async (app) => {
     // Stop if running
     let idx = runningNames.indexOf(`/${app._name}`);
     if (idx !== -1) {
@@ -382,13 +417,13 @@ MinkeApp.startApps = async function(app) {
 }
 
 MinkeApp.shutdown = async function() {
-  return Promise.all(Object.values(applications).map(async (app) => {
+  return Promise.all(applications.map(async (app) => {
     await app.stop();
     await app.save();
   }));
 }
 
-MinkeApp.getRunningApps = function() {
+MinkeApp.getApps = function() {
   return applications;
 }
 

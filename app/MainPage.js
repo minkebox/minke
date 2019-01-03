@@ -4,8 +4,9 @@ const MinkeApp = require('./MinkeApp');
 
 async function MainPageHTML(ctx) {
   const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
-  const apps = Object.values(MinkeApp.getRunningApps()).map((app) => {
+  const apps = MinkeApp.getApps().map((app) => {
     return {
+      online: app._online,
       name: app._name,
       link: !!app._forward
     }
@@ -15,45 +16,42 @@ async function MainPageHTML(ctx) {
 }
 
 async function MainPageWS(ctx) {
-  const apps = MinkeApp.getRunningApps();
+  const apps = MinkeApp.getApps();
 
-  function update(status) {
+  function updateOnline(status) {
     ctx.websocket.send(JSON.stringify({
-      type: 'html.update',
-      id: status.app._name,
+      type: 'update.html',
+      selector: `#application-${status.app._name} .ready`,
+      html: status.online ? '<span class="online">online</span>' : '<span class="offline">offline</span>'
+    }));
+  }
+  function updateStatus(status) {
+    ctx.websocket.send(JSON.stringify({
+      type: 'update.html',
+      selector: `#application-${status.app._name} .status`,
       html: status.html
     }));
   }
 
   ctx.websocket.on('message', (msg) => {
+    // ...
   });
 
   ctx.websocket.on('close', () => {
-    for (let name in apps) {
-      apps[name].off('status.update', update);
-    }
+    apps.forEach((app) => {
+      app.off('update.online', updateOnline);
+      app.off('update.status', updateStatus);
+    });
   });
 
   ctx.websocket.on('error', () => {
     ctx.websocket.close();
   });
 
-  for (let name in apps) {
-    apps[name].on('status.update', update);
-  }
-
-  let count = 1;
-  let clock = setInterval(() => {
-    try {
-      update({
-        app: { _name: 'wsdemo' },
-        html: `<div>${count++}</div>`
-      });
-    }
-    catch (_) {
-      clearInterval(clock);
-    }
-  }, 1000);
+  apps.forEach((app) => {
+    app.on('update.online', updateOnline);
+    app.on('update.status', updateStatus);
+  });
 }
 
 module.exports = {
