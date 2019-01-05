@@ -131,9 +131,12 @@ MinkeApp.prototype = {
 
     // If we don't have our own IP, then we might need to forward some ports
     if (!this._ip4) {
-      config.PortBindings = Object.assign.apply({}, [{}].concat(this._ports.map((port) => {
-        return { [port.target]: [{ HostPort: port.host }] }
-      })));
+      config.PortBindings = [];
+      this._ports.forEach((port) => {
+        if (port.target && port.host) {
+          config.PortBindings.push({ [port.target]: [{ HostPort: port.host }] });
+        }
+      });
     }
 
     // Primary network is the host network, not the bridge
@@ -156,7 +159,9 @@ MinkeApp.prototype = {
         CapAdd: [ 'NET_ADMIN' ],
         //Privileged: true
       },
-      Env: []
+      Env: [
+        `NAME=${this._name}`
+      ]
     };
 
     if (this._ip4) {
@@ -165,13 +170,20 @@ MinkeApp.prototype = {
   
     if (this._ports.length) {
       const nat = [];
-      this._ports.map((port) => {
+      const mdns = [];
+      this._ports.forEach((port) => {
         if (port.nat) {
           nat.push(`${port.host}:${port.protocol}`);
+        }
+        if (port.mdns) {
+          mdns.push(`${port.mdns.type}:${port.host}:${port.mdns.txt}`);
         }
       });
       if (nat.length) {
         helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
+      }
+      if (mdns.length) {
+        helperConfig.Env.push(`ENABLE_MDNS=${mdns.join(' ')}`);
       }
     }
 
