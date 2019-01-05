@@ -1,4 +1,4 @@
-function onload() {
+window.onpageshow = function() {
   const ws = new WebSocket(`ws://${location.host}/ws`);
   ws.addEventListener('message', function(event) {
     const msg = JSON.parse(event.data);
@@ -14,5 +14,3 @@ function onload() {
     }
   });
 }
-
-window.onpageshow = onload;

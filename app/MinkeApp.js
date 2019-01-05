@@ -128,13 +128,12 @@ MinkeApp.prototype = {
       },
       Env: this._env
     };
-
     // If we don't have our own IP, then we might need to forward some ports
     if (!this._ip4) {
-      config.PortBindings = [];
+      config.PortBindings = {}
       this._ports.forEach((port) => {
         if (port.target && port.host) {
-          config.PortBindings.push({ [port.target]: [{ HostPort: port.host }] });
+          config.PortBindings[port.target] = [{ HostPort: port.host }];
         }
       });
     }
@@ -159,9 +158,7 @@ MinkeApp.prototype = {
         CapAdd: [ 'NET_ADMIN' ],
         //Privileged: true
       },
-      Env: [
-        `NAME=${this._name}`
-      ]
+      Env: []
     };
 
     if (this._ip4) {
@@ -188,6 +185,7 @@ MinkeApp.prototype = {
     }
 
     if (helperConfig.Env.length) {
+      helperConfig.Env.push(`NAME=${this._name}`);
       this._helperContainer = await docker.createContainer(helperConfig);
 
       config.Hostname = null;
@@ -243,7 +241,11 @@ MinkeApp.prototype = {
 
   stop: async function() {
 
-    this._statusRender.stop();
+    try {
+      this._statusRender.stop();
+    }
+    catch (_) {
+    }
 
     if (this._dns) {
       DNSForward.removeForward(this._dns);

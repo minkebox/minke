@@ -1,20 +1,32 @@
 html {
-  background-color: rgb(158, 180, 255);
+  background-color: lightgrey;
   font-family: sans-serif;
 }
+.applications-box {
+  padding-bottom: 20px;
+}
 .applications {
+  min-height: 50px;
+  background-color: rgb(158, 180, 255);
+  border-radius: 3px;
+  box-shadow: 0px 0px 4px 1px grey;
+  padding: 10px 9px;
+}
+.applications .title {
+  font-size: 20px;
+  padding: 5px;
 }
 .application-box {
   box-sizing: border-box;
   width: 50%;
   min-width: 500px;
   float: left;
-  padding: 5px;
+  padding: 10px;
 }
 .application {
   min-height: 150px;
   background-color: white;
-  border-radius: 5px;
+  border-radius: 3px;
   box-shadow: 0px 0px 4px 1px rgb(112, 134, 255);
   padding: 10px;
 }
@@ -25,6 +37,7 @@ html {
 }
 .application .ready {
   display: inline-block;
+  font-size: 12px;
   padding-left: 5px;
   color: red;
 }
@@ -35,7 +48,6 @@ html {
   height: 100px;
   max-height: 100px;
   overflow: hidden;
-  border-top: 1px solid lightgrey;
   padding-top: 5px;
 }
 .application .link {

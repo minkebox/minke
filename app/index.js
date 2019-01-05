@@ -52,3 +52,7 @@ process.on('SIGINT', async () => {
   await MinkeApp.shutdown();
   process.exit();
 });
+process.on('SIGTERM', async () => {
+  await MinkeApp.shutdown();
+  process.exit();
+});

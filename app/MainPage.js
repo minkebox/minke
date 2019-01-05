@@ -22,7 +22,7 @@ async function MainPageWS(ctx) {
     ctx.websocket.send(JSON.stringify({
       type: 'update.html',
       selector: `#application-${status.app._name} .ready`,
-      html: status.online ? '<span class="online">online</span>' : '<span class="offline">offline</span>'
+      html: status.online ? '<span class="online">running</span>' : '<span class="offline">stopped</span>'
     }));
   }
   function updateStatus(status) {
