@@ -173,7 +173,7 @@ MinkeApp.prototype = {
           nat.push(`${port.host}:${port.protocol}`);
         }
         if (port.mdns) {
-          mdns.push(`${port.mdns.type}:${port.host}:${port.mdns.txt}`);
+          mdns.push(`${port.mdns.type}:${port.host}:${port.mdns.txt || ''}`);
         }
       });
       if (nat.length) {
