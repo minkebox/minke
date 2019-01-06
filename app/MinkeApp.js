@@ -185,7 +185,6 @@ MinkeApp.prototype = {
     }
 
     if (helperConfig.Env.length) {
-      helperConfig.Env.push(`NAME=${this._name}`);
       this._helperContainer = await docker.createContainer(helperConfig);
 
       config.Hostname = null;
