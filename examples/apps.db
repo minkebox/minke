@@ -1,4 +1,4 @@
+{"name":"wsdemo","image":"timwilkinson/websocketdemo","env":[],"link":true,"dns":false,"ip4":null,"ports":[],"binds":[],"_id":"K8s1XwUi7CK0KdRu"}
+{"name":"samba","image":"timwilkinson/samba","env":[],"link":false,"dns":false,"ip4":{"address":"192.168.1.160","mac":"06:40:00:f8:3f:8a"},"ports":[{"target":"445/tcp","host":445,"protocol":"TCP","nat":false,"mdns":{"type":"_smb._tcp","txt":""}}],"binds":[{"name":"samba:/shareable","shareable":false,"host":"/shareable","target":"/shareable"}],"_id":"kMjcw2UONgEIGwtI"}
+{"name":"proxy","image":"timwilkinson/dnsproxy","env":[],"link":false,"dns":true,"ip4":{"address":"192.168.1.152","mac":"06:89:78:e8:ad:90"},"ports":[],"binds":[],"_id":"kMjcw2UONgEIGwtX"}
 {"$$indexCreated":{"fieldName":"name","unique":true,"sparse":false}}
-{"name":"proxy","image":"timwilkinson/dnsproxy","env":[],"link":true,"dns":true,"ip4":{},"ports":[],"binds":[],"_id":"kMjcw2UONgEIGwtX"}
-{"name":"wsdemo","image":"timwilkinson/websocketdemo","env":[],"link":true,"dns":false,"ip4":null,"ports":[],"binds":[{"name":"wsdemo:/public","shareable":false,"host":"/tmp/minke/fs/app/wsdemo/private/public","target":"/public"}],"_id":"K8s1XwUi7CK0KdRu"}
-{"name":"samba","image":"timwilkinson/samba","env":[],"link":false,"dns":false,"ip4":{},"ports":[{"target":"445/tcp","host":445,"protocol":"TCP","nat":true}],"binds":[{"name":"samba:/shareable","shareable":false,"host":"/tmp/minke/fs/shareable","target":"/shareable"}],"_id":"kMjcw2UONgEIGwtI"}
