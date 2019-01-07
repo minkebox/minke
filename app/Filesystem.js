@@ -13,7 +13,6 @@ function Filesystem(app) {
   this._hostroot = `${FS_HOSTPREFIX}/fs/app/${this._name}`;
   FS.mkdirSync(`${this._root}/private`, { recursive: true });
   FS.mkdirSync(`${this._root}/shareable`, { recursive: true });
-  //FS.mkdirSync(`${this._root}/helper`, { recursive: true });
 }
 
 Filesystem.prototype = {
@@ -39,17 +38,6 @@ Filesystem.prototype = {
     this._mappings.push(map);
     return map;
   },
-
-  /*mapHelperVolume: function() {
-    const map = {
-      name: `${this._name}:/helper`,
-      shareable: false,
-      host: '/helper',
-      target: '/minkehelper'
-    };
-    this._mappings.push(map);
-    return map;
-  },*/
 
   getAllMounts: function() {
     return this._mappings.map(map => this._makeMount(map));
