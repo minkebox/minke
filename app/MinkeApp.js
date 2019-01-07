@@ -67,16 +67,26 @@ MinkeApp.prototype = {
       }
     }
 
-    // Host's need their own real ip addresses
-    if (config.type === 'host') {
-      this._ip4 = true;
-    }
-    else {
-      this._ip4 = false;
-    }
-  
-    this._needLink = !!containerConfig.ExposedPorts[TCP_HTTP] && !!this._ip4;
     this._needDNS = !!(containerConfig.ExposedPorts[TCP_DNS] && containerConfig.ExposedPorts[UDP_DNS]);
+    this._needLink = false;
+
+    // Select the relevant network config.
+    switch (config.type) {
+      case 'home':
+        // Connect to home network and default bridge.
+        this._ip4 = [ 'home', 'default' ];
+        break;
+
+      case 'vpn':
+        // Connect to home network and a user-defined bridge (used for vpn)
+        this._ip4 = [ 'home', 'vpn' ];
+        break;
+
+      default:
+        this._ip4 = [ 'default' ];
+        this._needLink = !!containerConfig.ExposedPorts[TCP_HTTP];
+        break;
+    }
 
     this._setOnline(false);
 
@@ -113,7 +123,11 @@ MinkeApp.prototype = {
   },
 
   start: async function() {
-  
+
+    const needHomeNetwork = this._ip4.indexOf('home') !== -1;
+    const needBridgeNetwork = this._ip4.indexOf('bridge') !== -1;
+    const needPrivateNetwork = this._ip4.indexOf('vpn') !== -1;
+
     // Build the helper
     this._fs = Filesystem.createAppFS(this);
   
@@ -123,13 +137,14 @@ MinkeApp.prototype = {
       Image: this._image, // Use the human-readable name
       HostConfig: {
         Mounts: this._fs.getAllMounts(),
-        //Privileged: true,
-        AutoRemove: true
+        AutoRemove: true,
+        Devices: [],
+        CapAdd: []
       },
-      Env: this._env
+      Env: [].concat(this._env)
     };
     // If we don't have our own IP, then we might need to forward some ports
-    if (!this._ip4) {
+    if (!this._ip4) { // XXX FIX ME XXX
       config.PortBindings = {}
       this._ports.forEach((port) => {
         if (port.target && port.host) {
@@ -138,10 +153,19 @@ MinkeApp.prototype = {
       });
     }
 
-    // Primary network is the host network, not the bridge
-    if (this._ip4) {
-      const hostnet = await Network.getHostNetwork();
-      config.HostConfig.NetworkMode = hostnet.id;
+    // If we need the home network, we set that up as primary
+    if (needHomeNetwork) {
+      const homenet = await Network.getHomeNetwork();
+      config.HostConfig.NetworkMode = homenet.id;
+    }
+
+    if (needPrivateNetwork) {
+      config.HostConfig.Devices.push({
+        PathOnHost: '/dev/net/tun',
+        PathInContainer: '/dev/net/tun',
+        CgroupPermissions: 'rwm'
+      });
+      config.HostConfig.CapAdd.push('NET_ADMIN');
     }
 
     if (DEBUG) {
@@ -149,22 +173,21 @@ MinkeApp.prototype = {
     }
   
     const helperConfig = {
-      name: `${this._name}-helper`,
+      name: `helper-${this._name}`,
       Hostname: config.Hostname,
       Image: MINKE_HELPER_IMAGE,
       HostConfig: {
         NetworkMode: config.HostConfig.NetworkMode,
         AutoRemove: true,
         CapAdd: [ 'NET_ADMIN' ],
-        //Privileged: true
       },
       Env: []
     };
 
-    if (this._ip4) {
+    if (needHomeNetwork) {
       helperConfig.Env.push('ENABLE_DHCP=1');
     }
-  
+
     if (this._ports.length) {
       const nat = [];
       const mdns = [];
@@ -183,7 +206,6 @@ MinkeApp.prototype = {
         helperConfig.Env.push(`ENABLE_MDNS=${mdns.join(' ')}`);
       }
     }
-
     if (helperConfig.Env.length) {
       this._helperContainer = await docker.createContainer(helperConfig);
 
@@ -192,9 +214,16 @@ MinkeApp.prototype = {
 
       await this._helperContainer.start();
 
-      if (this._ip4) {
+      if (needBridgeNetwork) {
         const bridge = await Network.getBridgeNetwork();
         await bridge.connect({
+          Container: this._helperContainer.id
+        });
+      }
+
+      if (needPrivateNetwork) {
+        const vpn = await Network.getPrivateNetwork(`vpn-${this._name}`);
+        await vpn.connect({
           Container: this._helperContainer.id
         });
       }
@@ -216,19 +245,17 @@ MinkeApp.prototype = {
         }, null);
       });
     }
-
     this._container = await docker.createContainer(config);
     await this._container.start();
 
     const containerInfo = await (this._helperContainer || this._container).inspect();
-    const bridgeIP4Address = containerInfo.NetworkSettings.Networks.bridge.IPAddress;
     if (this._needLink) {
-      this._forward = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: bridgeIP4Address, port: parseInt(TCP_HTTP) });
+      this._forward = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: containerInfo.NetworkSettings.Networks.bridge.IPAddress, port: parseInt(TCP_HTTP) });
       koaApp.use(this._forward.http);
       koaApp.ws.use(this._forward.ws);
     }
     if (this._needDNS) {
-      this._dns = DNSForward.createForward({ name: this._name, IP4Address: bridgeIP4Address });
+      this._dns = DNSForward.createForward({ name: this._name, IP4Address: containerInfo.NetworkSettings.Networks.bridge.IPAddress });
     }
 
     this._test2(); // XXX
@@ -276,7 +303,7 @@ MinkeApp.prototype = {
     }
 
     this._setOnline(false);
-  
+
     return this;
   },
 
@@ -421,7 +448,7 @@ MinkeApp.startApps = async function(app) {
     if (idx !== -1) {
       await (await docker.getContainer(running[idx].Id)).stop();
     }
-    idx = runningNames.indexOf(`/${app._name}-helper`);
+    idx = runningNames.indexOf(`/helper-${app._name}`);
     if (idx !== -1) {
       await (await docker.getContainer(running[idx].Id)).stop();
     }
@@ -430,7 +457,7 @@ MinkeApp.startApps = async function(app) {
 }
 
 MinkeApp.shutdown = async function() {
-  return Promise.all(applications.map(async (app) => {
+  await Promise.all(applications.map(async (app) => {
     await app.stop();
     await app.save();
   }));
