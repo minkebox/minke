@@ -2,7 +2,7 @@ const Net = require('network');
 const Netmask = require('netmask');
 
 const HOME_NETWORK_NAME = 'home';
-let hostNetwork = null;
+const networks = {};
 
 const Network = {
 
@@ -22,38 +22,60 @@ const Network = {
     });
   },
 
-  getHostNetwork: async function() {
-    if (!hostNetwork) {
-      const network = docker.getNetwork(HOME_NETWORK_NAME);
-      try
-      {
-        await network.inspect();
-        hostNetwork = network;
-      }
-      catch (_)
-      {
-        const iface = await Network.getActiveInterface();
-        hostNetwork = await docker.createNetwork({
-          Name: HOME_NETWORK_NAME,
-          Driver: 'macvlan',
-          IPAM: {
-            Config: [{
-              Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
-              Gateway: iface.network.gateway_ip
-            }]
-          },
-          Options: {
-            parent: iface.network.name
-          }
-        });
-      }
+  getPrivateNetwork: async function(networkName) {
+    return await this._getNetwork({
+      Name: networkName,
+      CheckDuplicate: true,
+      Driver: 'bridge'
+    });
+  },
+
+  getHomeNetwork: async function() {
+    let net = networks[HOME_NETWORK_NAME];
+    if (net) {
+      return net;
     }
-    return hostNetwork;
+    const iface = await Network.getActiveInterface();
+    return await this._getNetwork({
+      Name: HOME_NETWORK_NAME,
+      CheckDuplicate: true,
+      Driver: 'macvlan',
+      IPAM: {
+        Config: [{
+          Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
+          Gateway: iface.network.gateway_ip
+        }]
+      },
+      Options: {
+        parent: iface.network.name
+      }
+    });
   },
 
   getBridgeNetwork: async function() {
-    return docker.getNetwork('bridge');
+    return await this._getNetwork({
+      Name: 'bridge'
+    });
   },
+
+  _getNetwork: async function(config) {
+    let net = networks[config.Name];
+    if (!net) {
+      net = docker.getNetwork(config.Name);
+      try {
+        await net.inspect();
+        networks[config.Name] = net;
+        return net;
+      }
+      catch (_) {
+        if (config.Driver) {
+          net = await docker.createNetwork(config);
+          networks[config.Name] = net;
+        }
+      }
+    }
+    return net;
+  }
 
 }
 
