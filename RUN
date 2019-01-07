@@ -1,0 +1,1 @@
+docker run -d --privileged -v /var/run/docker.sock:/var/run/docker.sock --mount type=bind,source=/tmp/minke,target=/minke,bind-propagation=rshared --network=host timwilkinson/minke
