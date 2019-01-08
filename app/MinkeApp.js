@@ -127,6 +127,7 @@ MinkeApp.prototype = {
     const needHomeNetwork = this._ip4.indexOf('home') !== -1;
     const needBridgeNetwork = this._ip4.indexOf('bridge') !== -1;
     const needPrivateNetwork = this._ip4.indexOf('vpn') !== -1;
+    const usePrivateNetwork = this._ip4.find(net => net.indexOf('vpn-') === 0);
 
     // Build the helper
     this._fs = Filesystem.createAppFS(this);
@@ -220,9 +221,14 @@ MinkeApp.prototype = {
           Container: this._helperContainer.id
         });
       }
-
       if (needPrivateNetwork) {
         const vpn = await Network.getPrivateNetwork(`vpn-${this._name}`);
+        await vpn.connect({
+          Container: this._helperContainer.id
+        });
+      }
+      if (usePrivateNetwork) {
+        const vpn = await Network.getPrivateNetwork(usePrivateNetwork);
         await vpn.connect({
           Container: this._helperContainer.id
         });
