@@ -2,8 +2,11 @@ html {
   background-color: lightgrey;
   font-family: sans-serif;
 }
+body {
+  margin: 0px;
+}
 .applications-box {
-  padding-bottom: 20px;
+  margin: 20px;
 }
 .applications {
   min-height: 50px;

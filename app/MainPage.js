@@ -10,8 +10,16 @@ async function MainPageHTML(ctx) {
       name: app._name,
       link: !!app._forward
     }
-  })
-  ctx.body = template({ apps: apps });
+  });
+  const vpns = MinkeApp.getApps().reduce((acc, app) => {
+    if (app._ip4.indexOf('vpn') !== -1) {
+      acc.push({
+        name: app._name
+      });
+    }
+    return acc;
+  }, []);
+  ctx.body = template({ apps: apps, vpns: vpns });
   ctx.type = 'text/html';
 }
 
