@@ -159,6 +159,15 @@ MinkeApp.prototype = {
       const homenet = await Network.getHomeNetwork();
       config.HostConfig.NetworkMode = homenet.id;
     }
+    // Alternatively, if we're using a private network we set that as primary
+    else if (usePrivateNetwork) {
+      const vpn = await Network.getPrivateNetwork(usePrivateNetwork);
+      config.HostConfig.NetworkMode = vpn.id;
+      const info = await vpn.inspect();
+      config.HostConfig.ExtraHosts = [
+        `SERVICES:${info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2')}`
+      ]
+    }
 
     if (needPrivateNetwork) {
       config.HostConfig.Devices.push({
@@ -181,6 +190,7 @@ MinkeApp.prototype = {
         NetworkMode: config.HostConfig.NetworkMode,
         AutoRemove: true,
         CapAdd: [ 'NET_ADMIN' ],
+        ExtraHosts: config.HostConfig.ExtraHosts
       },
       Env: []
     };
@@ -197,7 +207,7 @@ MinkeApp.prototype = {
           nat.push(`${port.host}:${port.protocol}`);
         }
         if (port.mdns) {
-          mdns.push(`${port.mdns.type}:${port.host}:${port.mdns.txt}`);
+          mdns.push(`${port.mdns.type}:${port.host}:${port.mdns.txt || ''}`);
         }
       });
       if (nat.length) {
@@ -207,10 +217,12 @@ MinkeApp.prototype = {
         helperConfig.Env.push(`ENABLE_MDNS=${mdns.join(' ')}`);
       }
     }
+  
     if (helperConfig.Env.length) {
       this._helperContainer = await docker.createContainer(helperConfig);
 
       config.Hostname = null;
+      config.HostConfig.ExtraHosts = null
       config.HostConfig.NetworkMode = `container:${this._helperContainer.id}`;
 
       await this._helperContainer.start();
@@ -227,7 +239,8 @@ MinkeApp.prototype = {
           Container: this._helperContainer.id
         });
       }
-      if (usePrivateNetwork) {
+      // Attach the private network if we already didn't use it as the primary
+      if (usePrivateNetwork && needHomeNetwork) {
         const vpn = await Network.getPrivateNetwork(usePrivateNetwork);
         await vpn.connect({
           Container: this._helperContainer.id
@@ -447,9 +460,8 @@ MinkeApp.startApps = async function(app) {
     return new MinkeApp().createFromJSON(json);
   });
 
-  // Start all the apps
+  // Stop apps if they're still running
   await Promise.all(applications.map(async (app) => {
-    // Stop if running
     let idx = runningNames.indexOf(`/${app._name}`);
     if (idx !== -1) {
       await (await docker.getContainer(running[idx].Id)).stop();
@@ -458,7 +470,20 @@ MinkeApp.startApps = async function(app) {
     if (idx !== -1) {
       await (await docker.getContainer(running[idx].Id)).stop();
     }
-    await app.start();
+  }));
+  // Start all app which are not connected to a private network first
+  await Promise.all(applications.map(async (app) => {
+    const usePrivateNetwork = app._ip4.find(net => net.indexOf('vpn-') === 0);
+    if (!usePrivateNetwork) {
+      await app.start();
+    }
+  }));
+  // Then start the apps which are connected to the private networks
+  await Promise.all(applications.map(async (app) => {
+    const usePrivateNetwork = app._ip4.find(net => net.indexOf('vpn-') === 0);
+    if (usePrivateNetwork) {
+      await app.start();
+    }
   }));
 }
 
