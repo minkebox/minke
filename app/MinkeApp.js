@@ -164,9 +164,13 @@ MinkeApp.prototype = {
       const vpn = await Network.getPrivateNetwork(usePrivateNetwork);
       config.HostConfig.NetworkMode = vpn.id;
       const info = await vpn.inspect();
+      const gw = info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
       config.HostConfig.ExtraHosts = [
-        `SERVICES:${info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2')}`
-      ]
+        `SERVICES:${gw}`
+      ];
+      config.HostConfig.Dns = [ gw ];
+      config.HostConfig.DnsSearch = [ 'local.' ];
+      config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
     }
 
     if (needPrivateNetwork) {
@@ -190,7 +194,10 @@ MinkeApp.prototype = {
         NetworkMode: config.HostConfig.NetworkMode,
         AutoRemove: true,
         CapAdd: [ 'NET_ADMIN' ],
-        ExtraHosts: config.HostConfig.ExtraHosts
+        ExtraHosts: config.HostConfig.ExtraHosts,
+        Dns: config.HostConfig.Dns,
+        DnsSearch: config.HostConfig.DnsSearch,
+        DnsOptions: config.HostConfig.DnsOptions
       },
       Env: []
     };
@@ -222,7 +229,10 @@ MinkeApp.prototype = {
       this._helperContainer = await docker.createContainer(helperConfig);
 
       config.Hostname = null;
-      config.HostConfig.ExtraHosts = null
+      config.HostConfig.ExtraHosts = null;
+      config.HostConfig.Dns = null;
+      config.HostConfig.DnsSearch = null;
+      config.HostConfig.DnsOptions = null;
       config.HostConfig.NetworkMode = `container:${this._helperContainer.id}`;
 
       await this._helperContainer.start();
@@ -277,7 +287,12 @@ MinkeApp.prototype = {
       this._dns = DNSForward.createForward({ name: this._name, IP4Address: containerInfo.NetworkSettings.Networks.bridge.IPAddress });
     }
 
-    this._test2(); // XXX
+    if (needPrivateNetwork) {
+      this._monitorNetworkServices();
+    }
+    else {
+      this._test2(); // XXX
+    }
 
     this._setOnline(true);
 
@@ -356,6 +371,19 @@ MinkeApp.prototype = {
         first: args[0]
       }`,
       template: '<div>{{first}} item</div>'
+    });
+  },
+
+  _monitorNetworkServices: async function() {
+    const FILE = '/etc/mdns/mdns-output.json';
+    this._createStatusRenderer({
+      polling: 10,
+      cmd: `cat ${FILE}`, 
+      parser: `const args = JSON.parse(input);
+      output = {
+        services: Object.keys(args).join(' ')
+      }`,
+      template: '<div>{{services}}</div>'
     });
   },
 
