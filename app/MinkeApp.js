@@ -288,11 +288,10 @@ MinkeApp.prototype = {
     }
 
     if (needPrivateNetwork) {
-      this._monitorNetworkServices();
+      this._monitorNetwork();
     }
-    else {
-      this._test2(); // XXX
-    }
+    this._test2(); // XXX
+
 
     this._setOnline(true);
 
@@ -303,6 +302,11 @@ MinkeApp.prototype = {
 
     try {
       this._statusRender.stop();
+    }
+    catch (_) {
+    }
+    try {
+      this._networkMonitor.stop();
     }
     catch (_) {
     }
@@ -344,26 +348,11 @@ MinkeApp.prototype = {
   save: async function() {
     await Database.saveApp(this);
     return this;
-  }, 
-
-  _test: async function() {
-    // date,ping,down,up
-    this._createStatusRenderer({
-      watch: '/var/www/html/data/result.csv',
-      cmd: 'tail -1 /var/www/html/data/result.csv', 
-      parser: `const args = input.split(',');
-      output = {
-        date: new Date(args[0]),
-        pingMs: parseFloat(args[1]),
-        downloadMB: parseFloat(args[2]),
-        uploadMB: parseFloat(args[3])
-      }`,
-      template: '<div>Ping: {{ping}} ms</div><div>Download: {{downloadMB}} MB/s</div><div>Upload: {{uploadMB}} MB/s</div>'
-    });
   },
 
-  _test2: async function() {
-    this._createStatusRenderer({
+  _test2: function() {
+    this._statusRender = this._createMonitor({
+      event: 'update.status',
       polling: 10,
       cmd: 'ls /', 
       parser: `const args = input.split('\\n');
@@ -374,48 +363,43 @@ MinkeApp.prototype = {
     });
   },
 
-  _monitorNetworkServices: async function() {
-    const FILE = '/etc/mdns/mdns-output.json';
-    this._createStatusRenderer({
+  _monitorNetwork: function() {
+    this._networkMonitor = this._createMonitor({
+      event: 'update.network.status',
       polling: 10,
-      cmd: `cat ${FILE}`, 
-      parser: `const args = JSON.parse(input);
-      output = {
-        services: Object.keys(args).join(' ')
-      }`,
-      template: '<div>{{services}}</div>'
+      cmd: `cat ${'/etc/mdns/mdns-output.json'}`, 
+      parser: `output = JSON.parse(input);`
     });
   },
 
-  _createStatusRenderer: function(args) {
-    const eventName = 'update.status';
-    let listenerCount = this.listenerCount('update.status');
-  
-    this._statusRender = Render.create({
+  _createMonitor: function(args) {  
+    const monitor = Render.create({
       app: this,
       cmd: args.cmd,
       parser: args.parser,
       template: args.template,
       watch: args.watch,
       polling: args.polling,
-      callback: (html) => {
-        this._emit(eventName, { html: html });
+      callback: (data) => {
+        this._emit(args.event, { data: data });
       }
     });
 
-    this._eventState[eventName] = {
+    this._eventState[args.event] = {
       data: '',
       start: async () => {
-        this._emit(eventName, { html: await this._statusRender.run() });
+        this._emit(args.event, { data: await monitor.run() });
       },
       stop: async () => {
-        await this._statusRender.stop();
+        await monitor.stop();
       }
     };
 
-    if (this.listenerCount(eventName) > 0) {
-      this._eventState[eventName].start();
+    if (this.listenerCount(args.event) > 0) {
+      this._eventState[args.event].start();
     }
+
+    return monitor;
   },
 
   _setOnline: function(online) {
