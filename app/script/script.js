@@ -4,10 +4,9 @@ window.onpageshow = function() {
     const msg = JSON.parse(event.data);
     switch (msg.type) {
       case 'update.html':
-        const div = document.querySelector(msg.selector);
-        if (div) {
-          div.innerHTML = msg.html;
-        }
+        document.querySelectorAll(msg.selector).forEach(function(elem) {
+          elem.innerHTML = msg.html;
+        });
         break;
       default:
         break;

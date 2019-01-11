@@ -2,23 +2,28 @@ const FS = require('fs');
 const Handlebars = require('handlebars');
 const MinkeApp = require('./MinkeApp');
 
+const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
+const ghostsTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Ghosts.html`, { encoding: 'utf8' }));
+
 async function MainPageHTML(ctx) {
-  const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
   const apps = MinkeApp.getApps();
-  const networks = MinkeApp.getApps().reduce((acc, app) => {
+  const networks = apps.reduce((acc, app) => {
     if (app._ip4.indexOf('vpn') !== -1) {
       acc.push({
-        name: `vpn-${app._name}`
+        id: app._name,
+        name: `vpn-${app._name}`,
+        _app: app
       });
     }
     return acc;
   }, [ { name: 'home' }]);
   networks.forEach((network) => {
-    network.apps = MinkeApp.getApps().reduce((acc, app) => {
+    network.apps = apps.reduce((acc, app) => {
       if (app._ip4.indexOf(network.name) !== -1) {
         acc.push({
+          id: app._name,
           online: app._online,
-          name: app._name,
+          name: `minke-${app._name}.local`,
           link: !!app._forward
         });
       }
@@ -35,16 +40,47 @@ async function MainPageWS(ctx) {
   function updateOnline(status) {
     ctx.websocket.send(JSON.stringify({
       type: 'update.html',
-      selector: `#application-${status.app._name} .ready`,
+      selector: `.application-${status.app._name} .ready`,
       html: status.online ? '<span class="online">running</span>' : '<span class="offline">stopped</span>'
     }));
   }
+
   function updateStatus(status) {
     ctx.websocket.send(JSON.stringify({
       type: 'update.html',
-      selector: `#application-${status.app._name} .status`,
-      html: status.html
+      selector: `.application-${status.app._name} .status`,
+      html: status.data
     }));
+  }
+
+  const oldStatus = {};
+
+  function updateNetworkStatus(status) {
+    const apps = MinkeApp.getApps();
+    const services = status.data;
+    const ghosts = {};
+    for (let name in services) {
+      services[name].forEach((service) => {
+        if (!ghosts[service.target]) {
+          const id = service.target.replace(/minke-(.*).local/, "$1");
+          if (apps.find(app => app._name == id && app._ip4.indexOf(`vpn-${status.app._name}`))) {
+            ghosts[service.target] = {
+              id: id,
+              name: service.target
+            };
+          }
+        }
+      });
+    }
+    const html = ghostsTemplate({ ghosts: Object.values(ghosts) });
+    if (oldStatus[status.app._name] != html) {
+      oldStatus[status.app._name] = html;
+      ctx.websocket.send(JSON.stringify({
+        type: 'update.html',
+        selector: `.network-${status.app._name} .ghosts`,
+        html: html
+      }));
+    }
   }
 
   ctx.websocket.on('message', (msg) => {
@@ -55,6 +91,7 @@ async function MainPageWS(ctx) {
     apps.forEach((app) => {
       app.off('update.online', updateOnline);
       app.off('update.status', updateStatus);
+      app.off('update.network.status', updateNetworkStatus);
     });
   });
 
@@ -65,6 +102,7 @@ async function MainPageWS(ctx) {
   apps.forEach((app) => {
     app.on('update.online', updateOnline);
     app.on('update.status', updateStatus);
+    app.on('update.network.status', updateNetworkStatus);
   });
 }
 

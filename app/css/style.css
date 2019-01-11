@@ -8,14 +8,14 @@ body {
 .applications-box {
   margin: 20px;
 }
-.applications {
+.network {
   min-height: 50px;
   background-color: rgb(158, 180, 255);
   border-radius: 3px;
   box-shadow: 0px 0px 4px 1px grey;
   padding: 10px 9px;
 }
-.applications .title {
+.network .title {
   font-size: 20px;
   padding: 5px;
 }
@@ -32,6 +32,14 @@ body {
   border-radius: 3px;
   box-shadow: 0px 0px 4px 1px rgb(112, 134, 255);
   padding: 10px;
+}
+.application.ghost {
+  min-height: 50px;
+  background-color: grey;
+}
+.application.ghost .status {
+  height: 50px;
+  max-height: 50px;
 }
 .application .name {
   display: inline-block;
