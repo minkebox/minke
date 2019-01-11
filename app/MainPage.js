@@ -4,22 +4,28 @@ const MinkeApp = require('./MinkeApp');
 
 async function MainPageHTML(ctx) {
   const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
-  const apps = MinkeApp.getApps().map((app) => {
-    return {
-      online: app._online,
-      name: app._name,
-      link: !!app._forward
-    }
-  });
-  const vpns = MinkeApp.getApps().reduce((acc, app) => {
+  const apps = MinkeApp.getApps();
+  const networks = MinkeApp.getApps().reduce((acc, app) => {
     if (app._ip4.indexOf('vpn') !== -1) {
       acc.push({
-        name: app._name
+        name: `vpn-${app._name}`
       });
     }
     return acc;
-  }, []);
-  ctx.body = template({ apps: apps, vpns: vpns });
+  }, [ { name: 'home' }]);
+  networks.forEach((network) => {
+    network.apps = MinkeApp.getApps().reduce((acc, app) => {
+      if (app._ip4.indexOf(network.name) !== -1) {
+        acc.push({
+          online: app._online,
+          name: app._name,
+          link: !!app._forward
+        });
+      }
+      return acc;
+    }, []);
+  });
+  ctx.body = template({ networks: networks });
   ctx.type = 'text/html';
 }
 

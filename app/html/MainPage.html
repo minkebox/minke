@@ -5,9 +5,10 @@
     <script src="script.js" type="text/javascript"></script>
   </head>
   <body>
+    {{#each networks}}
     <div class="applications-box">
       <div class="applications">
-        <div class="title">Home</div>
+        <div class="title">{{name}}</div>
         {{#each apps}}
           <div class="application-box">
             <div id="application-{{name}}" class="application">
@@ -18,13 +19,6 @@
             </div>
           </div>
         {{/each}}
-        <div style="clear:both"></div>
-      </div>
-    </div>
-    {{#each vpns}}
-    <div class="applications-box">
-      <div class="applications">
-        <div class="title">{{name}}</div>
         <div style="clear:both"></div>
       </div>
     </div>
