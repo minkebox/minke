@@ -19,12 +19,16 @@ async function MainPageHTML(ctx) {
   }, [ { name: 'home' }]);
   networks.forEach((network) => {
     network.apps = apps.reduce((acc, app) => {
-      if (app._ip4.indexOf(network.name) !== -1) {
+      let include = app._ip4.indexOf(network.name) !== -1;
+      if (!include && network.name === 'home') {
+        include = app._ip4.indexOf('bridge') !== -1;
+      }
+      if (include) {
         acc.push({
           id: app._name,
           online: app._online,
           name: `minke-${app._name}.local`,
-          link: !!app._forward
+          link: app._forward && app._forward.url
         });
       }
       return acc;
