@@ -5,13 +5,23 @@ html {
 body {
   margin: 0px;
 }
+.titlebar {
+  height: 50px;
+  background-color: black;
+  padding: 0px 100px;
+}
+.titlebar .title {
+  padding-top: 10px;
+  color: white;
+  font-size: 24px;
+}
 .applications-box {
-  margin: 20px;
+  margin: 20px 100px;
 }
 .network {
   min-height: 50px;
   background-color: rgb(158, 180, 255);
-  border-radius: 3px;
+  xborder-radius: 3px;
   box-shadow: 0px 0px 4px 1px grey;
   padding: 10px 9px;
 }
@@ -29,7 +39,7 @@ body {
 .application {
   min-height: 150px;
   background-color: white;
-  border-radius: 3px;
+  xborder-radius: 3px;
   box-shadow: 0px 0px 4px 1px rgb(112, 134, 255);
   padding: 10px;
 }
@@ -76,6 +86,6 @@ body {
 }
 .inline-page iframe {
   background-color: white;
-  border-radius: 5px;
+  xborder-radius: 5px;
   box-shadow: 0px 0px 4px 1px grey;
 }
