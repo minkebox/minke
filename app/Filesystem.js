@@ -56,15 +56,11 @@ Filesystem.prototype = {
     }
   },
 
-  getLocal: function(bind) {
-    return `${this._root}/${bind.host}`;
-  },
-
   mapFilenameToLocal: function(filename) {
     for (let i = 0; i < this._mappings.length; i++) {
       const bind = this._mappings[i];
-      if (filename.indexOf(bind.target) === 0) {
-        return Path.normalize(`${getLocal(bind)}/${filename.substring(bind.target.length)}`);
+      if (filename.startsWith(bind.target)) {
+        return Path.normalize(`${this._root}/${bind.host}/${filename.substring(bind.target.length)}`);
       }
     }
     return null;
@@ -74,7 +70,7 @@ Filesystem.prototype = {
 
 const _Filesystem = {
 
-  createAppFS: function(app) {
+  create: function(app) {
     return new Filesystem(app);
   },
 
