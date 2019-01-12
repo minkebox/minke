@@ -70,8 +70,8 @@ const _Render = {
     let lwatch = null;
     if (args.watch) {
       lwatch = args.app._fs.mapFilenameToLocal(args.watch);
-      if (!lwatch) {
-        console.warn(`Cannot watch ${args.watch} as it isn't reachable - falling back on polling`);
+      if (!lwatch && !args.polling) {
+        console.warn(`Cannot watch ${args.watch} and no polling interval given - falling back on default polling`);
       }
     }
     return new RenderWatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling || DEFAULT_POLLING, args.callback);
