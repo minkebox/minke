@@ -18,7 +18,9 @@
               <div class="name">{{name}}</div>
               <div class="ready">{{#if online}}<span class="online">running</span>{{else}}<span class="offline">stopped</span>{{/if}}</div>
               <div class="status"></div>
-              {{#if link}}<a class="link" href="/a/{{name}}/">Link</a>{{/if}}
+              {{#if link}}
+              <a class="link" href="#" onclick="openInlinePage('{{link}}')">Link</a>
+              {{/if}}
             </div>
           </div>
           {{/each}}
