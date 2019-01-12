@@ -74,7 +74,7 @@ MinkeApp.prototype = {
     switch (config.type) {
       case 'home':
         // Connect to home network and default bridge.
-        this._ip4 = [ 'home', 'default' ];
+        this._ip4 = [ 'home', 'bridge' ];
         break;
 
       case 'vpn':
@@ -83,7 +83,7 @@ MinkeApp.prototype = {
         break;
 
       default:
-        this._ip4 = [ 'default' ];
+        this._ip4 = [ 'bridge' ];
         this._needLink = !!containerConfig.ExposedPorts[TCP_HTTP];
         break;
     }
