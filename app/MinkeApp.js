@@ -54,7 +54,7 @@ MinkeApp.prototype = {
     this._binds = [];
     if (containerConfig.Volumes || config.fsmap) {
       const fsmap = config.fsmap || {};
-      const fs = Filesystem.createAppFS(this);
+      const fs = Filesystem.create(this);
       const volumes = Object.assign({}, containerConfig.Volumes, config.fsmap);
       for (let path in volumes) {
         const map = fsmap[path];
@@ -130,7 +130,7 @@ MinkeApp.prototype = {
     const usePrivateNetwork = this._ip4.find(net => net.indexOf('vpn-') === 0);
 
     // Build the helper
-    this._fs = Filesystem.createAppFS(this);
+    this._fs = Filesystem.create(this);
   
     const config = {
       name: this._name,
@@ -299,7 +299,7 @@ MinkeApp.prototype = {
   },
 
   stop: async function() {
-
+  
     try {
       this._statusRender.stop();
     }
@@ -326,16 +326,13 @@ MinkeApp.prototype = {
       }
     }
 
+    const stopping = [];
     if (this._helperContainer) {
-      try {
-        await this._helperContainer.stop();
-      }
-      catch (_) {
-      }
+      stopping.push(this._helperContainer.stop());
     }
-
+    stopping.push(this._container.stop());
     try {
-      await this._container.stop();
+      await Promise.all(stopping);
     }
     catch (_) {
     }
@@ -367,8 +364,9 @@ MinkeApp.prototype = {
     this._networkMonitor = this._createMonitor({
       event: 'update.network.status',
       polling: 10,
-      cmd: `cat ${'/etc/mdns/mdns-output.json'}`, 
-      parser: `output = JSON.parse(input);`
+      watch: '/etc/mdns/mdns-output.json',
+      cmd: 'cat /etc/mdns/mdns-output.json', 
+      parser: 'output = JSON.parse(input)'
     });
   },
 
