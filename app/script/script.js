@@ -29,6 +29,10 @@ function openInlinePage(url) {
   const width = document.body.clientWidth - INLINE_BORDER;
   const height = document.body.clientHeight - INLINE_BORDER;
   builder.innerHTML = `<div class="inline-page"><iframe frameborder="0" border="0" width="${width}" height="${height}" src="${url}"></div>`;
+  const scrollY = window.scrollY;
+  setTimeout(() => {
+    window.scrollTo(0, scrollY);
+  }, 0);
   document.body.appendChild(builder.firstElementChild);
   resizeInlinePage();
   const div = document.querySelector(".inline-page");
