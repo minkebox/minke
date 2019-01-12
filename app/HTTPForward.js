@@ -4,6 +4,7 @@ const WebSocket = require('ws');
 
 
 function Forward(args) {
+  this._prefix = args.prefix;
   const target = `${args.port === 443 ? 'https' : 'http'}://${args.IP4Address || 'localhost'}:${args.port || 80}${args.path || ''}/`;
   this._router = Router({
     prefix: args.prefix
@@ -64,6 +65,7 @@ const HTTPForward = {
   createForward: function(args) {
     const f = new Forward(args);
     return {
+      url: f._prefix,
       http: f._router.middleware(),
       ws: f._wsrouter.middleware()
     };
