@@ -366,7 +366,7 @@ MinkeApp.prototype = {
       polling: 10,
       watch: '/etc/status/mdns-output.json',
       cmd: 'cat /etc/status/mdns-output.json', 
-      parser: 'output = JSON.parse(input || {})'
+      parser: 'output = JSON.parse(input || "{}")'
     });
   },
 
