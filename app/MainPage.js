@@ -50,11 +50,15 @@ async function MainPageWS(ctx) {
   }
 
   function updateStatus(status) {
-    ctx.websocket.send(JSON.stringify({
-      type: 'update.html',
-      selector: `.application-${status.app._name} .status`,
-      html: status.data
-    }));
+    try {
+      ctx.websocket.send(JSON.stringify({
+        type: 'update.html',
+        selector: `.application-${status.app._name} .status`,
+        html: status.data
+      }));
+    }
+    catch (_) {
+    }
   }
 
   const oldStatus = {};
@@ -79,11 +83,15 @@ async function MainPageWS(ctx) {
     const html = ghostsTemplate({ ghosts: Object.values(ghosts) });
     if (oldStatus[status.app._name] != html) {
       oldStatus[status.app._name] = html;
-      ctx.websocket.send(JSON.stringify({
-        type: 'update.html',
-        selector: `.network-${status.app._name} .ghosts`,
-        html: html
-      }));
+      try {
+        ctx.websocket.send(JSON.stringify({
+          type: 'update.html',
+          selector: `.network-${status.app._name} .ghosts`,
+          html: html
+        }));
+      }
+      catch (_) {
+      }
     }
   }
 

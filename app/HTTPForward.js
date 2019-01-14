@@ -40,10 +40,18 @@ function Forward(args) {
   this._wsrouter.all('/:path*', async (ctx) => {
     const client = new WebSocket(`${wstarget}${ctx.params.path || ''}`);
     client.on('message', (msg) => {
-      ctx.websocket.send(msg);
+      try {
+        ctx.websocket.send(msg);
+      }
+      catch (_) {
+      }
     });
     ctx.websocket.on('message', (msg) => {
-      client.send(msg);
+      try {
+        client.send(msg);
+      }
+      catch (_) {
+      }
     });
     client.on('close', () => {
       ctx.websocket.close();
