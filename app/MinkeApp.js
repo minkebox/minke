@@ -364,9 +364,9 @@ MinkeApp.prototype = {
     this._networkMonitor = this._createMonitor({
       event: 'update.network.status',
       polling: 10,
-      watch: '/etc/mdns/mdns-output.json',
-      cmd: 'cat /etc/mdns/mdns-output.json', 
-      parser: 'output = JSON.parse(input)'
+      watch: '/etc/status/mdns-output.json',
+      cmd: 'cat /etc/status/mdns-output.json', 
+      parser: 'output = JSON.parse(input || {})'
     });
   },
 
