@@ -73,6 +73,9 @@ const _Render = {
       if (!lwatch && !args.polling) {
         console.warn(`Cannot watch ${args.watch} and no polling interval given - falling back on default polling`);
       }
+      if (!FS.existsSync(lwatch)) {
+        FS.closeSync(FS.openSync(lwatch, 'w'));
+      }
     }
     return new RenderWatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling || DEFAULT_POLLING, args.callback);
   }
