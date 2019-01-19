@@ -2,21 +2,23 @@ const FS = require('fs');
 const Handlebars = require('handlebars');
 const MinkeApp = require('./MinkeApp');
 
-const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
-const ghostsTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Ghosts.html`, { encoding: 'utf8' }));
+//const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
+//const ghostsTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Ghosts.html`, { encoding: 'utf8' }));
 
 async function MainPageHTML(ctx) {
+
+  const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
+
   const apps = MinkeApp.getApps();
   const networks = apps.reduce((acc, app) => {
     if (app._ip4.indexOf('vpn') !== -1) {
       acc.push({
         id: app._name,
-        name: `vpn-${app._name}`,
-        _app: app
+        name: `vpn-${app._name}`
       });
     }
     return acc;
-  }, [ { name: 'home' }]);
+  }, [ { id: 'home', home: 'home' }]);
   networks.forEach((network) => {
     network.apps = apps.reduce((acc, app) => {
       let include = app._ip4.indexOf(network.name) !== -1;
@@ -39,6 +41,9 @@ async function MainPageHTML(ctx) {
 }
 
 async function MainPageWS(ctx) {
+
+  const ghostsTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Ghosts.html`, { encoding: 'utf8' }));
+
   const apps = MinkeApp.getApps();
 
   function updateOnline(status) {
