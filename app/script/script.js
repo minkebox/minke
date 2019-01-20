@@ -1,4 +1,4 @@
-function pageShow() {
+function onPageShow() {
   const ws = new WebSocket(`ws://${location.host}/ws`);
   ws.addEventListener('message', function(event) {
     const msg = JSON.parse(event.data);
@@ -18,8 +18,6 @@ function pageShow() {
     }
   });
 }
-
-window.addEventListener('pageshow', pageShow);
 
 const INLINE_BORDER = 75;
 
@@ -56,7 +54,6 @@ function onResizePage() {
   document.querySelectorAll('iframe.resize').forEach((frame) => {
     const box = frame.parentElement;
     if (box) {
-      console.log(box);
       const padding = parseInt(box.style.padding) || 0;
       frame.width = box.clientWidth - padding * 2;
       frame.height = box.clientHeight - padding * 2;
@@ -64,4 +61,6 @@ function onResizePage() {
   });
 }
 
+window.addEventListener('pageshow', onPageShow);
 window.addEventListener('resize', onResizePage);
+window.addEventListener('load', onResizePage);

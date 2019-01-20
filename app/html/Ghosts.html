@@ -1,8 +1,17 @@
 {{#each ghosts}}
-<div class="application-box">
-  <div class="application-{{id}} application ghost">
-    <div class="name">{{name}}</div>
-    <div class="status"></div>
-  </div>
-</div>
+<tr>
+  <td>
+    <div class="home"></div>
+    <div class="application-{{id}} application">
+      <div class="name">{{name}}</div>
+      <div class="status"></div>
+    </div>
+  </td>
+  {{#each ../networks}}
+  <td>
+    <div class="net {{lookup ../networks name}}">{{name}}</div>
+  </td>
+  {{/each}}
+  <td><div class="padding"></div></td>
+</tr>
 {{/each}}
