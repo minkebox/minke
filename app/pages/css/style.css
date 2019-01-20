@@ -18,7 +18,7 @@ body {
 }
 .info {
   position: relative;
-  padding: 40px 100px;
+  padding: 40px 200px;
 }
 .applications {
   position: relative;
@@ -54,6 +54,11 @@ body {
   padding: 10px;
   box-sizing: border-box;
   border-radius: 3px;
+}
+.application .icon {
+  margin-left: -6px;
+  width: 32px;
+  height: 32px;
 }
 .application .name {
   display: inline-block;
@@ -97,6 +102,15 @@ body {
 }
 .applications .ghosts .home {
   background-color: lightgrey;
+}
+.applications .ghosts .home {
+  height: 40px;
+}
+.applications .ghosts .application {
+  height: 50px;
+}
+.applications .ghosts .net {
+  height: 50px;
 }
 .inline-page {
   position: fixed;
