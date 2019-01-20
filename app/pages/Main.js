@@ -1,9 +1,7 @@
 const FS = require('fs');
 const Handlebars = require('handlebars');
-const MinkeApp = require('./MinkeApp');
+const MinkeApp = require('../MinkeApp');
 
-//const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
-//const ghostsTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Ghosts.html`, { encoding: 'utf8' }));
 
 function getNetworks() {
   return MinkeApp.getApps().reduce((acc, app) => {
@@ -19,7 +17,7 @@ function getNetworks() {
 
 async function MainPageHTML(ctx) {
 
-  const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/MainPage.html`, { encoding: 'utf8' }));
+  const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Main.html`, { encoding: 'utf8' }));
 
   const networks = getNetworks();
   const apps = MinkeApp.getApps().reduce((acc, app) => {
