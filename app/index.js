@@ -6,7 +6,8 @@ const Router = require('koa-router');
 const Websockify = require('koa-websocket');
 const Docker = require('dockerode');
 
-const MainPage = require('./MainPage');
+const MainPage = require('./pages/Main');
+const SettingsPage = require('./pages/Settings');
 const MinkeApp = require('./MinkeApp');
 
 const App = Websockify(new Koa());
@@ -21,14 +22,20 @@ const wsroot = Router();
 
 root.get('/', MainPage.HTML);
 wsroot.get('/ws', MainPage.WS);
+root.get('/settings/:id', SettingsPage.HTML);
+wsroot.get('/settings/:id/ws', SettingsPage.WS);
 
 root.get('/script.js', async (ctx) => {
-  ctx.body = FS.readFileSync(`${__dirname}/script/script.js`, { encoding: 'utf8' });
+  ctx.body = FS.readFileSync(`${__dirname}/pages/script/script.js`, { encoding: 'utf8' });
   ctx.type = 'text/javascript';
 });
 root.get('/style.css', async (ctx) => {
-  ctx.body = FS.readFileSync(`${__dirname}/css/style.css`, { encoding: 'utf8' });
+  ctx.body = FS.readFileSync(`${__dirname}/pages/css/style.css`, { encoding: 'utf8' });
   ctx.type = 'text/css';
+});
+root.get('/img/:img', async (ctx) => {
+  ctx.body = FS.readFileSync(`${__dirname}/pages/img/${ctx.params.img}`);
+  ctx.type = 'image/png';
 });
 
 (async function() {
