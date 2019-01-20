@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="main">
   <head>
     <link href="style.css" rel="stylesheet" type="text/css">
     <script src="script.js" type="text/javascript"></script>
@@ -23,7 +23,7 @@
                     <iframe class="status resize" frameborder="0"></iframe>
                   </div>
                   {{#if link}}
-                  <a class="link" href="#" onclick="openInlinePage('{{link}}')">Link</a>
+                  <div class="link" onclick="openInlinePage('{{link}}')">Link</div>
                   {{/if}}
                 </div>
               </td>

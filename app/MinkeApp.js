@@ -39,11 +39,11 @@ MinkeApp.prototype = {
       const portmap = config.portmap || {};
       this._ports = Object.keys(containerConfig.ExposedPorts).map((port) => {
         return {
-          name: `${this._name}:${port}`,
           target: port,
           host: (portmap[port] && portmap[port].port) || parseInt(port),
           protocol: port.split('/')[1].toLocaleUpperCase(),
-          nat: (portmap[port] && portmap[port].nat) || false
+          nat: (portmap[port] && portmap[port].nat) || false,
+          mdns: null
         }
       });
     }
