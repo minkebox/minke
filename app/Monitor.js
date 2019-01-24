@@ -28,7 +28,7 @@ async function runCmd(app, cmd) {
   });
 }
 
-function RenderWatchCmd(app, cmd, parser, template, watch, polling, callback) {
+function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   const ctemplate = template ? Handlebars.compile(template) : DEFAULT_TEMPLATE;
   this.watcher = null;
   this.clock = null;
@@ -70,7 +70,7 @@ function RenderWatchCmd(app, cmd, parser, template, watch, polling, callback) {
   }
 }
 
-const _Render = {
+const _Monitor = {
 
   create: function(args) {
     let lwatch = null;
@@ -80,9 +80,9 @@ const _Render = {
         FS.closeSync(FS.openSync(lwatch, 'w'));
       }
     }
-    return new RenderWatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling || DEFAULT_POLLING, args.callback);
+    return new WatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling || DEFAULT_POLLING, args.callback);
   }
 
 };
 
-module.exports = _Render;
+module.exports = _Monitor;
