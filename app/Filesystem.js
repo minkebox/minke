@@ -11,7 +11,7 @@ function Filesystem(app) {
   this._mappings = app._binds;
   this._shares = [];
   // Handle Samba specially
-  if (this._image === 'timwilkinson/samba') {
+  if (app._image === 'timwilkinson/samba') {
     this._root = `${FS_PREFIX}/fs`;
     this._hostroot = `${FS_HOSTPREFIX}/fs`;
   }
