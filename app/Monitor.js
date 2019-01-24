@@ -6,6 +6,17 @@ const DEFAULT_POLLING = 60; // Default polling is 60 seconds
 const DEFAULT_PARSER = 'output=input;'
 const DEFAULT_TEMPLATE = function(data) { return data; };
 
+function debounce(func, timeout) {
+  let timer = null;
+  return function() {
+    clearTimeout(timer);
+    timer = setTimeout(function() {
+      timer = null;
+      func.apply(null, arguments);
+    }, timeout);
+  }
+}
+
 async function runCmd(app, cmd) {
   const exec = await app._container.exec({
     AttachStdin: false,
@@ -32,12 +43,16 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   const ctemplate = template ? Handlebars.compile(template) : DEFAULT_TEMPLATE;
   this.watcher = null;
   this.clock = null;
+  this.state = {};
+  const dowork = debounce(async () => {
+    callback(await this.run());
+  }, 10);
   const listener = async (event) => {
     if (event === 'rename') {
       this.watcher.close();
       this.watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
     }
-    callback(await this.run());
+    dowork();
   }
   this.run = async () => {
     if (callback) {
@@ -49,7 +64,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
       }
     }
     try {
-      const sandbox = { input: await runCmd(app, cmd), output: {} };
+      const sandbox = { input: await runCmd(app, cmd), output: {}, state: this.state };
       VM.runInNewContext(parser || DEFAULT_PARSER, sandbox);
       return ctemplate(sandbox.output);
     }
