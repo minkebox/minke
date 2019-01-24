@@ -1,13 +1,14 @@
 FROM alpine:edge
 
 COPY app/ /app
+COPY startup.sh /startup.sh
 
-RUN apk --no-cache add nodejs nodejs-npm dnsmasq ; \
+RUN apk --no-cache add nodejs nodejs-npm dnsmasq tzdata; \
     cd /app ; npm install ; \
     apk --no-cache del nodejs-npm
 
 EXPOSE 53/tcp 53/udp 8080/tcp
 VOLUME /minke
 
-ENTRYPOINT ["/app/index.js"]
+ENTRYPOINT ["/startup.sh"]
  
