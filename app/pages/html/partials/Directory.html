@@ -1,0 +1,14 @@
+<div class="bind">
+  <div class="target">
+    <div data-id="app.directories[{{@index}}].name" contentEditable="{{@root.editmode}}" class="targetname editable">{{name}}</div>
+    <div class="options">
+      <div class="shareable">
+      <input data-id="app.directories[{{@index}}].shareable" class="editable" {{#unless @root.editmode}}disabled{{/unless}} type="checkbox" name="shareable" {{#if shareable}}checked{{/if}}>Shareable
+      </div>
+      <div class="shared {{#if shareable}}canshare{{/if}}">
+      <input data-id="app.directories[{{@index}}].shared" class="editable" {{#unless @root.editmode}}disabled{{/unless}} {{#unless shareable}}disabled{{/unless}} type="checkbox" {{#if shared}}checked{{/if}}>Shared
+      </div>
+    </div>
+  </div>
+  <div data-id="app.directories[{{@index}}].description" contentEditable="{{@root.editmode}}" data-placeholder="Description of data in this directory" class="summary editable">{{description}}</div>
+</div>

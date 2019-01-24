@@ -1,27 +1,41 @@
 <!DOCTYPE html>
 <html class="settings">
   <head>
-    <link href="/style.css" rel="stylesheet" type="text/css">
-    <script src="/script.js" type="text/javascript"></script>
+    <link href="/css/style.css" rel="stylesheet" type="text/css">
+    <script src="/js/script.js" type="text/javascript"></script>
+    <script src="/js/settings.js" type="text/javascript"></script>
   </head>
   <body>
     <div class="settings">
-      <div>{{app._name}}</div>
-      <div>{{app._env}}</div>
-      <div>
-        {{#each app._ports}}
-        <div>
-          {{target}} {{host}} {{protocol}} {{nat}}
-          {{#if mdns}}
-            {{mdns.type}} {{mdns.host}} {{mdns.txt}}
-          {{/if}}
-        </div>
-        {{/each}}
+      <img class="icon" src="/img/edit.png" onclick="editMode(true)">
+      <div data-id="app.name" class="title">{{app.name}}</div>
+      <div class="subtitle" style="display:block">Description</div>
+      <div data-id="app.description" data-placeholder="Description of this application" class="description">{{app.description}}</div>
+      <div class="image">
+        <div class="subtitle">Image</div>
+        <div data-id="app.image" contentEditable="{{@root.editmode}}" data-placeholder="Image name" class="summary editable">{{app.image}}</div>
       </div>
-      <div>
-        {{#each app._binds}}
-        <div>{{host}} {{target}} {{shareable}}</div>
-        {{/each}}
+      <div class="bindings">
+        <div class="subtitle">Directories</div>
+        <img class="smallicon" src="/img/plus.png" onclick="editCmd('settings.directory.add')">
+        <div class="bindset">{{#each app.directories}}{{> Directory}}{{/each}}</div>
+        <img class="smallicon right" src="/img/minus.png" onclick="editCmd('settings.directory.rm')">
+      </div>
+      <div class="ports">
+        <div class="subtitle">Ports</div>
+        <img class="smallicon" src="/img/plus.png" onclick="editCmd('settings.port.add')">
+        <div class="portset">{{#each app.ports}}{{> Port}}{{/each}}</div>
+        <img class="smallicon right" src="/img/minus.png" onclick="editCmd('settings.port.rm')">
+      </div>
+      <div class="networks">
+        <div class="subtitle">Networks</div>
+        <div class="network">
+          None
+        </div>
+      </div>
+      <div class="monitor">
+        <div class="subtitle">Status Monitor</div>
+        {{#with app.monitor}}{{> Monitor}}{{/with}}
       </div>
     </div>
   </body>

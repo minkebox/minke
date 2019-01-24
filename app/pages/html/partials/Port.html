@@ -1,0 +1,12 @@
+<div class="port">
+  <div>
+    <input data-id="app.ports[{{@index}}].portnr" class="editable" {{#unless @root.editmode}}disabled{{/unless}} type="number" min="0" max="65535" value="{{portnr}}">
+    <select data-id="app.ports[{{@index}}].protocol" class="editable protocol" {{#unless @root.editmode}}disabled{{/unless}}>
+      <option {{#if tcp}}selected{{/if}}>TCP</option>
+      <option {{#unless tcp}}selected{{/unless}}>UDP</option>
+    </select>
+    <span class="upnp"><input data-id="app.ports[{{@index}}].upnp" class="editable" {{#unless @root.editmode}}disabled{{/unless}} type="checkbox">Enable UPnP</span>
+    <span class="mdns {{#unless mdns.name}}invisible{{/unless}}">Bonjour <span data-id="app.ports[{{@index}}].mdns.name" contentEditable="{{@root.editmode}}" class="editable name">{{mdns.name}}</span>.<span class="mdns-protocol">{{#if tcp}}_tcp{{else}}_udp{{/if}}</span>
+  </div>
+  <div data-id="app.ports[{{@index}}].mdns.description" contentEditable="{{@root.editmode}}" data-placeholder="Description of what this service is for" class="summary editable">{{mdns.description}}</div>
+</div>
