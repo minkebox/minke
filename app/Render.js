@@ -3,6 +3,8 @@ const FS = require('fs');
 const Handlebars = require('handlebars');
 
 const DEFAULT_POLLING = 60; // Default polling is 60 seconds
+const DEFAULT_PARSER = 'output=input;'
+const DEFAULT_TEMPLATE = function(data) { return data; };
 
 async function runCmd(app, cmd) {
   const exec = await app._container.exec({
@@ -27,24 +29,28 @@ async function runCmd(app, cmd) {
 }
 
 function RenderWatchCmd(app, cmd, parser, template, watch, polling, callback) {
-  const ctemplate = template ? Handlebars.compile(template) : (input) => { return input; };
-  let watcher = null;
-  let clock = null;
-  const listener = async () => {
+  const ctemplate = template ? Handlebars.compile(template) : DEFAULT_TEMPLATE;
+  this.watcher = null;
+  this.clock = null;
+  const listener = async (event) => {
+    if (event === 'rename') {
+      this.watcher.close();
+      this.watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
+    }
     callback(await this.run());
   }
   this.run = async () => {
     if (callback) {
-      if (watch && !watcher) {
-        watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
+      if (watch && !this.watcher) {
+        this.watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
       }
-      else if (!watch && !clock) {
-        clock = setInterval(listener, polling * 1000);
+      else if (!watch && !this.clock) {
+        this.clock = setInterval(listener, polling * 1000);
       }
     }
     try {
       const sandbox = { input: await runCmd(app, cmd), output: {} };
-      VM.runInNewContext(parser || 'output=input', sandbox);
+      VM.runInNewContext(parser || DEFAULT_PARSER, sandbox);
       return ctemplate(sandbox.output);
     }
     catch (e) {
@@ -53,13 +59,13 @@ function RenderWatchCmd(app, cmd, parser, template, watch, polling, callback) {
     }
   }
   this.stop = () => {
-    if (watcher) {
-      watcher.close();
-      watcher = null;
+    if (this.watcher) {
+      this.watcher.close();
+      this.watcher = null;
     }
-    if (clock) {
-      clearInterval(clock);
-      clock = null;
+    if (this.clock) {
+      clearInterval(this.clock);
+      this.clock = null;
     }
   }
 }
@@ -70,10 +76,7 @@ const _Render = {
     let lwatch = null;
     if (args.watch) {
       lwatch = args.app._fs.mapFilenameToLocal(args.watch);
-      if (!lwatch && !args.polling) {
-        console.warn(`Cannot watch ${args.watch} and no polling interval given - falling back on default polling`);
-      }
-      if (!FS.existsSync(lwatch)) {
+      if (lwatch && !FS.existsSync(lwatch)) {
         FS.closeSync(FS.openSync(lwatch, 'w'));
       }
     }
