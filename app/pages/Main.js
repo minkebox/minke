@@ -21,7 +21,7 @@ async function MainPageHTML(ctx) {
 
   const networks = getNetworks();
   const apps = MinkeApp.getApps().reduce((acc, app) => {
-    if (app._ip4.indexOf('vpn') === -1) {
+    //if (app._ip4.indexOf('vpn') === -1) {
       acc.push({
         id: app._name,
         online: app._online,
@@ -29,12 +29,12 @@ async function MainPageHTML(ctx) {
         link: app._forward && app._forward.url,
         networks: networks.reduce((acc, network) => {
           if (app._ip4.indexOf(network.name) !== -1) {
-            acc[network.name] = "attached";
+            acc[network.name] = 'attached';
           }
           return acc;
-        }, {})
+        }, app._ip4.indexOf('vpn') === -1 ? {} : { [`vpn-${app._name}`]: 'attached' })
       });
-    }
+    //}
     return acc;
   }, []);
   ctx.body = template({ networks: networks, apps: apps });
@@ -49,7 +49,7 @@ async function MainPageWS(ctx) {
 
   function updateOnline(status) {
     ctx.websocket.send(JSON.stringify({
-      type: 'update.html',
+      type: 'html.update',
       selector: `.application-${status.app._name} .ready`,
       html: status.online ? '<span class="online">running</span>' : '<span class="offline">stopped</span>'
     }));
@@ -58,7 +58,7 @@ async function MainPageWS(ctx) {
   function updateStatus(status) {
     try {
       ctx.websocket.send(JSON.stringify({
-        type: 'update.html',
+        type: 'html.update',
         selector: `.application-${status.app._name} .status`,
         html: status.data
       }));
@@ -93,7 +93,7 @@ async function MainPageWS(ctx) {
       oldStatus[status.app._name] = html;
       try {
         ctx.websocket.send(JSON.stringify({
-          type: 'update.html',
+          type: 'html.update',
           selector: `.network-${status.app._name} .ghosts`,
           html: html
         }));

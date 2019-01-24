@@ -1,39 +1,54 @@
 <!DOCTYPE html>
 <html class="main">
   <head>
-    <link href="style.css" rel="stylesheet" type="text/css">
-    <script src="script.js" type="text/javascript"></script>
+    <link href="/css/style.css" rel="stylesheet" type="text/css">
+    <script src="/js/script.js" type="text/javascript"></script>
   </head>
   <body>
     <div class="titlebar">
-      <div class="title">Minke</div>
+      <div class="title">MinkeBox</div>
     </div>
     <div class="info">
       <table class="applications" cellspacing="0" cellpadding="0">
+        <tbody class="topbar">
+          <tr>
+            <td>
+              <div></div>
+            </td>
+            {{#each networks}}
+            <td>
+              <div class="net">{{name}}</div>
+            </td>
+            {{/each}}
+            <td><div class="padding"></div></td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="applications" cellspacing="0" cellpadding="0">
         <tbody>
           {{#each apps}}
-            <tr>
-              <td>
-                <div class="home"></div>
-                <div class="application application-{{id}}">
-                  <img class="icon" src="img/settings.png" onclick="openInlinePage('settings/{{id}}')">
-                  <div class="name">{{name}}</div>
-                  <div class="ready">{{#if online}}<span class="online">running</span>{{else}}<span class="offline">stopped</span>{{/if}}</div>
-                  <div class="status-box">
-                    <iframe class="status resize" frameborder="0"></iframe>
-                  </div>
-                  {{#if link}}
-                  <div class="link" onclick="openInlinePage('{{link}}')">Link</div>
-                  {{/if}}
+          <tr>
+            <td>
+              <div class="home"></div>
+              <div class="application application-{{id}}">
+                <img class="icon" src="img/settings.png" onclick="openInlinePage('settings/{{id}}/')">
+                <div class="name">{{name}}</div>
+                <div class="ready">{{#if online}}<span class="online">running</span>{{else}}<span class="offline">stopped</span>{{/if}}</div>
+                <div class="status-box">
+                  <iframe class="status resize" frameborder="0"></iframe>
                 </div>
-              </td>
-              {{#each ../networks}}
-              <td>
-                <div class="net {{lookup ../networks name}}">{{name}}</div>
-              </td>
-              {{/each}}
-              <td><div class="padding"></div></td>
-            </tr>
+                {{#if link}}
+                <div class="link" onclick="openInlinePage('{{link}}')">Link</div>
+                {{/if}}
+              </div>
+            </td>
+            {{#each ../networks}}
+            <td>
+              <div class="net {{lookup ../networks name}}"></div>
+            </td>
+            {{/each}}
+            <td><div class="padding"></div></td>
+          </tr>
           {{/each}}
         </tbody>
       </table>
@@ -43,6 +58,21 @@
         </tbody>
       </table>
       {{/each}}
+      <table class="applications" cellspacing="0" cellpadding="0">
+          <tbody class="bottombar">
+            <tr>
+              <td>
+                <div></div>
+              </td>
+              {{#each networks}}
+              <td>
+                <div class="net">{{name}}</div>
+              </td>
+              {{/each}}
+              <td><div class="padding"></div></td>
+            </tr>
+          </tbody>
+        </table>
     </div>
   </body>
 </html>
