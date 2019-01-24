@@ -5,7 +5,7 @@ const DNSForward = require('./DNSForward');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
-const Render = require('./Render');
+const Monitor = require('./Monitor');
 
 const DEBUG = !!process.env.DEBUG;
 
@@ -313,7 +313,7 @@ MinkeApp.prototype = {
     }
 
     if (this._monitor.cmd) {
-      this._statusRender = this._createMonitor({
+      this._statusMonitor = this._createMonitor({
         event: 'update.status',
         polling: this._monitor.polling,
         cmd: this._monitor.cmd,
@@ -331,9 +331,9 @@ MinkeApp.prototype = {
   stop: async function() {
   
     try {
-      if (this._statusRender) {
-        this._statusRender.stop();
-        this._statusRender = null;
+      if (this._statusMonitor) {
+        this._statusMonitor.stop();
+        this._statusMonitor = null;
       }
     }
     catch (_) {
@@ -393,19 +393,6 @@ MinkeApp.prototype = {
     return this;
   },
 
-  _test2: function() {
-    this._statusRender = this._createMonitor({
-      event: 'update.status',
-      polling: 10,
-      cmd: 'ls /', 
-      parser: `const args = input.split('\\n');
-      output = {
-        first: args[0]
-      }`,
-      template: '<div>{{first}} item</div>'
-    });
-  },
-
   _monitorNetwork: function() {
     this._networkMonitor = this._createMonitor({
       event: 'update.network.status',
@@ -417,7 +404,7 @@ MinkeApp.prototype = {
   },
 
   _createMonitor: function(args) {  
-    const monitor = Render.create({
+    const monitor = Monitor.create({
       app: this,
       cmd: args.cmd,
       parser: args.parser,
