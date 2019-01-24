@@ -1,9 +1,11 @@
+let ws = { send: () => {} };
+
 function onPageShow() {
-  const ws = new WebSocket(`ws://${location.host}/ws`);
+  ws = new WebSocket(`ws://${location.host}${location.pathname}ws`);
   ws.addEventListener('message', function(event) {
     const msg = JSON.parse(event.data);
     switch (msg.type) {
-      case 'update.html':
+      case 'html.update':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
           if (elem.nodeName === 'IFRAME') {
             elem.srcdoc = msg.html;
@@ -13,6 +15,20 @@ function onPageShow() {
           }
         });
         break;
+      case 'html.append':
+        document.querySelectorAll(msg.selector).forEach(function(elem) {
+          const builder = document.createElement('div');
+          builder.innerHTML = msg.html;
+          elem.appendChild(builder.firstElementChild);
+        });
+        break;
+      case 'html.truncate':
+        document.querySelectorAll(msg.selector).forEach(function(elem) {
+          const last = elem.lastElementChild;
+          if (last) {
+            last.remove();
+          }
+        });
       default:
         break;
     }
@@ -28,7 +44,7 @@ function closeInlinePage() {
   }
 }
 
-function openInlinePage(url) {
+function openInlinePage(url, onClose) {
   closeInlinePage();
   const builder = document.createElement('div');
   const width = document.body.clientWidth - INLINE_BORDER * 2;

@@ -25,11 +25,11 @@ wsroot.get('/ws', MainPage.WS);
 root.get('/settings/:id', SettingsPage.HTML);
 wsroot.get('/settings/:id/ws', SettingsPage.WS);
 
-root.get('/script.js', async (ctx) => {
-  ctx.body = FS.readFileSync(`${__dirname}/pages/script/script.js`, { encoding: 'utf8' });
+root.get('/js/:script', async (ctx) => {
+  ctx.body = FS.readFileSync(`${__dirname}/pages/script/${ctx.params.script}`, { encoding: 'utf8' });
   ctx.type = 'text/javascript';
 });
-root.get('/style.css', async (ctx) => {
+root.get('/css/style.css', async (ctx) => {
   ctx.body = FS.readFileSync(`${__dirname}/pages/css/style.css`, { encoding: 'utf8' });
   ctx.type = 'text/css';
 });
