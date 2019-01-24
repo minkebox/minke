@@ -25,7 +25,6 @@ async function MainPageHTML(ctx) {
       acc.push({
         id: app._name,
         online: app._online,
-        name: `minke-${app._name}.local`,
         link: app._forward && app._forward.url,
         networks: networks.reduce((acc, network) => {
           if (app._ip4.indexOf(network.name) !== -1) {
@@ -81,7 +80,6 @@ async function MainPageWS(ctx) {
           if (apps.find(app => app._name == id && app._ip4.indexOf(`vpn-${status.app._name}`))) {
             ghosts[service.target] = {
               id: id,
-              name: service.target,
               networks: { [`vpn-${status.app._name}`]: 'attached' }
             };
           }

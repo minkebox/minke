@@ -17,7 +17,7 @@
             </td>
             {{#each networks}}
             <td>
-              <div class="net">{{name}}</div>
+              <div class="net">{{id}}</div>
             </td>
             {{/each}}
             <td><div class="padding"></div></td>
@@ -32,13 +32,13 @@
               <div class="home"></div>
               <div class="application application-{{id}}">
                 <img class="icon" src="img/settings.png" onclick="openInlinePage('settings/{{id}}/')">
-                <div class="name">{{name}}</div>
+                <div class="name">{{id}}</div>
                 <div class="ready">{{#if online}}<span class="online">running</span>{{else}}<span class="offline">stopped</span>{{/if}}</div>
                 <div class="status-box">
                   <iframe class="status resize" frameborder="0"></iframe>
                 </div>
                 {{#if link}}
-                <div class="link" onclick="openInlinePage('{{link}}')">Link</div>
+                <div class="link" onclick="openInlinePage('{{link}}')">Details</div>
                 {{/if}}
               </div>
             </td>
@@ -66,7 +66,7 @@
               </td>
               {{#each networks}}
               <td>
-                <div class="net">{{name}}</div>
+                <div class="net">{{id}}</div>
               </td>
               {{/each}}
               <td><div class="padding"></div></td>
