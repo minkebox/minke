@@ -23,7 +23,7 @@ async function runCmd(app, cmd) {
     AttachStdout: true,
     AttachStderr: false,
     Tty: false,
-    Cmd: typeof cmd === 'string' ? cmd.split(' ') : cmd
+    Cmd: [ 'sh', '-c', cmd ]
   });
   const stream = await exec.start();
   let buffer = '';
