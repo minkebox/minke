@@ -9,19 +9,26 @@ let FS_HOSTPREFIX = FS_PREFIX;
 function Filesystem(app) {
   this._name = app._name;
   this._mappings = app._binds;
-  this._root = `${FS_PREFIX}/fs/app/${this._name}`;
-  this._hostroot = `${FS_HOSTPREFIX}/fs/app/${this._name}`;
-  FS.mkdirSync(`${this._root}/private`, { recursive: true });
-  FS.mkdirSync(`${this._root}/shareable`, { recursive: true });
+  this._shares = [];
+  // Handle Samba specially
+  if (this._image === 'timwilkinson/samba') {
+    this._root = `${FS_PREFIX}/fs`;
+    this._hostroot = `${FS_HOSTPREFIX}/fs`;
+  }
+  else {
+    this._root = `${FS_PREFIX}/fs/app/${this._name}`;
+    this._hostroot = `${FS_HOSTPREFIX}/fs/app/${this._name}`;
+  }
 }
 
 Filesystem.prototype = {
 
   mapPrivateVolume: function(path) {
     const map = {
-      name: `${this._name}:${path}`,
+      description: '',
       shareable: false,
-      host: Path.normalize(`/private/${path}`),
+      shared: false,
+      host: Path.normalize(path),
       target: path
     }
     this._mappings.push(map);
@@ -30,9 +37,10 @@ Filesystem.prototype = {
 
   mapShareableVolume: function(path) {
     const map = {
-      name: `${this._name}:${path}`,
+      description: '',
       shareable: true,
-      host: Path.normalize(`/shareable/${path}`),
+      shared: false,
+      host: Path.normalize(path),
       target: path
     };
     this._mappings.push(map);
@@ -64,6 +72,32 @@ Filesystem.prototype = {
       }
     }
     return null;
+  },
+
+  shareVolume: function(map) {
+    const sharepoint = `${FS_PREFIX}/fs/shareable/${map.sharepoint || map.target.split('/').slice(-1)[0]}`;
+    if (map.shareable && map.shared) {
+      if (!FS.existsSync(sharepoint)) {
+        FS.mkdirSync(sharepoint);
+      }
+      ChildProcess.spawnSync('/bin/mount', [ '--bind', '-o', 'rshared', `${this._hostroot}/${map.host}`, sharepoint ]);
+      this._shares.push(sharepoint);
+    }
+    else {
+      if (FS.existsSync(sharepoint)) {
+        FS.rmdirSync(sharepoint);
+      }
+    }
+  },
+
+  unshareVolumes: function() {
+    this._shares.forEach((sharepoint) => {
+      ChildProcess.spawnSync('/bin/umount', [ sharepoint ]);
+      if (FS.existsSync(sharepoint)) {
+        FS.rmdirSync(sharepoint);
+      }
+    });
+    this._shares = [];
   }
 
 }
