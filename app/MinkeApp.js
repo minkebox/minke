@@ -39,6 +39,7 @@ MinkeApp.prototype = {
       const portmap = config.portmap || {};
       this._ports = Object.keys(containerConfig.ExposedPorts).map((port) => {
         return {
+          description: '',
           target: port,
           host: (portmap[port] && portmap[port].port) || parseInt(port),
           protocol: port.split('/')[1].toLocaleUpperCase(),
@@ -96,6 +97,7 @@ MinkeApp.prototype = {
   createFromJSON: function(app) {
 
     this._name = app.name;
+    this._description = app.description;
     this._image = app.image;
     this._env = app.env;
     this._ports = app.ports;
@@ -103,6 +105,7 @@ MinkeApp.prototype = {
     this._ip4 = app.ip4;
     this._needLink = app.link;
     this._needDNS = app.dns;
+    this._monitor = app.monitor || {};
 
     this._setOnline(false);
 
@@ -112,22 +115,27 @@ MinkeApp.prototype = {
   toJSON: function() {
     return {
       name: this._name,
+      description: this._description,
       image: this._image,
       env: this._env,
       link: this._needLink,
       dns: this._needDNS,
       ip4: this._ip4,
       ports: this._ports,
-      binds: this._binds
+      binds: this._binds,
+      monitor: this._monitor
     }
   },
 
   start: async function() {
 
-    const needHomeNetwork = this._ip4.indexOf('home') !== -1;
+    let needHomeNetwork = this._ip4.indexOf('home') !== -1;
     const needBridgeNetwork = this._ip4.indexOf('bridge') !== -1;
     const needPrivateNetwork = this._ip4.indexOf('vpn') !== -1;
     const usePrivateNetwork = this._ip4.find(net => net.indexOf('vpn-') === 0);
+
+    // HACK
+    if (!needPrivateNetwork && !usePrivateNetwork) needHomeNetwork = true;
 
     // Build the helper
     this._fs = Filesystem.create(this);
@@ -144,11 +152,17 @@ MinkeApp.prototype = {
       },
       Env: [].concat(this._env)
     };
+
+    // Share filesystems
+    this._binds.forEach((map) => {
+      this._fs.shareVolume(map);
+    });
+
     // If we don't have our own IP, then we might need to forward some ports
     if (!this._ip4) { // XXX FIX ME XXX
       config.PortBindings = {}
       this._ports.forEach((port) => {
-        if (port.target && port.host) {
+        if (port.target && parseInt(port.host)) {
           config.PortBindings[port.target] = [{ HostPort: port.host }];
         }
       });
@@ -213,8 +227,15 @@ MinkeApp.prototype = {
         if (port.nat) {
           nat.push(`${port.host}:${port.protocol}`);
         }
-        if (port.mdns) {
-          mdns.push(`${port.mdns.type}:${port.host}:${port.mdns.txt || ''}`);
+        if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
+          mdns.push(`${port.mdns.type}:${port.host}:` + (!port.mdns.txt ? '' : Object.keys(port.mdns.txt).map((key) => {
+            if (port.mdns.txt[key]) {
+              return `<txt-record>${key}=${port.mdns.txt[key].replace(/ /g, '%20')}</txt-record>`
+            }
+            else {
+              return '';
+            }
+          }).join('')));
         }
       });
       if (nat.length) {
@@ -290,8 +311,17 @@ MinkeApp.prototype = {
     if (needPrivateNetwork) {
       this._monitorNetwork();
     }
-    this._test2(); // XXX
 
+    if (this._monitor.cmd) {
+      this._statusRender = this._createMonitor({
+        event: 'update.status',
+        polling: this._monitor.polling,
+        cmd: this._monitor.cmd,
+        watch: this._monitor.watch,
+        parser: this._monitor.parser,
+        template: this._monitor.template
+      });
+    }
 
     this._setOnline(true);
 
@@ -301,15 +331,21 @@ MinkeApp.prototype = {
   stop: async function() {
   
     try {
-      this._statusRender.stop();
+      if (this._statusRender) {
+        this._statusRender.stop();
+        this._statusRender = null;
+      }
     }
     catch (_) {
     }
     try {
       this._networkMonitor.stop();
+      this._networkMonitor = null;
     }
     catch (_) {
     }
+
+    this._fs.unshareVolumes();
 
     if (this._dns) {
       DNSForward.removeForward(this._dns);
@@ -330,7 +366,9 @@ MinkeApp.prototype = {
     if (this._helperContainer) {
       stopping.push(this._helperContainer.stop());
     }
-    stopping.push(this._container.stop());
+    if (this._container) {
+      stopping.push(this._container.stop());
+    }
     try {
       await Promise.all(stopping);
     }
@@ -340,6 +378,14 @@ MinkeApp.prototype = {
     this._setOnline(false);
 
     return this;
+  },
+
+  restart: async function(save) {
+    await this.stop();
+    if (save) {
+      await this.save();
+    }
+    await this.start();
   },
 
   save: async function() {
@@ -378,8 +424,8 @@ MinkeApp.prototype = {
       template: args.template,
       watch: args.watch,
       polling: args.polling,
-      callback: (data) => {
-        this._emit(args.event, { data: data });
+      callback: async (data) => {
+        this._emit(args.event, { data: await data });
       }
     });
 
