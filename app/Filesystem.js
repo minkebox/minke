@@ -75,12 +75,12 @@ Filesystem.prototype = {
   },
 
   shareVolume: function(map) {
-    const sharepoint = `${FS_PREFIX}/fs/shareable/${map.sharepoint || map.target.split('/').slice(-1)[0]}`;
+    const sharepoint = `${FS_PREFIX}/fs/shareable/${map.sharepoint || (this._name + '-' + map.target.split('/').slice(-1)[0])}`;
     if (map.shareable && map.shared) {
       if (!FS.existsSync(sharepoint)) {
         FS.mkdirSync(sharepoint);
       }
-      ChildProcess.spawnSync('/bin/mount', [ '--bind', '-o', 'rshared', `${this._hostroot}/${map.host}`, sharepoint ]);
+      ChildProcess.spawnSync('/bin/mount', [ '--bind', '-o', 'rshared', `${this._root}/${map.host}`, sharepoint ]);
       this._shares.push(sharepoint);
     }
     else {
@@ -92,7 +92,7 @@ Filesystem.prototype = {
 
   unshareVolumes: function() {
     this._shares.forEach((sharepoint) => {
-      ChildProcess.spawnSync('/bin/umount', [ sharepoint ]);
+      ChildProcess.spawnSync('/bin/umount', [ '-l', sharepoint ]);
       if (FS.existsSync(sharepoint)) {
         FS.rmdirSync(sharepoint);
       }
