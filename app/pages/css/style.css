@@ -188,7 +188,7 @@ html.main {
 .settings .description {
   max-width: 600px;
 }
-.settings .bindings, .settings .image, .settings .ports, .settings .networks {
+.settings .bindings, .settings .image, .settings .ports, .settings .files, .settings .networks {
   margin: 18px 0px;
 }
 .settings .bind .targetname {
@@ -198,16 +198,16 @@ html.main {
 .settings .bind .options {
   float: right;
 }
-.settings .bind .summary, .settings .image .summary, .settings .port .summary {
+.settings .bind .summary, .settings .image .summary, .settings .port .summary, .settings .file .summary {
   margin: 4px 12px 0px 12px;
 }
-.settings .bindings .smallicon, .settings .ports .smallicon {
+.settings .smallicon {
   visibility: hidden;
 }
-.settings .editing .bindings .smallicon, .settings .editing .ports .smallicon {
+.settings .editing .smallicon {
   visibility: visible;
 }
-.settings .editing .bindings .bindset:empty + .smallicon, .settings .editing .ports .portset:empty + .smallicon {
+.settings .editing .bindings .bindset:empty + .smallicon, .settings .editing .ports .portset:empty + .smallicon, .settings .editing .files .fileset:empty + .smallicon {
   visibility: hidden;
 }
 .settings .bindings .bind .shareable, .settings .bindings .bind .shared {
@@ -245,7 +245,7 @@ html.main {
 .settings .port .mdns .name {
   padding: 0px 0px 0px 10px;
 }
-.settings .bindings .bindset:empty:before, .settings .ports .portset:empty:before {
+.settings .bindings .bindset:empty:before, .settings .ports .portset:empty:before, .settings .files .fileset:empty:before {
   content: 'None'
 }
 
@@ -267,7 +267,7 @@ html.main {
   padding: 0px 10px;
   min-width: 20px;
 }
-.settings .monitor .parser, .settings .monitor .template {
+.settings .monitor .parser, .settings .monitor .template, .settings .file .data {
   white-space: pre;
   padding: 4px;
   margin: -4px 0px 4px 10px;
@@ -279,11 +279,17 @@ html.main {
   border-radius: 10px;
   padding: 1px 5px;
 }
+.settings .files .file .data {
+  border-color: lightgrey;
+  xmin-height: 100px;
+  xmargin-left: 10px;
+  margin-top: 6px;
+}
 .settings .editing .editable {
-  border: solid 1px lightblue;
+  border: solid 1px lightblue !important;
 }
 .settings .editing .editable:focus {
-  border-color: green;
+  border-color: green !important;
   outline: none;
 }
 .settings [contentEditable][data-placeholder]:empty:before {

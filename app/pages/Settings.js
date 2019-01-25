@@ -1,5 +1,6 @@
 const FS = require('fs');
 const Handlebars = require('handlebars');
+const UUID = require('uuid/v4');
 const MinkeApp = require('../MinkeApp');
 
 Handlebars.registerHelper('index', (context) => {
@@ -30,6 +31,13 @@ function genPort(port) {
   }
 }
 
+function genFile(file) {
+  return {
+    target: file.target,
+    data: file.data,
+  }
+}
+
 function genMonitor(mon) {
   return {
     watch: mon.watch,
@@ -40,21 +48,24 @@ function genMonitor(mon) {
   }
 }
 
-function registerPartials() {
+let template;
+
+function registerHTML() {
   const partials = [
     'Directory',
     'Port',
-    'Monitor'
+    'Monitor',
+    'File'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
   });
+  template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Settings.html`, { encoding: 'utf8' }));
 }
 
 async function SettingsPageHTML(ctx) {
 
-  const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Settings.html`, { encoding: 'utf8' }));
-  registerPartials();
+  registerHTML();
 
   const app = MinkeApp.getApps().find((item) => {
     return item._name === ctx.params.id;
@@ -65,7 +76,8 @@ async function SettingsPageHTML(ctx) {
     description: app._description || '',
     directories: app._binds.map(bind => genDirectory(bind)),
     ports: app._ports.map(port => genPort(port)),
-    monitor: genMonitor(app._monitor)
+    monitor: genMonitor(app._monitor),
+    files: app._files.map(file => genFile(file))
   }});
   ctx.type = 'text/html';
 }
@@ -85,8 +97,8 @@ async function SettingsPageWS(ctx) {
     }},
     { p: /^app.directories\[(\d+)\].name$/, f: (msg, match) => {
         const bind = app._binds[parseInt(match[1])];
-        bind.host = msg.value.trim();
-        bind.target = bind.host;
+        bind.target = msg.value.trim();
+        bind.host = `/dir/${bind.target}`;
     }},
     { p: /^app.directories\[(\d+)\].description$/, f: (msg, match) => {
         app._binds[parseInt(match[1])].description = msg.value;
@@ -150,6 +162,17 @@ async function SettingsPageWS(ctx) {
         else {
           app._monitor.template = '';
         }
+    }},
+    { p: /^app.files\[(\d+)\].target$/, f: (msg, match) => {
+      app._files[parseInt(match[1])].target = msg.value;
+    }},
+    { p: /^app.files\[(\d+)\].data$/, f: (msg, match) => {
+      if (msg.value.trim()) {
+        app._files[parseInt(match[1])].data = msg.value;
+      }
+      else {
+        app._files[parseInt(match[1])].data = '';
+      }
     }},
   ];
 
@@ -220,7 +243,7 @@ async function SettingsPageWS(ctx) {
         case 'settings.directory.add':
         {
           const newDir = {
-            host: '/',
+            host: '/dir',
             target: '/',
             shareable: false,
             description: ''
@@ -250,6 +273,44 @@ async function SettingsPageWS(ctx) {
               selector: '.settings .bindings .bindset'
             }));
             app._binds.splice(-1, 1);
+            changed = true;
+          }
+          catch (_) {
+          }
+          break;
+        }
+        case 'settings.file.add':
+        {
+          const newFile = {
+            host: `/file/${UUID()}`,
+            target: '',
+            data: ''
+          };
+          const html = Handlebars.compile('{{> File}}')(Object.assign({
+            editmode: true,
+            index: app._files.length
+          }, genFile(newFile)));
+          try {
+            ctx.websocket.send(JSON.stringify({
+              type: 'html.append',
+              selector: '.settings .files .fileset',
+              html: html
+            }));
+            app._files.push(newFile);
+            changed = true;
+          }
+          catch (_) {
+          }
+          break;
+        }
+        case 'settings.file.rm':
+        {
+          try {
+            ctx.websocket.send(JSON.stringify({
+              type: 'html.truncate',
+              selector: '.settings .files .fileset'
+            }));
+            app._files.splice(-1, 1);
             changed = true;
           }
           catch (_) {
