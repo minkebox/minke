@@ -9,6 +9,7 @@ let FS_HOSTPREFIX = FS_PREFIX;
 function Filesystem(app) {
   this._name = app._name;
   this._mappings = app._binds;
+  this._files = app._files;
   this._shares = [];
   // Handle Samba specially
   if (app._image === 'timwilkinson/samba') {
@@ -23,32 +24,10 @@ function Filesystem(app) {
 
 Filesystem.prototype = {
 
-  mapPrivateVolume: function(path) {
-    const map = {
-      description: '',
-      shareable: false,
-      shared: false,
-      host: Path.normalize(path),
-      target: path
-    }
-    this._mappings.push(map);
-    return map;
-  },
-
-  mapShareableVolume: function(path) {
-    const map = {
-      description: '',
-      shareable: true,
-      shared: false,
-      host: Path.normalize(path),
-      target: path
-    };
-    this._mappings.push(map);
-    return map;
-  },
-
   getAllMounts: function() {
-    return this._mappings.map(map => this._makeMount(map));
+    return this._mappings.map(map => this._makeMount(map)).concat(
+      this._files.map(file => this._makeFile(file))
+    );
   },
 
   _makeMount: function(bind) {
@@ -58,6 +37,19 @@ Filesystem.prototype = {
       Type: 'bind',
       Source: src,
       Target: bind.target,
+      BindOptions: {
+        Propagation: 'rshared'
+      }
+    }
+  },
+
+  _makeFile: function(file) {
+    const src = Path.normalize(`${this._hostroot}/${file.host}`);
+    FS.writeFileSync(src, file.data);
+    return {
+      Type: 'bind',
+      Source: src,
+      Target: file.target,
       BindOptions: {
         Propagation: 'rshared'
       }
