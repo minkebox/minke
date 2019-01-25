@@ -185,6 +185,7 @@ MinkeApp.prototype = {
       config.HostConfig.Dns = [ gw ];
       config.HostConfig.DnsSearch = [ 'local.' ];
       config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
+      config.Env.push(`_PRIVATE_INTERFACE=eth0`);
     }
 
     if (needPrivateNetwork) {
@@ -199,6 +200,26 @@ MinkeApp.prototype = {
     if (DEBUG) {
       config.StopTimeout = 1;
     }
+
+    // Setup network envs
+    let netid = 0;
+    if (needHomeNetwork) {
+      config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
+    }
+    else if (usePrivateNetwork) {
+      config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+    }
+    if (needBridgeNetwork) {
+      config.Env.push(`__BRIDGE_INTERFACE=eth${netid++}`);
+    }
+    if (needPrivateNetwork) {
+      config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+    }
+    if (usePrivateNetwork && needHomeNetwork) {
+      config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+    }
+
+    this._fullEnv = config.Env;
   
     const helperConfig = {
       name: `helper-${this._name}`,
@@ -213,7 +234,7 @@ MinkeApp.prototype = {
         DnsSearch: config.HostConfig.DnsSearch,
         DnsOptions: config.HostConfig.DnsOptions
       },
-      Env: []
+      Env: [].concat(config.Env)
     };
 
     if (needHomeNetwork) {
