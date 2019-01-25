@@ -92,7 +92,7 @@ async function MainPageWS(ctx) {
       try {
         ctx.websocket.send(JSON.stringify({
           type: 'html.update',
-          selector: `.network-${status.app._name} .ghosts`,
+          selector: `.network-${status.app._name}`,
           html: html
         }));
       }

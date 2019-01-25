@@ -10,7 +10,7 @@
     </div>
     <div class="info">
       <table class="applications" cellspacing="0" cellpadding="0">
-        <tbody class="topbar">
+        <thead class="topbar">
           <tr>
             <td>
               <div></div>
@@ -20,12 +20,12 @@
               <div class="net">{{id}}</div>
             </td>
             {{/each}}
-            <td><div class="padding"></div></td>
+            <td>
+              <div class="padding"></div>
+            </td>
           </tr>
-        </tbody>
-      </table>
-      <table class="applications" cellspacing="0" cellpadding="0">
-        <tbody>
+        </thead>
+        <tbody class="network-home">
           {{#each apps}}
           <tr>
             <td>
@@ -47,32 +47,32 @@
               <div class="net {{lookup ../networks name}}"></div>
             </td>
             {{/each}}
-            <td><div class="padding"></div></td>
+            <td>
+              <div class="padding"></div>
+            </td>
           </tr>
           {{/each}}
         </tbody>
-      </table>
-      {{#each networks}}
-      <table class="applications network-{{id}}" cellspacing="0" cellpadding="0">
-        <tbody class="ghosts">
+        {{#each networks}}
+        <tbody class="network-{{id}} ghosts">
         </tbody>
+        {{/each}}
+        <tfoot class="bottombar">
+          <tr>
+            <td>
+              <div></div>
+            </td>
+            {{#each networks}}
+            <td>
+              <div class="net">{{id}}</div>
+            </td>
+            {{/each}}
+            <td>
+              <div class="padding"></div>
+            </td>
+          </tr>
+        </tfoot>
       </table>
-      {{/each}}
-      <table class="applications" cellspacing="0" cellpadding="0">
-          <tbody class="bottombar">
-            <tr>
-              <td>
-                <div></div>
-              </td>
-              {{#each networks}}
-              <td>
-                <div class="net">{{id}}</div>
-              </td>
-              {{/each}}
-              <td><div class="padding"></div></td>
-            </tr>
-          </tbody>
-        </table>
     </div>
   </body>
 </html>
