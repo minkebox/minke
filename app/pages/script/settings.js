@@ -69,6 +69,23 @@ function monitorEdits() {
     const text = (event.originalEvent || event).clipboardData.getData('text/plain');
     document.execCommand('insertText', false, text);
   });
+  document.addEventListener('drop', function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    if (event.dataTransfer && event.dataTransfer && event.dataTransfer.items && event.dataTransfer.items[0]) {
+      const item = event.dataTransfer.items[0];
+      if (item.kind === 'file')
+      {
+        const reader = new FileReader();
+        reader.onload = function(e)
+        {
+          event.target.focus();
+          document.execCommand('insertText', false, e.target.result);
+        };
+        reader.readAsText(item.getAsFile());
+      }
+    }
+  });
 }
 
 
