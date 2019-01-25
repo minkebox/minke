@@ -25,75 +25,6 @@ function MinkeApp() {
 
 MinkeApp.prototype = {
 
-  createFromConfig: async function(config) {
-    
-    this._name = config.name;
-    this._image = config.image;
-    this._env = config.env || [];
-
-    const image = await docker.getImage(this._image);
-    const imageInfo = await image.inspect();
-    const containerConfig = imageInfo.ContainerConfig;
-
-    if (config.type === 'map') {
-      const portmap = config.portmap || {};
-      this._ports = Object.keys(containerConfig.ExposedPorts).map((port) => {
-        return {
-          description: '',
-          target: port,
-          host: (portmap[port] && portmap[port].port) || parseInt(port),
-          protocol: port.split('/')[1].toLocaleUpperCase(),
-          nat: (portmap[port] && portmap[port].nat) || false,
-          mdns: null
-        }
-      });
-    }
-    else {
-      this._ports = [];
-    }
-
-    this._binds = [];
-    if (containerConfig.Volumes || config.fsmap) {
-      const fsmap = config.fsmap || {};
-      const fs = Filesystem.create(this);
-      const volumes = Object.assign({}, containerConfig.Volumes, config.fsmap);
-      for (let path in volumes) {
-        const map = fsmap[path];
-        if (!map || map.type === 'private') {
-          this._binds.push(fs.mapPrivateVolume(path));
-        }
-        else {
-          this._binds.push(fs.mapShareableVolume(path));
-        }
-      }
-    }
-
-    this._needDNS = !!(containerConfig.ExposedPorts[TCP_DNS] && containerConfig.ExposedPorts[UDP_DNS]);
-    this._needLink = false;
-
-    // Select the relevant network config.
-    switch (config.type) {
-      case 'home':
-        // Connect to home network and default bridge.
-        this._ip4 = [ 'home', 'bridge' ];
-        break;
-
-      case 'vpn':
-        // Connect to home network and a user-defined bridge (used for vpn)
-        this._ip4 = [ 'home', 'vpn' ];
-        break;
-
-      default:
-        this._ip4 = [ 'bridge' ];
-        this._needLink = !!containerConfig.ExposedPorts[TCP_HTTP];
-        break;
-    }
-
-    this._setOnline(false);
-
-    return this;
-  },
-
   createFromJSON: function(app) {
 
     this._name = app.name;
@@ -102,6 +33,7 @@ MinkeApp.prototype = {
     this._env = app.env;
     this._ports = app.ports;
     this._binds = app.binds;
+    this._files = app.files || [];
     this._ip4 = app.ip4;
     this._needLink = app.link;
     this._needDNS = app.dns;
@@ -123,6 +55,7 @@ MinkeApp.prototype = {
       ip4: this._ip4,
       ports: this._ports,
       binds: this._binds,
+      files: this._files,
       monitor: this._monitor
     }
   },
