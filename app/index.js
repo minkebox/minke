@@ -40,8 +40,6 @@ root.get('/img/:img', async (ctx) => {
 
 (async function() {
   await MinkeApp.startApps(App);
-  //await (await (await new MinkeApp().createFromConfig({ name: 'proxy', style: 'host', image: 'timwilkinson/dnsproxy' })).start()).save();
-  //await (await (await new MinkeApp().createFromConfig({ name: 'wsdemo', style: 'hidden', image: 'timwilkinson/websocketdemo' })).start()).save();
 })();
 
 
