@@ -23,6 +23,7 @@ async function runCmd(app, cmd) {
     AttachStdout: true,
     AttachStderr: false,
     Tty: false,
+    Env: app._fullEnv,
     Cmd: [ 'sh', '-c', cmd ]
   });
   const stream = await exec.start();
