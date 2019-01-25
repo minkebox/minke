@@ -130,16 +130,26 @@ async function SettingsPageWS(ctx) {
         app._monitor.watch = msg.value.trim();
     }},
     { p: /^app.monitor.polling$/, f: (msg, match) => {
-        app._monitor.polling = parseFloat(msg.value);
+        app._monitor.polling = parseFloat(msg.value) || 0;
     }},
     { p: /^app.monitor.cmd$/, f: (msg, match) => {
         app._monitor.cmd = msg.value.trim();
     }},
     { p: /^app.monitor.parser$/, f: (msg, match) => {
+      if (msg.value.trim()) {
         app._monitor.parser = msg.value;
+      }
+      else {
+        app._monitor.parser = '';
+      }
     }},
     { p: /^app.monitor.template$/, f: (msg, match) => {
-        app._monitor.template = msg.value;
+        if (msg.value.trim()) {
+          app._monitor.template = msg.value;
+        }
+        else {
+          app._monitor.template = '';
+        }
     }},
   ];
 
