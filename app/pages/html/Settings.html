@@ -8,12 +8,24 @@
   <body>
     <div class="settings">
       <img class="icon" src="/img/edit.png" onclick="editMode(true)">
-      <div data-id="app.name" class="title">{{app.name}}</div>
+      <div data-id="app.name" contentEditable="{{@root.editmode}}" class="title editable">{{app.name}}</div>
       <div class="subtitle" style="display:block">Description</div>
       <div data-id="app.description" data-placeholder="Description of this application" class="description">{{app.description}}</div>
       <div class="image">
         <div class="subtitle">Image</div>
         <div data-id="app.image" contentEditable="{{@root.editmode}}" data-placeholder="Image name" class="summary editable">{{app.image}}</div>
+      </div>
+      <div class="arguments">
+        <div class="subtitle">Arguments</div>
+        <div data-placeholder="Arguments" data-id="app.arguments" contentEditable="{{@root.editmode}}" class="summary editable">{{app.arguments}}</div>
+      </div>
+      <div class="environment">
+        <div class="subtitle">Environment</div>
+        <div data-placeholder="Environment (colon seperated list)" data-id="app.environment" contentEditable="{{@root.editmode}}" class="summary editable">{{app.environment}}</div>
+      </div>
+      <div class="features">
+          <div class="subtitle">Features</div>
+          {{> Features}}
       </div>
       <div class="bindings">
         <div class="subtitle">Directories</div>

@@ -178,7 +178,7 @@ html.main {
 }
 .settings .subtitle {
   display: inline-block;
-  margin-bottom: 6px;
+  margin: 6px 0px;
 }
 .settings .title {
   display: inline-block;
@@ -198,7 +198,7 @@ html.main {
 .settings .bind .options {
   float: right;
 }
-.settings .bind .summary, .settings .image .summary, .settings .port .summary, .settings .file .summary {
+.settings .summary {
   margin: 4px 12px 0px 12px;
 }
 .settings .smallicon {

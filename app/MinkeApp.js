@@ -30,13 +30,13 @@ MinkeApp.prototype = {
     this._name = app.name;
     this._description = app.description;
     this._image = app.image;
+    this._args = app.args;
     this._env = app.env;
+    this._features = app.features || {},
     this._ports = app.ports;
     this._binds = app.binds;
     this._files = app.files || [];
     this._ip4 = app.ip4;
-    this._needLink = app.link;
-    this._needDNS = app.dns;
     this._monitor = app.monitor || {};
 
     this._setOnline(false);
@@ -49,9 +49,9 @@ MinkeApp.prototype = {
       name: this._name,
       description: this._description,
       image: this._image,
+      args: this._args,
       env: this._env,
-      link: this._needLink,
-      dns: this._needDNS,
+      features: this._features,
       ip4: this._ip4,
       ports: this._ports,
       binds: this._binds,
@@ -62,10 +62,15 @@ MinkeApp.prototype = {
 
   start: async function() {
 
+    // HACK
+    if (this._features.vpn) {
+      this._ip4 = [ 'home', 'vpn' ];
+    }
+  
     let needHomeNetwork = this._ip4.indexOf('home') !== -1;
-    const needBridgeNetwork = this._ip4.indexOf('bridge') !== -1;
-    const needPrivateNetwork = this._ip4.indexOf('vpn') !== -1;
-    const usePrivateNetwork = this._ip4.find(net => net.indexOf('vpn-') === 0);
+    let needBridgeNetwork = this._ip4.indexOf('bridge') !== -1;
+    let needPrivateNetwork = this._ip4.indexOf('vpn') !== -1 || this._features.vpn;
+    let usePrivateNetwork = this._ip4.find(net => net.indexOf('vpn-') === 0);
 
     // HACK
     if (!needPrivateNetwork && !usePrivateNetwork) needHomeNetwork = true;
@@ -253,12 +258,12 @@ MinkeApp.prototype = {
     await this._container.start();
 
     const containerInfo = await (this._helperContainer || this._container).inspect();
-    if (this._needLink) {
+    if (this._features.web) {
       this._forward = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: containerInfo.NetworkSettings.Networks.bridge.IPAddress, port: parseInt(TCP_HTTP) });
       koaApp.use(this._forward.http);
       koaApp.ws.use(this._forward.ws);
     }
-    if (this._needDNS) {
+    if (this._features.dns) {
       this._dns = DNSForward.createForward({ name: this._name, IP4Address: containerInfo.NetworkSettings.Networks.bridge.IPAddress });
     }
 

@@ -55,7 +55,8 @@ function registerHTML() {
     'Directory',
     'Port',
     'Monitor',
-    'File'
+    'File',
+    'Features'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -74,6 +75,9 @@ async function SettingsPageHTML(ctx) {
     name: app._name,
     image: app._image,
     description: app._description || '',
+    arguments: app._args || '',
+    environment: (app._env || '').join(':'),
+    features: app._features,
     directories: app._binds.map(bind => genDirectory(bind)),
     ports: app._ports.map(port => genPort(port)),
     monitor: genMonitor(app._monitor),
@@ -91,9 +95,27 @@ async function SettingsPageWS(ctx) {
 
   const patterns = [
     { p: /^app.name$/, f: (msg, match) => {
+      app._name = msg.value;
+    }},
+    { p: /^app.image$/, f: (msg, match) => {
+      app._image = msg.value;
     }},
     { p: /^app.description$/, f: (msg, match) => {
         app._description = msg.value;
+    }},
+    { p: /^app.arguments$/, f: (msg, match) => {
+      app._args = msg.value;
+    }},
+    { p: /^app.environment$/, f: (msg, match) => {
+      if (msg.value.trim()) {
+        app._env = msg.value.split(':');
+      }
+      else {
+        app._env = [];
+      }
+    }},
+    { p: /^app.features.(.+)$/, f: (msg, match) => {
+      app._features[match[1]] = msg.value;
     }},
     { p: /^app.directories\[(\d+)\].name$/, f: (msg, match) => {
         const bind = app._binds[parseInt(match[1])];

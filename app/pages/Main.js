@@ -25,6 +25,7 @@ async function MainPageHTML(ctx) {
       acc.push({
         id: app._name,
         online: app._online,
+        features: app._features,
         link: app._forward && app._forward.url,
         networks: networks.reduce((acc, network) => {
           if (app._ip4.indexOf(network.name) !== -1) {
