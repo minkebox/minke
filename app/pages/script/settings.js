@@ -80,6 +80,8 @@ function monitorEdits() {
         reader.onload = function(e)
         {
           event.target.focus();
+          document.execCommand('selectAll', false, null);
+          document.execCommand('delete', false, null);
           document.execCommand('insertText', false, e.target.result);
         };
         reader.readAsText(item.getAsFile());
