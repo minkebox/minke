@@ -36,7 +36,7 @@ MinkeApp.prototype = {
     this._ports = app.ports;
     this._binds = app.binds;
     this._files = app.files || [];
-    this._ip4 = app.ip4;
+    this._networks = app.networks;
     this._monitor = app.monitor || {};
 
     this._setOnline(false);
@@ -52,7 +52,7 @@ MinkeApp.prototype = {
       args: this._args,
       env: this._env,
       features: this._features,
-      ip4: this._ip4,
+      networks: this._networks,
       ports: this._ports,
       binds: this._binds,
       files: this._files,
@@ -61,19 +61,6 @@ MinkeApp.prototype = {
   },
 
   start: async function() {
-
-    // HACK
-    if (this._features.vpn) {
-      this._ip4 = [ 'home', 'vpn' ];
-    }
-  
-    let needHomeNetwork = this._ip4.indexOf('home') !== -1;
-    let needBridgeNetwork = this._ip4.indexOf('bridge') !== -1;
-    let needPrivateNetwork = this._ip4.indexOf('vpn') !== -1 || this._features.vpn;
-    let usePrivateNetwork = this._ip4.find(net => net.indexOf('vpn-') === 0);
-
-    // HACK
-    if (!needPrivateNetwork && !usePrivateNetwork) needHomeNetwork = true;
 
     // Build the helper
     this._fs = Filesystem.create(this);
@@ -97,36 +84,100 @@ MinkeApp.prototype = {
     });
 
     // If we don't have our own IP, then we might need to forward some ports
-    if (!this._ip4) { // XXX FIX ME XXX
+    /*if (!this._ip4) { // XXX FIX ME XXX
       config.PortBindings = {}
       this._ports.forEach((port) => {
         if (port.target && parseInt(port.host)) {
           config.PortBindings[port.target] = [{ HostPort: port.host }];
         }
       });
+    }*/
+
+    // Create network environment
+    let netid = 0;
+    let man = false;
+    switch (this._networks.primary || 'none') {
+      case 'none':
+        if (this._features.web || this._features.dns) {
+          config.Env.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
+          man = true;
+        }
+        break;
+      case 'home':
+        config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
+        break;
+      case 'vpn':
+        console.error('vpn cannot be primary network');
+        break;
+      default:
+        if (this._networks.primary.startsWith('vpn-')) {
+          config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+        }
+        break;
+    }
+    if ((this._networks.primary || 'none') !== 'none') {
+      switch (this._networks.secondary || 'none') {
+        case 'none':
+          break;
+        case 'home':
+          config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
+          break;
+        case 'vpn':
+          config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+          break;
+        default:
+          if (this._networks.secondary.startsWith('vpn-')) {
+            config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+          }
+          break;
+      }
+      if ((this._features.web || this._features.dns) && !man) {
+        config.Env.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
+      }
     }
 
-    // If we need the home network, we set that up as primary
-    if (needHomeNetwork) {
-      const homenet = await Network.getHomeNetwork();
-      config.HostConfig.NetworkMode = homenet.id;
-    }
-    // Alternatively, if we're using a private network we set that as primary
-    else if (usePrivateNetwork) {
-      const vpn = await Network.getPrivateNetwork(usePrivateNetwork);
-      config.HostConfig.NetworkMode = vpn.id;
-      const info = await vpn.inspect();
-      const gw = info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
-      config.HostConfig.ExtraHosts = [
-        `SERVICES:${gw}`
-      ];
-      config.HostConfig.Dns = [ gw ];
-      config.HostConfig.DnsSearch = [ 'local.' ];
-      config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
-      config.Env.push(`_PRIVATE_INTERFACE=eth0`);
+
+    switch (this._networks.primary || 'none') {
+      case 'none':
+      {
+        if (this._features.web || this._features.dns) {
+          const management = await Network.getManagementNetwork();
+          config.HostConfig.NetworkMode = management.id;
+        }
+        else {
+          config.HostConfig.NetworkMode = 'none';
+        }
+        break;
+      }
+      case 'home':
+      {
+        // If we need the home network, we set that up as primary
+        const homenet = await Network.getHomeNetwork();
+        config.HostConfig.NetworkMode = homenet.id;
+        break;
+      }
+      case 'vpn':
+        console.error('vpn cannot be primary network');
+        break;
+      default:
+        // Alternatively, if we're using a private network we set that as primary
+        if (this._networks.primary.startsWith('vpn-')) {
+          const vpn = await Network.getPrivateNetwork(this._networks.primary);
+          config.HostConfig.NetworkMode = vpn.id;
+          const info = await vpn.inspect();
+          const gw = info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
+          config.HostConfig.ExtraHosts = [
+            `SERVICES:${gw}`
+          ];
+          config.Env.push(`__GATEWAY=${gw}`);
+          config.HostConfig.Dns = [ gw ];
+          config.HostConfig.DnsSearch = [ 'local.' ];
+          config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
+        }
+        break;
     }
 
-    if (needPrivateNetwork) {
+    if (this._features.vpn) {
       config.HostConfig.Devices.push({
         PathOnHost: '/dev/net/tun',
         PathInContainer: '/dev/net/tun',
@@ -137,24 +188,6 @@ MinkeApp.prototype = {
 
     if (DEBUG) {
       config.StopTimeout = 1;
-    }
-
-    // Setup network envs
-    let netid = 0;
-    if (needHomeNetwork) {
-      config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
-    }
-    else if (usePrivateNetwork) {
-      config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
-    }
-    if (needBridgeNetwork) {
-      config.Env.push(`__BRIDGE_INTERFACE=eth${netid++}`);
-    }
-    if (needPrivateNetwork) {
-      config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
-    }
-    if (usePrivateNetwork && needHomeNetwork) {
-      config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
     }
 
     this._fullEnv = config.Env;
@@ -175,7 +208,7 @@ MinkeApp.prototype = {
       Env: [].concat(config.Env)
     };
 
-    if (needHomeNetwork) {
+    if (this._networks.primary === 'home' || this._networks.secondary === 'home') {
       helperConfig.Env.push('ENABLE_DHCP=1');
     }
 
@@ -217,24 +250,44 @@ MinkeApp.prototype = {
 
       await this._helperContainer.start();
 
-      if (needBridgeNetwork) {
-        const bridge = await Network.getBridgeNetwork();
-        await bridge.connect({
-          Container: this._helperContainer.id
-        });
-      }
-      if (needPrivateNetwork) {
-        const vpn = await Network.getPrivateNetwork(`vpn-${this._name}`);
-        await vpn.connect({
-          Container: this._helperContainer.id
-        });
-      }
-      // Attach the private network if we already didn't use it as the primary
-      if (usePrivateNetwork && needHomeNetwork) {
-        const vpn = await Network.getPrivateNetwork(usePrivateNetwork);
-        await vpn.connect({
-          Container: this._helperContainer.id
-        });
+      if ((this._networks.primary || 'none') != 'none') {
+  
+        switch (this._networks.secondary || 'none') {
+          case 'none':
+            break;
+          case 'home':
+          {
+            const homenet = await Network.getHomeNetwork();
+            await homenet.connect({
+              Container: this._helperContainer.id
+            });
+            break;
+          }
+          case 'vpn':
+          {
+            const vpn = await Network.getPrivateNetwork(`vpn-${this._name}`);
+            await vpn.connect({
+              Container: this._helperContainer.id
+            });
+            break;
+          }
+          default:
+            if (this._networks.secondary.startsWith('vpn-')) {
+              const vpn = await Network.getPrivateNetwork(this._networks.secondary);
+              await vpn.connect({
+                Container: this._helperContainer.id
+              });
+            }
+            break;
+        }
+
+        if ((this._features.web || this._features.dns) && helperConfig.HostConfig.NetworkMode !== 'management')  {
+          const management = await Network.getManagementNetwork();
+          await management.connect({
+            Container: this._helperContainer.id
+          });
+        }
+
       }
 
       // Wait while the helper configures everything.
@@ -259,15 +312,15 @@ MinkeApp.prototype = {
 
     const containerInfo = await (this._helperContainer || this._container).inspect();
     if (this._features.web) {
-      this._forward = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: containerInfo.NetworkSettings.Networks.bridge.IPAddress, port: parseInt(TCP_HTTP) });
+      this._forward = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress, port: parseInt(TCP_HTTP) });
       koaApp.use(this._forward.http);
       koaApp.ws.use(this._forward.ws);
     }
     if (this._features.dns) {
-      this._dns = DNSForward.createForward({ name: this._name, IP4Address: containerInfo.NetworkSettings.Networks.bridge.IPAddress });
+      this._dns = DNSForward.createForward({ name: this._name, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress });
     }
 
-    if (needPrivateNetwork) {
+    if (this._features.vpn) {
       this._monitorNetwork();
     }
 
@@ -308,6 +361,7 @@ MinkeApp.prototype = {
 
     if (this._dns) {
       DNSForward.removeForward(this._dns);
+      this._dns = null;
     }
 
     if (this._forward) {
@@ -319,6 +373,7 @@ MinkeApp.prototype = {
       if (widx !== -1) {
         koaApp.ws.middleware.splice(widx, 1);
       }
+      this._forward = null;
     }
 
     const stopping = [];
@@ -340,7 +395,9 @@ MinkeApp.prototype = {
   },
 
   restart: async function(save) {
-    await this.stop();
+    if (this._online) {
+      await this.stop();
+    }
     if (save) {
       await this.save();
     }
@@ -475,15 +532,13 @@ MinkeApp.startApps = async function(app) {
   }));
   // Start all app which are not connected to a private network first
   await Promise.all(applications.map(async (app) => {
-    const usePrivateNetwork = app._ip4.find(net => net.indexOf('vpn-') === 0);
-    if (!usePrivateNetwork) {
+    if (!app._networks.primary.startsWith('vpn-') && !app._networks.secondary.startsWith('vpn-')) {
       await app.start();
     }
   }));
   // Then start the apps which are connected to the private networks
   await Promise.all(applications.map(async (app) => {
-    const usePrivateNetwork = app._ip4.find(net => net.indexOf('vpn-') === 0);
-    if (usePrivateNetwork) {
+    if (app._networks.primary.startsWith('vpn-') || app._networks.secondary.startsWith('vpn-')) {
       await app.start();
     }
   }));
@@ -491,13 +546,27 @@ MinkeApp.startApps = async function(app) {
 
 MinkeApp.shutdown = async function() {
   await Promise.all(applications.map(async (app) => {
-    await app.stop();
-    await app.save();
+    if (app._online) {
+      await app.stop();
+      await app.save();
+    }
   }));
 }
 
 MinkeApp.getApps = function() {
   return applications;
+}
+
+MinkeApp.getNetworks = function() {
+  return MinkeApp.getApps().reduce((acc, app) => {
+    if (app._networks.secondary === 'vpn') {
+      acc.push({
+        id: app._name,
+        name: `vpn-${app._name}`
+      });
+    }
+    return acc;
+  }, [ { id: 'home', name: 'home' }]);
 }
 
 module.exports = MinkeApp;

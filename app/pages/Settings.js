@@ -3,10 +3,6 @@ const Handlebars = require('handlebars');
 const UUID = require('uuid/v4');
 const MinkeApp = require('../MinkeApp');
 
-Handlebars.registerHelper('index', (context) => {
-  return 'index' in context.data ? context.data.index : context.data.root.index;
-});
-
 function genDirectory(bind) {
   return {
     name: bind.target,
@@ -48,15 +44,32 @@ function genMonitor(mon) {
   }
 }
 
+function genNetworks(app) {
+  return {
+    primary: app._networks.primary,
+    secondary: app._networks.secondary === 'vpn' ? `vpn-${app._name}` : app._networks.secondary
+  }
+}
+
+function mapNetwork(net) {
+  return {
+    name: net.name
+  }
+}
+
 let template;
 
-function registerHTML() {
+function registerTemplates() {
+  Handlebars.registerHelper('index', (context) => {
+    return 'index' in context.data ? context.data.index : context.data.root.index;
+  });
   const partials = [
     'Directory',
     'Port',
     'Monitor',
     'File',
-    'Features'
+    'Features',
+    'Networks',
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -66,7 +79,7 @@ function registerHTML() {
 
 async function SettingsPageHTML(ctx) {
 
-  registerHTML();
+  registerTemplates();
 
   const app = MinkeApp.getApps().find((item) => {
     return item._name === ctx.params.id;
@@ -81,8 +94,9 @@ async function SettingsPageHTML(ctx) {
     directories: app._binds.map(bind => genDirectory(bind)),
     ports: app._ports.map(port => genPort(port)),
     monitor: genMonitor(app._monitor),
-    files: app._files.map(file => genFile(file))
-  }});
+    files: app._files.map(file => genFile(file)),
+    networks: genNetworks(app),
+  }, networks: [{ name: 'none' }].concat(MinkeApp.getNetworks().map(net => mapNetwork(net)))});
   ctx.type = 'text/html';
 }
 
@@ -195,6 +209,14 @@ async function SettingsPageWS(ctx) {
       else {
         app._files[parseInt(match[1])].data = '';
       }
+    }},
+    { p: /^app.networks.primary.name$/, f: (msg, match) => {
+      app._networks.primary = msg.value;
+      app.emit('update.network.config', { app: app, primary: msg.value });
+    }},
+    { p: /^app.networks.secondary.name$/, f: (msg, match) => {
+      app._networks.secondary = msg.value;
+      app.emit('update.network.config', { app: app, secondary: msg.value });
     }},
   ];
 

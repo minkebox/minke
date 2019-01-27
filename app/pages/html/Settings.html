@@ -46,9 +46,14 @@
         <img class="smallicon right" src="/img/minus.png" onclick="editCmd('settings.port.rm')">
       </div>
       <div class="networks">
-        <div class="subtitle">Networks</div>
+        <div class="subtitle">Networks</div><div></div>
         <div class="network">
-          None
+          <div class="nettype">Primary</div>
+          {{> Networks key="primary" network=app.networks.primary}}
+        </div>
+        <div class="network">
+          <div class="nettype">Secondary</div>
+          {{> Networks key="secondary" network=app.networks.secondary}}
         </div>
       </div>
       <div class="monitor">

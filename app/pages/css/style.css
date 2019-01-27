@@ -220,7 +220,7 @@ html.main {
 .settings .port {
   padding: 2px 0px;
 }
-.settings .port input, .settings .port select {
+.settings .port input, .settings .port select, .settings .network select {
   font: inherit;
   -webkit-text-fill-color: inherit;
 }
@@ -281,10 +281,21 @@ html.main {
 }
 .settings .files .file .data {
   border-color: lightgrey;
-  xmin-height: 100px;
-  xmargin-left: 10px;
   margin-top: 6px;
 }
+
+.settings .networks .network {
+  display: inline-block;
+  padding-right: 5px;
+}
+.settings .nettype {
+  display: inline-block;
+  margin-left: 5px;
+}
+.settings .networks .name {
+  display: inline-block;
+}
+
 .settings .editing .editable {
   border: solid 1px lightblue !important;
 }

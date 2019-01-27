@@ -58,6 +58,14 @@ const Network = {
     });
   },
 
+  getManagementNetwork: async function() {
+    return await this._getNetwork({
+      Name: 'management',
+      CheckDuplicate: true,
+      Driver: 'bridge'
+    });
+  },
+
   _getNetwork: async function(config) {
     let net = networks[config.Name];
     if (!net) {
