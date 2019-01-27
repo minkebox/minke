@@ -1,12 +1,29 @@
 function loadDataHandlers() {
   document.querySelectorAll('.settings .portset').forEach((elem) => {
     elem.addEventListener('change', (event) => {
-      console.log(event);
       const elem = event.target;
       if (elem.classList.contains('protocol')) {
         elem.parentElement.querySelector('.mdns-protocol').innerText = `_${elem.value.toLowerCase()}`;
       }
     });
+  });
+  document.querySelector('.settings .feature-vpn').addEventListener('change', (event) => {
+    if (event.target.checked) {
+      const vpn = `vpn-${document.querySelector('[data-appname]').dataset.appname}`;
+      const selects = document.querySelectorAll('.settings .networks .network select');
+      selects[0].selectedIndex = [].findIndex.call(selects[0].options, option => option.value == 'home');
+      selects[1].selectedIndex = [].findIndex.call(selects[1].options, option => option.value == vpn);
+      ws.send(JSON.stringify({
+        type: 'settings.change',
+        property: 'app.networks.primary.name',
+        value: 'home'
+      }));
+      ws.send(JSON.stringify({
+        type: 'settings.change',
+        property: 'app.networks.secondary.name',
+        value: 'vpn'
+      }));
+    }
   });
 }
 
