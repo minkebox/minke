@@ -47,7 +47,7 @@ function genMonitor(mon) {
 function genNetworks(app) {
   return {
     primary: app._networks.primary,
-    secondary: app._networks.secondary === 'vpn' ? `vpn-${app._name}` : app._networks.secondary
+    secondary: app._networks.secondary
   }
 }
 

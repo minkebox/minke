@@ -133,14 +133,14 @@ html.main {
 .applications .net.attached {
   z-index: 2;
 }
-.applications .ghosts .home {
+.applications .remoteapps .home {
   background-color: lightgrey;
   height: 40px;
 }
-.applications .ghosts .application {
+.applications .remoteapps .application {
   height: 50px;
 }
-.applications .ghosts .net {
+.applications .remoteapps .net {
   height: 50px;
 }
 .inline-page {

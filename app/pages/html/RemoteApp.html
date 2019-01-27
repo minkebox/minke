@@ -1,0 +1,16 @@
+{{#each apps}}
+<tr>
+  <td>
+    <div class="home"></div>
+    <div class="application-{{name}} application">
+      <div class="name">{{name}}</div>
+    </div>
+  </td>
+  {{#each ../networks}}
+  <td>
+    <div class="net {{#if (eq name ../network)}}attached{{/if}}"></div>
+  </td>
+  {{/each}}
+  <td><div class="padding"></div></td>
+</tr>
+{{/each}}

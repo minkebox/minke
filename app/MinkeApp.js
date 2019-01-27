@@ -106,11 +106,11 @@ MinkeApp.prototype = {
       case 'home':
         config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
         break;
-      case 'vpn':
-        console.error('vpn cannot be primary network');
-        break;
       default:
-        if (this._networks.primary.startsWith('vpn-')) {
+        if (this._networks.primary === this._name) {
+          console.error('vpn cannot be primary network');
+        }
+        else {
           config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
         }
         break;
@@ -122,13 +122,8 @@ MinkeApp.prototype = {
         case 'home':
           config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
           break;
-        case 'vpn':
-          config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
-          break;
         default:
-          if (this._networks.secondary.startsWith('vpn-')) {
-            config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
-          }
+          config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
           break;
       }
       if ((this._features.web || this._features.dns) && !man) {
@@ -156,12 +151,12 @@ MinkeApp.prototype = {
         config.HostConfig.NetworkMode = homenet.id;
         break;
       }
-      case 'vpn':
-        console.error('vpn cannot be primary network');
-        break;
       default:
-        // Alternatively, if we're using a private network we set that as primary
-        if (this._networks.primary.startsWith('vpn-')) {
+        if (this._networks.primary === this._name) {
+          console.error('vpn cannot be primary network');
+        }
+        else {
+          // Alternatively, if we're using a private network we set that as primary
           const vpn = await Network.getPrivateNetwork(this._networks.primary);
           config.HostConfig.NetworkMode = vpn.id;
           const info = await vpn.inspect();
@@ -263,22 +258,14 @@ MinkeApp.prototype = {
             });
             break;
           }
-          case 'vpn':
+          default:
           {
-            const vpn = await Network.getPrivateNetwork(`vpn-${this._name}`);
+            const vpn = await Network.getPrivateNetwork(this._networks.secondary);
             await vpn.connect({
               Container: this._helperContainer.id
             });
             break;
           }
-          default:
-            if (this._networks.secondary.startsWith('vpn-')) {
-              const vpn = await Network.getPrivateNetwork(this._networks.secondary);
-              await vpn.connect({
-                Container: this._helperContainer.id
-              });
-            }
-            break;
         }
 
         if ((this._features.web || this._features.dns) && helperConfig.HostConfig.NetworkMode !== 'management')  {
@@ -405,7 +392,7 @@ MinkeApp.prototype = {
   },
 
   save: async function() {
-    await Database.saveApp(this);
+    await Database.saveApp(this.toJSON());
     return this;
   },
 
@@ -530,15 +517,16 @@ MinkeApp.startApps = async function(app) {
       await (await docker.getContainer(running[idx].Id)).stop();
     }
   }));
-  // Start all app which are not connected to a private network first
+
+  // Start up any VPN first. We want them to claim the lowest IP on their networks.
   await Promise.all(applications.map(async (app) => {
-    if (!app._networks.primary.startsWith('vpn-') && !app._networks.secondary.startsWith('vpn-')) {
+    if (app._features.vpn) {
       await app.start();
     }
   }));
-  // Then start the apps which are connected to the private networks
+  // Then the rest
   await Promise.all(applications.map(async (app) => {
-    if (app._networks.primary.startsWith('vpn-') || app._networks.secondary.startsWith('vpn-')) {
+    if (!app._features.vpn) {
       await app.start();
     }
   }));
@@ -559,14 +547,13 @@ MinkeApp.getApps = function() {
 
 MinkeApp.getNetworks = function() {
   return MinkeApp.getApps().reduce((acc, app) => {
-    if (app._networks.secondary === 'vpn') {
+    if (app._features.vpn) {
       acc.push({
-        id: app._name,
-        name: `vpn-${app._name}`
+        name: app._name
       });
     }
     return acc;
-  }, [ { id: 'home', name: 'home' }]);
+  }, [ { name: 'home' }]);
 }
 
 module.exports = MinkeApp;

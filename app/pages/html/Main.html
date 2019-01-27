@@ -17,7 +17,7 @@
             </td>
             {{#each networks}}
             <td>
-              <div class="net">{{id}}</div>
+              <div class="net">{{name}}</div>
             </td>
             {{/each}}
             <td>
@@ -27,13 +27,13 @@
         </thead>
         <tbody class="network-home">
           {{#each apps}}
-          <tr class="application-{{id}}">
+          <tr class="application-{{name}}">
             {{> App allnetworks=../networks}}
           </tr>
           {{/each}}
         </tbody>
         {{#each networks}}
-        <tbody class="network-{{id}} ghosts">
+        <tbody class="network-{{name}} remoteapps">
         </tbody>
         {{/each}}
         <tfoot class="bottombar">
@@ -43,7 +43,7 @@
             </td>
             {{#each networks}}
             <td>
-              <div class="net">{{id}}</div>
+              <div class="net">{{name}}</div>
             </td>
             {{/each}}
             <td>

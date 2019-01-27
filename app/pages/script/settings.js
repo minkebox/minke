@@ -9,7 +9,7 @@ function loadDataHandlers() {
   });
   document.querySelector('.settings .feature-vpn').addEventListener('change', (event) => {
     if (event.target.checked) {
-      const vpn = `vpn-${document.querySelector('[data-appname]').dataset.appname}`;
+      const vpn = document.querySelector('[data-appname]').dataset.appname;
       const selects = document.querySelectorAll('.settings .networks .network select');
       selects[0].selectedIndex = [].findIndex.call(selects[0].options, option => option.value == 'home');
       selects[1].selectedIndex = [].findIndex.call(selects[1].options, option => option.value == vpn);
@@ -21,7 +21,7 @@ function loadDataHandlers() {
       ws.send(JSON.stringify({
         type: 'settings.change',
         property: 'app.networks.secondary.name',
-        value: 'vpn'
+        value: vpn
       }));
     }
   });

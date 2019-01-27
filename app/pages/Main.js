@@ -31,13 +31,13 @@ Handlebars.registerHelper({
 
 function genApp(app) {
   return {
-    id: app._name,
+    name: app._name,
     online: app._online,
     features: app._features,
     link: app._forward && app._forward.url,
     networks: {
       primary: app._networks.primary,
-      secondary: app._networks.secondary === 'vpn' ? `vpn-${app._name}` : app._networks.secondary
+      secondary: app._networks.secondary
     }
   }
 }
@@ -61,7 +61,7 @@ async function MainPageHTML(ctx) {
 
 async function MainPageWS(ctx) {
 
-  const ghostsTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Ghosts.html`, { encoding: 'utf8' }));
+  const remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
 
   const apps = MinkeApp.getApps();
 
@@ -70,7 +70,7 @@ async function MainPageWS(ctx) {
     try {
       ctx.websocket.send(JSON.stringify({
         type: 'html.update',
-        selector: `.application-${status.app._name}`,
+        selector: `.network-home .application-${status.app._name}`,
         html: html
       }));
     }
@@ -104,24 +104,24 @@ async function MainPageWS(ctx) {
 
   const oldStatus = {};
   function updateNetworkStatus(status) {
-    const networks = MinkeApp.getNetworks();
     const apps = MinkeApp.getApps();
+    const networks = MinkeApp.getNetworks();
+    const app = status.app;
     const services = status.data;
-    const ghosts = {};
+    const remoteapps = [];
     for (let name in services) {
       services[name].forEach((service) => {
-        if (!ghosts[service.target]) {
-          const id = service.target.replace(/minke-(.*).local/, "$1");
-          if (apps.find(app => app._name == id && app._networks.primary !== `vpn-${status.app._name}` && app._networks.secondary !== `vpn-${status.app._name}`)) {
-            ghosts[service.target] = {
-              id: id,
-              networks: { [`vpn-${status.app._name}`]: 'attached' }
-            };
-          }
-        }
+        const target = service.target.replace(/minke-(.*).local/, '$1');
+        const localapp = apps.find(app => app._name === target);
+        // Filter out any apps which may really be local.
+        if (!localapp || !(localapp._networks.primary == app._name || localapp._networks.secondary == app._name))
+        remoteapps.push({
+          name: target,
+          network: app._name
+        });
       });
     }
-    const html = ghostsTemplate({ ghosts: Object.values(ghosts), networks: networks });
+    const html = remoteAppTemplate({ apps: remoteapps, networks: networks });
     if (oldStatus[status.app._name] != html) {
       oldStatus[status.app._name] = html;
       try {
