@@ -1,5 +1,5 @@
 const FS = require('fs');
-const Handlebars = require('handlebars');
+const Handlebars = require('./HB');
 const UUID = require('uuid/v4');
 const MinkeApp = require('../MinkeApp');
 
