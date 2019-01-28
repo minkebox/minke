@@ -36,7 +36,7 @@ function genApp(app) {
     features: app._features,
     link: app._forward && app._forward.url,
     networks: {
-      primary: app._networks.primary,
+      primary: app._features.vpn ? 'none' : app._networks.primary,
       secondary: app._networks.secondary
     }
   }
