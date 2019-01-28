@@ -8,10 +8,16 @@ const DNSMASQ_CONFIG_DIR = `${ETC}dnsmasq.d/`;
 const DNSMASQ_RESOLV = `${ETC}dnsmasq_resolv.conf`;
 
 let dns = null;
+let defaultResolver = '';
 const resolvers = {};
 const cacheSize = 256;
 
 const DNSForward = {
+
+  setDefaultResolver: function(resolver) {
+    defaultResolver = resolver ? `nameserver ${resolver}\n` : '';
+    DNSForward._updateResolv();
+  },
 
   createForward: function(args) {
     const resolve = {
@@ -34,6 +40,7 @@ const DNSForward = {
       `conf-dir=${DNSMASQ_CONFIG_DIR},*.conf`,
       `resolv-file=${DNSMASQ_RESOLV}`,
       'clear-on-reload',
+      'strict-order',
       `cache-size=${cacheSize}`
     ].join('\n')}\n`);    
   },
@@ -41,7 +48,7 @@ const DNSForward = {
   _updateResolv: function() {
     FS.writeFileSync(DNSMASQ_RESOLV, `${Object.values(resolvers).map((resolve) => {
       return `nameserver ${resolve.IP4Address} # For ${resolve.name}`;
-    }).join('\n')}\n`);
+    }).join('\n')}\n${defaultResolver}`);
   }
 
 }

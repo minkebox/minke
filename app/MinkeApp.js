@@ -518,6 +518,9 @@ MinkeApp.startApps = async function(app) {
     }
   }));
 
+  // Hardwired default resolver
+  DNSForward.setDefaultResolver('1.1.1.1');
+
   // Start up any VPN first. We want them to claim the lowest IP on their networks.
   await Promise.all(applications.map(async (app) => {
     if (app._features.vpn) {
