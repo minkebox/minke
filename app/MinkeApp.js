@@ -165,6 +165,7 @@ MinkeApp.prototype = {
             `SERVICES:${gw}`
           ];
           config.Env.push(`__GATEWAY=${gw}`);
+          config.Env.push(`__DNSSERVER=${gw}`);
           config.HostConfig.Dns = [ gw ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
