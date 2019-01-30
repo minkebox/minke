@@ -188,6 +188,8 @@ html.main {
   left: 0px;
   padding: 50px 0px 0px 50px;
   background-color: rgba(72, 72, 72, 0.84);
+  overflow:auto;
+  -webkit-overflow-scrolling:touch
 }
 .inline-page iframe {
   background-color: white;
