@@ -10,15 +10,51 @@ html.main {
   background-color: rgb(158, 180, 255);
 }
 .titlebar {
+  position: relative;
   height: 50px;
   background-color: black;
   padding: 0px 100px;
 }
 .titlebar .title {
+  display: inline-block;
   padding-top: 10px;
   color: white;
   font-size: 24px;
 }
+.titlebar .menuicon {
+  position: absolute;
+  right: 100px;
+  height: 32px;
+  width: 32px;
+  padding-top: 6px;
+}
+.titlebar .menu {
+  display: none;
+  position: absolute;
+  z-index: 200;
+  right: 100px;
+  top: 40px;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: -5px 5px 5px -5px #333;
+}
+.titlebar .menu.active {
+  display: block;
+}
+.titlebar .menu .item {
+  padding: 10px 15px;
+  border-radius: 5px;
+}
+.titlebar .menu .item:first-child {
+  padding-top: 15px;
+}
+.titlebar .menu .item:last-child {
+  padding-bottom: 15px;
+}
+.titlebar .menu .item:hover {
+  background-color: lightgray;
+}
+
 .info {
   position: relative;
   padding: 0px 200px;
@@ -312,4 +348,25 @@ html.main {
 }
 .settings .editing .edit-mode, .settings .view-mode {
   display: block;
+}
+.settings .delete-button {
+  display: none;
+}
+.settings .editing .delete-button {
+  display: block;
+  background-color: red;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0px 20px 0px;
+  float: right;
+}
+.settings .editing .delete-button:hover {
+  color: black;
+  border: 1px solid black;
+}
+
+html.newapp {
+  margin: 40px;
 }
