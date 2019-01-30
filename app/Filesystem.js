@@ -95,12 +95,15 @@ Filesystem.prototype = {
   },
 
   uninstall: function() {
-    const rm = (path) => {
+    if (app._image === Images.MINKE_SAMBA) {
+      return;
+    }
+    const rmAll = (path) => {
       if (FS.existsSync(path)) {
         FS.readdirSync(path).forEach((file) => {
           const curPath = path + '/' + file;
           if (FS.lstatSync(curPath).isDirectory()) {
-            rm(curPath);
+            rmAll(curPath);
           }
           else {
             //console.log(`unlink ${curPath}`);
@@ -112,9 +115,7 @@ Filesystem.prototype = {
       }
     };
     this.unshareVolumes();
-    this._mappings.forEach((bind) => {
-      rm(`${this._root}/${bind.host}`);
-    });
+    rmAll(this._root);
   }
 
 }
