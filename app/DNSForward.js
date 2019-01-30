@@ -21,16 +21,17 @@ const DNSForward = {
 
   createForward: function(args) {
     const resolve = {
+      _id: args._id,
       name: args.name,
       IP4Address: args.IP4Address
     };
-    resolvers[args.name] = resolve;
+    resolvers[args._id] = resolve;
     DNSForward._updateResolv();
     return resolve;
   },
 
   removeForward: function(resolve) {
-    delete resolvers[resolve.name];
+    delete resolvers[resolve._id];
     DNSForward._updateResolv();
   },
 
