@@ -17,7 +17,7 @@ function Forward(args) {
     else {
       const result = await fetch(`${target}${ctx.params.path || ''}`, {
         headers: Object.keys(request.headers).reduce((obj, key) => {
-          if (key !== 'host') {
+          if (key !== 'host' && !(key in obj)) {
             obj[key] = request.headers[key];
           }
           return obj;
@@ -29,7 +29,18 @@ function Forward(args) {
       ctx.response.body = await result.buffer();
       const headers = result.headers.raw();
       for (let key in headers) {
-        ctx.response.set(key, headers[key]);
+        switch (key.toLowerCase()) {
+          case 'content-encoding':
+          case 'content-length':
+          case 'keep-alive':
+            break;
+          case 'connection':
+            ctx.response.set('Connection', 'close');
+            break;
+          default:
+            ctx.response.set(key, headers[key]);
+            break;
+        }
       }
     }
   });
@@ -68,6 +79,16 @@ function Forward(args) {
   });
 }
 
+function Redirect(args) {
+  this._prefix = args.prefix;
+  this._router = Router({
+    prefix: this._prefix
+  });
+  this._router.all('/', async (ctx) => {
+    ctx.redirect(args.url);
+  });
+}
+
 const HTTPForward = {
 
   createForward: function(args) {
@@ -76,6 +97,15 @@ const HTTPForward = {
       url: f._prefix,
       http: f._router.middleware(),
       ws: f._wsrouter.middleware()
+    };
+  },
+
+  createRedirect: function(args) {
+    const f = new Redirect(args);
+    return {
+      url: f._prefix,
+      http: f._router.middleware(),
+      ws: null
     };
   }
 
