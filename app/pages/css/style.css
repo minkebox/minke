@@ -13,11 +13,11 @@ html.main {
   position: relative;
   height: 50px;
   background-color: black;
-  padding: 0px 100px;
 }
 .titlebar .title {
   display: inline-block;
   padding-top: 10px;
+  padding: 10px 0px 0px 100px;
   color: white;
   font-size: 24px;
 }
@@ -57,12 +57,13 @@ html.main {
 
 .info {
   position: relative;
-  padding: 0px 200px;
+  text-align: center;
 }
 .applications {
   position: relative;
-  width: 100%;
+  display: inline-block;
   box-sizing: border-box;
+  text-align: left;
 }
 .applications td {
   width: 80px;
@@ -124,7 +125,7 @@ html.main {
 }
 .application .status-box {
   height: 70px;
-  min-width: 600px;
+  width: 600px;
 }
 .application .status {
   position: absolute;
@@ -139,7 +140,6 @@ html.main {
 .applications .net {
   position: relative;
   margin: 0px 5px;
-  width: 90%;
   min-width: 70px;
   height: 150px;
   background-color: rgb(0, 97, 0);
