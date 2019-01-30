@@ -24,7 +24,7 @@ const Network = {
 
   getPrivateNetwork: async function(networkName) {
     return await this._getNetwork({
-      Name: networkName,
+      Name: networkName.replace(/ /g, '_'),
       CheckDuplicate: true,
       Driver: 'bridge'
     });
