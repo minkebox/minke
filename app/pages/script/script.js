@@ -15,11 +15,21 @@ function onPageShow() {
           }
         });
         break;
+      case 'html.update.attribute':
+        document.querySelectorAll(msg.selector).forEach(function(elem) {
+          elem.setAttribute(msg.name, msg.value);
+        });
+        break;
       case 'html.append':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
-          const builder = document.createElement('div');
+          const builder = document.createElement('tbody');
           builder.innerHTML = msg.html;
           elem.appendChild(builder.firstElementChild);
+        });
+        break;
+      case 'html.remove':
+        document.querySelectorAll(msg.selector).forEach(function(elem) {
+          elem.remove();
         });
         break;
       case 'html.truncate':
@@ -29,6 +39,10 @@ function onPageShow() {
             last.remove();
           }
         });
+        break;
+      case 'page.redirect':
+        window.location.replace(msg.url);
+        break;
       default:
         break;
     }
