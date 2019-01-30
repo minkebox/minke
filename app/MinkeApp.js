@@ -6,14 +6,9 @@ const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
 const Monitor = require('./Monitor');
+const Images = require('./Images');
 
 const DEBUG = !!process.env.DEBUG;
-
-const MINKE_HELPER_IMAGE = 'timwilkinson/minke-helper';
-
-const TCP_HTTP = '80/tcp';
-const TCP_DNS = '53/udp';
-const UDP_DNS = '53/udp';
 
 let applications = null;
 let koaApp = null;
@@ -27,6 +22,7 @@ MinkeApp.prototype = {
 
   createFromJSON: function(app) {
 
+    this._id = app._id;
     this._name = app.name;
     this._description = app.description;
     this._image = app.image;
@@ -35,9 +31,9 @@ MinkeApp.prototype = {
     this._features = app.features || {},
     this._ports = app.ports;
     this._binds = app.binds;
-    this._files = app.files || [];
+    this._files = app.files;
     this._networks = app.networks;
-    this._monitor = app.monitor || {};
+    this._monitor = app.monitor;
 
     this._setOnline(false);
 
@@ -46,6 +42,7 @@ MinkeApp.prototype = {
 
   toJSON: function() {
     return {
+      _id: this._id,
       name: this._name,
       description: this._description,
       image: this._image,
@@ -66,8 +63,8 @@ MinkeApp.prototype = {
     this._fs = Filesystem.create(this);
   
     const config = {
-      name: this._name,
-      Hostname: `minke-${this._name}`,
+      name: this._safeName(),
+      Hostname: `minke-${this._safeName()}`,
       Image: this._image, // Use the human-readable name
       HostConfig: {
         Mounts: this._fs.getAllMounts(),
@@ -179,9 +176,9 @@ MinkeApp.prototype = {
     this._fullEnv = config.Env;
   
     const helperConfig = {
-      name: `helper-${this._name}`,
+      name: `helper-${this._safeName()}`,
       Hostname: config.Hostname,
-      Image: MINKE_HELPER_IMAGE,
+      Image: Images.MINKE_HELPER,
       HostConfig: {
         NetworkMode: config.HostConfig.NetworkMode,
         AutoRemove: true,
@@ -280,7 +277,12 @@ MinkeApp.prototype = {
       await new Promise((resolve) => {
         docker.modem.demuxStream(log, {
           write: (data) => {
-            if (data.toString('utf8').indexOf('MINKE:UP') !== -1) {
+            data = data.toString('utf8');
+            const idx = data.indexOf('MINKE:IP ');
+            if (idx !== -1) {
+              this._homeIP = data.replace(/.*MINKE:IP (.*)\n.*/, '$1');
+            }
+            if (data.indexOf('MINKE:UP') !== -1) {
               log.destroy();
               resolve();
             }
@@ -294,12 +296,21 @@ MinkeApp.prototype = {
 
     const containerInfo = await (this._helperContainer || this._container).inspect();
     if (this._features.web) {
-      this._forward = HTTPForward.createForward({ prefix: `/a/${this._name}`, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress, port: parseInt(TCP_HTTP) });
-      koaApp.use(this._forward.http);
-      koaApp.ws.use(this._forward.ws);
+      if (this._homeIP) {
+        this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http://${this._homeIP}` });
+      }
+      else {
+        this._forward = HTTPForward.createForward({ prefix: `/a/${this._id}`, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress, port: 80 });
+      }
+      if (this._forward.http) {
+        koaApp.use(this._forward.http);
+      }
+      if (this._forward.ws) {
+        koaApp.ws.use(this._forward.ws);
+      }
     }
     if (this._features.dns) {
-      this._dns = DNSForward.createForward({ name: this._name, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress });
+      this._dns = DNSForward.createForward({ _id: this._id, name: this._name, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress });
     }
 
     if (this._features.vpn) {
@@ -339,7 +350,10 @@ MinkeApp.prototype = {
     catch (_) {
     }
 
-    this._fs.unshareVolumes();
+    if (this._fs) {
+      this._fs.unshareVolumes();
+      this._fs = null;
+    }
 
     if (this._dns) {
       DNSForward.removeForward(this._dns);
@@ -347,13 +361,17 @@ MinkeApp.prototype = {
     }
 
     if (this._forward) {
-      const idx = koaApp.middleware.indexOf(this._forward.http);
-      if (idx !== -1) {
-        koaApp.middleware.splice(idx, 1);
+      if (this._forward.http) {
+        const idx = koaApp.middleware.indexOf(this._forward.http);
+        if (idx !== -1) {
+          koaApp.middleware.splice(idx, 1);
+        }
       }
-      const widx = koaApp.ws.middleware.indexOf(this._forward.ws);
-      if (widx !== -1) {
-        koaApp.ws.middleware.splice(widx, 1);
+      if (this._forward.ws) {
+        const widx = koaApp.ws.middleware.indexOf(this._forward.ws);
+        if (widx !== -1) {
+          koaApp.ws.middleware.splice(widx, 1);
+        }
       }
       this._forward = null;
     }
@@ -368,7 +386,7 @@ MinkeApp.prototype = {
       this._container = null;
     }
     try {
-      await Promise.all(stopping);
+      await Promise.all(stopping.map(stop => stop.catch(e => e))); // Ignore exceptions
     }
     catch (_) {
     }
@@ -391,6 +409,23 @@ MinkeApp.prototype = {
   save: async function() {
     await Database.saveApp(this.toJSON());
     return this;
+  },
+
+  uninstall: async function() {
+    const idx = applications.indexOf(this);
+    if (idx !== -1) {
+      applications.splice(idx, 1);
+    }
+    const fs = this._fs; // This will be nulled when we stop.
+    if (this._online) {
+      await this.stop();
+    }
+    if (fs) {
+      fs.uninstall();
+    }
+    await Database.removeApp(this._id);
+
+    MinkeApp.emit('app.remove', { app: this });
   },
 
   _monitorNetwork: function() {
@@ -441,6 +476,10 @@ MinkeApp.prototype = {
     this._emit('update.online', { online: online });
   },
 
+  _safeName: function() {
+    return this._name.replace(/ /g, '_');
+  },
+
   _setupUpdateListeners: function() {
 
     this._eventState = {};
@@ -476,6 +515,13 @@ MinkeApp.prototype = {
 
 }
 Util.inherits(MinkeApp, EventEmitter);
+
+Object.assign(MinkeApp, {
+  _events: new EventEmitter(),
+  on: (evt, listener) => { return MinkeApp._events.on(evt, listener); },
+  off: (evt, listener) => { return MinkeApp._events.off(evt, listener); },
+  emit: (evt, data) => { return MinkeApp._events.emit(evt, data); },
+});
 
 MinkeApp.startApps = async function(app) {
 
@@ -539,6 +585,14 @@ MinkeApp.shutdown = async function() {
       await app.save();
     }
   }));
+}
+
+MinkeApp.create = async function(json) {
+  const app = new MinkeApp().createFromJSON(json);
+  app._id = Database.newAppId();
+  applications.push(app);
+  MinkeApp.emit('app.create', { app: app });
+  return app;
 }
 
 MinkeApp.getApps = function() {

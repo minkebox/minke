@@ -8,12 +8,12 @@
   <body>
     <div class="settings">
       <img class="icon" src="/img/edit.png" onclick="editMode(true)">
-      <div data-id="app.name" contentEditable="{{@root.editmode}}" class="title editable">{{app.name}}</div>
+      <div data-id="app.name" contentEditable="{{@root.editmode}}" data-placeholder="Name" class="title editable">{{app.name}}</div>
       <div class="subtitle" style="display:block">Description</div>
-      <div data-id="app.description" data-placeholder="Description of this application" class="description">{{app.description}}</div>
+      <div data-id="app.description" contentEditable="{{@root.editmode}}" data-placeholder="Description of this application" class="description editable">{{app.description}}</div>
       <div class="image">
         <div class="subtitle">Image</div>
-        <div data-id="app.image" contentEditable="{{@root.editmode}}" data-placeholder="Image name" class="summary editable">{{app.image}}</div>
+        <div data-id="app.image" data-placeholder="Image name" class="summary">{{app.image}}</div>
       </div>
       <div class="arguments">
         <div class="subtitle">Arguments</div>
@@ -60,6 +60,7 @@
         <div class="subtitle">Status Monitor</div>
         {{#with app.monitor}}{{> Monitor}}{{/with}}
       </div>
+      <div class="delete-button" onclick="editCmd('settings.app.rm');window.parent.closeInlinePage()">Delete</div>
     </div>
   </body>
 </html>

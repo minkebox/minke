@@ -82,9 +82,10 @@ async function SettingsPageHTML(ctx) {
   registerTemplates();
 
   const app = MinkeApp.getApps().find((item) => {
-    return item._name === ctx.params.id;
+    return item._id === ctx.params.id;
   })
   ctx.body = template({ editmode: false, app: {
+    _id: app._id,
     name: app._name,
     image: app._image,
     description: app._description || '',
@@ -103,16 +104,13 @@ async function SettingsPageHTML(ctx) {
 async function SettingsPageWS(ctx) {
 
   const app = MinkeApp.getApps().find((item) => {
-    return item._name === ctx.params.id;
+    return item._id === ctx.params.id;
   });
   let changed = false;
 
   const patterns = [
     { p: /^app.name$/, f: (msg, match) => {
       app._name = msg.value;
-    }},
-    { p: /^app.image$/, f: (msg, match) => {
-      app._image = msg.value;
     }},
     { p: /^app.description$/, f: (msg, match) => {
         app._description = msg.value;
@@ -290,6 +288,7 @@ async function SettingsPageWS(ctx) {
             host: '/dir',
             target: '/',
             shareable: false,
+            shared: false,
             description: ''
           };
           const html = Handlebars.compile('{{> Directory}}')(Object.assign({
@@ -361,6 +360,9 @@ async function SettingsPageWS(ctx) {
           }
           break;
         }
+        case 'settings.app.rm':
+          app.uninstall();
+          break;
         default:
           break;
       }

@@ -5,6 +5,7 @@ const MinkeApp = require('../MinkeApp');
 
 function genApp(app) {
   return {
+    _id: app._id,
     name: app._name,
     online: app._online,
     features: app._features,
@@ -21,6 +22,7 @@ async function MainPageHTML(ctx) {
 
   const partials = [
     'App',
+    'Hamburger'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -35,50 +37,52 @@ async function MainPageHTML(ctx) {
 
 async function MainPageWS(ctx) {
 
-  const remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
-
-  const apps = MinkeApp.getApps();
-
-  function updateNetworkConfig(status) {
-    const html = Handlebars.compile('{{> App}}')(Object.assign(genApp(status.app), { allnetworks: MinkeApp.getNetworks() }));
+  function send(msg) {
     try {
-      ctx.websocket.send(JSON.stringify({
-        type: 'html.update',
-        selector: `.network-home .application-${status.app._name}`,
-        html: html
-      }));
-    }
-    catch (_) {
-    }
-  }
-
-  const onlines = apps.reduce((acc, app) => {
-    acc[app._name] = app._online;
-    return acc;
-  }, {});
-  function updateOnline(status) {
-    if (status.online != onlines[status.app._name]) {
-      onlines[status.app._name] = status.online;
-      updateNetworkConfig(status);
-    }
-  }
-
-  
-  function updateStatus(status) {
-    try {
-      ctx.websocket.send(JSON.stringify({
-        type: 'html.update',
-        selector: `.application-${status.app._name} .status`,
-        html: status.data
-      }));
+      ctx.websocket.send(JSON.stringify(msg));
     }
     catch (_) {
     }
   }
 
   const oldStatus = {};
+  const onlines = {};
+  const oldNetworkStatus = {};
+
+  const remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
+  let apps = MinkeApp.getApps();
+
+  function updateNetworkConfig(status) {
+    const html = Handlebars.compile('{{> App}}')(Object.assign(genApp(status.app), { allnetworks: MinkeApp.getNetworks() }));
+    send({
+      type: 'html.update',
+      selector: `.network-home .application-${status.app._id}`,
+      html: html
+    });
+    delete oldStatus[status.app._id];
+    delete onlines[status.app._id];
+  }
+
+  function updateOnline(status) {
+    if (status.online !== onlines[status.app._id]) {
+      updateNetworkConfig(status);
+      onlines[status.app._id] = status.online;
+    }
+  }
+
+  function updateStatus(status) {
+    const html = status.data;
+    if (html != oldStatus[status.app._id]) {
+      oldStatus[status.app._id] = html;
+      send({
+        type: 'html.update',
+        selector: `.application-${status.app._id} .status`,
+        html: html
+      });
+    }
+  }
+
   function updateNetworkStatus(status) {
-    const apps = MinkeApp.getApps();
     const networks = MinkeApp.getNetworks();
     const app = status.app;
     const services = status.data;
@@ -96,18 +100,48 @@ async function MainPageWS(ctx) {
       });
     }
     const html = remoteAppTemplate({ apps: remoteapps, networks: networks });
-    if (oldStatus[status.app._name] != html) {
-      oldStatus[status.app._name] = html;
-      try {
-        ctx.websocket.send(JSON.stringify({
-          type: 'html.update',
-          selector: `.network-${status.app._name}`,
-          html: html
-        }));
-      }
-      catch (_) {
-      }
+    if (oldNetworkStatus[status.app._id] != html) {
+      oldNetworkStatus[status.app._id] = html;
+      send({
+        type: 'html.update',
+        selector: `.network-${status.app._id}`,
+        html: html
+      });
     }
+  }
+
+  function online(app) {
+    app.on('update.online', updateOnline);
+    app.on('update.status', updateStatus);
+    app.on('update.network.status', updateNetworkStatus);
+    app.on('update.network.config', updateNetworkConfig);
+  }
+
+  function offline(app) {
+    app.off('update.online', updateOnline);
+    app.off('update.status', updateStatus);
+    app.off('update.network.status', updateNetworkStatus);
+    app.off('update.network.config', updateNetworkConfig);
+  }
+
+  function createApp(status) {
+    const html = Handlebars.compile('<tr class="application-{{_id}}">{{> App}}</tr>')(Object.assign(genApp(status.app), { allnetworks: MinkeApp.getNetworks() }));
+    send({
+      type: 'html.append',
+      selector: `.network-home.localapps`,
+      html: html
+    });
+    online(status.app);
+    apps = MinkeApp.getApps();
+  }
+
+  function removeApp(status) {
+    send({
+      type: 'html.remove',
+      selector: `.network-home.localapps .application-${status.app._id}`
+    });
+    offline(status.app);
+    apps = MinkeApp.getApps();
   }
 
   ctx.websocket.on('message', (msg) => {
@@ -115,24 +149,18 @@ async function MainPageWS(ctx) {
   });
 
   ctx.websocket.on('close', () => {
-    apps.forEach((app) => {
-      app.off('update.online', updateOnline);
-      app.off('update.status', updateStatus);
-      app.off('update.network.status', updateNetworkStatus);
-      app.off('update.network.config', updateNetworkConfig);
-    });
+    apps.forEach(app => offline(app));
+    MinkeApp.off('app.create', createApp);
+    MinkeApp.off('app.remove', removeApp);
   });
 
   ctx.websocket.on('error', () => {
     ctx.websocket.close();
   });
 
-  apps.forEach((app) => {
-    app.on('update.online', updateOnline);
-    app.on('update.status', updateStatus);
-    app.on('update.network.status', updateNetworkStatus);
-    app.on('update.network.config', updateNetworkConfig);
-  });
+  apps.forEach(app => online(app));
+  MinkeApp.on('app.create', createApp);
+  MinkeApp.on('app.remove', removeApp);
 }
 
 module.exports = {
