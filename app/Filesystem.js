@@ -1,6 +1,7 @@
 const FS = require('fs');
 const Path = require('path');
 const ChildProcess = require('child_process');
+const Images = require('./Images');
 
 const FS_PREFIX = process.env.DEBUG ? '/tmp/minke' : '/minke';
 let FS_HOSTPREFIX = FS_PREFIX;
@@ -11,8 +12,8 @@ function Filesystem(app) {
   this._mappings = app._binds;
   this._files = app._files;
   this._shares = [];
-  // Handle Samba specially
-  if (app._image === 'timwilkinson/samba') {
+  // Handle internal Samba server specially
+  if (app._image === Images.MINKE_SAMBA) {
     this._root = `${FS_PREFIX}/fs`;
     this._hostroot = `${FS_HOSTPREFIX}/fs`;
   }
@@ -91,6 +92,29 @@ Filesystem.prototype = {
       }
     });
     this._shares = [];
+  },
+
+  uninstall: function() {
+    const rm = (path) => {
+      if (FS.existsSync(path)) {
+        FS.readdirSync(path).forEach((file) => {
+          const curPath = path + '/' + file;
+          if (FS.lstatSync(curPath).isDirectory()) {
+            rm(curPath);
+          }
+          else {
+            //console.log(`unlink ${curPath}`);
+            FS.unlinkSync(curPath);
+          }
+        });
+        //console.log(`rmdir ${path}`);
+        FS.rmdirSync(path);
+      }
+    };
+    this.unshareVolumes();
+    this._mappings.forEach((bind) => {
+      rm(`${this._root}/${bind.host}`);
+    });
   }
 
 }
