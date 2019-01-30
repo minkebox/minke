@@ -3,7 +3,6 @@ const FS = require('fs');
 
 const DB_PATH = process.env.DEBUG ? '/tmp/minke/db' : '/minke/db';
 const DB_APPS = `${DB_PATH}/apps.db`;
-const DB_SHARES = `${DB_PATH}/shares.db`;
 const DB_COMPACT_SEC = 60 * 60 * 24; // Every day
 //const DB_COMPACT_SEC = 10;
 
@@ -30,10 +29,6 @@ const Database = {
 
     Database._apps = new DB({ filename: DB_APPS, autoload: true });
     Database._apps.persistence.setAutocompactionInterval(DB_COMPACT_SEC * 1000);
-    await this._ensureIndex(Database._apps, { fieldName: 'name', unique: true });
-
-    Database._shares = new DB({ filename: DB_SHARES, autoload: true });
-    Database._shares.persistence.setAutocompactionInterval(DB_COMPACT_SEC * 1000);
   },
 
   getApps: async function() {
@@ -41,19 +36,23 @@ const Database = {
   },
 
   saveApp: async function(appJson) {
-    if (await this._findOne(Database._apps, { name: appJson.name })) {
-      await this._update(Database._apps, { name: appJson.name }, appJson);
-    }
-    else {
-      await this._insert(Database._apps, appJson);
-    }
+    await this._update(Database._apps, { _id: appJson._id }, appJson, { upsert: true });
+  },
+
+  removeApp: async function(id) {
+    await this._remove(Database._apps, { _id: id });
+  },
+
+  newAppId: function() {
+    return Database._apps.createNewId();
   },
 
   _find: _wrap(DB.prototype.find),
   _findOne: _wrap(DB.prototype.findOne),
   _insert: _wrap(DB.prototype.insert),
   _update: _wrap(DB.prototype.update),
-  _ensureIndex: _wrap(DB.prototype.ensureIndex)
+  _ensureIndex: _wrap(DB.prototype.ensureIndex),
+  _remove: _wrap(DB.prototype.remove)
 };
 
 module.exports = Database;
