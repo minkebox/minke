@@ -8,6 +8,7 @@ let FS_HOSTPREFIX = FS_PREFIX;
 
 
 function Filesystem(app) {
+  this._app = app;
   this._name = app._name;
   this._mappings = app._binds;
   this._files = app._files;
@@ -95,7 +96,7 @@ Filesystem.prototype = {
   },
 
   uninstall: function() {
-    if (app._image === Images.MINKE_SAMBA) {
+    if (this._app._image === Images.MINKE_SAMBA) {
       return;
     }
     const rmAll = (path) => {
