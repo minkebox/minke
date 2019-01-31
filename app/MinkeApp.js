@@ -521,6 +521,55 @@ Object.assign(MinkeApp, {
   emit: (evt, data) => { return MinkeApp._events.emit(evt, data); },
 });
 
+MinkeApp._monitorEvents = async function() {
+  const stream = await docker.getEvents({});
+  await new Promise(() => {
+    stream.on('readable', () => {
+      const lines = stream.read().toString('utf8').split('\n');
+      lines.forEach((line) => {
+        if (!line) {
+          return;
+        }
+        try {
+          const event = JSON.parse(line);
+          switch (event.Type) {
+            case 'container':
+              switch (event.Action) {
+                case 'create':
+                case 'start':
+                case 'stop':
+                case 'destroy':
+                  break;
+                case 'die':
+                {
+                  const id = event.id;
+                  const app = applications.find(app => app._container && app._container.id == id);
+                  if (app) {
+                    app.stop();
+                  }
+                  break;
+                }
+                default:
+                  break;
+              }
+              break;
+            case 'network':
+              break;
+            case 'volume':
+              break;
+            case 'image':
+              break;
+            default:
+              break;
+          }
+        }
+        catch (_) {
+        }
+      });
+    });
+  });
+}
+
 MinkeApp.startApps = async function(app) {
 
   koaApp = app;
@@ -538,6 +587,9 @@ MinkeApp.startApps = async function(app) {
       })
     }
   });
+
+  // Monitor docker events
+  MinkeApp._monitorEvents();
 
   const running = await docker.listContainers();
   const runningNames = running.map(container => container.Names[0]);
