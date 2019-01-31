@@ -8,8 +8,6 @@ const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
 
-const DEBUG = !!process.env.DEBUG;
-
 let applications = null;
 let koaApp = null;
 
@@ -278,9 +276,9 @@ MinkeApp.prototype = {
         docker.modem.demuxStream(log, {
           write: (data) => {
             data = data.toString('utf8');
-            const idx = data.indexOf('MINKE:IP ');
+            const idx = data.indexOf('MINKE:HOME:IP ');
             if (idx !== -1) {
-              this._homeIP = data.replace(/.*MINKE:IP (.*)\n.*/, '$1');
+              this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
             }
             if (data.indexOf('MINKE:UP') !== -1) {
               log.destroy();
