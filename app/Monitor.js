@@ -65,7 +65,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
       }
     }
     try {
-      const sandbox = { input: await runCmd(app, cmd), output: {}, state: this.state };
+      const sandbox = { input: await runCmd(app, cmd), output: {}, state: this.state, props: { homeIP: app._homeIP } };
       VM.runInNewContext(parser || DEFAULT_PARSER, sandbox);
       return ctemplate(sandbox.output);
     }
