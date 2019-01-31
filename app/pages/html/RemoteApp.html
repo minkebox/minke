@@ -3,7 +3,7 @@
   <td>
     <div class="home"></div>
     <div class="application">
-      <div class="name">{{name}}</div>
+      <div class="name">{{name}}{{#if description}}:{{description}}{{/if}}</div>
     </div>
   </td>
   {{#each ../networks}}

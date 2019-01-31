@@ -96,7 +96,7 @@ async function MainPageWS(ctx) {
 
   function updateServices(status) {
     const remoteapps = Object.values(status.services.reduce((acc, service) => {
-      acc[service.name] = { name: service.target, network: status.app._name };
+      acc[service.name] = { name: service.target, description: service.txt.description || '', network: status.app._name };
       return acc;
     }, {}));
     const html = remoteAppTemplate({ apps: remoteapps, networks: MinkeApp.getNetworks() });
