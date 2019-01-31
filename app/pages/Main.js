@@ -94,24 +94,12 @@ async function MainPageWS(ctx) {
     }
   }
 
-  function updateNetworkStatus(status) {
-    const networks = MinkeApp.getNetworks();
-    const app = status.app;
-    const services = status.data;
-    const remoteapps = [];
-    for (let name in services) {
-      services[name].forEach((service) => {
-        const target = service.target.replace(/minke-(.*).local/, '$1');
-        const localapp = apps.find(app => app._name === target);
-        // Filter out any apps which may really be local.
-        if (!localapp || !(localapp._networks.primary == app._name || localapp._networks.secondary == app._name))
-        remoteapps.push({
-          name: target,
-          network: app._name
-        });
-      });
-    }
-    const html = remoteAppTemplate({ apps: remoteapps, networks: networks });
+  function updateServices(status) {
+    const remoteapps = Object.values(status.services.reduce((acc, service) => {
+      acc[service.name] = { name: service.target, network: status.app._name };
+      return acc;
+    }, {}));
+    const html = remoteAppTemplate({ apps: remoteapps, networks: MinkeApp.getNetworks() });
     if (oldNetworkStatus[status.app._id] != html) {
       oldNetworkStatus[status.app._id] = html;
       send({
@@ -125,14 +113,14 @@ async function MainPageWS(ctx) {
   function online(app) {
     app.on('update.online', updateOnline);
     app.on('update.status', updateStatus);
-    app.on('update.network.status', updateNetworkStatus);
+    app.on('update.services', updateServices);
     app.on('update.network.config', updateNetworkConfig);
   }
 
   function offline(app) {
     app.off('update.online', updateOnline);
     app.off('update.status', updateStatus);
-    app.off('update.network.status', updateNetworkStatus);
+    app.off('update.services', updateServices);
     app.off('update.network.config', updateNetworkConfig);
   }
 

@@ -62,8 +62,8 @@ MinkeApp.prototype = {
   
     const config = {
       name: this._safeName(),
-      Hostname: `minke-${this._safeName()}`,
-      Image: this._image, // Use the human-readable name
+      Hostname: this._safeName(),
+      Image: this._image,
       HostConfig: {
         Mounts: this._fs.getAllMounts(),
         AutoRemove: true,
@@ -313,6 +313,8 @@ MinkeApp.prototype = {
 
     if (this._features.vpn) {
       this._monitorNetwork();
+      this._remoteServices = [];
+      this.on('update.network.status', this._updateNetworkStatus);
     }
 
     if (this._monitor.cmd) {
@@ -344,6 +346,8 @@ MinkeApp.prototype = {
     try {
       this._networkMonitor.stop();
       this._networkMonitor = null;
+      this.off('update.network.status', this._updateNetworkStatus);
+      this._remoteServices = null;
     }
     catch (_) {
     }
@@ -436,6 +440,37 @@ MinkeApp.prototype = {
     });
   },
 
+  _updateNetworkStatus: function(status) {
+    const remotes = [];
+    const services = status.data;
+    for (let name in services) {
+      services[name].forEach((service) => {
+        const target = service.target.replace(/(.*).local/, '$1');
+        const localapp = applications.find(app => app._name === target);
+        if (localapp && (localapp._networks.primary === this._name || localapp._networks.secondary === this._name)) {
+          // Ignore local apps connected to this network
+        }
+        else {
+          remotes.push({
+            name: name,
+            target: target,
+            port: service.port,
+            address: service.a,
+            txt: (service.txt || '').split('\n').reduce((acc, rec) => {
+              const kv = rec.split('=');
+              if (kv.length === 2) {
+                acc[kv[0]] = kv[1];
+              }
+              return acc;
+            }, {})
+          });
+        }
+      });
+    }
+    this._remoteServices = remotes;
+    this._emit('update.services', { services: this._remoteServices });
+  },
+
   _createMonitor: function(args) {  
     const monitor = Monitor.create({
       app: this,
@@ -480,6 +515,8 @@ MinkeApp.prototype = {
 
   _setupUpdateListeners: function() {
 
+    this._updateNetworkStatus = this._updateNetworkStatus.bind(this);
+  
     this._eventState = {};
 
     this.on('newListener', async (event, listener) => {
