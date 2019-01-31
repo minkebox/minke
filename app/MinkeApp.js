@@ -638,11 +638,11 @@ MinkeApp.startApps = async function(app) {
 
   // Stop apps if they're still running
   await Promise.all(applications.map(async (app) => {
-    let idx = runningNames.indexOf(`/${app._name}`);
+    let idx = runningNames.indexOf(`/${app._safeName()}`);
     if (idx !== -1) {
       await (await docker.getContainer(running[idx].Id)).stop();
     }
-    idx = runningNames.indexOf(`/helper-${app._name}`);
+    idx = runningNames.indexOf(`/helper-${app._safeName()}`);
     if (idx !== -1) {
       await (await docker.getContainer(running[idx].Id)).stop();
     }
