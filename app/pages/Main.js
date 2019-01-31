@@ -10,7 +10,7 @@ function genApp(app) {
     online: app._online,
     features: app._features,
     link: app._forward && app._forward.url,
-    ip: app._homeIP,
+    ip: app._online ? app._homeIP : null,
     networks: {
       primary: app._features.vpn ? 'none' : app._networks.primary,
       secondary: app._networks.secondary
