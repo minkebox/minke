@@ -132,8 +132,13 @@ html.main {
   overflow: hidden;
   padding-top: 5px;
 }
+.application .ip {
+  float: left;
+  z-index: 10;
+  font-size: 10px;
+  line-height: 22px;
+}
 .application .link {
-  position: relative;
   float: right;
   z-index: 10;
 }

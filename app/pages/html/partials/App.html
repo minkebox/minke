@@ -7,6 +7,9 @@
     <div class="status-box">
       <iframe class="status resize" frameborder="0" width="600" height="70"></iframe>
     </div>
+    {{#if ip}}
+    <div class="ip">{{ip}}</div>
+    {{/if}}
     {{#if link}}
     <div class="link" onclick="openInlinePage('{{link}}')">Details</div>
     {{/if}}
