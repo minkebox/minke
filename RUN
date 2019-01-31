@@ -1,1 +1,1 @@
-docker run -d --privileged -v /etc/timezone:/etc/timezone:ro -v /var/run/docker.sock:/var/run/docker.sock --mount type=bind,source=/tmp/minke,target=/minke,bind-propagation=rshared --network=host timwilkinson/minke
+docker run -d --privileged -v /etc/timezone:/etc/timezone:ro -v /var/run/docker.sock:/var/run/docker.sock --mount type=bind,source=/tmp/minke,target=/minke,bind-propagation=rshared --network=host registry.gitlab.com/minkebox/minke

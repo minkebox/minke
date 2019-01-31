@@ -9,7 +9,6 @@ let FS_HOSTPREFIX = FS_PREFIX;
 
 function Filesystem(app) {
   this._app = app;
-  this._name = app._name;
   this._mappings = app._binds;
   this._files = app._files;
   this._shares = [];
@@ -19,8 +18,8 @@ function Filesystem(app) {
     this._hostroot = `${FS_HOSTPREFIX}/fs`;
   }
   else {
-    this._root = `${FS_PREFIX}/fs/app/${this._name}`;
-    this._hostroot = `${FS_HOSTPREFIX}/fs/app/${this._name}`;
+    this._root = `${FS_PREFIX}/fs/app/${this._app._id}`;
+    this._hostroot = `${FS_HOSTPREFIX}/fs/app/${this._app._id}`;
   }
 }
 
@@ -70,7 +69,7 @@ Filesystem.prototype = {
   },
 
   shareVolume: function(map) {
-    const sharepoint = `${FS_PREFIX}/fs/shareable/${map.sharepoint || (this._name + '-' + map.target.split('/').slice(-1)[0])}`;
+    const sharepoint = `${FS_PREFIX}/fs/shareable/${map.sharepoint || (this._app._name + '-' + map.target.split('/').slice(-1)[0])}`;
     if (map.shareable && map.shared) {
       if (!FS.existsSync(sharepoint)) {
         FS.mkdirSync(sharepoint);
