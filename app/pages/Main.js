@@ -17,9 +17,9 @@ function genApp(app) {
   }
 }
 
-
-async function MainPageHTML(ctx) {
-
+let mainTemplate;
+let remoteAppTemplate;
+function registerTemplates() {
   const partials = [
     'App',
     'Hamburger'
@@ -27,11 +27,23 @@ async function MainPageHTML(ctx) {
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
   });
-  const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Main.html`, { encoding: 'utf8' }));
+  mainTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Main.html`, { encoding: 'utf8' }));
+  remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
+}
+if (!DEBUG) {
+  registerTemplates();
+}
+
+
+async function MainPageHTML(ctx) {
+
+  if (DEBUG) {
+    registerTemplates();
+  }
 
   const networks = MinkeApp.getNetworks();
   const apps = MinkeApp.getApps().map(app => genApp(app));
-  ctx.body = template({ networks: networks, apps: apps });
+  ctx.body = mainTemplate({ networks: networks, apps: apps });
   ctx.type = 'text/html';
 }
 
@@ -49,7 +61,6 @@ async function MainPageWS(ctx) {
   const onlines = {};
   const oldNetworkStatus = {};
 
-  const remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
   let apps = MinkeApp.getApps();
 
   function updateNetworkConfig(status) {
@@ -104,7 +115,7 @@ async function MainPageWS(ctx) {
       oldNetworkStatus[status.app._id] = html;
       send({
         type: 'html.update',
-        selector: `.network-${status.app._id}`,
+        selector: `.network-${status.app._name}`,
         html: html
       });
     }

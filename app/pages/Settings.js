@@ -58,7 +58,6 @@ function mapNetwork(net) {
 }
 
 let template;
-
 function registerTemplates() {
   Handlebars.registerHelper('index', (context) => {
     return 'index' in context.data ? context.data.index : context.data.root.index;
@@ -76,10 +75,15 @@ function registerTemplates() {
   });
   template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Settings.html`, { encoding: 'utf8' }));
 }
+if (!DEBUG) {
+  registerTemplates();
+}
 
 async function SettingsPageHTML(ctx) {
 
-  registerTemplates();
+  if (DEBUG) {
+    registerTemplates();
+  }
 
   const app = MinkeApp.getApps().find((item) => {
     return item._id === ctx.params.id;
