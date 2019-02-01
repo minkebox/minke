@@ -314,6 +314,8 @@ MinkeApp.prototype = {
   },
 
   stop: async function() {
+
+    this._setOnline(false);
   
     try {
       if (this._statusMonitor) {
@@ -372,8 +374,6 @@ MinkeApp.prototype = {
     }
     catch (_) {
     }
-
-    this._setOnline(false);
 
     return this;
   },
