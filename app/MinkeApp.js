@@ -62,7 +62,7 @@ MinkeApp.prototype = {
   
     const config = {
       name: this._safeName(),
-      Hostname: this._safeName(),
+      Hostname: this._name,
       Image: this._image,
       HostConfig: {
         Mounts: this._fs.getAllMounts(),
