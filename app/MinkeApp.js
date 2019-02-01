@@ -80,18 +80,11 @@ MinkeApp.prototype = {
 
     // Create network environment
     let netid = 0;
-    let man = false;
-    let helper = false;
     switch (this._networks.primary || 'none') {
       case 'none':
-        if (this._features.web || this._features.dns) {
-          config.Env.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
-          man = true;
-        }
         break;
       case 'home':
         config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
-        helper = true;
         break;
       default:
         if (this._networks.primary === this._name) {
@@ -108,33 +101,30 @@ MinkeApp.prototype = {
           break;
         case 'home':
           config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
-          helper = true;
           break;
         default:
           config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
           break;
       }
-      if ((this._features.web || this._features.dns) && !man) {
-        config.Env.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
-      }
     }
+    config.Env.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
 
     switch (this._networks.primary || 'none') {
       case 'none':
-      {
-        if (this._features.web || this._features.dns) {
-          const management = await Network.getManagementNetwork();
-          config.HostConfig.NetworkMode = management.id;
-        }
-        else {
-          config.HostConfig.NetworkMode = 'none';
-        }
+        config.HostConfig.NetworkMode = 'none';
         break;
-      }
       case 'home':
       {
         const homenet = await Network.getHomeNetwork();
         config.HostConfig.NetworkMode = homenet.id;
+        // Use the internal Minke DNS server for anything on the home network.
+        // Because the host isn't directly accessable, we access it via the management network.
+        const management = await Network.getManagementNetwork();
+        const dns = management.info.IPAM.Config[0].Gateway;
+        config.Env.push(`__DNSSERVER=${dns}`);
+        config.HostConfig.Dns = [ dns ];
+        config.HostConfig.DnsSearch = [ 'local.' ];
+        config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
         break;
       }
       default:
@@ -144,8 +134,7 @@ MinkeApp.prototype = {
         // should be the creator (e.g. VPN client/server) for this network.
         const vpn = await Network.getPrivateNetwork(this._networks.primary);
         config.HostConfig.NetworkMode = vpn.id;
-        const info = await vpn.inspect();
-        const gw = info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
+        const gw = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
         config.HostConfig.ExtraHosts = [
           `SERVICES:${gw}`
         ];
@@ -191,7 +180,6 @@ MinkeApp.prototype = {
 
     if (this._networks.primary === 'home' || this._networks.secondary === 'home') {
       helperConfig.Env.push('ENABLE_DHCP=1');
-      helper = true;
     }
 
     if (this._ports.length) {
@@ -214,85 +202,77 @@ MinkeApp.prototype = {
       });
       if (nat.length) {
         helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
-        helper = true;
       }
       if (mdns.length) {
         helperConfig.Env.push(`ENABLE_MDNS=${mdns.join(' ')}`);
-        helper = true;
       }
     }
   
-    if (helper) {
-      this._helperContainer = await docker.createContainer(helperConfig);
+    this._helperContainer = await docker.createContainer(helperConfig);
 
-      config.Hostname = null;
-      config.HostConfig.ExtraHosts = null;
-      config.HostConfig.Dns = null;
-      config.HostConfig.DnsSearch = null;
-      config.HostConfig.DnsOptions = null;
-      config.HostConfig.NetworkMode = `container:${this._helperContainer.id}`;
+    config.Hostname = null;
+    config.HostConfig.ExtraHosts = null;
+    config.HostConfig.Dns = null;
+    config.HostConfig.DnsSearch = null;
+    config.HostConfig.DnsOptions = null;
+    config.HostConfig.NetworkMode = `container:${this._helperContainer.id}`;
 
-      await this._helperContainer.start();
+    await this._helperContainer.start();
 
-      if ((this._networks.primary || 'none') != 'none') {
-  
-        switch (this._networks.secondary || 'none') {
-          case 'none':
-            break;
-          case 'home':
-          {
-            const homenet = await Network.getHomeNetwork();
-            await homenet.connect({
-              Container: this._helperContainer.id
-            });
-            break;
-          }
-          default:
-          {
-            const vpn = await Network.getPrivateNetwork(this._networks.secondary);
-            await vpn.connect({
-              Container: this._helperContainer.id
-            });
-            break;
-          }
-        }
-
-        if ((this._features.web || this._features.dns) && helperConfig.HostConfig.NetworkMode !== 'management')  {
-          const management = await Network.getManagementNetwork();
-          await management.connect({
+    if ((this._networks.primary || 'none') != 'none') {
+      switch (this._networks.secondary || 'none') {
+        case 'none':
+          break;
+        case 'home':
+        {
+          const homenet = await Network.getHomeNetwork();
+          await homenet.connect({
             Container: this._helperContainer.id
           });
+          break;
         }
-
+        default:
+        {
+          const vpn = await Network.getPrivateNetwork(this._networks.secondary);
+          await vpn.connect({
+            Container: this._helperContainer.id
+          });
+          break;
+        }
       }
-
-      // Wait while the helper configures everything.
-      const log = await this._helperContainer.logs({
-        follow: true,
-        stdout: true,
-        stderr: false
-      });
-      await new Promise((resolve) => {
-        docker.modem.demuxStream(log, {
-          write: (data) => {
-            data = data.toString('utf8');
-            const idx = data.indexOf('MINKE:HOME:IP ');
-            if (idx !== -1) {
-              this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
-            }
-            if (data.indexOf('MINKE:UP') !== -1) {
-              log.destroy();
-              resolve();
-            }
-          }
-        }, null);
-      });
     }
+
+    const management = await Network.getManagementNetwork();
+    await management.connect({
+      Container: this._helperContainer.id
+    });
+
+    // Wait while the helper configures everything.
+    const log = await this._helperContainer.logs({
+      follow: true,
+      stdout: true,
+      stderr: false
+    });
+    await new Promise((resolve) => {
+      docker.modem.demuxStream(log, {
+        write: (data) => {
+          data = data.toString('utf8');
+          const idx = data.indexOf('MINKE:HOME:IP ');
+          if (idx !== -1) {
+            this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
+          }
+          if (data.indexOf('MINKE:UP') !== -1) {
+            log.destroy();
+            resolve();
+          }
+        }
+      }, null);
+    });
   
     this._container = await docker.createContainer(config);
     await this._container.start();
 
-    const containerInfo = await (this._helperContainer || this._container).inspect();
+    const containerInfo = await this._helperContainer.inspect();
     if (this._features.web) {
       if (this._homeIP) {
         this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http://${this._homeIP}` });
