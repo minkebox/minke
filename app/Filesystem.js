@@ -3,6 +3,8 @@ const Path = require('path');
 const ChildProcess = require('child_process');
 const Images = require('./Images');
 
+process.umask(0);
+
 const FS_PREFIX = process.env.DEBUG ? '/tmp/minke' : '/minke';
 let FS_HOSTPREFIX = FS_PREFIX;
 
