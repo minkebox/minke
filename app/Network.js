@@ -71,13 +71,14 @@ const Network = {
     if (!net) {
       net = docker.getNetwork(config.Name);
       try {
-        await net.inspect();
+        net.info = await net.inspect();
         networks[config.Name] = net;
         return net;
       }
       catch (_) {
         if (config.Driver) {
           net = await docker.createNetwork(config);
+          net.info = await net.inspect();
           networks[config.Name] = net;
         }
       }
