@@ -580,7 +580,8 @@ MinkeApp._monitorEvents = async function() {
                 case 'die':
                 {
                   const id = event.id;
-                  const app = applications.find(app => app._container && app._container.id == id);
+                  const app = applications.find(app => (app._container && app._container.id === id) || 
+                    (this._helperContainer && this._helperContainer.id === id));
                   if (app) {
                     app.stop();
                   }
