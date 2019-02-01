@@ -32,7 +32,7 @@ App.ws.use(async (ctx, next) => {
     ctx.websocket.close();
   }
 });
-App.listen(8080);
+App.listen(80);
 
 (async function() {
   await MinkeApp.startApps(App);
