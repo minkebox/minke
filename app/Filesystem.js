@@ -5,7 +5,7 @@ const Images = require('./Images');
 
 process.umask(0);
 
-const FS_PREFIX = process.env.DEBUG ? '/tmp/minke' : '/minke';
+const FS_PREFIX = process.env.DEBUG ? '/home/minke' : '/minke';
 let FS_HOSTPREFIX = FS_PREFIX;
 
 
@@ -34,11 +34,10 @@ Filesystem.prototype = {
   },
 
   _makeMount: function(bind) {
-    const src = Path.normalize(`${this._hostroot}/${bind.host}`);
     FS.mkdirSync(`${this._root}/${bind.host}`, { recursive: true });
     return {
       Type: 'bind',
-      Source: src,
+      Source: Path.normalize(`${this._hostroot}/${bind.host}`),
       Target: bind.target,
       BindOptions: {
         Propagation: 'rshared'
@@ -47,12 +46,12 @@ Filesystem.prototype = {
   },
 
   _makeFile: function(file) {
-    const src = Path.normalize(`${this._hostroot}/${file.host}`);
+    const src = Path.normalize(`${this._root}/${file.host}`);
     FS.mkdirSync(Path.dirname(src), { recursive: true });
     FS.writeFileSync(src, file.data);
     return {
       Type: 'bind',
-      Source: src,
+      Source: Path.normalize(`${this._hostroot}/${file.host}`),
       Target: file.target,
       BindOptions: {
         Propagation: 'rshared'
