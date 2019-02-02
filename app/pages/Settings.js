@@ -17,6 +17,7 @@ function genPort(port) {
     portnr: port.host,
     tcp: port.protocol === 'TCP',
     upnp: port.nat,
+    web: port.web,
     mdns: !port.mdns ? {
       name: '',
       description: ''
@@ -159,6 +160,9 @@ async function SettingsPageWS(ctx) {
     }},
     { p: /^app.ports\[(\d+)\].upnp$/, f: (msg, match) => {
         app._ports[parseInt(match[1])].nat = msg.value;
+    }},
+    { p: /^app.ports\[(\d+)\].web$/, f: (msg, match) => {
+      app._ports[parseInt(match[1])].web = msg.value;
     }},
     { p: /^app.ports\[(\d+)\].mdns.name$/, f: (msg, match) => {
         const port = app._ports[parseInt(match[1])];
