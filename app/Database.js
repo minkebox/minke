@@ -1,7 +1,7 @@
 const DB = require('nedb');
 const FS = require('fs');
 
-const DB_PATH = process.env.DEBUG ? '/tmp/minke/db' : '/minke/db';
+const DB_PATH = process.env.DEBUG ? '/home/minke/db' : '/minke/db';
 const DB_APPS = `${DB_PATH}/apps.db`;
 const DB_COMPACT_SEC = 60 * 60 * 24; // Every day
 //const DB_COMPACT_SEC = 10;
