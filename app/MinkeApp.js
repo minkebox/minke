@@ -62,7 +62,7 @@ MinkeApp.prototype = {
   
     const config = {
       name: this._safeName(),
-      Hostname: this._name,
+      Hostname: this._safeName(),
       Image: this._image,
       HostConfig: {
         Mounts: this._fs.getAllMounts(),
@@ -273,12 +273,14 @@ MinkeApp.prototype = {
     await this._container.start();
 
     const containerInfo = await this._helperContainer.inspect();
-    if (this._features.web) {
+
+    const webport = this._ports.find(port => port.web);
+    if (webport) {
       if (this._homeIP) {
-        this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http://${this._homeIP}` });
+        this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${this._homeIP}:${webport.host}` });
       }
       else {
-        this._forward = HTTPForward.createForward({ prefix: `/a/${this._id}`, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress, port: 80 });
+        this._forward = HTTPForward.createForward({ prefix: `/a/${this._id}`, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress, port: webport.host });
       }
       if (this._forward.http) {
         koaApp.use(this._forward.http);
@@ -426,8 +428,8 @@ MinkeApp.prototype = {
     for (let name in services) {
       services[name].forEach((service) => {
         const target = service.target.replace(/(.*).local/, '$1');
-        const localapp = applications.find(app => app._name === target);
-        if (localapp && (localapp._networks.primary === this._name || localapp._networks.secondary === this._name)) {
+        const localapp = applications.find(app => app._safeName() === target);
+        if (localapp && (localapp._networks.primary === this._safeName() || localapp._networks.secondary === this._safeName())) {
           // Ignore local apps connected to this network
         }
         else {
@@ -490,7 +492,7 @@ MinkeApp.prototype = {
   },
 
   _safeName: function() {
-    return this._name.replace(/ /g, '_');
+    return this._name.replace(/ /g, '');
   },
 
   _setupUpdateListeners: function() {
