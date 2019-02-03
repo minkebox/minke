@@ -40,6 +40,9 @@ function onPageShow() {
           }
         });
         break;
+      case 'page.reload':
+        window.location.reload();
+        break;
       case 'page.redirect':
         window.location.replace(msg.url);
         break;
@@ -47,6 +50,34 @@ function onPageShow() {
         break;
     }
   });
+}
+
+function action(id, value) {
+  ws.send(JSON.stringify({
+    type: 'action.change',
+    property: id,
+    value: value
+  }));
+}
+
+function cmd(command) {
+  ws.send(JSON.stringify({
+    type: command
+  }));
+}
+
+function setEditMode(edit) {
+  if (edit === null) {
+    return document.firstElementChild.classList.toggle('editing');
+  }
+  else if (edit) {
+    document.firstElementChild.classList.add('editing');
+    return true;
+  }
+  else {
+    document.firstElementChild.classList.remove('editing');
+    return false;
+  }
 }
 
 const INLINE_BORDER = 75;

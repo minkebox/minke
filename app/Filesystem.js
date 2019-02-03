@@ -70,8 +70,8 @@ Filesystem.prototype = {
   },
 
   shareVolume: function(map) {
-    const sharepoint = `${FS_PREFIX}/fs/shareable/${map.sharepoint || (this._app._name + '/' + map.target.split('/').slice(-1)[0])}`;
-    const shareparent = map.sharepoint ? null :`${FS_PREFIX}/fs/shareable/${this._app._name}`;
+    const sharepoint = `${FS_PREFIX}/fs/dir/shareable/${map.sharepoint || (this._app._name + '/' + map.target.split('/').slice(-1)[0])}`;
+    const shareparent = map.sharepoint ? null :`${FS_PREFIX}/fs/dir/shareable/${this._app._name}`;
     if (map.shareable && map.shared) {
       if (!FS.existsSync(sharepoint)) {
         FS.mkdirSync(sharepoint, { recursive: true });
@@ -144,7 +144,7 @@ const _Filesystem = {
 
   setHostPrefix: function(prefix) {
     FS_HOSTPREFIX = prefix;
-    FS.mkdirSync(`${FS_PREFIX}/fs/shareable`, { recursive: true });
+    FS.mkdirSync(`${FS_PREFIX}/fs/dir/shareable`, { recursive: true });
   }
 
 };

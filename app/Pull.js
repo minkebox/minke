@@ -103,59 +103,7 @@ const _Pull = {
       const img = docker.getImage(image);
       info = await img.inspect();
     }
-
-    const apps = MinkeApp.getApps();
-    let name = null;
-    for (let i = 0; ; i++) {
-      name = `MyApp${i}`;
-      if (!apps.find(app => name === app._name)) {
-        break;
-      }
-    }
-  
-    return {
-      name: name,
-      description: '',
-      image: image,
-      args: '',
-      env: [],
-      features: {},
-      ports: Object.keys(info.ContainerConfig.ExposedPorts || {}).map((key) => {
-        return {
-          target: key,
-          host: parseInt(key),
-          protocol: key.split('/')[1].toUpperCase(),
-          nat: false,
-          mdns: {
-            type: `._${key.split('/')[1].toLowerCase()}`,
-            txt: {
-              description: ''
-            }
-          }
-        }
-      }),
-      binds: Object.keys(info.ContainerConfig.Volumes || {}).map((key) => {
-        return {
-          host: Path.normalize(`/dir/${key}`),
-          target: key,
-          shareable: false,
-          shared: false,
-          description: ''
-        }
-      }),
-      files: [],
-      networks: {
-        primary: 'home',
-        secondary: 'none',
-      },
-      monitor: {
-        cmd: '',
-        polling: 0,
-        watch: '',
-        parser: '',
-        template: ''
-      }
-    }
+    return image;
   }
 
 };

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html class="configure">
+  <head>
+    <link href="/css/configure.css" rel="stylesheet" type="text/css">
+    <script src="/js/script.js" type="text/javascript"></script>
+  </head>
+  <body>
+    {{#with skeleton}}
+    <div class="header">
+      <img class="icon" src="/img/edit.png" onclick="setEditMode(null) || cmd('app.save')">
+      <input class="name" type="text" placeholder="{{name}}" value="{{value}}" oninput="action('Name',this.value)">
+     <div class="description">{{description}}</div>
+    </div>
+    <div class="actions">
+      {{#each actions}}
+        {{#if (eq type "Environment")}}
+        <div class="action environment">
+          <label class="description">{{description}}</label>
+          <input class="value" type="text" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
+        </div>
+        {{/if}}
+        {{#if (eq type "Argument")}}
+        <div class="action argument">
+          <label class="description">{{description}}</label>
+          <input class="value" type="text" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
+        </div>
+        {{/if}}
+        {{#if (eq type "Share")}}
+        <div class="action share">
+          <label class="description">{{description}}</label>
+          <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
+        </div>
+        {{/if}}
+        {{#if (eq type "File")}}
+        <div class="action file">
+          <label class="description">{{description}}</label>
+        </div>
+        {{/if}}
+        {{#if (eq type "NAT")}}
+        <div class="action nat">
+          <label class="description">{{description}}</label>
+          <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
+        </div>
+        {{/if}}
+        {{#if (eq type "Network")}}
+        <div class="action network">
+          <label class="description">{{description}}</label>
+          <select onchange="{{action}}">
+            {{#each networks}}
+            <option {{#if (eq ../value name)}}selected{{/if}}>{{name}}</option>
+            {{/each}}
+          </select>
+        </div>
+        {{/if}}
+      {{/each}}
+    </div>
+    {{/with}}
+    <div class="skeleton">
+      <div class="title">Skeleton</div>
+      <div class="editor" contenteditable="true" oninput="action('Skeleton',this.innerText)">{{skeletonAsText}}</div>
+    </div>
+    <div class="controls">
+      <input type="button" class="delete-button" onclick="cmd('app.delete');window.parent.closeInlinePage()" value="Delete">
+    </div>
+  </body>
+</html>

@@ -5,7 +5,8 @@ const Pages = {
   '/':                require('./Main'),
   '/settings/:id':    require('./Settings'),
   '/new/application': require('./NewApplication'),
-  '/new/network':     require('./NewNetwork')
+  '/new/network':     require('./NewNetwork'),
+  '/configure/:id':   require('./Configure')
 };
 
 function pages(root, wsroot) {
@@ -14,8 +15,8 @@ function pages(root, wsroot) {
     ctx.body = FS.readFileSync(`${__dirname}/script/${ctx.params.script}`, { encoding: 'utf8' });
     ctx.type = 'text/javascript';
   });
-  root.get('/css/style.css', async (ctx) => {
-    ctx.body = FS.readFileSync(`${__dirname}/css/style.css`, { encoding: 'utf8' });
+  root.get('/css/:style', async (ctx) => {
+    ctx.body = FS.readFileSync(`${__dirname}/css/${ctx.params.style}`, { encoding: 'utf8' });
     ctx.type = 'text/css';
   });
   root.get('/img/:img', async (ctx) => {

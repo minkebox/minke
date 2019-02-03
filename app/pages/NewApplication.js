@@ -41,7 +41,7 @@ async function PageWS(ctx) {
               });
               if (info) {
                 const app = await MinkeApp.create(info);
-                send({ type: 'page.redirect', url: `/settings/${app._id}/`});
+                send({ type: 'page.redirect', url: `/configure/${app._id}/`});
               }
             })();
           }

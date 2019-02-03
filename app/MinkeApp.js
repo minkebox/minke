@@ -1,5 +1,6 @@
 const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
+const Path = require('path');
 const HTTPForward = require('./HTTPForward');
 const DNSForward = require('./DNSForward');
 const Network = require('./Network');
@@ -7,6 +8,7 @@ const Filesystem = require('./Filesystem');
 const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
+const Skeletons = require('./skeletons/Skeletons');
 
 let applications = null;
 let koaApp = null;
@@ -53,6 +55,82 @@ MinkeApp.prototype = {
       files: this._files,
       monitor: this._monitor
     }
+  },
+
+  createFromSkeleton: function(skel) {
+  
+    const apps = MinkeApp.getApps();
+    let name = null;
+    for (let i = 1; ; i++) {
+      name = `${skel.name} ${i}`;
+      if (!apps.find(app => name === app._name)) {
+        break;
+      }
+    }
+
+    this._id = undefined;
+    this._name = name;
+    this._image = skel.image,
+  
+    this.updateFromSkeleton(skel);
+
+    this._setOnline(false);
+
+    return this;
+  },
+
+  updateFromSkeleton: function(skel) {
+
+    this._description = skel.description;
+    this._args = '';
+  
+    this._env = skel.properties.reduce((r, prop) => {
+      if (prop.type === 'Environment') {
+        r.push(`${prop.name}=${prop.defaultValue || ''}`);
+      }
+      return r;
+    }, []);
+    this._features = skel.properties.reduce((r, prop) => {
+      if (prop.type === 'Feature') {
+        r[prop.name] = prop.defaultValue || false;
+      }
+      return r;
+    }, {});
+    this._networks = skel.properties.reduce((r, prop) => {
+      if (prop.type === 'Network') {
+        r[prop.name] = prop.defaultValue || 'none';
+      }
+      return r;
+    }, {});
+    this._ports = skel.properties.reduce((r, prop) => {
+      if (prop.type === 'Port') {
+        r.push({
+          target: prop.name,
+          host: parseInt(prop.name),
+          protocol: prop.name.split('/')[1].toUpperCase(),
+          web: prop.web,
+          nat: prop.nat,
+          mdns: prop.mdns
+        });
+      }
+      return r;
+    }, []);
+    this._binds = skel.properties.reduce((r, prop) => {
+      if (prop.type === 'Directory') {
+        r.push({
+          host: Path.normalize(`/dir/${prop.name}`),
+          target: Path.normalize(prop.name),
+          shareable: false,
+          shared: false,
+          description: ''
+        });
+      }
+      return r;
+    }, []);
+    this._files = [],
+    this._monitor = skel.monitor;
+
+    return this;
   },
 
   start: async function() {
@@ -361,6 +439,7 @@ MinkeApp.prototype = {
       }
       this._forward = null;
     }
+    this._homeIP = null;
 
     const stopping = [];
     if (this._helperContainer) {
@@ -657,8 +736,8 @@ MinkeApp.shutdown = async function() {
   }));
 }
 
-MinkeApp.create = async function(json) {
-  const app = new MinkeApp().createFromJSON(json);
+MinkeApp.create = async function(image) {
+  const app = new MinkeApp().createFromSkeleton(await Skeletons.imageToSkeleton(image));
   app._id = Database.newAppId();
   applications.push(app);
   MinkeApp.emit('app.create', { app: app });
