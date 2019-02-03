@@ -1,0 +1,43 @@
+{
+  name: "OpenVPN",
+  description: "OpenVPN client",
+  image: "registry.gitlab.com/minkebox/openvpn-client",
+
+  actions: [
+    {
+      type: "Environment",
+      description: "Enter your VPN username",
+      name: "USER",
+      placeholder: "Username"
+    },
+    {
+      type: "Environment",
+      description: "Enter your VPN password",
+      name: "PASSWORD",
+      placeholder: "Password"
+    },
+    {
+      type: "File",
+      description: "Drop your .ovpn configuration file here",
+      name: "/etc/openvpn/config.ovpn"
+    }
+  ],
+
+  properties: [
+    {
+      type: "Environment",
+      name: "USER"
+    },
+    {
+      type: "Environment",
+      name: "PASSWORD"
+    },
+    {
+      type: "File",
+      name: "/etc/openvpn/config.ovpn"
+    }
+  ],
+
+  monitor: {
+  }
+}
