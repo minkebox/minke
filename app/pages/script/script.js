@@ -80,6 +80,28 @@ function setEditMode(edit) {
   }
 }
 
+document.addEventListener('drop', function(event) {
+  if (event.target.getAttribute('contenteditable') === 'true') {
+    event.stopPropagation();
+    event.preventDefault();
+    if (event.dataTransfer && event.dataTransfer && event.dataTransfer.items && event.dataTransfer.items[0]) {
+      const item = event.dataTransfer.items[0];
+      if (item.kind === 'file')
+      {
+        const reader = new FileReader();
+        reader.onload = function(e)
+        {
+          event.target.focus();
+          document.execCommand('selectAll', false, null);
+          document.execCommand('delete', false, null);
+          document.execCommand('insertText', false, e.target.result);
+        };
+        reader.readAsText(item.getAsFile());
+      }
+    }
+  }
+});
+
 const INLINE_BORDER = 75;
 
 function closeInlinePage() {
