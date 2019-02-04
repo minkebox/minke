@@ -193,17 +193,19 @@ async function ConfigurePageWS(ctx) {
       }
       changes = {};
       
+      const uapp = app;
       if ((changed & SKELCHANGE) !== 0) {
-        app.updateFromSkeleton(Skeletons.loadSkeleton(app._image));
+        uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image));
+        app = null;
         send({
           type: 'page.reload'
         });
       }
       if (changed) {
-        await app.restart(true);
+        await uapp.restart(true);
       }
       else if (!app._online) {
-        await app.start();
+        await uapp.start();
       }
     }
     catch (e) {
@@ -219,7 +221,9 @@ async function ConfigurePageWS(ctx) {
           changes[msg.property] = msg.value;
           break;
         case 'app.save':
-          save();
+          if (app) {
+            save();
+          }
           break;
         case 'app.delete':
           changes = {};
