@@ -59,8 +59,12 @@ async function ConfigurePageHTML(ctx) {
         {
           return Object.assign({ action: `action('${action.type}.${action.name}',this.checked)`, value: app._features[action.name] || false }, action);
         }
-        case 'Argument':
         case 'File':
+        {
+          const file = app._files.find(file => file.target === action.name) || { data: '' };
+          return Object.assign({ action: `action('${action.type}.${action.name}',this.innerText)`, value: file.data }, action);
+        }
+        case 'Argument':
         default:
           return action;
       }
@@ -80,7 +84,7 @@ async function ConfigurePageWS(ctx) {
     }
   }
 
-  const app = MinkeApp.getApps().find(item => item._id === ctx.params.id);
+  let app = MinkeApp.getApps().find(item => item._id === ctx.params.id);
 
   const NOCHANGE = 0;
   const APPCHANGE = 1;
@@ -148,6 +152,15 @@ async function ConfigurePageWS(ctx) {
       }
       return NOCHANGE;
     }},
+    { p: /^File\.(.+)$/, f: (value, match) => {
+      const filename = match[1];
+      const file = app._files.find(file => file.target === filename);
+      if (file) {
+        file.data = value;
+        return APPCHANGE;
+      }
+      return NOCHANGE;
+    }},
     { p: /^Skeleton$/, f: (value, match) => {
       const skel = Skeletons.parse(value);
       if (skel) {
@@ -159,30 +172,38 @@ async function ConfigurePageWS(ctx) {
   ];
 
   let changes = {};
-  function save() {
-    let changed = 0;
-    for (let property in changes) {
-      patterns.find((pattern) => {
-        let match = property.match(pattern.p);
-        if (match) {
-          changed |= pattern.f(changes[property], match);
-          return true;
-        }
-        else {
-          return false;
-        }
-      });
+  async function save() {
+    try {
+      let changed = 0;
+      for (let property in changes) {
+        patterns.find((pattern) => {
+          let match = property.match(pattern.p);
+          if (match) {
+            changed |= pattern.f(changes[property], match);
+            return true;
+          }
+          else {
+            return false;
+          }
+        });
+      }
+      changes = {};
+      
+      if ((changed & SKELCHANGE) !== 0) {
+        app.updateFromSkeleton(Skeletons.loadSkeleton(app._image));
+        send({
+          type: 'page.reload'
+        });
+      }
+      if (changed) {
+        await app.restart(true);
+      }
+      else if (!app._online) {
+        await app.start();
+      }
     }
-    changes = {};
-    
-    if ((changed & SKELCHANGE) !== 0) {
-      app.updateFromSkeleton(Skeletons.loadSkeleton(app._image));
-      send({
-        type: 'page.reload'
-      });
-    }
-    if (changed) {
-      app.restart(true);
+    catch (e) {
+      console.log(e);
     }
   }
 
@@ -198,7 +219,9 @@ async function ConfigurePageWS(ctx) {
           break;
         case 'app.delete':
           changes = {};
-          app.uninstall();
+          const uapp = app;
+          app = null;
+          uapp.uninstall();
           break;
         default:
           break;
@@ -209,7 +232,9 @@ async function ConfigurePageWS(ctx) {
   });
 
   ctx.websocket.on('close', () => {
-    save();
+    if (app) {
+      save();
+    }
   });
 
   ctx.websocket.on('error', () => {

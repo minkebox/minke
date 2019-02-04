@@ -32,7 +32,16 @@ body {
   margin-bottom: 5px;
 }
 .configure .actions .name {
-
+}
+.configure .actions .file .value {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  height: 150px;
+  margin: 10px 20px;
+  padding: 5px;
+  overflow: scroll;
+  font-family: monospace;
+  white-space: pre;
 }
 .configure .skeleton {
   display: none;

@@ -34,6 +34,7 @@
         {{#if (eq type "File")}}
         <div class="action file">
           <label class="description">{{description}}</label>
+          <div class="value" spellcheck="false" contenteditable="true" oninput="{{action}}">{{value}}</div>
         </div>
         {{/if}}
         {{#if (eq type "NAT")}}
@@ -57,7 +58,7 @@
     {{/with}}
     <div class="skeleton">
       <div class="title">Skeleton</div>
-      <div class="editor" contenteditable="true" oninput="action('Skeleton',this.innerText)">{{skeletonAsText}}</div>
+      <div class="editor" spellcheck="false" contenteditable="true" oninput="action('Skeleton',this.innerText)">{{skeletonAsText}}</div>
     </div>
     <div class="controls">
       <input type="button" class="delete-button" onclick="cmd('app.delete');window.parent.closeInlinePage()" value="Delete">

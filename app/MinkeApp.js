@@ -58,7 +58,6 @@ MinkeApp.prototype = {
   },
 
   createFromSkeleton: function(skel) {
-  
     const apps = MinkeApp.getApps();
     let name = null;
     for (let i = 1; ; i++) {
@@ -92,13 +91,13 @@ MinkeApp.prototype = {
     }, []);
     this._features = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Feature') {
-        r[prop.name] = prop.defaultValue || false;
+        r[prop.name] = 'defaultValue' in prop ? prop.defaultValue : true;
       }
       return r;
     }, {});
     this._networks = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Network') {
-        r[prop.name] = prop.defaultValue || 'none';
+        r[prop.name] = (prop.defaultValue === '__self' ? this._name : prop.defaultValue) || 'none';
       }
       return r;
     }, {});
@@ -127,7 +126,16 @@ MinkeApp.prototype = {
       }
       return r;
     }, []);
-    this._files = [],
+    this._files = skel.properties.reduce((r, prop) => {
+      if (prop.type === 'File') {
+        r.push({
+          host: Path.normalize(`/file/${prop.name.replace(/\//g, '_')}`),
+          target: Path.normalize(prop.name),
+          data: ''
+        });
+      }
+      return r;
+    }, []);
     this._monitor = skel.monitor;
 
     return this;
@@ -451,7 +459,7 @@ MinkeApp.prototype = {
       this._container = null;
     }
     try {
-      await Promise.all(stopping.map(stop => stop.catch(e => e))); // Ignore exceptions
+      await Promise.all(stopping.map(stop => stop.catch(e => console.log(e)))); // Ignore exceptions
     }
     catch (_) {
     }
@@ -737,9 +745,10 @@ MinkeApp.shutdown = async function() {
 }
 
 MinkeApp.create = async function(image) {
-  const app = new MinkeApp().createFromSkeleton(await Skeletons.imageToSkeleton(image));
+  const app = new MinkeApp().createFromSkeleton(await Skeletons.loadSkeleton(image));
   app._id = Database.newAppId();
   applications.push(app);
+  await app.save();
   MinkeApp.emit('app.create', { app: app });
   return app;
 }
