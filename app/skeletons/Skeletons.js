@@ -125,9 +125,14 @@ function stringToSkeleton(str) {
 }
 
 function saveSkeleton(skeleton) {
-  const path = `${__dirname}/local/${skeleton.image}.skeleton`;
-  FS.mkdirSync(Path.dirname(path), { recursive: true });
-  FS.writeFileSync(path, skeletonToString(skeleton));
+  if (skeleton.image in Builtins) {
+    console.error(`Cannot update builtin skeleton: ${skeleton.name}`);
+  }
+  else {
+    const path = `${__dirname}/local/${skeleton.image}.skeleton`;
+    FS.mkdirSync(Path.dirname(path), { recursive: true });
+    FS.writeFileSync(path, skeletonToString(skeleton));
+  }
 }
 
 function loadSkeleton(image, create) {

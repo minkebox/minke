@@ -19,11 +19,6 @@
       name: "/Movies"
     },
     {
-      type: "NAT",
-      description: "Make Plex available on your Internet?",
-      ports: [ '32400/tcp' ]
-    },
-    {
       type: "Header",
       title: "Connect to Plex"
     },
@@ -40,7 +35,7 @@
     {
       type: "Network",
       name: "primary",
-      description: "Select the network to use"
+      description: "Select the network to use (you probably want the default)"
     }
   ],
 

@@ -1,0 +1,60 @@
+{
+  name: "Private Network",
+  description: "Secure, private network between you and a friend",
+  image: "registry.gitlab.com/minkebox/private-network",
+
+  actions: [
+    {
+      type: "Header",
+      title: "Configure"
+    },
+    {
+      type: "Environment",
+      name: "MODE",
+      description: "Select network mode"
+    },
+    {
+      type: "Header",
+      title: "Server"
+    },
+    {
+      type: "Header",
+      title: "Client"
+    },
+    {
+      type: "File",
+      description: "Drop your private network configuration file here",
+      name: "/etc/openvpn/config.ovpn"
+    }
+  ],
+
+  properties: [
+    {
+      type: "Feature",
+      name: "vpn"
+    },
+    {
+      type: "Environment",
+      name: "MODE",
+      options: [ { name: "Server", value: "SERVER" }, { name: "Client", value: "CLIENT" } ],
+      defaultValue: "CLIENT"
+    },
+    {
+      type: "File",
+      name: "/etc/openvpn/config.ovpn"
+    },
+    {
+      type: "Network",
+      name: "primary",
+      defaultValue: "home"
+    },
+    {
+      type: "Network",
+      name: "secondary",
+      defaultValue: "__self"
+    }
+  ],
+
+  monitor: {
+  }
+}
