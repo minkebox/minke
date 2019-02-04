@@ -15,7 +15,7 @@
           <h2 class="description">{{description}}</h2>
           <nav>
             <a class="pure-button" onclick="setEditMode(null) || cmd('app.save')">Edit</a>
-            <a class="pure-button">Restart</a>
+            <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
             <a class="pure-button" onclick="cmd('app.delete');window.parent.closeInlinePage()">Delete</a>
           </nav>
         </div>
@@ -29,7 +29,15 @@
         {{#if (eq type "Environment")}}
         <div class="action environment pure-control-group">
           <label class="description">{{description}}</label>
+          {{#if options}}
+          <select class="pure-input-rounded pure-u-16-24 value" value="{{value}}" oninput="{{action}}">
+            {{#each options}}
+            <option value="{{value}}">{{name}}</option>
+            {{/each}}
+          </select>
+          {{else}}
           <input class="pure-input-rounded pure-u-16-24 value" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
+          {{/if}}
         </div>
         {{/if}}
         {{#if (eq type "Argument")}}

@@ -41,7 +41,8 @@ async function ConfigurePageHTML(ctx) {
         }
         case 'Environment':
         {
-          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.value)`, value: env[action.name] }, action);
+          const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
+          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.value)`, value: env[action.name], options: property.options }, action);
         }
         case 'Share':
         {
@@ -204,7 +205,7 @@ async function ConfigurePageWS(ctx) {
       if (changed) {
         await uapp.restart(true);
       }
-      else if (!app._online) {
+      else if (app._status === 'stopped') {
         await uapp.start();
       }
     }
@@ -223,6 +224,11 @@ async function ConfigurePageWS(ctx) {
         case 'app.save':
           if (app) {
             save();
+          }
+          break;
+        case 'app.restart':
+          if (app) {
+            app.restart();
           }
           break;
         case 'app.delete':
