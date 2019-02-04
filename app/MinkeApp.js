@@ -745,7 +745,7 @@ MinkeApp.shutdown = async function() {
 }
 
 MinkeApp.create = async function(image) {
-  const app = new MinkeApp().createFromSkeleton(await Skeletons.loadSkeleton(image));
+  const app = new MinkeApp().createFromSkeleton(await Skeletons.loadSkeleton(image, true));
   app._id = Database.newAppId();
   applications.push(app);
   await app.save();
