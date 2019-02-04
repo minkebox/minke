@@ -29,6 +29,9 @@ async function ConfigurePageHTML(ctx) {
     return acc;
   }, {});
 
+  let nextid = 100;
+  const visibles = {};
+  const properties = {};
   const nskeleton = {
     name: skeleton.name,
     value: app._name,
@@ -37,11 +40,21 @@ async function ConfigurePageHTML(ctx) {
       switch (action.type) {
         case 'Header':
         {
-          return Object.assign({ value: action.title }, action);
+          let id = null;
+          if (action.visible) {
+            id = `h${++nextid}`;
+            visibles[id] = action.visible;
+          }
+          return Object.assign({ id: id }, action);
+        }
+        case 'Text':
+        {
+          return action;
         }
         case 'Environment':
         {
           const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
+          properties[`${action.type}.${action.name}`] = env[action.name];
           return Object.assign({ action: `window.action('${action.type}.${action.name}',this.value)`, value: env[action.name], options: property.options }, action);
         }
         case 'Share':
@@ -75,7 +88,11 @@ async function ConfigurePageHTML(ctx) {
       }
     })
   }
-  ctx.body = template({ skeleton: nskeleton, skeletonAsText: Skeletons.toString(skeleton) });
+  ctx.body = template({ skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
+    visibles: '[' + Object.keys(visibles).map((key) => {
+      return `function() { const c = document.getElementById("${key}").classList; if (${visibles[key]}) { c.add("visible"); } else { c.remove("visible"); } }`;
+    }).join(',') + ']'
+  });
   ctx.type = 'text/html'
 }
 

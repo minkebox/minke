@@ -52,7 +52,21 @@ function onPageShow() {
   });
 }
 
+let property = {};
+let visibles = [];
+function setActionProperties(props) {
+  property = props || {};
+}
+function registerVisibles(vis) {
+  visibles = vis || [];
+  visibles.forEach(v => v());
+}
+
 function action(id, value) {
+  if (property[id] != value) {
+    property[id] = value;
+    visibles.forEach(v => v());
+  }
   ws.send(JSON.stringify({
     type: 'action.change',
     property: id,

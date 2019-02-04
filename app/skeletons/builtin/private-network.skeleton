@@ -9,17 +9,23 @@
       title: "Configure"
     },
     {
+      type: "Text",
+      text: "A secure network requires a Server and a Client. The Server creates the network and the client connects."
+    },
+    {
       type: "Environment",
       name: "MODE",
       description: "Select network mode"
     },
     {
       type: "Header",
-      title: "Server"
+      title: "Server",
+      visible: "property['Environment.MODE'] == 'SERVER'"
     },
     {
       type: "Header",
-      title: "Client"
+      title: "Client",
+      visible: "property['Environment.MODE'] == 'CLIENT'"
     },
     {
       type: "File",

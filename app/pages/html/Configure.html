@@ -22,61 +22,68 @@
       </div>
       <div class="content pure-u-1 pure-u-md-3-4">
         <form class="actions pure-form pure-form-aligned">
-        {{#each actions}}
-        {{#if (eq type "Header")}}
-        <div class="content-header">{{value}}</div>
-        {{/if}}
-        {{#if (eq type "Environment")}}
-        <div class="action environment pure-control-group">
-          <label class="description">{{description}}</label>
-          {{#if options}}
-          <select class="pure-input-rounded pure-u-16-24 value" value="{{value}}" oninput="{{action}}">
-            {{#each options}}
-            <option value="{{value}}">{{name}}</option>
-            {{/each}}
-          </select>
-          {{else}}
-          <input class="pure-input-rounded pure-u-16-24 value" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
+          <div class="section visible">
+          {{#each actions}}
+          {{#if (eq type "Header")}}
+          </div>
+          <div class="section visible" {{#if id}}id="{{id}}"{{/if}}>
+          <div class="content-header">{{title}}</div>
           {{/if}}
-        </div>
-        {{/if}}
-        {{#if (eq type "Argument")}}
-        <div class="action argument pure-control-group">
-          <label class="description">{{description}}</label>
-          <input class="value" type="text" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
-        </div>
-        {{/if}}
-        {{#if (eq type "Share")}}
-        <div class="action share pure-control-group">
-          <label class="description">{{description}}</label>
-          <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
-        </div>
-        {{/if}}
-        {{#if (eq type "File")}}
-        <div class="action file pure-control-group">
-          <label class="description">{{description}}</label>
-          <div class="value pure-input-rounded pure-u-16-24" spellcheck="false" contenteditable="true" oninput="{{action}}">{{value}}</div>
-        </div>
-        {{/if}}
-        {{#if (eq type "NAT")}}
-        <div class="action nat pure-control-group">
-          <label class="description">{{description}}</label>
-          <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
-        </div>
-        {{/if}}
-        {{#if (eq type "Network")}}
-        <div class="action network pure-control-group">
-          <label class="description">{{description}}</label>
-          <select onchange="{{action}}">
-            {{#each networks}}
-            <option {{#if (eq ../value name)}}selected{{/if}}>{{name}}</option>
-            {{/each}}
-          </select>
-        </div>
-        {{/if}}
-        {{else}}
-        <div class="content-header">Nothing to configure</div>
-        {{/each}}
+          {{#if (eq type "Text")}}
+          <div class="content-text">{{text}}</div>
+          {{/if}}
+          {{#if (eq type "Environment")}}
+          <div class="action environment pure-control-group">
+            <label class="description">{{description}}</label>
+            {{#if options}}
+            <select class="value" onchange="{{action}}">
+              {{#each options}}
+              <option value="{{value}}" {{#if (eq value ../value)}}selected{{/if}}>{{name}}</option>
+              {{/each}}
+            </select>
+            {{else}}
+            <input class="pure-input-rounded pure-u-16-24 value" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
+            {{/if}}
+          </div>
+          {{/if}}
+          {{#if (eq type "Argument")}}
+          <div class="action argument pure-control-group">
+            <label class="description">{{description}}</label>
+            <input class="value" type="text" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
+          </div>
+          {{/if}}
+          {{#if (eq type "Share")}}
+          <div class="action share pure-control-group">
+            <label class="description">{{description}}</label>
+            <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
+          </div>
+          {{/if}}
+          {{#if (eq type "File")}}
+          <div class="action file pure-control-group">
+            <label class="description">{{description}}</label>
+            <div class="value pure-input-rounded pure-u-16-24" spellcheck="false" contenteditable="true" oninput="{{action}}">{{value}}</div>
+          </div>
+          {{/if}}
+          {{#if (eq type "NAT")}}
+          <div class="action nat pure-control-group">
+            <label class="description">{{description}}</label>
+            <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
+          </div>
+          {{/if}}
+          {{#if (eq type "Network")}}
+          <div class="action network pure-control-group">
+            <label class="description">{{description}}</label>
+            <select onchange="{{action}}">
+              {{#each networks}}
+              <option {{#if (eq ../value name)}}selected{{/if}}>{{name}}</option>
+              {{/each}}
+            </select>
+          </div>
+          {{/if}}
+          {{else}}
+          <div class="content-header">Nothing to configure</div>
+          {{/each}}
+          </div>
         </form>
       {{/with}}
         <div class="skeleton">
@@ -85,5 +92,6 @@
         </div>
       </div>
     </div>
+    <script>setActionProperties({{{properties}}});registerVisibles({{{visibles}}})</script>
   </body>
 </html>
