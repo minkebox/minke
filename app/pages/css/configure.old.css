@@ -1,0 +1,67 @@
+html {
+  font-family: sans-serif;
+}
+body {
+  margin: 0px;
+  height: 100%;
+}
+
+.configure {
+  margin: 0px 20px;
+}
+.configure .header {
+  margin: 10px 0px 20px 0px;
+}
+.configure .header .icon {
+  position: relative;
+  top: 4px;
+  width: 32px;
+  height: 32px;
+}
+.configure .header .name {
+  font-size: 32px;
+  margin-bottom: 18px;
+}
+.configure .header .description {
+  max-width: 600px;
+}
+.configure .actions {
+  margin-left: 10px;
+}
+.configure .actions .action {
+  margin-bottom: 5px;
+}
+.configure .actions .name {
+}
+.configure .actions .file .value {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  height: 150px;
+  margin: 10px 20px;
+  padding: 5px;
+  overflow: scroll;
+  font-family: monospace;
+  white-space: pre;
+}
+.configure .skeleton {
+  display: none;
+  margin: 30px 0px;
+}
+.configure .skeleton .editor {
+  font-family: monospace;
+  white-space: pre;
+  font-size: 14px;
+  line-height: 18px;
+  border: solid 1px lightblue;
+  border-radius: 5px;
+  margin: 10px 20px;
+  padding: 10px;
+}
+.configure .skeleton .editor:focus {
+  border-color: green;
+  outline: none;
+}
+
+.configure.editing .skeleton {
+  display: block;
+}

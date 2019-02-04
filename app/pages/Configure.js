@@ -35,34 +35,38 @@ async function ConfigurePageHTML(ctx) {
     description: skeleton.description,
     actions: skeleton.actions.map((action) => {
       switch (action.type) {
+        case 'Header':
+        {
+          return Object.assign({ value: action.title }, action);
+        }
         case 'Environment':
         {
-          return Object.assign({ action: `action('${action.type}.${action.name}',this.value)`, value: env[action.name] }, action);
+          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.value)`, value: env[action.name] }, action);
         }
         case 'Share':
         {
           const bind = app._binds.find(bind => bind.target === action.name) || { shared: false };
-          return Object.assign({ action: `action('${action.type}.${action.name}',this.checked)`, value: bind.shared }, action);
+          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.checked)`, value: bind.shared }, action);
         }
         case 'NAT':
         {
           const natport = app._ports.find(port => action.ports.indexOf(port.target) !== -1) || { nat: false };
-          return Object.assign({ action: `action('${action.type}.${action.ports.join(".")}',this.checked)`, value: natport.nat }, action);
+          return Object.assign({ action: `window.action('${action.type}.${action.ports.join(".")}',this.checked)`, value: natport.nat }, action);
         }
         case 'Network':
         {
           const networks = [ { name: 'none' } ].concat(MinkeApp.getNetworks());
           const network = app._networks[action.name] || 'none'
-          return Object.assign({ action: `action('${action.type}.${action.name}',this.value)`, networks: networks, value: network }, action);
+          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.value)`, networks: networks, value: network }, action);
         }
         case 'Feature':
         {
-          return Object.assign({ action: `action('${action.type}.${action.name}',this.checked)`, value: app._features[action.name] || false }, action);
+          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.checked)`, value: app._features[action.name] || false }, action);
         }
         case 'File':
         {
           const file = app._files.find(file => file.target === action.name) || { data: '' };
-          return Object.assign({ action: `action('${action.type}.${action.name}',this.innerText)`, value: file.data }, action);
+          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.innerText)`, value: file.data }, action);
         }
         case 'Argument':
         default:

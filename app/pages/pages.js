@@ -14,6 +14,14 @@ function pages(root, wsroot) {
     ctx.body = FS.readFileSync(`${__dirname}/script/${ctx.params.script}`, { encoding: 'utf8' });
     ctx.type = 'text/javascript';
   });
+  root.get('/css/pure.css', async (ctx) => {
+    ctx.body = FS.readFileSync(`${__dirname}/../node_modules/purecss/build/pure-min.css`, { encoding: 'utf8' });
+    ctx.type = 'text/css';
+  });
+  root.get('/css/grids-responsive.css', async (ctx) => {
+    ctx.body = FS.readFileSync(`${__dirname}/../node_modules/purecss/build/grids-responsive-min.css`, { encoding: 'utf8' });
+    ctx.type = 'text/css';
+  });
   root.get('/css/:style', async (ctx) => {
     ctx.body = FS.readFileSync(`${__dirname}/css/${ctx.params.style}`, { encoding: 'utf8' });
     ctx.type = 'text/css';

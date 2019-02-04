@@ -5,6 +5,10 @@
 
   actions: [
     {
+      type: "Header",
+      title: "Configure VPN"
+    },
+    {
       type: "Environment",
       description: "Enter your VPN username",
       name: "USER",

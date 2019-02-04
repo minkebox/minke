@@ -5,10 +5,8 @@
 
   actions: [
     {
-      type: "Environment",
-      description: "Enter your Plex Claim token here:",
-      name: "PLEX_CLAIM",
-      placeholder: "Plex claim token"
+      type: "Header",
+      title: "Sharing"
     },
     {
       type: "Share",
@@ -24,6 +22,20 @@
       type: "NAT",
       description: "Make Plex available on your Internet?",
       ports: [ '32400/tcp' ]
+    },
+    {
+      type: "Header",
+      title: "Connect to Plex"
+    },
+    {
+      type: "Environment",
+      description: "Enter your Plex Claim token here:",
+      name: "PLEX_CLAIM",
+      placeholder: "Plex claim token"
+    },
+    {
+      type: "Header",
+      title: "Networking"
     },
     {
       type: "Network",

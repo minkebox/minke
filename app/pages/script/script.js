@@ -80,6 +80,19 @@ function setEditMode(edit) {
   }
 }
 
+function skelValid(editor) {
+  try {
+    let skel;
+    eval(`skel=${editor.innerText}`);
+    editor.classList.remove('invalid')
+    return true;
+  }
+  catch (_) {
+    editor.classList.add('invalid');
+    return false;
+  }
+}
+
 document.addEventListener('drop', function(event) {
   if (event.target.getAttribute('contenteditable') === 'true') {
     event.stopPropagation();
