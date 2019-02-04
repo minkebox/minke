@@ -3,7 +3,6 @@ const Path = require('path');
 
 const Pages = {
   '/':                require('./Main'),
-  '/settings/:id':    require('./Settings'),
   '/new/application': require('./NewApplication'),
   '/new/network':     require('./NewNetwork'),
   '/configure/:id':   require('./Configure')
