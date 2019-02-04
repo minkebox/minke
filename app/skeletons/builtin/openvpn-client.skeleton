@@ -25,6 +25,10 @@
 
   properties: [
     {
+      type: "Feature",
+      name: "vpn"
+    },
+    {
       type: "Environment",
       name: "USER"
     },
@@ -35,6 +39,16 @@
     {
       type: "File",
       name: "/etc/openvpn/config.ovpn"
+    },
+    {
+      type: "Network",
+      name: "primary",
+      defaultValue: "home"
+    },
+    {
+      type: "Network",
+      name: "secondary",
+      defaultValue: "__self"
     }
   ],
 
