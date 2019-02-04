@@ -25,10 +25,15 @@
       web: false,
       mdns: null
     },
+    {
+      type: "Network",
+      name: "primary",
+      defaultValue: "home"
+    }
   ],
 
   monitor: {
-    run: 'tail -1 /var/www/html/data/result.csv',
+    cmd: 'tail -1 /var/www/html/data/result.csv',
     watch: '/var/www/html/data/result.csv',
     poll: 0,
     parser: `
