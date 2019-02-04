@@ -166,14 +166,21 @@ MinkeApp.prototype = {
 
     // Create network environment
     let netid = 0;
-    switch (this._networks.primary || 'none') {
+    let primary = this._networks.primary || 'none';
+    let secondary = this._networks.secondary || 'none';
+    if (primary === 'none') {
+      primary = secondary;
+      secondary = 'none';
+    }
+
+    switch (primary) {
       case 'none':
         break;
       case 'home':
         config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
         break;
       default:
-        if (this._networks.primary === this._name) {
+        if (primary === this._name) {
           console.error('Cannot create a VPN as primary network');
         }
         else {
@@ -181,21 +188,19 @@ MinkeApp.prototype = {
         }
         break;
     }
-    if ((this._networks.primary || 'none') !== 'none') {
-      switch (this._networks.secondary || 'none') {
-        case 'none':
-          break;
-        case 'home':
-          config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
-          break;
-        default:
-          config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
-          break;
-      }
+    switch (secondary) {
+      case 'none':
+        break;
+      case 'home':
+        config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
+        break;
+      default:
+        config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+        break;
     }
     config.Env.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
 
-    switch (this._networks.primary || 'none') {
+    switch (primary) {
       case 'none':
         config.HostConfig.NetworkMode = 'none';
         break;
@@ -218,7 +223,7 @@ MinkeApp.prototype = {
         // If we're using a private network as primary, then we also select the X.X.X.2
         // address as both the default gateway and the dns server. The server at X.X.X.2
         // should be the creator (e.g. VPN client/server) for this network.
-        const vpn = await Network.getPrivateNetwork(this._networks.primary);
+        const vpn = await Network.getPrivateNetwork(primary);
         config.HostConfig.NetworkMode = vpn.id;
         const gw = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
         config.HostConfig.ExtraHosts = [
@@ -264,7 +269,7 @@ MinkeApp.prototype = {
       Env: [].concat(config.Env)
     };
 
-    if (this._networks.primary === 'home' || this._networks.secondary === 'home') {
+    if (primary === 'home' || secondary === 'home') {
       helperConfig.Env.push('ENABLE_DHCP=1');
     }
 
@@ -305,8 +310,8 @@ MinkeApp.prototype = {
 
     await this._helperContainer.start();
 
-    if ((this._networks.primary || 'none') != 'none') {
-      switch (this._networks.secondary || 'none') {
+    if (primary != 'none') {
+      switch (secondary) {
         case 'none':
           break;
         case 'home':
@@ -319,7 +324,7 @@ MinkeApp.prototype = {
         }
         default:
         {
-          const vpn = await Network.getPrivateNetwork(this._networks.secondary);
+          const vpn = await Network.getPrivateNetwork(secondary);
           await vpn.connect({
             Container: this._helperContainer.id
           });
