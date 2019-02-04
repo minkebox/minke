@@ -35,7 +35,7 @@ MinkeApp.prototype = {
     this._networks = app.networks;
     this._monitor = app.monitor;
 
-    this._setOnline(false);
+    this._setStatus('stopped');
 
     return this;
   },
@@ -73,7 +73,7 @@ MinkeApp.prototype = {
   
     this.updateFromSkeleton(skel);
 
-    this._setOnline(false);
+    this._setStatus('stopped');
 
     return this;
   },
@@ -142,6 +142,8 @@ MinkeApp.prototype = {
   },
 
   start: async function() {
+
+    this._setStatus('starting');
 
     // Build the helper
     this._fs = Filesystem.create(this);
@@ -392,7 +394,7 @@ MinkeApp.prototype = {
 
     if (this._monitor.cmd) {
       this._statusMonitor = this._createMonitor({
-        event: 'update.status',
+        event: 'update.monitor',
         polling: this._monitor.polling,
         cmd: this._monitor.cmd,
         watch: this._monitor.watch,
@@ -401,14 +403,14 @@ MinkeApp.prototype = {
       });
     }
 
-    this._setOnline(true);
+    this._setStatus('running');
 
     return this;
   },
 
   stop: async function() {
 
-    this._setOnline(false);
+    this._setStatus('stopping');
   
     try {
       if (this._statusMonitor) {
@@ -469,11 +471,13 @@ MinkeApp.prototype = {
     catch (_) {
     }
 
+    this._setStatus('stopped');
+
     return this;
   },
 
   restart: async function(save) {
-    if (this._online) {
+    if (this._status === 'running') {
       await this.stop();
     }
     if (save) {
@@ -493,7 +497,7 @@ MinkeApp.prototype = {
       applications.splice(idx, 1);
     }
     const fs = this._fs; // This will be nulled when we stop.
-    if (this._online) {
+    if (this._status === 'running') {
       await this.stop();
     }
     if (fs) {
@@ -575,12 +579,12 @@ MinkeApp.prototype = {
     return monitor;
   },
 
-  _setOnline: function(online) {
-    if (this._online === online) {
+  _setStatus: function(status) {
+    if (this._status === status) {
       return;
     }
-    this._online = online;
-    this._emit('update.online', { online: online });
+    this._status = status;
+    this._emit('update.status', { status: status });
   },
 
   _safeName: function() {
@@ -742,7 +746,7 @@ MinkeApp.startApps = async function(app) {
 
 MinkeApp.shutdown = async function() {
   await Promise.all(applications.map(async (app) => {
-    if (app._online) {
+    if (app._status === 'running') {
       await app.stop();
       await app.save();
     }

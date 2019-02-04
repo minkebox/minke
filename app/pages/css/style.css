@@ -117,10 +117,13 @@ html.main {
   display: inline-block;
   font-size: 12px;
   padding-left: 5px;
-  color: red;
+  color: blue;
   vertical-align: super;
 }
-.application .ready .online {
+.application .ready .stopped {
+  color: red;
+}
+.application .ready .running {
   color: green;
 }
 .application .status-box {

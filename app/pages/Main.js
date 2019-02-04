@@ -7,10 +7,10 @@ function genApp(app) {
   return {
     _id: app._id,
     name: app._name,
-    online: app._online,
+    status: app._status,
     features: app._features,
     link: app._forward && app._forward.url,
-    ip: app._online ? app._homeIP : null,
+    ip: app._status === 'running' ? app._homeIP : null,
     networks: {
       primary: app._features.vpn ? 'none' : app._networks.primary,
       secondary: app._networks.secondary
@@ -64,31 +64,31 @@ async function MainPageWS(ctx) {
 
   let apps = MinkeApp.getApps();
 
-  function updateNetworkConfig(status) {
-    const html = Handlebars.compile('{{> App}}')(Object.assign(genApp(status.app), { allnetworks: MinkeApp.getNetworks() }));
+  function updateNetworkConfig(event) {
+    const html = Handlebars.compile('{{> App}}')(Object.assign(genApp(event.app), { allnetworks: MinkeApp.getNetworks() }));
     send({
       type: 'html.update',
-      selector: `.network-home .application-${status.app._id}`,
+      selector: `.network-home .application-${event.app._id}`,
       html: html
     });
-    delete oldStatus[status.app._id];
-    delete onlines[status.app._id];
+    delete oldStatus[event.app._id];
+    delete onlines[event.app._id];
   }
 
-  function updateOnline(status) {
-    if (status.online !== onlines[status.app._id]) {
-      updateNetworkConfig(status);
-      onlines[status.app._id] = status.online;
+  function updateStatus(event) {
+    if (event.status !== onlines[event.app._id]) {
+      updateNetworkConfig(event);
+      onlines[event.app._id] = event.status;
     }
   }
 
-  function updateStatus(status) {
-    const html = status.data;
-    if (html != oldStatus[status.app._id]) {
-      oldStatus[status.app._id] = html;
+  function updateMonitor(event) {
+    const html = event.data;
+    if (html != oldStatus[event.app._id]) {
+      oldStatus[event.app._id] = html;
       send({
         type: 'html.update',
-        selector: `.application-${status.app._id} .status`,
+        selector: `.application-${event.app._id} .status`,
         html: html
       });
     }
@@ -111,15 +111,15 @@ async function MainPageWS(ctx) {
   }
 
   function online(app) {
-    app.on('update.online', updateOnline);
     app.on('update.status', updateStatus);
+    app.on('update.monitor', updateMonitor);
     app.on('update.services', updateServices);
     app.on('update.network.config', updateNetworkConfig);
   }
 
   function offline(app) {
-    app.off('update.online', updateOnline);
     app.off('update.status', updateStatus);
+    app.off('update.monitor', updateMonitor);
     app.off('update.services', updateServices);
     app.off('update.network.config', updateNetworkConfig);
   }
