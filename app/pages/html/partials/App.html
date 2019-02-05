@@ -5,6 +5,6 @@
     <h6>{{ip}}</h6>
   </div>
   <div class="pure-u-3-4 right {{#if link}}link{{/if}}" onclick="openInlinePage('{{link}}')">
-    <iframe class="status" frameborder="0" width="600" height="70"></iframe>
+    <iframe class="status" frameborder="0" width="600" height="100" srcdoc="<div style='height:100px' onclick='frameElement.parentElement.onclick()'></div>"></iframe>
   </div>
 </div>
