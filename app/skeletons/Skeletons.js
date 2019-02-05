@@ -125,24 +125,20 @@ function stringToSkeleton(str) {
 }
 
 function saveSkeleton(skeleton) {
-  if (skeleton.image in Builtins) {
-    console.error(`Cannot update builtin skeleton: ${skeleton.name}`);
-  }
-  else {
-    const path = `${__dirname}/local/${skeleton.image}.skeleton`;
-    FS.mkdirSync(Path.dirname(path), { recursive: true });
-    FS.writeFileSync(path, skeletonToString(skeleton));
-  }
+  const path = `${__dirname}/local/${skeleton.image}.skeleton`;
+  FS.mkdirSync(Path.dirname(path), { recursive: true });
+  FS.writeFileSync(path, skeletonToString(skeleton));
 }
 
 function loadSkeleton(image, create) {
-  let skeleton = Builtins[image];
-  if (!skeleton) {
-    const path = `${__dirname}/local/${image}.skeleton`;
-    if (FS.existsSync(path)) {
-      const str = FS.readFileSync(path, { encoding: 'utf8' });
-      skeleton = stringToSkeleton(str);
-    }
+  let skeleton = null;
+  const path = `${__dirname}/local/${image}.skeleton`;
+  if (FS.existsSync(path)) {
+    const str = FS.readFileSync(path, { encoding: 'utf8' });
+    skeleton = stringToSkeleton(str);
+  }
+  else {
+    skeleton = Builtins[image];
     if (!skeleton && create) {
       skeleton = imageToSkeleton(image);
     }
