@@ -112,7 +112,6 @@ async function MainPageWS(ctx) {
     });
     remoteApps[status.app._id] = existApps;
 
-    console.log(status.app._name, oldApps, existApps, newApps);
     for (let name in oldApps) {
       send({
         type: 'html.remove',
