@@ -23,6 +23,7 @@ function genApp(app, networks) {
 
 let mainTemplate;
 let remoteAppTemplate;
+let appTemplate;
 function registerTemplates() {
   const partials = [
     'App',
@@ -33,6 +34,7 @@ function registerTemplates() {
   });
   mainTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Main.html`, { encoding: 'utf8' }));
   remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
+  appTemplate = Handlebars.compile('{{> App}}');
 }
 if (!DEBUG) {
   registerTemplates();
@@ -69,7 +71,7 @@ async function MainPageWS(ctx) {
   let apps = MinkeApp.getApps();
 
   function updateNetworkConfig(event) {
-    const html = Handlebars.compile('{{> App}}')(genApp(event.app, MinkeApp.getNetworks()));
+    const html = appTemplate(genApp(event.app, MinkeApp.getNetworks()));
     send({
       type: 'html.replace',
       selector: `.application-${event.app._id}`,
@@ -142,7 +144,7 @@ async function MainPageWS(ctx) {
   }
 
   function createApp(status) {
-    const html = Handlebars.compile('{{> App}}')(genApp(status.app, MinkeApp.getNetworks()));
+    const html = appTemplate(genApp(status.app, MinkeApp.getNetworks()));
     send({
       type: 'html.append',
       selector: `#insertion-point`,
