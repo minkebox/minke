@@ -228,7 +228,7 @@ async function ConfigurePageWS(ctx) {
       if (changed) {
         await uapp.restart(true);
       }
-      else if (app._status === 'stopped') {
+      else if (uapp._status === 'stopped') {
         await uapp.start();
       }
     }
