@@ -249,10 +249,6 @@ MinkeApp.prototype = {
       config.HostConfig.CapAdd.push('NET_ADMIN');
     }
 
-    if (DEBUG) {
-      config.StopTimeout = 1;
-    }
-
     this._fullEnv = config.Env;
   
     const helperConfig = {
@@ -588,7 +584,7 @@ MinkeApp.prototype = {
   },
 
   _safeName: function() {
-    return this._name.replace(/ /g, '');
+    return this._name.replace(/[^a-zA-Z0-9]/g, '');
   },
 
   _setupUpdateListeners: function() {
