@@ -110,6 +110,7 @@ body {
   border-radius: 2em;
   padding: 10px;
   outline: none;
+  background: #fff;
 }
 .configure .skeleton .editor:focus {
   border-color: #129FEA;
