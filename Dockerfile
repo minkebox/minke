@@ -8,7 +8,7 @@ RUN apk --no-cache add nodejs nodejs-npm dnsmasq tzdata; \
     apk --no-cache del nodejs-npm
 
 EXPOSE 53/tcp 53/udp 80/tcp
-VOLUME /minke
+VOLUME /minke/db /minke/fs
 
 ENTRYPOINT ["/startup.sh"]
  
