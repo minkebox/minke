@@ -46,6 +46,14 @@
       defaultValue: "CLIENT"
     },
     {
+      type: "Directory",
+      name: "/etc/status"
+    },
+    {
+      type: "Directory",
+      name: "/etc/openvpn"
+    },
+    {
       type: "File",
       name: "/etc/openvpn/config.ovpn"
     },
