@@ -16,15 +16,25 @@ body {
   text-align: center;
   z-index: 1;
 }
-
-.pure-button.primary-button {
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    box-shadow: none;
-    border-radius: 20px;
-    color: #fff;
-    background: #1b98f8;
-    margin: 2em 0;
+.main .nav .title {
+  text-align: center;
+  color: #fff;
+  font-size: 150%;
+  padding-top: 20px;
+}
+.main .nav button {
+  background: transparent;
+  border: 2px solid rgb(176, 202, 219);
+  color: #fff;
+  margin-top: 1em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 85%;
+  margin: 2em 0;
+}
+.main .nav button:hover {
+  border: 2px solid rgb(61, 146, 201);
+  text-decoration: none;
 }
 
 .nav .pure-menu {
@@ -103,9 +113,6 @@ body {
 .app h6 {
   margin: 0;
   color: #999;
-}
-.app .right {
-  padding-top: 30px;
 }
 
 .icon {
