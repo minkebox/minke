@@ -87,12 +87,12 @@ async function MainPageWS(ctx) {
 
   function updateMonitor(event) {
     const html = event.data;
-    if (html != oldStatus[event.app._id]) {
+    if (html !== oldStatus[event.app._id]) {
       oldStatus[event.app._id] = html;
       send({
         type: 'html.update',
         selector: `.application-${event.app._id} .status`,
-        html: html
+        html: `<div onclick="frameElement.parentElement.onclick()">${html}</div>`
       });
     }
   }
