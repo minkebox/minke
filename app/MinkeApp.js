@@ -525,7 +525,7 @@ MinkeApp.prototype = {
       services[name].forEach((service) => {
         const target = service.target.replace(/(.*).local/, '$1');
         const localapp = applications.find(app => app._safeName() === target);
-        if (localapp && (localapp._networks.primary === this._safeName() || localapp._networks.secondary === this._safeName())) {
+        if (localapp && (localapp._networks.primary === this._name || localapp._networks.secondary === this._name)) {
           // Ignore local apps connected to this network
         }
         else {
