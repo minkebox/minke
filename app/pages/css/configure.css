@@ -1,3 +1,6 @@
+html {
+  background-color: #f8f8f8;
+}
 body {
   margin: 0px;
   height: 100%;
@@ -83,6 +86,7 @@ body {
   overflow: scroll;
   font-family: monospace;
   white-space: pre;
+  background-color: #fff;
 }
 .configure .actions .file .value:focus {
   outline: none;
