@@ -1,15 +1,13 @@
-function handlers() {
-  document.addEventListener('change', (event) => {
-    const elem = event.target;
-    const id = elem.dataset.id;
-    if (id) {
-      ws.send(JSON.stringify({
-        type: 'newapp.change',
-        property: id,
-        value: elem.value
-      }));
-    }
-  });
-}
+document.addEventListener('change', (event) => {
+  const elem = event.target;
+  if (elem.dataset.id === 'newapp.image') {
+    install(elem.value);
+  }
+});
 
-window.addEventListener('load', handlers);
+function install(app) {
+  ws.send(JSON.stringify({
+    type: 'newapp.image',
+    value: app
+  }));
+}

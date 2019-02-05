@@ -31,20 +31,18 @@ async function PageWS(ctx) {
     try {
       msg = JSON.parse(msg);
       switch (msg.type) {
-        case 'newapp.change':
+        case 'newapp.image':
         {
-          if (msg.property === 'newapp.image') {
-            (async function() {
-              const info = await Pull.loadImage(msg.value, (progress) => {
-                send({ type: 'html.update.attribute', selector: '.newapp .download', name: 'value', value: progress.download });
-                send({ type: 'html.update.attribute', selector: '.newapp .extract', name: 'value', value: progress.extract });
-              });
-              if (info) {
-                const app = await MinkeApp.create(info);
-                send({ type: 'page.redirect', url: `/configure/${app._id}/`});
-              }
-            })();
-          }
+          (async function() {
+            const info = await Pull.loadImage(msg.value, (progress) => {
+              send({ type: 'html.update.attribute', selector: '.newapp .download', name: 'value', value: progress.download });
+              send({ type: 'html.update.attribute', selector: '.newapp .extract', name: 'value', value: progress.extract });
+            });
+            if (info) {
+              const app = await MinkeApp.create(info);
+              send({ type: 'page.redirect', url: `/configure/${app._id}/`});
+            }
+          })();
         }
       }
     }
