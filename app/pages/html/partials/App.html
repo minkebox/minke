@@ -1,25 +1,10 @@
-<td>
-  <div class="home"></div>
-  <div class="application">
-    <img class="icon" src="img/settings.png" onclick="openInlinePage('configure/{{_id}}/')">
-    <div class="name">{{name}}</div>
-    <div class="ready"><span class="{{status}}">{{status}}</span></div>
-    <div class="status-box">
-      <iframe class="status resize" frameborder="0" width="600" height="70"></iframe>
-    </div>
-    {{#if ip}}
-    <div class="ip">{{ip}}</div>
-    {{/if}}
-    {{#if link}}
-    <div class="link" onclick="openInlinePage('{{link}}')">Details</div>
-    {{/if}}
+<div class="app pure-g application-{{_id}} net-{{network}}">
+  <div class="pure-u-1-4 left" onclick="openInlinePage('configure/{{_id}}/')">
+    <h5>{{status}}</h5>
+    <h4>{{name}}</h4>
+    <h6>{{ip}}</h6>
   </div>
-</td>
-{{#each allnetworks}}
-<td>
-  <div class="net {{#if (or (eq name ../networks.primary) (eq name ../networks.secondary))}}attached{{/if}}"></div>
-</td>
-{{/each}}
-<td>
-  <div class="padding"></div>
-</td>
+  <div class="pure-u-3-4 right {{#if link}}link{{/if}}" onclick="openInlinePage('{{link}}')">
+    <iframe class="status" frameborder="0" width="600" height="70"></iframe>
+  </div>
+</div>

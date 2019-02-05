@@ -10,9 +10,9 @@ body {
   box-sizing: border-box;
 }
 .header {
-  text-align: center;
+  text-align: right;
   top: auto;
-  margin: 3em auto;
+  margin: 3em 2em;
 }
 .sidebar {
   background: rgb(61, 79, 93);
@@ -53,6 +53,9 @@ body {
 }
 .configure .section.visible {
   display: block;
+}
+.configure .content {
+  padding: 2em 3em 0;
 }
 .configure .content-header {
   text-transform: uppercase;
@@ -109,20 +112,4 @@ body {
 }
 .configure .skeleton .editor.invalid:focus {
   border-color: red;
-}
-
-@media (min-width: 48em) {
-  .content {
-      padding: 2em 3em 0;
-      margin-left: 25%;
-  }
-  .header {
-      margin: 80% 2em 0;
-      text-align: right;
-  }
-  .sidebar {
-      position: fixed;
-      top: 0;
-      bottom: 0;
-  }
 }

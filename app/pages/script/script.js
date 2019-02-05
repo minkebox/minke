@@ -15,6 +15,13 @@ function onPageShow() {
           }
         });
         break;
+      case 'html.replace':
+        document.querySelectorAll(msg.selector).forEach(function(elem) {
+          const builder = document.createElement('div');
+          builder.innerHTML = msg.html;
+          elem.parentNode.replaceChild(builder.firstElementChild, elem);
+        });
+        break;
       case 'html.update.attribute':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
           elem.setAttribute(msg.name, msg.value);
@@ -80,6 +87,24 @@ function cmd(command) {
   }));
 }
 
+function filter(net) {
+  if (!net) {
+    document.querySelectorAll('.app').forEach((elem) => {
+      elem.classList.remove('hidden');
+    });
+  }
+  else {
+    document.querySelectorAll('.app').forEach((elem) => {
+      if (elem.classList.contains(net)) {
+        elem.classList.remove('hidden');
+      }
+      else {
+        elem.classList.add('hidden');
+      }
+    });
+  }
+}
+
 function setEditMode(edit) {
   if (edit === null) {
     return document.firstElementChild.classList.toggle('editing');
@@ -129,44 +154,43 @@ document.addEventListener('drop', function(event) {
   }
 });
 
-const INLINE_BORDER = 75;
-
 function closeInlinePage() {
   const div = document.querySelector(".inline-page");
   if (div) {
     div.remove();
+    document.removeEventListener('click', closeInlinePage);
   }
 }
 
 function openInlinePage(url, onClose) {
   closeInlinePage();
   const builder = document.createElement('div');
-  const width = document.body.clientWidth - INLINE_BORDER * 2;
-  const height = document.body.clientHeight - INLINE_BORDER * 2;
-  builder.innerHTML = `<div class="inline-page" style="padding:${INLINE_BORDER}px"><iframe allowfullscreen="true" allow="fullscreen" class="resize" frameborder="0" width="${width}" height="${height}"></div>`;
+  const width = document.body.clientWidth;
+  const height = document.body.clientHeight;
+  builder.innerHTML = `<div class="inline-page pure-g"><div class="pure-u-1-4"></div><div class="pure-u-3-4"><iframe allowfullscreen="true" allow="fullscreen" frameborder="0" width="${width}" height="${height}"></div></div>`;
   const scrollY = window.scrollY;
   setTimeout(() => {
     window.scrollTo(0, scrollY);
+    document.addEventListener('click', closeInlinePage);
   }, 0);
   const div = builder.firstElementChild;
-  document.body.appendChild(div);
+  const insert = document.getElementById('insertion-point');
+  insert.insertBefore(div, insert.firstElementChild);
   function noScroll(e) {
     e.preventDefault();
   }
   div.addEventListener('scroll', noScroll);
   div.addEventListener('mousewheel', noScroll);
-  div.addEventListener('click', closeInlinePage);
-  div.firstElementChild.src = url;
+  div.querySelector('iframe').src = url;
   onResizePage();
 }
 
 function onResizePage() {
-  document.querySelectorAll('iframe.resize').forEach((frame) => {
+  document.querySelectorAll('.inline-page iframe').forEach((frame) => {
     const box = frame.parentElement;
     if (box) {
-      const padding = parseInt(box.style.padding) || 0;
-      frame.width = box.clientWidth - padding * 2;
-      frame.height = box.clientHeight - padding * 2;
+      frame.width = box.clientWidth;
+      frame.height = window.innerHeight;
     }
   });
 }

@@ -3,18 +3,21 @@ const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 
 
-function genApp(app) {
+function genApp(app, networks) {
   return {
     _id: app._id,
     name: app._name,
     status: app._status,
-    features: app._features,
     link: app._forward && app._forward.url,
     ip: app._status === 'running' ? app._homeIP : null,
-    networks: {
-      primary: app._features.vpn ? 'none' : app._networks.primary,
-      secondary: app._networks.secondary
-    }
+    network: !networks ? 0 : networks.findIndex((net) => {
+      if (app._features.vpn) {
+        return net.name === app._name;
+      }
+      else {
+        return net.name === app._networks.primary;
+      }
+    })
   }
 }
 
@@ -23,7 +26,7 @@ let remoteAppTemplate;
 function registerTemplates() {
   const partials = [
     'App',
-    'Hamburger'
+    'Net'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -43,7 +46,7 @@ async function MainPageHTML(ctx) {
   }
 
   const networks = MinkeApp.getNetworks();
-  const apps = MinkeApp.getApps().map(app => genApp(app));
+  const apps = MinkeApp.getApps().map(app => genApp(app, networks));
   ctx.body = mainTemplate({ networks: networks, apps: apps });
   ctx.type = 'text/html';
 }
@@ -65,10 +68,10 @@ async function MainPageWS(ctx) {
   let apps = MinkeApp.getApps();
 
   function updateNetworkConfig(event) {
-    const html = Handlebars.compile('{{> App}}')(Object.assign(genApp(event.app), { allnetworks: MinkeApp.getNetworks() }));
+    const html = Handlebars.compile('{{> App}}')(genApp(event.app, MinkeApp.getNetworks()));
     send({
-      type: 'html.update',
-      selector: `.network-home .application-${event.app._id}`,
+      type: 'html.replace',
+      selector: `.application-${event.app._id}`,
       html: html
     });
     delete oldStatus[event.app._id];
@@ -125,10 +128,10 @@ async function MainPageWS(ctx) {
   }
 
   function createApp(status) {
-    const html = Handlebars.compile('<tr class="application-{{_id}}">{{> App}}</tr>')(Object.assign(genApp(status.app), { allnetworks: MinkeApp.getNetworks() }));
+    const html = Handlebars.compile('{{> App}}')(genApp(status.app, MinkeApp.getNetworks()));
     send({
       type: 'html.append',
-      selector: `.network-home.localapps`,
+      selector: `#insertion-point`,
       html: html
     });
     online(status.app);
@@ -138,7 +141,7 @@ async function MainPageWS(ctx) {
   function removeApp(status) {
     send({
       type: 'html.remove',
-      selector: `.network-home.localapps .application-${status.app._id}`
+      selector: `.application-${status.app._id}`
     });
     offline(status.app);
     apps = MinkeApp.getApps();

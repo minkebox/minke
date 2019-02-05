@@ -1,59 +1,32 @@
 <!DOCTYPE html>
 <html class="main">
   <head>
-    <link href="/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/css/main.css" rel="stylesheet" type="text/css">
+    <link href="/css/pure.css" rel="stylesheet" type="text/css">
+    <link href="/css/grids-responsive.css" rel="stylesheet" type="text/css">
     <script src="/js/script.js" type="text/javascript"></script>
-    <script src="/js/main.js" type="text/javascript"></script>
   </head>
   <body>
-    <div class="titlebar">
-      <div class="title">MinkeBox</div>
-      {{> Hamburger}}
-    </div>
-    <div class="info">
-      <table class="applications" cellspacing="0" cellpadding="0">
-        <thead class="topbar">
-          <tr>
-            <td>
-              <div></div>
-            </td>
+    <div class="pure-g layout">
+      <div class="pure-u nav">
+        <button class="pure-button primary-button" onclick="openInlinePage('new/application/')">Install App</button>
+        <div class="pure-menu">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-heading">Networks</li>
+            <li class="pure-menu-item">
+              <a class="pure-menu-link" onclick="filter(null)"><span style="background-color:transparent"></span>All</a>
+            </li>
             {{#each networks}}
-            <td>
-              <div class="net">{{name}}</div>
-            </td>
+            {{> Net}}
             {{/each}}
-            <td>
-              <div class="padding"></div>
-            </td>
-          </tr>
-        </thead>
-        <tbody class="network-home localapps">
-          {{#each apps}}
-          <tr class="application-{{_id}}">
-            {{> App allnetworks=../networks}}
-          </tr>
-          {{/each}}
-        </tbody>
-        {{#each networks}}
-        <tbody class="network-{{name}} remoteapps">
-        </tbody>
+          </ul>
+        </div>
+      </div>
+      <div class="pure-u-1 list" id="insertion-point">
+        {{#each apps}}
+        {{> App}}
         {{/each}}
-        <tfoot class="bottombar">
-          <tr>
-            <td>
-              <div></div>
-            </td>
-            {{#each networks}}
-            <td>
-              <div class="net">{{name}}</div>
-            </td>
-            {{/each}}
-            <td>
-              <div class="padding"></div>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+      </div>
     </div>
   </body>
 </html>

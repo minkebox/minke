@@ -1,0 +1,175 @@
+body {
+  margin: 0px;
+  height: 100%;
+  color: #333;
+}
+
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.main .nav {
+  height: 100%;
+  background: rgb(37, 42, 58);
+  text-align: center;
+  z-index: 1;
+}
+
+.pure-button.primary-button {
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    border-radius: 20px;
+    color: #fff;
+    background: #1b98f8;
+    margin: 2em 0;
+}
+
+.nav .pure-menu {
+  text-align: left;
+}
+.nav .pure-menu-item {
+  margin-left: 0.5em;
+}
+.nav .pure-menu-link {
+  color: white;
+  text-transform: capitalize;
+}
+.nav .pure-menu-link:hover,
+.nav .pure-menu-link:focus {
+  background: rgb(55, 60, 90);
+}
+.nav .pure-menu-link span {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  background: #ffc94c;
+  border-radius: 3px;
+  margin-right: 0.5em;
+}
+
+.app {
+  border-bottom: 1px solid #ddd;
+  border-left: 12px solid transparent;
+}
+
+.app.net-0 {
+  border-left-color: #ffc94c;
+}
+.nav .pure-menu-link span.net-0 {
+  background: #ffc94c;
+}
+.app.net-1 {
+  border-left-color: #41ccb4;
+}
+.nav .pure-menu-link span.net-1 {
+  background: #41ccb4;
+}
+.app.net-2 {
+  border-left-color: #40c365;
+}
+.nav .pure-menu-link span.net-2 {
+  background: #40c365;
+}
+.app.net-3 {
+  border-left-color: purple;
+}
+.nav .pure-menu-link span.net-3 {
+  background: purple;
+}
+
+.app .left {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ddd;
+  padding: 0.9em 1em;
+}
+.app .left:hover,
+.app .right.link:hover {
+  background-color: #eee;
+}
+.app h5 {
+  text-transform: uppercase;
+  color: #999;
+  margin: 0;
+  padding-bottom: 2px;
+}
+.app h4 {
+  margin: 0;
+  flex: 1;
+}
+.app h6 {
+  margin: 0;
+  color: #999;
+}
+.app .right {
+  padding-top: 30px;
+}
+
+.icon {
+  position: absolute;
+  left: 250px;
+  width: 24px;
+  height: 24px;
+}
+
+.inline-page {
+  z-index: 10;
+  overflow:auto;
+  border-left: 12px solid transparent;
+  -webkit-overflow-scrolling: touch
+}
+.inline-page iframe {
+  position: fixed;
+  background-color: white;
+}
+
+/*
+ * -- TABLET (AND UP) MEDIA QUERIES --
+ * On tablets and other medium-sized devices, we want to customize some
+ * of the mobile styles.
+ */
+ @media (min-width: 40em) {
+
+  /* Move the layout over so we can fit the nav + list in on the left */
+  .layout {
+    position: relative;
+  }
+
+  /* These are position:fixed; elements that will be in the left 500px of the screen */
+  .nav, .list {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    overflow: auto;
+  }
+  .nav {
+      width: 200px;
+      height: 100%;
+  }
+
+  .list {
+    padding-left: 200px;
+    width: 100%;
+    border-bottom: 1px solid #ddd;
+  }
+}
+
+/*
+* -- DESKTOP (AND UP) MEDIA QUERIES --
+* On desktops and other large-sized devices, we want to customize some
+* of the mobile styles.
+*/
+@media (min-width: 60em) {
+
+  /* This will take up the entire height, and be a little thinner */
+  .list {
+      width: 300px;
+      height: 100%;
+      border-right: 1px solid #ddd;
+  }
+}
+
+
