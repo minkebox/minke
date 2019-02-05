@@ -1,16 +1,5 @@
-{{#each apps}}
-<tr>
-  <td>
-    <div class="home"></div>
-    <div class="application">
-      <div class="name">{{name}}{{#if description}}:{{description}}{{/if}}</div>
-    </div>
-  </td>
-  {{#each ../networks}}
-  <td>
-    <div class="net {{#if (eq name ../network)}}attached{{/if}}"></div>
-  </td>
-  {{/each}}
-  <td><div class="padding"></div></td>
-</tr>
-{{/each}}
+<div class="app pure-g remote-application-{{netid}}-{{name}} net-{{network}}">
+  <div class="pure-u-1-4 left">
+    <h4>{{name}}</h4>
+  </div>
+</div>

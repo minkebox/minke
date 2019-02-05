@@ -64,6 +64,7 @@ async function MainPageWS(ctx) {
   const oldStatus = {};
   const onlines = {};
   const oldNetworkStatus = {};
+  const remoteApps = {};
 
   let apps = MinkeApp.getApps();
 
@@ -98,17 +99,31 @@ async function MainPageWS(ctx) {
   }
 
   function updateServices(status) {
-    const remoteapps = Object.values(status.services.reduce((acc, service) => {
-      acc[service.name] = { name: service.target, description: service.txt.description || '', network: status.app._name };
-      return acc;
-    }, {}));
-    const html = remoteAppTemplate({ apps: remoteapps, networks: MinkeApp.getNetworks() });
-    if (oldNetworkStatus[status.app._id] != html) {
-      oldNetworkStatus[status.app._id] = html;
+    const networks = MinkeApp.getNetworks();
+    const oldApps = remoteApps[status.app._id] || {};
+    const existApps = {};
+    const newApps = {};
+    status.services.forEach((service) => {
+      if (!(service.name in oldApps)) {
+        newApps[service.name] = { netid: status.app._id, name: service.target, network: networks.findIndex(net => net.name === status.app._name) };
+      }
+      existApps[service.name] = newApps[service.name];
+      delete oldApps[service.name];
+    });
+    remoteApps[status.app._id] = existApps;
+
+    console.log(status.app._name, oldApps, existApps, newApps);
+    for (let name in oldApps) {
       send({
-        type: 'html.update',
-        selector: `.network-${status.app._name}`,
-        html: html
+        type: 'html.remove',
+        selector: `.remote-application-${status.app._id}-${oldApps[name].name}`
+      });
+    }
+    for (let name in newApps) {
+      send({
+        type: 'html.append',
+        selector: '#insertion-point',
+        html: remoteAppTemplate(newApps[name])
       });
     }
   }
