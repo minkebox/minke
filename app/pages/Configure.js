@@ -79,8 +79,11 @@ async function ConfigurePageHTML(ctx) {
         }
         case 'File':
         {
-          const file = app._files.find(file => file.target === action.name) || { data: '' };
-          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.innerText)`, value: file.data }, action);
+          const file = app._files.find(file => file.target === action.name);
+          if (file && app._fs) {
+            app._fs.readFile(file);
+          }
+          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.innerText)`, value: file ? file.data : '' }, action);
         }
         case 'Argument':
         default:
@@ -179,6 +182,9 @@ async function ConfigurePageWS(ctx) {
       const file = app._files.find(file => file.target === filename);
       if (file) {
         file.data = value;
+        if (app._fs) {
+          app._fs.makeFile(file);
+        }
         return APPCHANGE;
       }
       return NOCHANGE;

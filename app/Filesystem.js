@@ -29,7 +29,7 @@ Filesystem.prototype = {
 
   getAllMounts: function() {
     return this._mappings.map(map => this._makeMount(map)).concat(
-      this._files.map(file => this._makeFile(file))
+      this._files.map(file => this.makeFile(file))
     );
   },
 
@@ -45,7 +45,7 @@ Filesystem.prototype = {
     }
   },
 
-  _makeFile: function(file) {
+  makeFile: function(file) {
     const src = Path.normalize(`${this._root}/${file.host}`);
     FS.mkdirSync(Path.dirname(src), { recursive: true });
     FS.writeFileSync(src, file.data);
@@ -57,6 +57,11 @@ Filesystem.prototype = {
         Propagation: 'rshared'
       }
     }
+  },
+
+  readFile: function(file) {
+    const src = Path.normalize(`${this._root}/${file.host}`);
+    file.data = FS.readFileSync(src, { encoding: 'utf8' });
   },
 
   mapFilenameToLocal: function(filename) {
