@@ -165,26 +165,31 @@ function closeInlinePage() {
 
 function openInlinePage(url, onClose) {
   closeInlinePage();
-  const builder = document.createElement('div');
-  const width = document.body.clientWidth;
-  const height = document.body.clientHeight;
-  builder.innerHTML = `<div class="inline-page pure-g"><div class="pure-u-1-4"></div><div class="pure-u-3-4"><iframe allowfullscreen="true" allow="fullscreen" frameborder="0" width="${width}" height="${height}"></div></div>`;
-  const scrollY = window.scrollY;
-  setTimeout(() => {
-    window.scrollTo(0, scrollY);
-    document.body.addEventListener('click', closeInlinePage);
-    document.body.addEventListener('touchstart', closeInlinePage);
-  }, 0);
-  const div = builder.firstElementChild;
-  const insert = document.getElementById('insertion-point');
-  insert.insertBefore(div, insert.firstElementChild);
-  function noScroll(e) {
-    e.preventDefault();
+  if (url.split('#')[1] === 'newtab') {
+    window.open(url.split('#')[0], '_black');
   }
-  div.addEventListener('scroll', noScroll);
-  div.addEventListener('mousewheel', noScroll);
-  div.querySelector('iframe').src = url;
-  onResizePage();
+  else {
+    const builder = document.createElement('div');
+    const width = document.body.clientWidth;
+    const height = document.body.clientHeight;
+    builder.innerHTML = `<div class="inline-page pure-g"><div class="pure-u-1-4"></div><div class="pure-u-3-4"><iframe allowfullscreen="true" allow="fullscreen" frameborder="0" width="${width}" height="${height}"></div></div>`;
+    const scrollY = window.scrollY;
+    setTimeout(() => {
+      window.scrollTo(0, scrollY);
+      document.body.addEventListener('click', closeInlinePage);
+      document.body.addEventListener('touchstart', closeInlinePage);
+    }, 0);
+    const div = builder.firstElementChild;
+    const insert = document.getElementById('insertion-point');
+    insert.insertBefore(div, insert.firstElementChild);
+    function noScroll(e) {
+      e.preventDefault();
+    }
+    div.addEventListener('scroll', noScroll);
+    div.addEventListener('mousewheel', noScroll);
+    div.querySelector('iframe').src = url;
+    onResizePage();
+  }
 }
 
 function onResizePage() {

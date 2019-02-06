@@ -107,6 +107,15 @@ const HTTPForward = {
       http: f._router.middleware(),
       ws: null
     };
+  },
+
+  createNewTab: function(args) {
+    const f = new Redirect(args);
+    return {
+      url: `${f._prefix}#newtab`,
+      http: f._router.middleware(),
+      ws: null
+    };
   }
 
 }

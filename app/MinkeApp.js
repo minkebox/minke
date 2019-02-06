@@ -366,7 +366,12 @@ MinkeApp.prototype = {
     const webport = this._ports.find(port => port.web);
     if (webport) {
       if (this._homeIP) {
-        this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${this._homeIP}:${webport.host}` });
+        if (webport.web === 'newtab') {
+          this._forward = HTTPForward.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${this._homeIP}:${webport.host}` });
+        }
+        else {
+          this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${this._homeIP}:${webport.host}` });
+        }
       }
       else {
         this._forward = HTTPForward.createForward({ prefix: `/a/${this._id}`, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress, port: webport.host });
