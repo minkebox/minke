@@ -153,6 +153,11 @@ document.addEventListener('drop', function(event) {
     }
   }
 });
+document.addEventListener('paste', function(event) {
+  event.preventDefault();
+  const text = (event.originalEvent || event).clipboardData.getData('text/plain');
+  document.execCommand('insertText', false, text);
+});
 
 function closeInlinePage() {
   const div = document.querySelector(".inline-page");
