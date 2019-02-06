@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "dockerode": "^2.5.7",
+    "fast-glob": "^2.2.6",
     "handlebars": "^4.0.12",
     "koa": "^2.6.2",
     "koa-router": "^7.4.0",
