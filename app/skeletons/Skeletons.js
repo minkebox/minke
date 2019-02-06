@@ -159,7 +159,7 @@ function catalog() {
       image: image
     };
   }
-  const locals = Glob.sync([ `${LOCALS_DIR}/*/*.skeleton`, `${LOCALS_DIR}/*/*/*.skeleton` ]);
+  const locals = Glob.sync([ `${LOCALS_DIR}/*.skeleton`, `${LOCALS_DIR}/*/*.skeleton`, `${LOCALS_DIR}/*/*/*.skeleton` ]);
   locals.forEach((file) => {
     const str = FS.readFileSync(file, { encoding: 'utf8' });
     const skeleton = stringToSkeleton(str);
