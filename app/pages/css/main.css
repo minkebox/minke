@@ -124,7 +124,6 @@ body {
 
 .inline-page {
   z-index: 10;
-  xoverflow: auto;
   border-left: 12px solid transparent;
   -webkit-overflow-scrolling: touch
 }

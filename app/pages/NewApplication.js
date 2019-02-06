@@ -2,6 +2,7 @@ const FS = require('fs');
 const Handlebars = require('./HB');
 const Pull = require('../Pull');
 const MinkeApp = require('../MinkeApp');
+const Skeletons = require('../skeletons/Skeletons');
 
 async function PageHTML(ctx) {
 
@@ -12,7 +13,8 @@ async function PageHTML(ctx) {
   });
   const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/NewApplication.html`, { encoding: 'utf8' }));
 
-  ctx.body = template({});
+  const catalog = Skeletons.catalog();
+  ctx.body = template({ skeletons: catalog.map(skel => Object.assign({ pre: skel.name.substr(0, 2) }, skel)) });
   ctx.type = 'text/html';
 }
 
