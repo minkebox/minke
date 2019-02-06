@@ -1,61 +1,54 @@
 {
-  name: "OpenVPN",
-  description: "OpenVPN client",
-  image: "registry.gitlab.com/minkebox/openvpn-client",
-
+  name: `OpenVPN`,
+  description: `OpenVPN client for use with various OpenVPN servers`,
+  image: `registry.gitlab.com/minkebox/openvpn-client`,
   actions: [
     {
-      type: "Header",
-      title: "Configure VPN"
+      type: `Environment`,
+      description: `Enter your VPN username`,
+      name: `USER`,
+      placeholder: `Username`
     },
     {
-      type: "Environment",
-      description: "Enter your VPN username",
-      name: "USER",
-      placeholder: "Username"
+      type: `Environment`,
+      description: `Enter your VPN password`,
+      name: `PASSWORD`,
+      placeholder: `Password`
     },
     {
-      type: "Environment",
-      description: "Enter your VPN password",
-      name: "PASSWORD",
-      placeholder: "Password"
-    },
-    {
-      type: "File",
-      description: "Drop your .ovpn configuration file here",
-      name: "/etc/openvpn/config.ovpn"
+      type: `File`,
+      description: `Drop your .ovpn configuration file here`,
+      name: `/etc/openvpn/config.ovpn`
     }
   ],
-
   properties: [
     {
-      type: "Feature",
-      name: "vpn"
+      type: `Feature`,
+      name: `vpn`
     },
     {
-      type: "Environment",
-      name: "USER"
+      type: `Environment`,
+      name: `USER`
     },
     {
-      type: "Environment",
-      name: "PASSWORD"
+      type: `Environment`,
+      name: `PASSWORD`
     },
     {
-      type: "File",
-      name: "/etc/openvpn/config.ovpn"
+      type: `File`,
+      name: `/etc/openvpn/config.ovpn`
     },
     {
-      type: "Network",
-      name: "primary",
-      defaultValue: "home"
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
     },
     {
-      type: "Network",
-      name: "secondary",
-      defaultValue: "__self"
+      type: `Network`,
+      name: `secondary`,
+      defaultValue: `__self`
     }
   ],
-
   monitor: {
   }
 }

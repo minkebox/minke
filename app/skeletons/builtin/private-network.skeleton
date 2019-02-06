@@ -1,74 +1,85 @@
 {
-  name: "Private Network",
-  description: "Secure, private network between you and a friend",
-  image: "registry.gitlab.com/minkebox/private-network",
-
+  name: `Private Network`,
+  description: `Secure, private network between you and a friend`,
+  image: `registry.gitlab.com/minkebox/private-network`,
   actions: [
     {
-      type: "Header",
-      title: "Configure"
+      type: `Header`,
+      title: `Configure`
     },
     {
-      type: "Text",
-      text: "A secure network requires a Server and a Client. The Server creates the network and the client connects."
+      type: `Text`,
+      text: `A secure network requires a Server and a Client. The Server creates the network and the Client connects.`
     },
     {
-      type: "Environment",
-      name: "MODE",
-      description: "Select network mode"
+      type: `Environment`,
+      name: `MODE`,
+      description: `Select network mode`
     },
     {
-      type: "Header",
-      title: "Server",
-      visible: "property['Environment.MODE'] == 'SERVER'"
+      type: `Header`,
+      title: `Server`,
+      visible: `property['Environment.MODE'] == 'SERVER'`
     },
     {
-      type: "Header",
-      title: "Client",
-      visible: "property['Environment.MODE'] == 'CLIENT'"
+      type: `File`,
+      description: `Generated client private network configuration file`,
+      name: `/etc/config.ovpn`
     },
     {
-      type: "File",
-      description: "Drop your private network configuration file here",
-      name: "/etc/openvpn/config.ovpn"
+      type: `Header`,
+      title: `Client`,
+      visible: `property['Environment.MODE'] == 'CLIENT'`
+    },
+    {
+      type: `File`,
+      description: `Drop your private network configuration file here`,
+      name: `/etc/config.ovpn`
     }
   ],
-
   properties: [
     {
-      type: "Feature",
-      name: "vpn"
+      type: `Feature`,
+      name: `vpn`
     },
     {
-      type: "Environment",
-      name: "MODE",
-      options: [ { name: "Server", value: "SERVER" }, { name: "Client", value: "CLIENT" } ],
-      defaultValue: "CLIENT"
+      type: `Environment`,
+      name: `MODE`,
+      options: [
+        {
+          name: `Server`,
+          value: `SERVER`
+        },
+        {
+          name: `Client`,
+          value: `CLIENT`
+        }
+      ],
+      defaultValue: `CLIENT`
     },
     {
-      type: "Directory",
-      name: "/etc/status"
+      type: `Directory`,
+      name: `/etc/status`
     },
     {
-      type: "Directory",
-      name: "/etc/openvpn"
+      type: `Directory`,
+      name: `/etc/openvpn`
     },
     {
-      type: "File",
-      name: "/etc/openvpn/config.ovpn"
+      type: `File`,
+      name: `/etc/config.ovpn`
     },
     {
-      type: "Network",
-      name: "primary",
-      defaultValue: "home"
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
     },
     {
-      type: "Network",
-      name: "secondary",
-      defaultValue: "__self"
+      type: `Network`,
+      name: `secondary`,
+      defaultValue: `__self`
     }
   ],
-
   monitor: {
   }
 }
