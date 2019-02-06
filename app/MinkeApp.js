@@ -425,11 +425,6 @@ MinkeApp.prototype = {
     catch (_) {
     }
 
-    if (this._fs) {
-      this._fs.unshareVolumes();
-      this._fs = null;
-    }
-
     if (this._dns) {
       DNSForward.removeForward(this._dns);
       this._dns = null;
@@ -465,6 +460,12 @@ MinkeApp.prototype = {
       await Promise.all(stopping.map(stop => stop.catch(e => console.log(e)))); // Ignore exceptions
     }
     catch (_) {
+    }
+
+    // Wait for things to stop before unmounting
+    if (this._fs) {
+      this._fs.unshareVolumes();
+      this._fs = null;
     }
 
     this._setStatus('stopped');
