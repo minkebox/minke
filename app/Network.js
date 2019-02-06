@@ -1,7 +1,9 @@
 const Net = require('network');
 const Netmask = require('netmask');
+const Barrier = require('./utils/Barrier');
 
 const HOME_NETWORK_NAME = 'home';
+const MANAGEMENT_NETWORK_NAME = 'management';
 const networks = {};
 
 const Network = {
@@ -24,7 +26,7 @@ const Network = {
 
   getPrivateNetwork: async function(networkName) {
     return await this._getNetwork({
-      Name: networkName.replace(/ /g, '_'),
+      Name: networkName.replace(/[^a-zA-Z0-9]/g, ''),
       CheckDuplicate: true,
       Driver: 'bridge'
     });
@@ -60,13 +62,13 @@ const Network = {
 
   getManagementNetwork: async function() {
     return await this._getNetwork({
-      Name: 'management',
+      Name: MANAGEMENT_NETWORK_NAME,
       CheckDuplicate: true,
       Driver: 'bridge'
     });
   },
 
-  _getNetwork: async function(config) {
+  _getNetwork: Barrier(async function(config) {
     let net = networks[config.Name];
     if (!net) {
       net = docker.getNetwork(config.Name);
@@ -84,7 +86,7 @@ const Network = {
       }
     }
     return net;
-  }
+  })
 
 }
 
