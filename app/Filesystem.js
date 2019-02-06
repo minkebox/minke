@@ -6,7 +6,7 @@ const Images = require('./Images');
 process.umask(0);
 
 const FS_PREFIX = process.env.DEBUG ? '/home/minke' : '/minke';
-let FS_HOSTPREFIX = FS_PREFIX;
+let FS_HOSTPREFIX = `${FS_PREFIX}/fs`;
 
 
 function Filesystem(app) {
@@ -17,11 +17,11 @@ function Filesystem(app) {
   // Handle internal Samba server specially
   if (app._image === Images.MINKE_SAMBA) {
     this._root = `${FS_PREFIX}/fs`;
-    this._hostroot = `${FS_HOSTPREFIX}/fs`;
+    this._hostroot = `${FS_HOSTPREFIX}`;
   }
   else {
     this._root = `${FS_PREFIX}/fs/app/${this._app._id}`;
-    this._hostroot = `${FS_HOSTPREFIX}/fs/app/${this._app._id}`;
+    this._hostroot = `${FS_HOSTPREFIX}/app/${this._app._id}`;
   }
 }
 

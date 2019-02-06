@@ -694,7 +694,7 @@ MinkeApp.startApps = async function(app) {
   (await docker.listContainers({})).forEach((container) => {
     if (container.Image.endsWith('/minke')) {
       container.Mounts.forEach((mount) => {
-        if (mount.Type === 'bind' && mount.Destination === '/minke') {
+        if (mount.Type === 'bind' && mount.Destination === '/minke/fs') {
           Filesystem.setHostPrefix(mount.Source);
         }
       })
