@@ -661,8 +661,8 @@ MinkeApp._monitorEvents = async function() {
                 {
                   const id = event.id;
                   const app = applications.find(app => (app._container && app._container.id === id) || 
-                    (this._helperContainer && this._helperContainer.id === id));
-                  if (app) {
+                    (app._helperContainer && app._helperContainer.id === id));
+                  if (app && app._status === 'running') {
                     app.stop();
                   }
                   break;
