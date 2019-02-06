@@ -1,17 +1,21 @@
 const FS = require('fs');
 const Path = require('path');
+const Glob = require('fast-glob');
+
+const LOCALS_DIR = `${__dirname}/local`;
+const BUILTINS_DIR = `${__dirname}/builtin`;
 
 const Builtins = {};
 
-FS.readdirSync(`${__dirname}/builtin/`).forEach((file) => {
+FS.readdirSync(BUILTINS_DIR).forEach((file) => {
   if (Path.extname(file) === '.skeleton') {
-    const str = FS.readFileSync(`${__dirname}/builtin/${file}`, { encoding: 'utf8' });
+    const str = FS.readFileSync(`${BUILTINS_DIR}/${file}`, { encoding: 'utf8' });
     const skeleton = stringToSkeleton(str);
     if (skeleton) {
       Builtins[skeleton.image] = skeleton;
     }
   }
-})
+});
 
 async function imageToSkeleton(image) {
   const info = await docker.getImage(image).inspect();
@@ -125,14 +129,14 @@ function stringToSkeleton(str) {
 }
 
 function saveSkeleton(skeleton) {
-  const path = `${__dirname}/local/${skeleton.image}.skeleton`;
+  const path = `${LOCALS_DIR}/${skeleton.image}.skeleton`;
   FS.mkdirSync(Path.dirname(path), { recursive: true });
   FS.writeFileSync(path, skeletonToString(skeleton));
 }
 
 function loadSkeleton(image, create) {
   let skeleton = null;
-  const path = `${__dirname}/local/${image}.skeleton`;
+  const path = `${LOCALS_DIR}/${image}.skeleton`;
   if (FS.existsSync(path)) {
     const str = FS.readFileSync(path, { encoding: 'utf8' });
     skeleton = stringToSkeleton(str);
@@ -146,10 +150,35 @@ function loadSkeleton(image, create) {
   return skeleton;
 }
 
+function catalog() {
+  const cat = {};
+  for (let image in Builtins) {
+    cat[image] = {
+      name: Builtins[image].name,
+      description: Builtins[image].description,
+      image: image
+    };
+  }
+  const locals = Glob.sync([ `${LOCALS_DIR}/*/*.skeleton`, `${LOCALS_DIR}/*/*/*.skeleton` ]);
+  locals.forEach((file) => {
+    const str = FS.readFileSync(file, { encoding: 'utf8' });
+    const skeleton = stringToSkeleton(str);
+    if (skeleton) {
+      cat[skeleton.image] = {
+        name: skeleton.name,
+        description: skeleton.description,
+        image: skeleton.image
+      };
+    }
+  });
+  return Object.values(cat);
+}
+
 module.exports = {
   imageToSkeleton: imageToSkeleton,
   saveSkeleton: saveSkeleton,
   loadSkeleton: loadSkeleton,
   toString: skeletonToString,
-  parse: stringToSkeleton
+  parse: stringToSkeleton,
+  catalog: catalog
 };
