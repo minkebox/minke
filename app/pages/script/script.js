@@ -158,7 +158,8 @@ function closeInlinePage() {
   const div = document.querySelector(".inline-page");
   if (div) {
     div.remove();
-    document.removeEventListener('click', closeInlinePage);
+    document.body.removeEventListener('click', closeInlinePage);
+    document.body.removeEventListener('touchstart', closeInlinePage);
   }
 }
 
@@ -171,7 +172,8 @@ function openInlinePage(url, onClose) {
   const scrollY = window.scrollY;
   setTimeout(() => {
     window.scrollTo(0, scrollY);
-    document.addEventListener('click', closeInlinePage);
+    document.body.addEventListener('click', closeInlinePage);
+    document.body.addEventListener('touchstart', closeInlinePage);
   }, 0);
   const div = builder.firstElementChild;
   const insert = document.getElementById('insertion-point');

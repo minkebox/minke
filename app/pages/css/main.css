@@ -124,7 +124,7 @@ body {
 
 .inline-page {
   z-index: 10;
-  overflow:auto;
+  xoverflow: auto;
   border-left: 12px solid transparent;
   -webkit-overflow-scrolling: touch
 }
@@ -133,50 +133,32 @@ body {
   background-color: white;
 }
 
-/*
- * -- TABLET (AND UP) MEDIA QUERIES --
- * On tablets and other medium-sized devices, we want to customize some
- * of the mobile styles.
- */
- @media (min-width: 40em) {
-
-  /* Move the layout over so we can fit the nav + list in on the left */
-  .layout {
-    position: relative;
-  }
-
-  /* These are position:fixed; elements that will be in the left 500px of the screen */
-  .nav, .list {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    overflow: auto;
-  }
-  .nav {
-      width: 200px;
-      height: 100%;
-  }
-
-  .list {
-    padding-left: 200px;
-    width: 100%;
-    border-bottom: 1px solid #ddd;
-  }
+/* Move the layout over so we can fit the nav + list in on the left */
+.layout {
+  position: relative;
 }
 
-/*
-* -- DESKTOP (AND UP) MEDIA QUERIES --
-* On desktops and other large-sized devices, we want to customize some
-* of the mobile styles.
-*/
-@media (min-width: 60em) {
-
-  /* This will take up the entire height, and be a little thinner */
-  .list {
-      width: 300px;
-      height: 100%;
-      border-right: 1px solid #ddd;
-  }
+/* These are position:fixed; elements that will be in the left 500px of the screen */
+.nav, .list {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  overflow: auto;
+}
+.nav {
+    width: 200px;
+    height: 100%;
 }
 
+.list {
+  padding-left: 200px;
+  width: 100%;
+  border-bottom: 1px solid #ddd;
+}
 
+/* This will take up the entire height, and be a little thinner */
+.list {
+    width: 300px;
+    height: 100%;
+    border-right: 1px solid #ddd;
+}
