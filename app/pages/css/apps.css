@@ -74,11 +74,12 @@ html {
   padding: 10px;
   border: 1px solid #999;
   border-radius: 5px;
-  background-color: #fff;
+  background-color: #fcfcfc;
   overflow: hidden;
 }
 .skel .inner:hover {
   border-color: #129FEA;
+  background-color: #fff;
 }
 .skel .icon {
   display: inline-block;
@@ -106,7 +107,7 @@ html {
   
 }
 
-html:not(.admin-mode) .admin-only {
+html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
   display: none;
 }
 

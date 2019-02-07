@@ -120,7 +120,7 @@ body {
   border-color: red;
 }
 
-html:not(.admin-mode) .admin-only {
+html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
   display: none;
 }
 

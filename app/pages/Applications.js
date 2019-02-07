@@ -20,7 +20,7 @@ async function PageHTML(ctx) {
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
   });
-  const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/NewApplication.html`, { encoding: 'utf8' }));
+  const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Applications.html`, { encoding: 'utf8' }));
 
   const catalog = Skeletons.catalog();
   ctx.body = template({ adminMode: MinkeApp.adminMode, skeletons: catalog.map(skel => Object.assign({ 

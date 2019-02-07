@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="newapp {{#if adminMode}}admin-mode{{/if}}">
   <head>
-    <link href="/css/newapp.css" rel="stylesheet" type="text/css">
+    <link href="/css/apps.css" rel="stylesheet" type="text/css">
     <link href="/css/pure.css" rel="stylesheet" type="text/css">
     <script src="/js/script.js" type="text/javascript"></script>
   </head>
@@ -31,7 +31,8 @@
         </div>
       </div>
       <div class="section">
-        <div class="section-header">Suggested Applications</div>
+        <div class="section-header user-only">Applications</div>
+        <div class="section-header admin-only">Suggested Applications</div>
         <div class="pure-g">
         {{#each skeletons}}
         <div class="skel pure-u-1-2">
