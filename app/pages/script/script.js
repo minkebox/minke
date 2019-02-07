@@ -254,7 +254,7 @@ Popbox.prototype = {
              e.preventDefault();
           var popbox_id = this.getAttribute('data-popbox-close');
           if(popbox_id){
-            self.close(popbox_id);
+            self.close(popbox_id, this);
           }
           }, false);
       }
@@ -265,7 +265,7 @@ Popbox.prototype = {
              e.preventDefault();
           var popbox_id = e.target.getAttribute('data-popbox-id');
           if(popbox_id){
-            self.close(popbox_id);
+            self.close(popbox_id, e.target);
           }
           }, false);
 
@@ -297,15 +297,15 @@ Popbox.prototype = {
       popbox.dispatchEvent(event);
     }
   },
-  closing: function(popbox){
+  closing: function(popbox,source){
     if(popbox){
-      var event = new CustomEvent("popbox_closing",{bubbles:true,detail:{popbox:popbox}});
+      var event = new CustomEvent("popbox_closing",{bubbles:true,detail:{popbox:popbox,source:source}});
       popbox.dispatchEvent(event);
     }
   },
-  closed: function(popbox){
+  closed: function(popbox,source){
     if(popbox){
-      var event = new CustomEvent("popbox_closed",{bubbles:true,detail:{popbox:popbox}});
+      var event = new CustomEvent("popbox_closed",{bubbles:true,detail:{popbox:popbox,source:source}});
       popbox.dispatchEvent(event);
     }
   },
@@ -362,11 +362,11 @@ Popbox.prototype = {
     this.select('html').removeAttribute('popbox');  
 
   },
-  close: function(popbox){
+  close: function(popbox,source){
     var popbox_id = this.getId(popbox);
     var popbox = this.getpopbox(popbox);
     if(popbox){
-      this.closing(popbox);
+      this.closing(popbox,source);
       this.remove(popbox_id);
       popbox.classList.remove('visible');
       popbox.style.zIndex = -999;
@@ -374,11 +374,11 @@ Popbox.prototype = {
         this.select('html').classList.remove('popbox_locked');          
       }
       if(this.current(true)){
-      this.select('html').setAttribute('popbox',this.current(true));  
+        this.select('html').setAttribute('popbox',this.current(true));  
       }else{
-      this.select('html').removeAttribute('popbox');  
+        this.select('html').removeAttribute('popbox');  
       }
-      this.closed(popbox);
+      this.closed(popbox,source);
     }
 
   },
