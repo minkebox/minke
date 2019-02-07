@@ -166,7 +166,7 @@ async function MainPageWS(ctx) {
   }
 
   function createNet(status) {
-    const html = netTemplate({ _id: status.network.replace(/ /g, '-'), name: status.network, index: MinkeApp.getNetworks().length - 1 });
+    const html = netTemplate({ _id: status.network._id, name: status.network.name, index: MinkeApp.getNetworks().length - 1 });
     send({
       type: 'html.append',
       selector: `#network-insertion-point`,
@@ -177,7 +177,7 @@ async function MainPageWS(ctx) {
   function removeNet(status) {
     send({
       type: 'html.remove',
-      selector: `.network-${status.network.replace(/ /g, '-')}`
+      selector: `.network-${status.network._id}`
     });
   }
 
