@@ -25,6 +25,7 @@ let mainTemplate;
 let remoteAppTemplate;
 let appTemplate;
 let netTemplate;
+let netsTemplate;
 function registerTemplates() {
   const partials = [
     'App',
@@ -37,6 +38,7 @@ function registerTemplates() {
   remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
   appTemplate = Handlebars.compile('{{> App}}');
   netTemplate = Handlebars.compile('{{> Net}}');
+  netsTemplate = Handlebars.compile('{{#each networks}}{{> Net}}{{/each}}');
 }
 if (!DEBUG) {
   registerTemplates();
@@ -129,6 +131,12 @@ async function MainPageWS(ctx) {
         html: remoteAppTemplate(newApps[name])
       });
     }
+
+    send({
+      type: 'html.update',
+      selector: '#network-insertion-point',
+      html: netsTemplate({ networks: networks })
+    });
   }
 
   function online(app) {
