@@ -55,7 +55,6 @@ body {
   display: inline-block;
   width: 15px;
   height: 15px;
-  background: #ffc94c;
   border-radius: 3px;
   margin-right: 0.5em;
 }
@@ -66,28 +65,64 @@ body {
 }
 
 .app.net-0 {
-  border-left-color: #ffc94c;
+  border-left-color: #278b30;
 }
 .nav .pure-menu-link span.net-0 {
-  background: #ffc94c;
+  background: #278b30;
 }
 .app.net-1 {
-  border-left-color: #41ccb4;
+  border-left-color: #ffd73e;
 }
 .nav .pure-menu-link span.net-1 {
-  background: #41ccb4;
+  background: #ffd73e;
 }
 .app.net-2 {
-  border-left-color: #40c365;
+  border-left-color: #b12427;
 }
 .nav .pure-menu-link span.net-2 {
-  background: #40c365;
+  background: #b12427;
 }
 .app.net-3 {
-  border-left-color: purple;
+  border-left-color: #88cce7;
 }
 .nav .pure-menu-link span.net-3 {
-  background: purple;
+  background: #88cce7;
+}
+.app.net-4 {
+  border-left-color: #fd0a1a;
+}
+.nav .pure-menu-link span.net-4 {
+  background: #fd0a1a;
+}
+.app.net-5 {
+  border-left-color: #808020;
+}
+.nav .pure-menu-link span.net-5 {
+  background: #808020;
+}
+.app.net-6 {
+  border-left-color: #efad5a;
+}
+.nav .pure-menu-link span.net-6 {
+  background: #efad5a;
+}
+.app.net-7 {
+  border-left-color: #fd1a91;
+}
+.nav .pure-menu-link span.net-7 {
+  background: #fd1a91;
+}
+.app.net-8 {
+  border-left-color: #d85452;
+}
+.nav .pure-menu-link span.net-8 {
+  background: #d85452;
+}
+.app.net-9 {
+  border-left-color: #41b376;
+}
+.nav .pure-menu-link span.net-9 {
+  background: #41b376;
 }
 
 .app .left {
@@ -155,9 +190,24 @@ body {
   border-bottom: 1px solid #ddd;
 }
 
-/* This will take up the entire height, and be a little thinner */
 .list {
     width: 300px;
     height: 100%;
     border-right: 1px solid #ddd;
+}
+
+/* ----- */
+.palette {
+  color: #b12427;
+  color: #fd0a1a;
+  color: #fd1a91;
+  color: #fd471f;
+  color: #ffd73e;
+  color: #278b30;
+  color: #808020;
+  color: #41b376;
+  color: #88cce7;
+  color: #19196b;
+  color: #efad5a;
+  color: #d85452;
 }
