@@ -33,7 +33,9 @@ html {
 .content {
   padding: 2em 3em 0;
 }
-
+.section {
+  margin-bottom: 40px;
+}
 .section-header {
   text-transform: uppercase;
   color: #aaa;
@@ -88,7 +90,7 @@ html {
 }
 .skel .info {
   display: inline-block;
-  margin-left: 5px;
+  margin-left: 8px;
   max-height: 80px;
   overflow: hidden;
   flex: 1;
