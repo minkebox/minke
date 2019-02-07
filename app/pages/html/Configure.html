@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="configure">
+<html class="configure {{#if adminMode}}admin-mode{{/if}}">
   <head>
     <link href="/css/configure.css" rel="stylesheet" type="text/css">
     <link href="/css/pure.css" rel="stylesheet" type="text/css">
@@ -14,7 +14,7 @@
           <div class="name" contenteditable="true" placeholder="{{name}}" oninput="action('Name',this.innerText)">{{value}}</div>
           <h2 class="description">{{description}}</h2>
           <nav>
-            <a class="pure-button" onclick="setEditMode(null) || cmd('app.save')">Edit</a>
+            <a class="pure-button admin-only" onclick="setEditMode(null) || cmd('app.save')">Edit</a>
             <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
             <a class="pure-button" onclick="cmd('app.delete');window.parent.closeInlinePage()">Delete</a>
           </nav>

@@ -106,6 +106,10 @@ html {
   
 }
 
+html:not(.admin-mode) .admin-only {
+  display: none;
+}
+
 .bgcolor-0 {
   background-color: #b12427;
 }
@@ -165,9 +169,9 @@ transition:opacity 0.3s ease;
 }
 
 html.popbox_locked{
-overflow: hidden;
--ms-touch-action: none;
-touch-action: none;
+  overflow: hidden;
+  -ms-touch-action: none;
+  touch-action: none;
 }
 
 .popbox{
@@ -178,10 +182,10 @@ touch-action: none;
   height: 100%;
   top: 0;
   left: 0;
-will-change: opacity;
-transition:opacity 0.3s ease;
-opacity:0;
-will-change: opacity;
+  will-change: opacity;
+  transition:opacity 0.3s ease;
+  opacity:0;
+  will-change: opacity;
   background: rgba(60, 52, 66, 0.7);
   padding:18px;
   padding-top:5%;

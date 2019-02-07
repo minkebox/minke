@@ -196,6 +196,10 @@ body {
     border-right: 1px solid #ddd;
 }
 
+html:not(.admin-mode) .admin-only {
+  display: none;
+}
+
 /* ----- */
 .palette {
   color: #b12427;

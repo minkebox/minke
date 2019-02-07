@@ -49,7 +49,7 @@ async function MainPageHTML(ctx) {
 
   const networks = MinkeApp.getNetworks();
   const apps = MinkeApp.getApps().map(app => genApp(app, networks));
-  ctx.body = mainTemplate({ networks: networks, apps: apps });
+  ctx.body = mainTemplate({ adminMode: MinkeApp.adminMode, networks: networks, apps: apps });
   ctx.type = 'text/html';
 }
 

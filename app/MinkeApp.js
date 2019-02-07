@@ -638,6 +638,8 @@ Object.assign(MinkeApp, {
   emit: (evt, data) => { return MinkeApp._events.emit(evt, data); },
 });
 
+MinkeApp.adminMode = true;
+
 MinkeApp._monitorEvents = async function() {
   const stream = await docker.getEvents({});
   await new Promise(() => {

@@ -119,3 +119,7 @@ body {
 .configure .skeleton .editor.invalid:focus {
   border-color: red;
 }
+
+html:not(.admin-mode) .admin-only {
+  display: none;
+}
