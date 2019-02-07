@@ -130,6 +130,7 @@ body {
   flex-direction: column;
   border-right: 1px solid #ddd;
   padding: 0.9em 1em;
+  overflow: hidden;
 }
 .app .left:hover,
 .app .right.link:hover {
@@ -148,6 +149,12 @@ body {
 .app h6 {
   margin: 0;
   color: #999;
+}
+
+.app .status {
+  width: 600px;
+  height: 100px;
+  margin-left: auto;
 }
 
 .icon {

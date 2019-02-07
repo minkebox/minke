@@ -97,7 +97,7 @@ async function MainPageWS(ctx) {
       send({
         type: 'html.update',
         selector: `.application-${event.app._id} .status`,
-        html: `<div onclick="frameElement.parentElement.onclick()">${html}</div>`
+        html: html
       });
     }
   }
