@@ -149,7 +149,7 @@ MinkeApp.prototype = {
     this._fs = Filesystem.create(this);
   
     const config = {
-      name: this._safeName(),
+      name: `${this._safeName()}__${this._id}`,
       Hostname: this._safeName(),
       Image: this._image,
       HostConfig: {
@@ -252,7 +252,7 @@ MinkeApp.prototype = {
     this._fullEnv = config.Env;
   
     const helperConfig = {
-      name: `helper-${this._safeName()}`,
+      name: `helper-${this._safeName()}__${this._id}`,
       Hostname: config.Hostname,
       Image: Images.MINKE_HELPER,
       HostConfig: {
