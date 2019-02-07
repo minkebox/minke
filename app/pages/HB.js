@@ -27,4 +27,8 @@ Handlebars.registerHelper({
   }
 });
 
+Handlebars.registerHelper('index', (context) => {
+  return 'index' in context.data ? context.data.index : context.data.root.index;
+});
+
 module.exports = Handlebars;

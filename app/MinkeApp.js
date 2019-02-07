@@ -508,6 +508,9 @@ MinkeApp.prototype = {
     await Database.removeApp(this._id);
 
     MinkeApp.emit('app.remove', { app: this });
+    if (this._features.vpn) {
+      MinkeApp.emit('net.remove', { network: this._name });
+    }
   },
 
   _monitorNetwork: function() {
@@ -763,6 +766,9 @@ MinkeApp.create = async function(image) {
   applications.push(app);
   await app.save();
   MinkeApp.emit('app.create', { app: app });
+  if (app._features.vpn) {
+    MinkeApp.emit('net.create', { network: app._name });
+  }
   return app;
 }
 
@@ -774,6 +780,7 @@ MinkeApp.getNetworks = function() {
   return MinkeApp.getApps().reduce((acc, app) => {
     if (app._features.vpn) {
       acc.push({
+        _id: app._name.replace(/ /g, '-'),
         name: app._name
       });
     }

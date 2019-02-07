@@ -24,6 +24,7 @@ function genApp(app, networks) {
 let mainTemplate;
 let remoteAppTemplate;
 let appTemplate;
+let netTemplate;
 function registerTemplates() {
   const partials = [
     'App',
@@ -35,6 +36,7 @@ function registerTemplates() {
   mainTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Main.html`, { encoding: 'utf8' }));
   remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
   appTemplate = Handlebars.compile('{{> App}}');
+  netTemplate = Handlebars.compile('{{> Net}}');
 }
 if (!DEBUG) {
   registerTemplates();
@@ -163,6 +165,22 @@ async function MainPageWS(ctx) {
     apps = MinkeApp.getApps();
   }
 
+  function createNet(status) {
+    const html = netTemplate({ _id: status.network.replace(/ /g, '-'), name: status.network, index: MinkeApp.getNetworks().length - 1 });
+    send({
+      type: 'html.append',
+      selector: `#network-insertion-point`,
+      html: html
+    });
+  }
+
+  function removeNet(status) {
+    send({
+      type: 'html.remove',
+      selector: `.network-${status.network.replace(/ /g, '-')}`
+    });
+  }
+
   ctx.websocket.on('message', (msg) => {
     // ...
   });
@@ -171,6 +189,8 @@ async function MainPageWS(ctx) {
     apps.forEach(app => offline(app));
     MinkeApp.off('app.create', createApp);
     MinkeApp.off('app.remove', removeApp);
+    MinkeApp.off('net.create', createNet);
+    MinkeApp.off('net.remove', removeNet);
   });
 
   ctx.websocket.on('error', () => {
@@ -180,6 +200,8 @@ async function MainPageWS(ctx) {
   apps.forEach(app => online(app));
   MinkeApp.on('app.create', createApp);
   MinkeApp.on('app.remove', removeApp);
+  MinkeApp.on('net.create', createNet);
+  MinkeApp.on('net.remove', removeNet);
 }
 
 module.exports = {
