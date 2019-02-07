@@ -134,3 +134,65 @@ html {
 .bgcolor-9 {
   background-color: #d85452;
 }
+
+.popbox .popbox_container {
+  max-width: 420px;
+}
+.popbox .section {
+  margin: 20px 0;
+}
+.popbox .text {
+  line-height: 1.4em;
+  padding-bottom: 1em;
+  text-transform: uppercase;
+  color: #aaa;
+}
+
+/* Popbox */
+.popbox.visible{
+  opacity:1;
+  z-index: 999;
+transition:opacity 0.3s ease;
+}
+.popbox.opened{
+  display: block;
+}
+
+.popbox_locked .popbox_main_content.popbox_blur{
+  filter:blur(15px);
+}
+
+html.popbox_locked{
+overflow: hidden;
+-ms-touch-action: none;
+touch-action: none;
+}
+
+.popbox{
+  z-index: -999;
+  position: fixed;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+will-change: opacity;
+transition:opacity 0.3s ease;
+opacity:0;
+will-change: opacity;
+  background: rgba(60, 52, 66, 0.7);
+  padding:18px;
+  padding-top:5%;
+  overflow-y: auto;
+  display: none;
+}
+
+.popbox_container{
+  border-radius:5px;
+  margin-bottom:18px;
+  padding: 18px;
+  margin-left:auto;
+  margin-right:auto;
+  background:#fff;
+  max-width:400px;
+}
