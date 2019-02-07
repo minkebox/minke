@@ -1,0 +1,136 @@
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+html {
+  background-color: #f8f8f8;
+}
+
+.sidebar {
+  background: rgb(61, 79, 93);
+  color: #fff;
+}
+.header {
+  text-align: left;
+  top: auto;
+  margin: 3em 2em;
+}
+.header h2 {
+  font-weight: 300;
+  color: rgb(176, 202, 219);
+}
+.header .name {
+  background: inherit;
+  font-size: 2em;
+  width: 100%;
+  text-align: left;
+  padding: 2px;
+  border: 0px;
+}
+
+.content {
+  padding: 2em 3em 0;
+}
+
+.section-header {
+  text-transform: uppercase;
+  color: #aaa;
+  border-bottom: 1px solid #eee;
+  padding: 0.4em 0;
+  font-size: 80%;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+.content label {
+  color: #777;
+}
+.content .text {
+  line-height: 1.4em;
+  padding-bottom: 1em;
+  color: #777;
+}
+.content .bar-title {
+  display: flex;
+  color: #777;
+}
+.content .download, .content .extract {
+  flex: 1;
+  margin: 0 10px;
+}
+
+.skel {
+  display: inline-block;
+  padding: 5px;
+}
+.skel .inner {
+  display: flex;
+  height: 100%;
+  padding: 10px;
+  border: 1px solid #999;
+  border-radius: 5px;
+  background-color: #fff;
+  overflow: hidden;
+}
+.skel .inner:hover {
+  border-color: #129FEA;
+}
+.skel .icon {
+  display: inline-block;
+  height: 80px;
+  width: 80px;
+  font-size: 200%;
+  padding: 5px;
+  border-radius: 5px;
+}
+.skel .info {
+  display: inline-block;
+  margin-left: 5px;
+  max-height: 80px;
+  overflow: hidden;
+  flex: 1;
+}
+.skel .name {
+  color:#999;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 0.1em;
+}
+.skel .description {
+  
+}
+
+.bgcolor-0 {
+  background-color: #b12427;
+}
+.bgcolor-1 {
+  background-color: #efad5a;
+}
+.bgcolor-2 {
+  background-color: #fd1a91;
+}
+.bgcolor-3 {
+  background-color: #fd471f;
+}
+.bgcolor-4 {
+  background-color: #ffd73e;
+}
+.bgcolor-5 {
+  background-color: #278b30;
+}
+.bgcolor-6 {
+  background-color: #808020;
+}
+.bgcolor-7 {
+  background-color: #41b376;
+}
+.bgcolor-8 {
+  background-color: #88cce7;
+}
+.bgcolor-9 {
+  background-color: #d85452;
+}

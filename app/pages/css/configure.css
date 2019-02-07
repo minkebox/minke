@@ -12,14 +12,15 @@ body {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
+
+.sidebar {
+  background: rgb(61, 79, 93);
+  color: #fff;
+}
 .header {
   text-align: right;
   top: auto;
   margin: 3em 2em;
-}
-.sidebar {
-  background: rgb(61, 79, 93);
-  color: #fff;
 }
 .header h2 {
   font-weight: 300;

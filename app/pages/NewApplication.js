@@ -4,6 +4,15 @@ const Pull = require('../Pull');
 const MinkeApp = require('../MinkeApp');
 const Skeletons = require('../skeletons/Skeletons');
 
+function _strhash(str) {
+  let hash = 5381;
+  const bytes = Buffer.from(str, 'utf8');
+  for (let i = 0; i < bytes.length; i++) {
+    hash = (hash << 5) + hash + bytes[i];
+  }
+  return hash & 0x7fffffff;
+}
+
 async function PageHTML(ctx) {
 
   const partials = [
@@ -14,7 +23,10 @@ async function PageHTML(ctx) {
   const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/NewApplication.html`, { encoding: 'utf8' }));
 
   const catalog = Skeletons.catalog();
-  ctx.body = template({ skeletons: catalog.map(skel => Object.assign({ pre: skel.name.substr(0, 2) }, skel)) });
+  ctx.body = template({ skeletons: catalog.map(skel => Object.assign({ 
+    pre: skel.name.substr(0, 2),
+    color: _strhash(skel.name) % 10
+  }, skel)) });
   ctx.type = 'text/html';
 }
 
