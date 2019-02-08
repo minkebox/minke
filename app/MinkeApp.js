@@ -588,6 +588,7 @@ MinkeApp.prototype = {
     if (this._status === status) {
       return;
     }
+    //DEBUG && console.log(`${this._name}/${this._id}: ${this._status} -> ${status}`);
     this._status = status;
     this._emit('update.status', { status: status });
   },
@@ -714,7 +715,7 @@ MinkeApp.startApps = async function(app) {
   // Monitor docker events
   MinkeApp._monitorEvents();
 
-  const running = await docker.listContainers();
+  const running = await docker.listContainers({ all: true });
   const runningNames = running.map(container => container.Names[0]);
 
   // Load all the apps
@@ -724,13 +725,13 @@ MinkeApp.startApps = async function(app) {
 
   // Stop apps if they're still running
   await Promise.all(applications.map(async (app) => {
-    let idx = runningNames.indexOf(`/${app._safeName()}`);
+    let idx = runningNames.indexOf(`/${app._safeName()}__${app._id}`);
     if (idx !== -1) {
-      await (await docker.getContainer(running[idx].Id)).stop();
+      await docker.getContainer(running[idx].Id).remove({ force: true });
     }
-    idx = runningNames.indexOf(`/helper-${app._safeName()}`);
+    idx = runningNames.indexOf(`/helper-${app._safeName()}__${app._id}`);
     if (idx !== -1) {
-      await (await docker.getContainer(running[idx].Id)).stop();
+      await docker.getContainer(running[idx].Id).remove({ force: true });
     }
   }));
 
@@ -739,14 +740,24 @@ MinkeApp.startApps = async function(app) {
 
   // Start up any VPN first. We want them to claim the lowest IP on their networks.
   await Promise.all(applications.map(async (app) => {
-    if (app._features.vpn) {
-      await app.start();
+    try {
+      if (app._features.vpn) {
+        await app.start();
+      }
+    }
+    catch (e) {
+      console.error(e);
     }
   }));
   // Then the rest
   await Promise.all(applications.map(async (app) => {
-    if (!app._features.vpn) {
-      await app.start();
+    try {
+      if (!app._features.vpn) {
+        await app.start();
+      }
+    }
+    catch (e) {
+      console.error(e);
     }
   }));
 }
