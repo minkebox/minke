@@ -1,6 +1,8 @@
 const VM = require('vm');
 const FS = require('fs');
 const Handlebars = require('handlebars');
+const CSS = require('svgdom-css');
+const Chartist = require('chartist');
 
 const DEFAULT_POLLING = 60; // Default polling is 60 seconds
 const DEFAULT_PARSER = 'output=input;'
@@ -30,6 +32,7 @@ async function runCmd(app, cmd) {
   let buffer = '';
   docker.modem.demuxStream(stream.output, {
     write: (data) => {
+      //console.log('stdout', buffer.toString('utf8'));
       buffer += data.toString('utf8');
     }
   }, null);
@@ -40,11 +43,11 @@ async function runCmd(app, cmd) {
   });
 }
 
-function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
+function WatchCmd(app, cmd, parser, template, watch, polling, state, callback) {
   const ctemplate = template ? Handlebars.compile(template) : DEFAULT_TEMPLATE;
   this.watcher = null;
   this.clock = null;
-  this.state = {};
+  this.state = state ? JSON.parse(JSON.stringify(state)) : {}; // Hacky object clone
   const dowork = debounce(async () => {
     callback(await this.run());
   }, 10);
@@ -67,6 +70,15 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
     try {
       const sandbox = { input: await runCmd(app, cmd), output: {}, state: this.state, props: { homeIP: app._homeIP } };
       VM.runInNewContext(parser || DEFAULT_PARSER, sandbox);
+      if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
+        for (let name in sandbox.output.graph) {
+          const graph = sandbox.output.graph[name];
+          if (graph.series) {
+            graph.series = JSON.parse(JSON.stringify(graph.series)); // Data came out of a different context so this "cleans" it.
+            sandbox.output.graph[name] = await _generateGraph(graph);
+          }
+        }
+      }
       return ctemplate(sandbox.output);
     }
     catch (e) {
@@ -86,6 +98,30 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   }
 }
 
+async function _generateGraph(graph) {
+  return new Promise((resolve, reject) => {
+    try {
+      const div = document.createElement('div');
+      const options = Object.assign({
+        width: '570px',
+        height: '100px',
+        axisX: { showLabel: false, showGrid: false, offset: 0 },
+        axisY: { showLabel: false, showGrid: false, offset: 0 },
+        fullWidth: true,
+        showPoint: false,
+        chartPadding: { top: 2, right: 2, bottom: 2, left: 2 }
+      }, graph.options);
+      const chart = new Chartist[graph.type || 'Line'](div, { series: graph.series, labels: graph.labels }, options);
+      chart.on('created', () => {
+        resolve(div.innerHTML);
+      });
+    }
+    catch (e) {
+      reject(e);
+    }
+  });
+}
+
 const _Monitor = {
 
   create: function(args) {
@@ -96,7 +132,7 @@ const _Monitor = {
         FS.closeSync(FS.openSync(lwatch, 'w'));
       }
     }
-    return new WatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling || DEFAULT_POLLING, args.callback);
+    return new WatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling || DEFAULT_POLLING, args.state, args.callback);
   }
 
 };
