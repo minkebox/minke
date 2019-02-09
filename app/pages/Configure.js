@@ -22,6 +22,9 @@ async function ConfigurePageHTML(ctx) {
     throw Error(`Missing app: ${ctx.params.id}`);
   }
   const skeleton = await Skeletons.loadSkeleton(app._image, true);
+  if (!skeleton) {
+    console.error(`Failed to load skeleton: ${app._image}`);
+  }
 
   const env = app._env.reduce((acc, key) => {
     const kv = key.split('=');
