@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "chartist": "^0.11.0",
     "dockerode": "^2.5.7",
     "fast-glob": "^2.2.6",
     "handlebars": "^4.0.12",
@@ -11,6 +12,7 @@
     "network": "^0.4.1",
     "node-fetch": "^2.3.0",
     "purecss": "^1.0.0",
+    "svgdom-css": "^0.1.2",
     "uuid": "^3.3.2",
     "ws": "^6.1.2"
   }
