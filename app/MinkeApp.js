@@ -208,6 +208,9 @@ MinkeApp.prototype = {
       primary = secondary;
       secondary = 'none';
     }
+    if (primary === secondary) {
+      secondary = 'none';
+    }
 
     switch (primary) {
       case 'none':
