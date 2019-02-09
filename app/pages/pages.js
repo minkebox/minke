@@ -17,8 +17,8 @@ function pages(root, wsroot) {
     ctx.body = FS.readFileSync(`${__dirname}/../node_modules/purecss/build/pure-min.css`, { encoding: 'utf8' });
     ctx.type = 'text/css';
   });
-  root.get('/css/grids-responsive.css', async (ctx) => {
-    ctx.body = FS.readFileSync(`${__dirname}/../node_modules/purecss/build/grids-responsive-min.css`, { encoding: 'utf8' });
+  root.get('/css/chartist.css', async (ctx) => {
+    ctx.body = FS.readFileSync(`${__dirname}/../node_modules/chartist/dist/chartist.min.css`, { encoding: 'utf8' });
     ctx.type = 'text/css';
   });
   root.get('/css/:style', async (ctx) => {
