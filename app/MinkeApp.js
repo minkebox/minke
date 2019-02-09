@@ -387,7 +387,7 @@ MinkeApp.prototype = {
       this._dns = DNSForward.createForward({ _id: this._id, name: this._name, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress });
     }
 
-    if (this._features.vpn) {
+    if (this._image === Images.MINKE_PRIVATE_NETWORK) {
       this._monitorNetwork();
       this._remoteServices = [];
       this.on('update.network.status', this._updateNetworkStatus);
@@ -399,6 +399,7 @@ MinkeApp.prototype = {
         polling: this._monitor.polling,
         cmd: this._monitor.cmd,
         watch: this._monitor.watch,
+        state: this._monitor.state,
         parser: this._monitor.parser,
         template: this._monitor.template
       });
@@ -562,6 +563,7 @@ MinkeApp.prototype = {
       template: args.template,
       watch: args.watch,
       polling: args.polling,
+      state: args.state,
       callback: async (data) => {
         this._emit(args.event, { data: await data });
       }
