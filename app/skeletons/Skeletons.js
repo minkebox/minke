@@ -64,7 +64,8 @@ async function imageToSkeleton(image) {
     monitor: {
       cmd: '',
       watch: '',
-      poll: 0,
+      polling: 0,
+      state: null,
       parser: '',
       template: ''
     }
@@ -90,7 +91,7 @@ function _toText(o, t) {
   }
   else switch (typeof o) {
     case 'string':
-      return "`" + o + "`";
+      return "`" + o.replace(/\\/g, '\\\\') + "`";
       break;
     case 'number':
     case 'boolean':
