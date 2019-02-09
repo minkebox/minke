@@ -35,7 +35,7 @@
   monitor: {
     cmd: 'tail -1 /var/www/html/data/result.csv',
     watch: '/var/www/html/data/result.csv',
-    poll: 0,
+    polling 0,
     parser: `
       const v = input.split(',');
       output = {
