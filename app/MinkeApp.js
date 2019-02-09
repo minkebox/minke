@@ -71,58 +71,93 @@ MinkeApp.prototype = {
     this._name = name;
     this._image = skel.image,
   
-    this.updateFromSkeleton(skel);
+    this.updateFromSkeleton(skel, {});
 
     this._setStatus('stopped');
 
     return this;
   },
 
-  updateFromSkeleton: function(skel) {
-
+  updateFromSkeleton: function(skel, defs) {
+console.log(defs);
     this._description = skel.description;
     this._args = '';
   
     this._env = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Environment') {
-        r.push(`${prop.name}=${prop.defaultValue || ''}`);
+        if (defs.env) {
+          const key = `${prop.name}=`;
+          const found = defs.env.find(env => env.indexOf(key) === 0);
+          if (found) {
+            r.push(found);
+          }
+          else {
+            r.push(`${prop.name}=${prop.defaultValue || ''}`);
+          }
+        }
+        else {
+          r.push(`${prop.name}=${prop.defaultValue || ''}`);
+        }
       }
       return r;
     }, []);
     this._features = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Feature') {
-        r[prop.name] = 'defaultValue' in prop ? prop.defaultValue : true;
+        if (defs.features && prop.name in defs.features) {
+          r[prop.name] = defs.features[prop.name];
+        }
+        else {
+          r[prop.name] = 'defaultValue' in prop ? prop.defaultValue : true;
+        }
       }
       return r;
     }, {});
     this._networks = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Network') {
-        r[prop.name] = (prop.defaultValue === '__self' ? this._name : prop.defaultValue) || 'none';
+        if (defs.networks && prop.name in defs.networks) {
+          r[prop.name] = defs.networks[prop.name];
+        }
+        else {
+          r[prop.name] = (prop.defaultValue === '__self' ? this._name : prop.defaultValue) || 'none';
+        }
       }
       return r;
     }, {});
     this._ports = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Port') {
-        r.push({
-          target: prop.name,
-          host: parseInt(prop.name),
-          protocol: prop.name.split('/')[1].toUpperCase(),
-          web: prop.web,
-          nat: prop.nat,
-          mdns: prop.mdns
-        });
+        const port = defs.ports.find(port => port.target === prop.name);
+        if (port) {
+          r.push(port);
+        }
+        else {
+          r.push({
+            target: prop.name,
+            host: parseInt(prop.name),
+            protocol: prop.name.split('/')[1].toUpperCase(),
+            web: prop.web,
+            nat: prop.nat,
+            mdns: prop.mdns
+          });
+        }
       }
       return r;
     }, []);
     this._binds = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Directory') {
-        r.push({
-          host: Path.normalize(`/dir/${prop.name}`),
-          target: Path.normalize(prop.name),
-          shareable: false,
-          shared: false,
-          description: ''
-        });
+        const target = Path.normalize(prop.name);
+        const bind = defs.binds.find(bind => bind.target === target);
+        if (bind) {
+          r.push(bind);
+        }
+        else {
+          r.push({
+            host: Path.normalize(`/dir/${prop.name}`),
+            target: target,
+            shareable: false,
+            shared: false,
+            description: ''
+          });
+        }
       }
       return r;
     }, []);

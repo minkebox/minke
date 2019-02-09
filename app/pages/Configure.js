@@ -222,7 +222,7 @@ async function ConfigurePageWS(ctx) {
       
       const uapp = app;
       if ((changed & SKELCHANGE) !== 0) {
-        uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image));
+        uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image), uapp.toJSON());
         app = null;
         send({
           type: 'page.reload'
