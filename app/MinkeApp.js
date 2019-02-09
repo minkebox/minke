@@ -79,7 +79,6 @@ MinkeApp.prototype = {
   },
 
   updateFromSkeleton: function(skel, defs) {
-console.log(defs);
     this._description = skel.description;
     this._args = '';
   
