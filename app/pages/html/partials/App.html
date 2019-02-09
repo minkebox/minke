@@ -5,6 +5,9 @@
     <h6>{{ip}}</h6>
   </div>
   <div class="pure-u-3-4 right {{#if link}}link{{/if}}" onclick="openInlinePage('{{link}}')">
-    <div class="status"></div>
+    <div class="status-header">
+      {{{statusHeader}}}
+      <div class="status"></div>
+    </div>
   </div>
 </div>

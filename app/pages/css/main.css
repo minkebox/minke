@@ -151,7 +151,9 @@ body {
   margin: 0;
   color: #999;
 }
-.app .right .status {
+.app .right {
+}
+.app .right .status-header {
   width: 570px;
   height: 100px;
   overflow: hidden;

@@ -17,7 +17,8 @@ function genApp(app, networks) {
       else {
         return net.name === app._networks.primary;
       }
-    })
+    }),
+    statusHeader: app._monitor.header
   }
 }
 
