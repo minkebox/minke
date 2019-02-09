@@ -50,5 +50,183 @@
     }
   ],
   monitor: {
+    cmd: `ifconfig tun0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/"`,
+    watch: ``,
+    polling: 5,
+    state: {
+      tx: [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      rx: [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      last: [
+        0,
+        0
+      ]
+    },
+    parser: `
+const rxtx = input.split(' ');
+if (rxtx.length == 2) {
+  state.rx.shift();
+  state.tx.shift();
+  state.rx.push((rxtx[0] - state.last[0]) / (1024 * 5));
+  state.tx.push((rxtx[1] - state.last[1]) / (1024 * 5));
+  output.rx = state.rx.slice(-1)[0].toFixed(1);
+  output.tx = state.tx.slice(-1)[0].toFixed(1);
+  state.last = rxtx;
+}
+output.graph = {
+  traffic: {
+    type: 'Line',
+    series: [ state.rx, state.tx ],
+    options: {
+      width: '440px',
+      axisY: {
+        showLabel: true,
+        showGrid: true
+      }
+    }
+  }
+};
+    `,
+    template: `
+<style>
+.i { display: inline-block; width: 100px; vertical-align: top; padding-top: 20px; line-height: 130%; }
+.i span { display: inline-block; width: 15px; height: 15px; margin-right: 10px; background: #b12427 }
+</style>
+<div class='i'>
+  <div>Bandwidth</div>
+  <div><span></span>{{rx}} kB/s</div>
+  <div><span style="background:#278b30"></span>{{tx}} kB/s</div>
+</div>
+{{{graph.traffic}}}
+`
   }
 }
