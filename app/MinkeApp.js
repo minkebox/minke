@@ -124,7 +124,7 @@ MinkeApp.prototype = {
     }, {});
     this._ports = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Port') {
-        const port = defs.ports.find(port => port.target === prop.name);
+        const port = defs.ports && defs.ports.find(port => port.target === prop.name);
         if (port) {
           r.push(port);
         }
@@ -144,7 +144,7 @@ MinkeApp.prototype = {
     this._binds = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Directory') {
         const target = Path.normalize(prop.name);
-        const bind = defs.binds.find(bind => bind.target === target);
+        const bind = defs.binds && defs.binds.find(bind => bind.target === target);
         if (bind) {
           r.push(bind);
         }
@@ -262,9 +262,6 @@ MinkeApp.prototype = {
         const vpn = await Network.getPrivateNetwork(primary);
         config.HostConfig.NetworkMode = vpn.id;
         const gw = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
-        config.HostConfig.ExtraHosts = [
-          `SERVICES:${gw}`
-        ];
         config.Env.push(`__GATEWAY=${gw}`);
         config.Env.push(`__DNSSERVER=${gw}`);
         config.HostConfig.Dns = [ gw ];
