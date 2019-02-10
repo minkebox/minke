@@ -36,6 +36,7 @@ function genAppStatus(acc, app) {
 let mainTemplate;
 let remoteAppTemplate;
 let appTemplate;
+let appStatusTemplate;
 let netTemplate;
 let netsTemplate;
 function registerTemplates() {
@@ -50,6 +51,7 @@ function registerTemplates() {
   mainTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Main.html`, { encoding: 'utf8' }));
   remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
   appTemplate = Handlebars.compile('{{> App}}');
+  appStatusTemplate = Handlebars.compile('{{> AppStatus}}');
   netTemplate = Handlebars.compile('{{> Net}}');
   netsTemplate = Handlebars.compile('{{#each networks}}{{> Net}}{{/each}}');
 }
@@ -145,7 +147,6 @@ async function MainPageWS(ctx) {
         html: remoteAppTemplate(newApps[name])
       });
     }
-
     send({
       type: 'html.update',
       selector: '#network-insertion-point',
@@ -176,12 +177,24 @@ async function MainPageWS(ctx) {
     });
     online(status.app);
     apps = MinkeApp.getApps();
+    const appstatus = genAppStatus([], status.app);
+    if (appstatus.length) {
+      send({
+        type: 'html.append',
+        selector: `#appstatus-insertion-point`,
+        html: appStatusTemplate(appstatus[0])
+      });
+    }
   }
 
   function removeApp(status) {
     send({
       type: 'html.remove',
       selector: `.application-${status.app._id}`
+    });
+    send({
+      type: 'html.remove',
+      selector: `.application-status-${status.app._id}`
     });
     offline(status.app);
     apps = MinkeApp.getApps();
