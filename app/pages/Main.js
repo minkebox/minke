@@ -17,9 +17,20 @@ function genApp(app, networks) {
       else {
         return net.name === app._networks.primary;
       }
-    }),
-    statusHeader: app._monitor.header
+    })
   }
+}
+
+function genAppStatus(acc, app) {
+  if (app._statusMonitor) {
+    acc.push({
+      _id: app._id,
+      name: app._name,
+      header: app._monitor.header,
+      link: app._forward && app._forward.url
+    });
+  }
+  return acc;
 }
 
 let mainTemplate;
@@ -30,6 +41,7 @@ let netsTemplate;
 function registerTemplates() {
   const partials = [
     'App',
+    'AppStatus',
     'Net'
   ];
   partials.forEach((partial) => {
@@ -54,7 +66,8 @@ async function MainPageHTML(ctx) {
 
   const networks = MinkeApp.getNetworks();
   const apps = MinkeApp.getApps().map(app => genApp(app, networks));
-  ctx.body = mainTemplate({ adminMode: MinkeApp.adminMode, networks: networks, apps: apps });
+  const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app), []);
+  ctx.body = mainTemplate({ adminMode: MinkeApp.adminMode, networks: networks, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
 }
 
@@ -99,7 +112,7 @@ async function MainPageWS(ctx) {
       oldStatus[event.app._id] = html;
       send({
         type: 'html.update',
-        selector: `.application-${event.app._id} .status`,
+        selector: `.application-status-${event.app._id} .status`,
         html: html
       });
     }
@@ -128,7 +141,7 @@ async function MainPageWS(ctx) {
     for (let name in newApps) {
       send({
         type: 'html.append',
-        selector: '#insertion-point',
+        selector: '#app-insertion-point',
         html: remoteAppTemplate(newApps[name])
       });
     }
@@ -158,7 +171,7 @@ async function MainPageWS(ctx) {
     const html = appTemplate(genApp(status.app, MinkeApp.getNetworks()));
     send({
       type: 'html.append',
-      selector: `#insertion-point`,
+      selector: `#app-insertion-point`,
       html: html
     });
     online(status.app);

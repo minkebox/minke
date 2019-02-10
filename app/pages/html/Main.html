@@ -25,10 +25,19 @@
           </ul>
         </div>
       </div>
-      <div class="pure-u-1 list" id="insertion-point">
+      <div class="pure-u list" id="app-insertion-point">
         {{#each apps}}
         {{> App}}
         {{/each}}
+      </div>
+      <div class="pure-u info">
+        <div class="apps-info" id="insertion-point">
+          <div class="apps-info-container">
+            {{#each statuses}}
+            {{> AppStatus}}
+            {{/each}}
+          </div>
+        </div>
       </div>
     </div>
   </body>

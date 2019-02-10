@@ -14,7 +14,6 @@ body {
   height: 100%;
   background: rgb(37, 42, 58);
   text-align: center;
-  z-index: 1;
 }
 .main .nav .title {
   text-align: center;
@@ -60,9 +59,7 @@ body {
 }
 
 .app {
-  border-bottom: 1px solid #ddd;
   border-left: 12px solid transparent;
-  min-width: 775px;
 }
 
 .app.net-0 {
@@ -129,9 +126,12 @@ body {
 .app .left {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
   padding: 0.9em 1em;
   overflow: hidden;
+  width: 100%;
+  height: 100px;
+  background-color: #fff;
 }
 .app .left:hover,
 .app .right.link:hover {
@@ -151,14 +151,46 @@ body {
   margin: 0;
   color: #999;
 }
-.app .right {
-}
 .app .right .status-header {
   width: 570px;
   height: 100px;
   overflow: hidden;
   margin-left: auto;
   margin-right: auto;
+}
+
+.apps-info-container .application-status {
+  flex: 1;
+  display: inline-block;
+  margin: 10px;
+  height: 323px;
+  background: white;
+  border: solid 1px #ccc;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px 1px #bbb;
+  padding: 5px;
+}
+.apps-info-container:last-child::after {
+  display: inline-block;
+  flex: 10000;
+  content: ' ';
+}
+.apps-info-container .application-status.link:hover {
+  background-color: #eee;
+}
+.apps-info-container .application-status .status {
+  height: 300px;
+  max-height: 300px;
+  overflow: hidden;
+}
+.apps-info-container .application-status .name {
+  height: 1.4em;
+  color: #999;
+  float: right;
+  font-size: 60%;
+  text-transform: uppercase;
+  overflow: hidden;
+  white-space: pre;
 }
 
 .icon {
@@ -169,13 +201,11 @@ body {
 }
 
 .inline-page {
-  z-index: 10;
-  border-left: 12px solid transparent;
+  z-index: 888;
   -webkit-overflow-scrolling: touch
 }
 .inline-page iframe {
   position: fixed;
-  background-color: white;
 }
 
 /* Move the layout over so we can fit the nav + list in on the left */
@@ -184,7 +214,7 @@ body {
 }
 
 /* These are position:fixed; elements that will be in the left 500px of the screen */
-.nav, .list {
+.nav, .list, .info {
   position: fixed;
   top: 0;
   bottom: 0;
@@ -194,14 +224,34 @@ body {
 .nav {
   width: 200px;
   height: 100%;
+  z-index: 2;
 }
 
 .list {
-  width: 100%;
+  width: 450px;
   height: 100%;
   padding-left: 200px;
   border-bottom: 1px solid #ddd;
   border-right: 1px solid #ddd;
+  z-index: 1;
+}
+
+.info {
+  height: 100%;
+  width: 100%;
+  padding-left: 450px;
+}
+.info .apps-info {
+  
+  height: 100%;
+  background-color: #f8f8f8;
+}
+.info .apps-info-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding: 10px;
 }
 
 .main .ct-line {
