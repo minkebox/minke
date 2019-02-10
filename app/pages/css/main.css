@@ -161,7 +161,7 @@ body {
 
 .apps-info-container .application-status {
   flex: 1;
-  display: inline-block;
+  display: none;
   margin: 10px;
   height: 328px;
   background: white;
@@ -169,6 +169,9 @@ body {
   border-radius: 5px;
   box-shadow: 2px 2px 5px 1px #bbb;
   padding: 10px;
+}
+.apps-info-container .application-status.running {
+  display: inline-block;
 }
 .apps-info-container:last-child::after {
   display: inline-block;
@@ -183,6 +186,7 @@ body {
   max-height: 300px;
   overflow: hidden;
 }
+
 .apps-info-container .application-status .name {
   height: 1.4em;
   margin-right: -5px;

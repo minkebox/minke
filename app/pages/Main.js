@@ -8,7 +8,6 @@ function genApp(app, networks) {
     _id: app._id,
     name: app._name,
     status: app._status,
-    link: app._forward && app._forward.url,
     ip: app._status === 'running' && !app._features.vpn ? app._homeIP : null,
     network: !networks ? 0 : networks.findIndex((net) => {
       if (app._features.vpn) {
@@ -27,7 +26,8 @@ function genAppStatus(acc, app) {
       _id: app._id,
       name: app._name,
       header: app._monitor.header,
-      link: app._forward && app._forward.url
+      link: app._forward && app._forward.url,
+      running: app._status === 'running'
     });
   }
   return acc;
@@ -97,6 +97,14 @@ async function MainPageWS(ctx) {
       selector: `.application-${event.app._id}`,
       html: html
     });
+    const appstatus = genAppStatus([], event.app);
+    if (appstatus.length) {
+      send({
+        type: 'html.replace',
+        selector: `.application-status-${event.app._id}`,
+        html: appStatusTemplate(appstatus[0])
+      });
+    }
     delete oldStatus[event.app._id];
     delete onlines[event.app._id];
   }
