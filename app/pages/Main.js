@@ -20,14 +20,22 @@ function genApp(app, networks) {
   }
 }
 
-function genAppStatus(acc, app) {
+function genAppStatus(acc, app, networks) {
   if (app._monitor.cmd) {
     acc.push({
       _id: app._id,
       name: app._name,
       header: app._monitor.header,
       link: app._forward && app._forward.url,
-      running: app._status === 'running'
+      running: app._status === 'running',
+      network: !networks ? 0 : networks.findIndex((net) => {
+        if (app._features.vpn) {
+          return net.name === app._name;
+        }
+        else {
+          return net.name === app._networks.primary;
+        }
+      })
     });
   }
   return acc;
@@ -68,7 +76,7 @@ async function MainPageHTML(ctx) {
 
   const networks = MinkeApp.getNetworks();
   const apps = MinkeApp.getApps().map(app => genApp(app, networks));
-  const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app), []);
+  const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app, networks), []);
   ctx.body = mainTemplate({ adminMode: MinkeApp.adminMode, networks: networks, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
 }
@@ -91,13 +99,14 @@ async function MainPageWS(ctx) {
   let apps = MinkeApp.getApps();
 
   function updateNetworkConfig(event) {
-    const html = appTemplate(genApp(event.app, MinkeApp.getNetworks()));
+    const networks = MinkeApp.getNetworks();
+    const html = appTemplate(genApp(event.app, networks));
     send({
       type: 'html.replace',
       selector: `.application-${event.app._id}`,
       html: html
     });
-    const appstatus = genAppStatus([], event.app);
+    const appstatus = genAppStatus([], event.app, networks);
     if (appstatus.length) {
       send({
         type: 'html.replace',
@@ -177,7 +186,8 @@ async function MainPageWS(ctx) {
   }
 
   function createApp(status) {
-    const html = appTemplate(genApp(status.app, MinkeApp.getNetworks()));
+    const networks = MinkeApp.getNetworks();
+    const html = appTemplate(genApp(status.app, networks));
     send({
       type: 'html.append',
       selector: `#app-insertion-point`,
@@ -185,7 +195,7 @@ async function MainPageWS(ctx) {
     });
     online(status.app);
     apps = MinkeApp.getApps();
-    const appstatus = genAppStatus([], status.app);
+    const appstatus = genAppStatus([], status.app, networks);
     if (appstatus.length) {
       send({
         type: 'html.append',

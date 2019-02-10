@@ -89,12 +89,12 @@ function cmd(command) {
 
 function filter(net) {
   if (!net) {
-    document.querySelectorAll('.app').forEach((elem) => {
+    document.querySelectorAll('.filter').forEach((elem) => {
       elem.classList.remove('hidden');
     });
   }
   else {
-    document.querySelectorAll('.app').forEach((elem) => {
+    document.querySelectorAll('.filter').forEach((elem) => {
       if (elem.classList.contains(net)) {
         elem.classList.remove('hidden');
       }
