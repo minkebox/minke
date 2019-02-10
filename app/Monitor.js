@@ -108,8 +108,7 @@ async function _generateGraph(graph) {
         axisX: { showLabel: false, showGrid: false, offset: 0 },
         axisY: { showLabel: false, showGrid: false, offset: 0 },
         fullWidth: true,
-        showPoint: false,
-        chartPadding: { top: 2, right: 2, bottom: 2, left: 2 }
+        showPoint: false
       }, graph.options);
       const chart = new Chartist[graph.type || 'Line'](div, { series: graph.series, labels: graph.labels }, options);
       chart.on('created', () => {

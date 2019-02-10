@@ -22,7 +22,7 @@ function genApp(app, networks) {
 }
 
 function genAppStatus(acc, app) {
-  if (app._statusMonitor) {
+  if (app._monitor.cmd) {
     acc.push({
       _id: app._id,
       name: app._name,

@@ -163,12 +163,12 @@ body {
   flex: 1;
   display: inline-block;
   margin: 10px;
-  height: 323px;
+  height: 328px;
   background: white;
   border: solid 1px #ccc;
   border-radius: 5px;
   box-shadow: 2px 2px 5px 1px #bbb;
-  padding: 5px;
+  padding: 10px;
 }
 .apps-info-container:last-child::after {
   display: inline-block;
@@ -185,6 +185,7 @@ body {
 }
 .apps-info-container .application-status .name {
   height: 1.4em;
+  margin-right: -5px;
   color: #999;
   float: right;
   font-size: 60%;
