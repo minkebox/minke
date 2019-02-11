@@ -39,14 +39,6 @@ function onPageShow() {
           elem.remove();
         });
         break;
-      case 'html.truncate':
-        document.querySelectorAll(msg.selector).forEach(function(elem) {
-          const last = elem.lastElementChild;
-          if (last) {
-            last.remove();
-          }
-        });
-        break;
       case 'page.reload':
         window.location.reload();
         break;
@@ -170,6 +162,16 @@ document.addEventListener('drop', function(event) {
   }
 });
 
+document.addEventListener('paste', function(event) {
+  if (event.target.getAttribute('contenteditable')) {
+    event.preventDefault();
+    const text = (event.originalEvent || event).clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
+  }
+});
+
+/* Inline page */
+
 function closeInlinePage() {
   const div = document.querySelector(".inline-page");
   if (div) {
@@ -217,6 +219,44 @@ function onResizePage() {
     }
   });
 }
+
+/* Inline page */
+
+/* Tables */
+function addRmTableRow(action, event) {
+  let tr;
+  for (tr = event.target; tr.nodeName !== 'TR'; tr = tr.parentElement)
+    ;
+  let table;
+  for (table = tr; table.nodeName !== 'TABLE'; table = table.parentElement)
+    ;
+  if (event.target.classList.contains('remove')) {
+    tr.parentElement.removeChild(tr);
+    saveTable(action, table);
+  }
+  else if (event.target.classList.contains('add')) {
+    const ntr = document.createElement('TR');
+    for (let i = 1; i < tr.childElementCount; i++) {
+      ntr.appendChild(document.createElement('TD')).setAttribute('contenteditable', 'true');
+    }
+    ntr.appendChild(document.createElement('TD')).innerHTML = '<span class="remove">&minus;</span>';
+    table.querySelector('tbody').appendChild(ntr);
+  }
+}
+
+function saveTable(action, table) {
+  const values = [];
+  for (let tr = table.querySelector('tbody tr'); tr; tr = tr.nextElementSibling) {
+    const row = [];
+    for (let td = tr.firstElementChild; td.nextElementSibling; td = td.nextElementSibling) {
+      row.push(td.innerText);
+    }
+    values.push(row);
+  }
+  window.action(action, JSON.stringify(values));
+}
+
+/* Tables */
 
 /* Popbox */
 

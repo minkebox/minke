@@ -88,6 +88,20 @@ async function ConfigurePageHTML(ctx) {
           }
           return Object.assign({ action: `window.action('${action.type}.${action.name}',this.innerText)`, value: file ? file.data : '' }, action);
         }
+        case 'Table':
+        {
+          const file = app._files.find(file => file.target === action.name);
+          if (file && app._fs) {
+            app._fs.readFile(file);
+          }
+          let value = null;
+          try {
+            value = JSON.parse(file.data);
+          }
+          catch (_) {
+          }
+          return Object.assign({ action: `${action.type}.${action.name}`, value: value }, action);
+        }
         case 'Argument':
         default:
           return action;
@@ -181,6 +195,18 @@ async function ConfigurePageWS(ctx) {
       return NOCHANGE;
     }},
     { p: /^File\.(.+)$/, f: (value, match) => {
+      const filename = match[1];
+      const file = app._files.find(file => file.target === filename);
+      if (file) {
+        file.data = value;
+        if (app._fs) {
+          app._fs.makeFile(file);
+        }
+        return APPCHANGE;
+      }
+      return NOCHANGE;
+    }},
+    { p: /^Table\.(.+)$/, f: (value, match) => {
       const filename = match[1];
       const file = app._files.find(file => file.target === filename);
       if (file) {

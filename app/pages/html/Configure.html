@@ -80,6 +80,31 @@
             </select>
           </div>
           {{/if}}
+          {{#if (eq type "Table")}}
+          <div class="action table pure-control-group">
+            <label class="description">{{description}}</label>
+            <table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24" oninput="saveTable('{{action}}',this)" onclick="addRmTableRow('{{action}}',window.event)">
+              <thead>
+                <tr>
+                  {{#each headers}}
+                  <th>{{this}}</th>
+                  {{/each}}
+                  <th><span class="add">+</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each value}}
+                <tr>
+                  {{#each this}}
+                  <td contenteditable="true">{{this}}</td>
+                  {{/each}}
+                  <td><span class="remove">&minus;</span></td>
+                </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+          {{/if}}
           {{else}}
           <div class="content-header">Nothing to configure</div>
           {{/each}}
