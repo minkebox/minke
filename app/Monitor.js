@@ -58,6 +58,8 @@ function WatchCmd(app, cmd, parser, template, watch, polling, state, callback) {
     }
     dowork();
   }
+  const sandbox = { input: null, output: null, state: this.state, props: { homeIP: app._homeIP }};
+  VM.createContext(sandbox);
   this.run = async () => {
     if (callback) {
       if (!this.watcher && watch) {
@@ -68,8 +70,9 @@ function WatchCmd(app, cmd, parser, template, watch, polling, state, callback) {
       }
     }
     try {
-      const sandbox = { input: await runCmd(app, cmd), output: {}, state: this.state, props: { homeIP: app._homeIP } };
-      VM.runInNewContext(parser || DEFAULT_PARSER, sandbox);
+      sandbox.input = await runCmd(app, cmd);
+      sandbox.output = {};
+      VM.runInContext(`(function(){${parser || DEFAULT_PARSER}})()`, sandbox);
       if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
         for (let name in sandbox.output.graph) {
           const graph = sandbox.output.graph[name];
