@@ -21,7 +21,7 @@ async function ConfigurePageHTML(ctx) {
   if (!app) {
     throw Error(`Missing app: ${ctx.params.id}`);
   }
-  const skeleton = await Skeletons.loadSkeleton(app._image, true);
+  const skeleton = Skeletons.loadSkeleton(app._image, true);
   if (!skeleton) {
     console.error(`Failed to load skeleton: ${app._image}`);
   }
@@ -91,9 +91,6 @@ async function ConfigurePageHTML(ctx) {
         case 'Table':
         {
           const file = app._files.find(file => file.target === action.name);
-          if (file && app._fs) {
-            app._fs.readFile(file);
-          }
           let value = null;
           try {
             value = JSON.parse(file.data);
@@ -199,6 +196,7 @@ async function ConfigurePageWS(ctx) {
       const file = app._files.find(file => file.target === filename);
       if (file) {
         file.data = value;
+        file.altData = null;
         if (app._fs) {
           app._fs.makeFile(file);
         }
@@ -211,7 +209,24 @@ async function ConfigurePageWS(ctx) {
       const file = app._files.find(file => file.target === filename);
       if (file) {
         file.data = value;
+        file.altData = null;
         if (app._fs) {
+          const skeleton = Skeletons.loadSkeleton(app._image);
+          if (skeleton) {
+            const action = skeleton.actions.find(action => action.name === filename);
+            if (action && action.pattern) {
+              const table = JSON.parse(value);
+              value = [];
+              table.forEach((row) => {
+                let line = action.pattern;
+                for (let i = 0; i < row.length; i++) {
+                  line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), row[i]);
+                }
+                value.push(line);
+              });
+              file.altData = value.join('\n');
+            }
+          }
           app._fs.makeFile(file);
         }
         return APPCHANGE;
