@@ -60,11 +60,11 @@ function WatchCmd(app, cmd, parser, template, watch, polling, state, callback) {
   }
   this.run = async () => {
     if (callback) {
-      if (watch && !this.watcher) {
+      if (!this.watcher && watch) {
         this.watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
       }
-      else if (!watch && !this.clock) {
-        this.clock = setInterval(listener, polling * 1000);
+      if (!this.clock && (!watch || polling !== 0)) {
+        this.clock = setInterval(listener, (polling || DEFAULT_POLLING) * 1000);
       }
     }
     try {
@@ -131,7 +131,7 @@ const _Monitor = {
         FS.closeSync(FS.openSync(lwatch, 'w'));
       }
     }
-    return new WatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling || DEFAULT_POLLING, args.state, args.callback);
+    return new WatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling, args.state, args.callback);
   }
 
 };
