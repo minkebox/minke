@@ -103,8 +103,8 @@ async function _generateGraph(graph) {
     try {
       const div = document.createElement('div');
       const options = Object.assign({
-        width: '570px',
-        height: '100px',
+        width: '300px',
+        height: '300px',
         axisX: { showLabel: false, showGrid: false, offset: 0 },
         axisY: { showLabel: false, showGrid: false, offset: 0 },
         fullWidth: true,
