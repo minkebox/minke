@@ -97,7 +97,7 @@ async function ConfigurePageHTML(ctx) {
           }
           catch (_) {
           }
-          return Object.assign({ action: `${action.type}.${action.name}`, value: value }, action);
+          return Object.assign({ action: `${action.type}.${action.name}`, value: value, controls: true }, action);
         }
         case 'Argument':
         default:

@@ -89,7 +89,7 @@
                   {{#each headers}}
                   <th>{{this}}</th>
                   {{/each}}
-                  <th><span class="add">+</span></th>
+                  {{#if controls}}<th><span class="add">+</span></th>{{/if}}
                 </tr>
               </thead>
               <tbody>
@@ -98,7 +98,7 @@
                   {{#each this}}
                   <td contenteditable="true">{{this}}</td>
                   {{/each}}
-                  <td><span class="remove">&minus;</span></td>
+                  {{#if ../controls}}<td><span class="remove">&minus;</span></td>{{/if}}
                 </tr>
                 {{/each}}
               </tbody>
