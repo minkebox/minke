@@ -4,6 +4,7 @@ const FS = require('fs');
 const Koa = require('koa');
 const Router = require('koa-router');
 const Websockify = require('koa-websocket');
+const CacheControl = require('koa-cache-control');
 const Docker = require('dockerode');
 
 global.DEBUG = !!process.env.DEBUG;
@@ -18,6 +19,8 @@ global.docker = new Docker({socketPath: '/var/run/docker.sock'});
 App.on('error', (err) => {
   console.log(err);
 });
+
+App.use(CacheControl({ noCache: true }));
 
 const root = Router();
 const wsroot = Router();
