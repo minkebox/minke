@@ -9,6 +9,10 @@ const Pages = {
 
 function pages(root, wsroot) {
 
+  root.get('/js/ace.js', async (ctx) => {
+    ctx.body = FS.readFileSync(`${__dirname}/../node_modules/ace-builds/${DEBUG ? 'src' : 'src-min'}/ace.js`, { encoding: 'utf8' });
+    ctx.type = 'text/javascript';
+  });
   root.get('/js/:script', async (ctx) => {
     ctx.body = FS.readFileSync(`${__dirname}/script/${ctx.params.script}`, { encoding: 'utf8' });
     ctx.type = 'text/javascript';

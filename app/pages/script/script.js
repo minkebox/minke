@@ -105,7 +105,28 @@ function filter(net) {
   }
 }
 
+let editor = null;
 function setEditMode(edit) {
+  if (!editor) {
+    const div = document.querySelector('.configure .skeleton .editor');
+    editor = ace.edit(div, {
+      useSoftTabs: true,
+      tabSize: 2,
+      printMargin: false
+    });
+    editor.on('change', () => {
+      const content = editor.getValue();
+      try {
+        let skel;
+        eval(`skel=${content}`);
+        div.classList.remove('invalid');
+        action('Skeleton', content);
+      }
+      catch (_) {
+        div.classList.add('invalid');
+      }
+    });
+  }
   if (edit === null) {
     return document.firstElementChild.classList.toggle('editing');
   }
@@ -115,19 +136,6 @@ function setEditMode(edit) {
   }
   else {
     document.firstElementChild.classList.remove('editing');
-    return false;
-  }
-}
-
-function skelValid(editor) {
-  try {
-    let skel;
-    eval(`skel=${editor.innerText}`);
-    editor.classList.remove('invalid')
-    return true;
-  }
-  catch (_) {
-    editor.classList.add('invalid');
     return false;
   }
 }

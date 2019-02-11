@@ -94,6 +94,9 @@ body {
   border-color: #129FEA;
 }
 
+.configure .skeleton .editor {
+  height: 600px;
+}
 .configure .skeleton {
   display: none;
   margin-bottom: 40px;
@@ -102,21 +105,9 @@ body {
   display: block;
 }
 .configure .skeleton .editor {
-  font-family: monospace;
-  white-space: pre;
-  font-size: 14px;
-  line-height: 18px;
   border: 1px solid #ccc;
-  box-shadow: inset 0 1px 3px #ddd;
-  border-radius: 2em;
-  padding: 10px;
-  outline: none;
-  background: #fff;
 }
-.configure .skeleton .editor:focus {
-  border-color: #129FEA;
-}
-.configure .skeleton .editor.invalid:focus {
+.configure .skeleton .editor.invalid {
   border-color: red;
 }
 

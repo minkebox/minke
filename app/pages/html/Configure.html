@@ -4,6 +4,7 @@
     <link href="/css/configure.css" rel="stylesheet" type="text/css">
     <link href="/css/pure.css" rel="stylesheet" type="text/css">
     <script src="/js/script.js" type="text/javascript"></script>
+    {{#if adminMode}}<script src="/js/ace.js" type="text/javascript"></script>{{/if}}
   </head>
   <body>
     <div class="pure-g">
@@ -87,7 +88,7 @@
       {{/with}}
         <div class="skeleton">
           <div class="content-header">Skeleton</div>
-          <div class="editor" spellcheck="false" contenteditable="true" oninput="skelValid(this) && action('Skeleton',this.innerText)">{{skeletonAsText}}</div>
+          <div class="editor">{{skeletonAsText}}</div>
         </div>
       </div>
     </div>
