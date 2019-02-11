@@ -162,11 +162,19 @@ MinkeApp.prototype = {
     }, []);
     this._files = skel.properties.reduce((r, prop) => {
       if (prop.type === 'File') {
-        r.push({
-          host: Path.normalize(`/file/${prop.name.replace(/\//g, '_')}`),
-          target: Path.normalize(prop.name),
-          data: ''
-        });
+        const target = Path.normalize(prop.name);
+        const file = defs.files && defs.files.find(file => file.target === target);
+        if (file) {
+          r.push(file);
+        }
+        else {
+          r.push({
+            host: Path.normalize(`/file/${prop.name.replace(/\//g, '_')}`),
+            target: target,
+            data: prop.defaultValue || '',
+            altData: prop.defaultAltValue
+          });
+        }
       }
       return r;
     }, []);
