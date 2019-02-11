@@ -165,7 +165,7 @@ body {
   margin: 10px;
   height: 328px;
   background: white;
-  border: solid 1px #ccc;
+  border: solid 2px #ccc;
   border-radius: 5px;
   box-shadow: 2px 2px 5px 1px #bbb;
   padding: 10px;
@@ -259,11 +259,42 @@ body {
   padding: 10px;
 }
 
+.application-status.net-0 {
+  border-color: #278b30;
+}
+.application-status.net-1 {
+  border-color: #ffd73e;
+}
+.application-status.net-2 {
+  border-color: #b12427;
+}
+.application-status.net-3 {
+  border-color: #88cce7;
+}
+.application-status.net-4 {
+  border-color: #fd0a1a;
+}
+.application-status.net-5 {
+  border-color: #808020;
+}
+.application-status.net-6 {
+  border-color: #efad5a;
+}
+.application-status.net-7 {
+  border-color: #fd1a91;
+}
+.application-status.net-8 {
+  border-color: #d85452;
+}
+.application-status.net-9 {
+  border-color: #41b376;
+}
+
 .main .ct-line {
   stroke-width: 2px;
 }
 .main .ct-series-a .ct-bar, .main .ct-series-a .ct-line, .main .ct-series-a .ct-point, .main .ct-series-a .ct-slice-donut {
-  stroke: #b12427;
+  stroke: #88cce7;
 }
 .main .ct-series-b .ct-bar, .main .ct-series-b .ct-line, .main .ct-series-b .ct-point, .main .ct-series-b .ct-slice-donut {
   stroke: #278b30;
@@ -272,7 +303,19 @@ body {
   stroke: #efad5a;
 }
 .main .ct-series-d .ct-bar, .main .ct-series-d .ct-line, .main .ct-series-d .ct-point, .main .ct-series-d .ct-slice-donut {
-  stroke: #88cce7;
+  stroke: #b12427;
+}
+.main .ct-series-a .ct-slice-pie {
+  fill: #88cce7;
+}
+.main .ct-series-b .ct-slice-pie {
+  fill: #278b30;
+}
+.main .ct-series-c .ct-slice-pie {
+  fill: #efad5a;
+}
+.main .ct-series-d .ct-slice-pie {
+  fill: #b12427;
 }
 
 html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
