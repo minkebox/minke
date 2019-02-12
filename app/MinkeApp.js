@@ -266,6 +266,8 @@ MinkeApp.prototype = {
         const management = await Network.getManagementNetwork();
         const dns = management.info.IPAM.Config[0].Gateway;
         config.Env.push(`__DNSSERVER=${dns}`);
+        config.Env.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
+        config.Env.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
         config.HostConfig.Dns = [ dns ];
         config.HostConfig.DnsSearch = [ 'local.' ];
         config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
@@ -764,6 +766,9 @@ MinkeApp.startApps = async function(app) {
     }
   });
 
+  // Get our IP
+  MinkeApp._network = await Network.getActiveInterface();
+
   // Monitor docker events
   MinkeApp._monitorEvents();
 
@@ -790,7 +795,18 @@ MinkeApp.startApps = async function(app) {
   // Hardwired default resolver
   DNSForward.setDefaultResolver('1.1.1.1');
 
-  // Start up any VPN first. We want them to claim the lowest IP on their networks.
+  // Start up any DHCP servers.
+  await Promise.all(applications.map(async (app) => {
+    try {
+      if (app._features.dhcp) {
+        await app.start();
+      }
+    }
+    catch (e) {
+      console.error(e);
+    }
+  }));
+  // Start up any VPNs. We want them to claim the lowest IP on their networks.
   await Promise.all(applications.map(async (app) => {
     try {
       if (app._features.vpn) {
@@ -804,7 +820,7 @@ MinkeApp.startApps = async function(app) {
   // Then the rest
   await Promise.all(applications.map(async (app) => {
     try {
-      if (!app._features.vpn) {
+      if (app._status === 'stopped') {
         await app.start();
       }
     }
