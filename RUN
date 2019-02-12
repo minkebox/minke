@@ -1,3 +1,11 @@
 #docker build -t registry.gitlab.com/minkebox/minke .
+#docker network create --driver=macvlan home
 docker container rm minke
-docker run --name minke -d --privileged -v /etc/timezone:/etc/timezone:ro -v /var/run/docker.sock:/var/run/docker.sock --mount type=bind,source=/home/minke/fs,target=/minke/fs,bind-propagation=rshared --mount type=bind,source=/home/minke/db,target=/minke/db,bind-propagation=rshared --mount type=bind,source=${PWD}/app/skeletons/local,target=/app/skeletons/local,bind-propagation=rshared --network=host registry.gitlab.com/minkebox/minke
+docker run --name minke -d --privileged \
+  -v /etc/timezone:/etc/timezone:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  --mount type=bind,source=/home/minke/fs,target=/minke/fs,bind-propagation=rshared \
+  --mount type=bind,source=/home/minke/db,target=/minke/db,bind-propagation=rshared \
+  --mount type=bind,source=${PWD}/app/skeletons/local,target=/app/skeletons/local,bind-propagation=rshared \
+  --network=home --ip=192.168.1.14 \
+  registry.gitlab.com/minkebox/minke

@@ -264,7 +264,7 @@ MinkeApp.prototype = {
         // Use the internal Minke DNS server for anything on the home network.
         // Because the host isn't directly accessable, we access it via the management network.
         const management = await Network.getManagementNetwork();
-        const dns = management.info.IPAM.Config[0].Gateway;
+        const dns = management.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
         config.Env.push(`__DNSSERVER=${dns}`);
         config.Env.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
         config.Env.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
@@ -280,10 +280,10 @@ MinkeApp.prototype = {
         // should be the creator (e.g. VPN client/server) for this network.
         const vpn = await Network.getPrivateNetwork(primary);
         config.HostConfig.NetworkMode = vpn.id;
-        const gw = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
-        config.Env.push(`__GATEWAY=${gw}`);
-        config.Env.push(`__DNSSERVER=${gw}`);
-        config.HostConfig.Dns = [ gw ];
+        const dns = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
+        config.Env.push(`__DNSSERVER=${dns}`);
+        config.Env.push(`__GATEWAY=${dns}`);
+        config.HostConfig.Dns = [ dns ];
         config.HostConfig.DnsSearch = [ 'local.' ];
         config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
         break;
@@ -758,6 +758,7 @@ MinkeApp.startApps = async function(app) {
   // Find ourself
   (await docker.listContainers({})).forEach((container) => {
     if (container.Image.endsWith('/minke')) {
+      MinkeApp._container = container;
       container.Mounts.forEach((mount) => {
         if (mount.Type === 'bind' && mount.Destination === '/minke/fs') {
           Filesystem.setHostPrefix(mount.Source);
@@ -768,6 +769,13 @@ MinkeApp.startApps = async function(app) {
 
   // Get our IP
   MinkeApp._network = await Network.getActiveInterface();
+
+  if (MinkeApp._container) {
+    const homenet = await Network.getManagementNetwork();
+    await homenet.connect({
+      Container: MinkeApp._container.Id
+    });
+  }
 
   // Monitor docker events
   MinkeApp._monitorEvents();
