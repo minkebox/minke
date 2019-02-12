@@ -5,7 +5,7 @@ const ETC = (process.env.DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
 const DNSMASQ_CONFIG = `${ETC}dnsmasq.conf`;
 const DNSMASQ_CONFIG_DIR = `${ETC}dnsmasq.d/`;
-const DNSMASQ_RESOLV = `${ETC}dnsmasq_resolv.conf`;
+const DNSMASQ_RESOLV = `${DNSMASQ_CONFIG_DIR}resolv.conf`;
 
 let dns = null;
 let defaultResolver = '';
@@ -15,31 +15,35 @@ const cacheSize = 256;
 const DNSForward = {
 
   setDefaultResolver: function(resolver) {
-    defaultResolver = resolver ? `nameserver ${resolver}\n` : '';
+    defaultResolver = resolver ? `server=${resolver}#53\n` : '';
     DNSForward._updateResolv();
+    DNSForward._restart();
   },
 
   createForward: function(args) {
     const resolve = {
       _id: args._id,
       name: args.name,
-      IP4Address: args.IP4Address
+      IP4Address: args.IP4Address,
+      Port: args.port || 53
     };
     resolvers[args._id] = resolve;
     DNSForward._updateResolv();
+    DNSForward._restart();
     return resolve;
   },
 
   removeForward: function(resolve) {
     delete resolvers[resolve._id];
     DNSForward._updateResolv();
+    DNSForward._restart();
   },
 
   _updateConfig: function() {
     FS.writeFileSync(DNSMASQ_CONFIG, `${[
       'user=root',
+      'no-resolv',
       `conf-dir=${DNSMASQ_CONFIG_DIR},*.conf`,
-      `resolv-file=${DNSMASQ_RESOLV}`,
       'clear-on-reload',
       'strict-order',
       `cache-size=${cacheSize}`
@@ -48,8 +52,15 @@ const DNSForward = {
 
   _updateResolv: function() {
     FS.writeFileSync(DNSMASQ_RESOLV, `${Object.values(resolvers).map((resolve) => {
-      return `nameserver ${resolve.IP4Address} # For ${resolve.name}`;
+      return `server=${resolve.IP4Address}#${resolve.Port}`;
     }).join('\n')}\n${defaultResolver}`);
+  },
+
+  _restart: function() {
+    if (dns) {
+      dns.kill();
+      dns = null;
+    }
   }
 
 }
@@ -60,14 +71,13 @@ const DNSForward = {
 DNSForward._updateResolv();
 DNSForward._updateConfig();
 
-//
-// Start DNS server
-//
 if (!process.env.DEBUG) {
-  dns = ChildProcess.spawn(DNSMASQ, []);
-  dns.on('close', (code) => {
-    // ...
-  });
+  function run() {
+    dns = ChildProcess.spawn(DNSMASQ, [ '-k' ]);
+    dns.on('exit', run);
+  }
+  run();
 }
+
 
 module.exports = DNSForward;
