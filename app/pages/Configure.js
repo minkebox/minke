@@ -21,7 +21,7 @@ async function ConfigurePageHTML(ctx) {
   if (!app) {
     throw Error(`Missing app: ${ctx.params.id}`);
   }
-  const skeleton = Skeletons.loadSkeleton(app._image, true);
+  const skeleton = await Skeletons.loadSkeleton(app._image, true);
   if (!skeleton) {
     console.error(`Failed to load skeleton: ${app._image}`);
   }
@@ -211,7 +211,7 @@ async function ConfigurePageWS(ctx) {
         file.data = value;
         file.altData = null;
         if (app._fs) {
-          const skeleton = Skeletons.loadSkeleton(app._image);
+          const skeleton = Skeletons.loadSkeleton(app._image, false);
           if (skeleton) {
             const action = skeleton.actions.find(action => action.name === filename);
             if (action && action.pattern) {
@@ -263,7 +263,7 @@ async function ConfigurePageWS(ctx) {
       
       const uapp = app;
       if ((changed & SKELCHANGE) !== 0) {
-        uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image), uapp.toJSON());
+        uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image, false), uapp.toJSON());
         app = null;
         send({
           type: 'page.reload'
