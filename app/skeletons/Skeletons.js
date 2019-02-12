@@ -53,6 +53,7 @@ async function imageToSkeleton(image) {
           name: key,
           nat: false,
           web: key === '80/tcp' ? true : false,
+          dns: key === '53/udp' ? true : false,
           mdns: null
         }
       }),
