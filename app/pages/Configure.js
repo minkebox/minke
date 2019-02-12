@@ -94,6 +94,12 @@ async function ConfigurePageHTML(ctx) {
           let value = null;
           try {
             value = JSON.parse(file.data);
+            const hlen = action.headers.length;
+            value.forEach((v) => {
+              while (v.length < hlen) {
+                v.push('');
+              }
+            });
           }
           catch (_) {
           }

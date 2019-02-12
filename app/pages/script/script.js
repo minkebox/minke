@@ -248,8 +248,10 @@ function saveTable(action, table) {
   const values = [];
   for (let tr = table.querySelector('tbody tr'); tr; tr = tr.nextElementSibling) {
     const row = [];
-    for (let td = tr.firstElementChild; td.nextElementSibling; td = td.nextElementSibling) {
-      row.push(td.innerText);
+    for (let td = tr.firstElementChild; td; td = td.nextElementSibling) {
+      if (!td.classList.contains('control')) {
+        row.push(td.innerText);
+      }
     }
     values.push(row);
   }
