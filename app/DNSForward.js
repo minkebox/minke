@@ -51,9 +51,10 @@ const DNSForward = {
   },
 
   _updateResolv: function() {
-    FS.writeFileSync(DNSMASQ_RESOLV, `${Object.values(resolvers).map((resolve) => {
+    // Note. DNS servers are checked in reverse order
+    FS.writeFileSync(DNSMASQ_RESOLV, `${defaultResolver}\n${Object.values(resolvers).map((resolve) => {
       return `server=${resolve.IP4Address}#${resolve.Port}`;
-    }).join('\n')}\n${defaultResolver}`);
+    }).join('\n')}`);
   },
 
   _restart: function() {
