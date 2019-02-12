@@ -74,7 +74,7 @@ body {
 .configure .content-text {
   color: #777;
   line-height: 1.4em;
-  padding-bottom: 0.4em;
+  padding-bottom: 1em;
 }
 .configure .actions label {
   width: 30% !important;
@@ -106,8 +106,11 @@ body {
   background-color: transparent;
 }
 .configure .actions .table thead th {
-  width: 100%;
+  width: 10000px;
   white-space: pre;
+}
+.configure .actions .table thead th.control {
+  width: 0px;
 }
 .configure .actions .table .add, .configure .actions .table .remove {
   color: black;
