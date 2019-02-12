@@ -134,6 +134,7 @@ MinkeApp.prototype = {
             host: parseInt(prop.name),
             protocol: prop.name.split('/')[1].toUpperCase(),
             web: prop.web,
+            dns: prop.dns,
             nat: prop.nat,
             mdns: prop.mdns
           });
@@ -168,12 +169,15 @@ MinkeApp.prototype = {
           r.push(file);
         }
         else {
-          r.push({
+          const f = {
             host: Path.normalize(`/file/${prop.name.replace(/\//g, '_')}`),
             target: target,
-            data: prop.defaultValue || '',
-            altData: prop.defaultAltValue
-          });
+            data: prop.defaultValue || ''
+          };
+          if ('defaultAltValue' in prop) {
+            f.altData = prop.defaultAltValue;
+          }
+          r.push(f);
         }
       }
       return r;
@@ -216,6 +220,9 @@ MinkeApp.prototype = {
       primary = secondary;
       secondary = 'none';
     }
+    if (primary === 'host' && !MinkeApp._container) {
+      primary = 'home';
+    }
     if (primary === secondary) {
       secondary = 'none';
     }
@@ -225,6 +232,9 @@ MinkeApp.prototype = {
         break;
       case 'home':
         config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
+        break;
+      case 'host':
+        config.Env.push(`__HOST_INTERFACE=eth${netid++}`);
         break;
       default:
         if (primary === this._name) {
@@ -273,6 +283,16 @@ MinkeApp.prototype = {
         config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
         break;
       }
+      case 'host':
+      {
+        config.HostConfig.NetworkMode = `container:${MinkeApp._container.id}`;
+        config.Hostname = null;
+        this._homeIP = MinkeApp._network.network.ip_address;
+        config.Env.push(`__DNSSERVER=${this._homeIP}`);
+        config.Env.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
+        config.Env.push(`__HOSTIP=${this._homeIP}`);
+        break;
+      }
       default:
       {
         // If we're using a private network as primary, then we also select the X.X.X.2
@@ -300,143 +320,157 @@ MinkeApp.prototype = {
     }
 
     this._fullEnv = config.Env;
+
+    if (primary !== 'host') {
   
-    const helperConfig = {
-      name: `helper-${this._safeName()}__${this._id}`,
-      Hostname: config.Hostname,
-      Image: Images.MINKE_HELPER,
-      HostConfig: {
-        NetworkMode: config.HostConfig.NetworkMode,
-        AutoRemove: true,
-        CapAdd: [ 'NET_ADMIN' ],
-        ExtraHosts: config.HostConfig.ExtraHosts,
-        Dns: config.HostConfig.Dns,
-        DnsSearch: config.HostConfig.DnsSearch,
-        DnsOptions: config.HostConfig.DnsOptions
-      },
-      Env: [].concat(config.Env)
-    };
+      const helperConfig = {
+        name: `helper-${this._safeName()}__${this._id}`,
+        Hostname: config.Hostname,
+        Image: Images.MINKE_HELPER,
+        HostConfig: {
+          NetworkMode: config.HostConfig.NetworkMode,
+          AutoRemove: true,
+          CapAdd: [ 'NET_ADMIN' ],
+          ExtraHosts: config.HostConfig.ExtraHosts,
+          Dns: config.HostConfig.Dns,
+          DnsSearch: config.HostConfig.DnsSearch,
+          DnsOptions: config.HostConfig.DnsOptions
+        },
+        Env: [].concat(config.Env)
+      };
 
-    if (primary === 'home' || secondary === 'home') {
-      helperConfig.Env.push('ENABLE_DHCP=1');
-    }
-
-    if (this._ports.length) {
-      const nat = [];
-      const mdns = [];
-      this._ports.forEach((port) => {
-        if (port.nat) {
-          nat.push(`${port.host}:${port.protocol}`);
-        }
-        if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
-          mdns.push(`${port.mdns.type}:${port.host}:` + (!port.mdns.txt ? '' : Object.keys(port.mdns.txt).map((key) => {
-            if (port.mdns.txt[key]) {
-              return `<txt-record>${key}=${port.mdns.txt[key].replace(/ /g, '%20')}</txt-record>`
-            }
-            else {
-              return '';
-            }
-          }).join('')));
-        }
-      });
-      if (nat.length) {
-        helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
+      if (primary === 'home' || secondary === 'home') {
+        helperConfig.Env.push('ENABLE_DHCP=1');
       }
-      if (mdns.length) {
-        helperConfig.Env.push(`ENABLE_MDNS=${mdns.join(' ')}`);
-      }
-    }
-  
-    this._helperContainer = await docker.createContainer(helperConfig);
 
-    config.Hostname = null;
-    config.HostConfig.ExtraHosts = null;
-    config.HostConfig.Dns = null;
-    config.HostConfig.DnsSearch = null;
-    config.HostConfig.DnsOptions = null;
-    config.HostConfig.NetworkMode = `container:${this._helperContainer.id}`;
-
-    await this._helperContainer.start();
-
-    if (primary != 'none') {
-      switch (secondary) {
-        case 'none':
-          break;
-        case 'home':
-        {
-          const homenet = await Network.getHomeNetwork();
-          await homenet.connect({
-            Container: this._helperContainer.id
-          });
-          break;
-        }
-        default:
-        {
-          const vpn = await Network.getPrivateNetwork(secondary);
-          await vpn.connect({
-            Container: this._helperContainer.id
-          });
-          break;
-        }
-      }
-    }
-
-    if (!(primary === 'none' && secondary === 'none')) {
-      const management = await Network.getManagementNetwork();
-      await management.connect({
-        Container: this._helperContainer.id
-      });
-    }
-
-    // Wait while the helper configures everything.
-    const log = await this._helperContainer.logs({
-      follow: true,
-      stdout: true,
-      stderr: false
-    });
-    await new Promise((resolve) => {
-      docker.modem.demuxStream(log, {
-        write: (data) => {
-          data = data.toString('utf8');
-          const idx = data.indexOf('MINKE:HOME:IP ');
-          if (idx !== -1) {
-            this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
+      if (this._ports.length) {
+        const nat = [];
+        const mdns = [];
+        this._ports.forEach((port) => {
+          if (port.nat) {
+            nat.push(`${port.host}:${port.protocol}`);
           }
-          if (data.indexOf('MINKE:UP') !== -1) {
-            log.destroy();
-            resolve();
+          if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
+            mdns.push(`${port.mdns.type}:${port.host}:` + (!port.mdns.txt ? '' : Object.keys(port.mdns.txt).map((key) => {
+              if (port.mdns.txt[key]) {
+                return `<txt-record>${key}=${port.mdns.txt[key].replace(/ /g, '%20')}</txt-record>`
+              }
+              else {
+                return '';
+              }
+            }).join('')));
+          }
+        });
+        if (nat.length) {
+          helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
+        }
+        if (mdns.length) {
+          helperConfig.Env.push(`ENABLE_MDNS=${mdns.join(' ')}`);
+        }
+      }
+
+      this._helperContainer = await docker.createContainer(helperConfig);
+
+      config.Hostname = null;
+      config.HostConfig.ExtraHosts = null;
+      config.HostConfig.Dns = null;
+      config.HostConfig.DnsSearch = null;
+      config.HostConfig.DnsOptions = null;
+      config.HostConfig.NetworkMode = `container:${this._helperContainer.id}`;
+
+      await this._helperContainer.start();
+
+      if (primary != 'none') {
+        switch (secondary) {
+          case 'none':
+            break;
+          case 'home':
+          {
+            const homenet = await Network.getHomeNetwork();
+            await homenet.connect({
+              Container: this._helperContainer.id
+            });
+            break;
+          }
+          default:
+          {
+            const vpn = await Network.getPrivateNetwork(secondary);
+            await vpn.connect({
+              Container: this._helperContainer.id
+            });
+            break;
           }
         }
-      }, null);
-    });
+      }
+
+      if (!(primary === 'none' && secondary === 'none')) {
+        const management = await Network.getManagementNetwork();
+        await management.connect({
+          Container: this._helperContainer.id
+        });
+      }
+
+      // Wait while the helper configures everything.
+      const log = await this._helperContainer.logs({
+        follow: true,
+        stdout: true,
+        stderr: false
+      });
+      await new Promise((resolve) => {
+        docker.modem.demuxStream(log, {
+          write: (data) => {
+            data = data.toString('utf8');
+            const idx = data.indexOf('MINKE:HOME:IP ');
+            if (idx !== -1) {
+              this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
+            }
+            if (data.indexOf('MINKE:UP') !== -1) {
+              log.destroy();
+              resolve();
+            }
+          }
+        }, null);
+      });
+
+    }
   
     this._container = await docker.createContainer(config);
     await this._container.start();
 
-    const containerInfo = await this._helperContainer.inspect();
+    let ipAddr = this._homeIP;
+    if (!ipAddr && this._helperContainer) {
+      const containerInfo = await this._helperContainer.inspect();
+      ipAddr = containerInfo.NetworkSettings.Networks.management.IPAddress;
+    }
 
-    const webport = this._ports.find(port => port.web);
-    if (webport) {
-      if (this._homeIP) {
-        if (webport.web === 'newtab') {
-          this._forward = HTTPForward.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${this._homeIP}:${webport.host}` });
+    if (ipAddr) {
+
+      const webport = this._ports.find(port => port.web);
+      if (webport) {
+        if (this._homeIP) {
+          if (webport.web === 'newtab') {
+            this._forward = HTTPForward.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${ipAddr}:${webport.host}` });
+          }
+          else {
+            this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${ipAddr}:${webport.host}` });
+          }
         }
         else {
-          this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${this._homeIP}:${webport.host}` });
+          this._forward = HTTPForward.createForward({ prefix: `/a/${this._id}`, IP4Address: ipAddr, port: webport.host });
+        }
+        if (this._forward.http) {
+          koaApp.use(this._forward.http);
+        }
+        if (this._forward.ws) {
+          koaApp.ws.use(this._forward.ws);
         }
       }
-      else {
-        this._forward = HTTPForward.createForward({ prefix: `/a/${this._id}`, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress, port: webport.host });
+
+      const dnsport = this._ports.find(port => port.dns);
+      if (dnsport) {
+        this._dns = DNSForward.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.host });
       }
-      if (this._forward.http) {
-        koaApp.use(this._forward.http);
-      }
-      if (this._forward.ws) {
-        koaApp.ws.use(this._forward.ws);
-      }
-    }
-    if (this._features.dns) {
-      this._dns = DNSForward.createForward({ _id: this._id, name: this._name, IP4Address: containerInfo.NetworkSettings.Networks.management.IPAddress });
+
     }
 
     if (this._image === Images.MINKE_PRIVATE_NETWORK) {
@@ -758,7 +792,7 @@ MinkeApp.startApps = async function(app) {
   // Find ourself
   (await docker.listContainers({})).forEach((container) => {
     if (container.Image.endsWith('/minke')) {
-      MinkeApp._container = container;
+      MinkeApp._container = docker.getContainer(container.Id);
       container.Mounts.forEach((mount) => {
         if (mount.Type === 'bind' && mount.Destination === '/minke/fs') {
           Filesystem.setHostPrefix(mount.Source);
@@ -773,7 +807,7 @@ MinkeApp.startApps = async function(app) {
   if (MinkeApp._container) {
     const homenet = await Network.getManagementNetwork();
     await homenet.connect({
-      Container: MinkeApp._container.Id
+      Container: MinkeApp._container.id
     });
   }
 
