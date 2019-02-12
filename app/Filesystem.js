@@ -48,7 +48,7 @@ Filesystem.prototype = {
   makeFile: function(file) {
     const src = Path.normalize(`${this._root}/${file.host}`);
     FS.mkdirSync(Path.dirname(src), { recursive: true });
-    FS.writeFileSync(src, file.altData || file.data);
+    FS.writeFileSync(src, 'altData' in file ? file.altData : file.data);
     return {
       Type: 'bind',
       Source: Path.normalize(`${this._hostroot}/${file.host}`),

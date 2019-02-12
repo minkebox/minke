@@ -196,7 +196,7 @@ async function ConfigurePageWS(ctx) {
       const file = app._files.find(file => file.target === filename);
       if (file) {
         file.data = value;
-        file.altData = null;
+        delete file.altData;
         if (app._fs) {
           app._fs.makeFile(file);
         }
@@ -209,7 +209,7 @@ async function ConfigurePageWS(ctx) {
       const file = app._files.find(file => file.target === filename);
       if (file) {
         file.data = value;
-        file.altData = null;
+        delete file.altData;
         if (app._fs) {
           const skeleton = Skeletons.loadSkeleton(app._image, false);
           if (skeleton) {
