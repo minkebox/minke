@@ -249,7 +249,13 @@ MinkeApp.prototype = {
 
     switch (primary) {
       case 'none':
-        config.HostConfig.NetworkMode = 'none';
+        if (secondary === 'none') {
+          const management = await Network.getManagementNetwork();
+          config.HostConfig.NetworkMode = management.id;
+        }
+        else {
+          config.HostConfig.NetworkMode = 'none';
+        }
         break;
       case 'home':
       {
@@ -373,10 +379,12 @@ MinkeApp.prototype = {
       }
     }
 
-    const management = await Network.getManagementNetwork();
-    await management.connect({
-      Container: this._helperContainer.id
-    });
+    if (!(primary === 'none' && secondary === 'none')) {
+      const management = await Network.getManagementNetwork();
+      await management.connect({
+        Container: this._helperContainer.id
+      });
+    }
 
     // Wait while the helper configures everything.
     const log = await this._helperContainer.logs({
