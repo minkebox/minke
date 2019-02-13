@@ -276,14 +276,10 @@ MinkeApp.prototype = {
       {
         const homenet = await Network.getHomeNetwork();
         config.HostConfig.NetworkMode = homenet.id;
-        // Use the internal Minke DNS server for anything on the home network.
-        // Because the host isn't directly accessable, we access it via the management network.
-        const management = await Network.getManagementNetwork();
-        const dns = management.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
-        config.Env.push(`__DNSSERVER=${dns}`);
+        config.Env.push(`__DNSSERVER=${MinkeApp._network.network.ip_address}`);
         config.Env.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
         config.Env.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
-        config.HostConfig.Dns = [ dns ];
+        config.HostConfig.Dns = [ MinkeApp._network.network.ip_address ];
         config.HostConfig.DnsSearch = [ 'local.' ];
         config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
         break;
