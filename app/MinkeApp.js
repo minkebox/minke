@@ -489,7 +489,6 @@ MinkeApp.prototype = {
         polling: this._monitor.polling,
         cmd: this._monitor.cmd,
         watch: this._monitor.watch,
-        state: this._monitor.state,
         parser: this._monitor.parser,
         template: this._monitor.template
       });
@@ -653,7 +652,6 @@ MinkeApp.prototype = {
       template: args.template,
       watch: args.watch,
       polling: args.polling,
-      state: args.state,
       callback: async (data) => {
         this._emit(args.event, { data: await data });
       }

@@ -43,11 +43,10 @@ async function runCmd(app, cmd) {
   });
 }
 
-function WatchCmd(app, cmd, parser, template, watch, polling, state, callback) {
+function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   const ctemplate = template ? Handlebars.compile(template) : DEFAULT_TEMPLATE;
   this.watcher = null;
   this.clock = null;
-  this.state = state ? JSON.parse(JSON.stringify(state)) : {}; // Hacky object clone
   const dowork = debounce(async () => {
     callback(await this.run());
   }, 10);
@@ -58,7 +57,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, state, callback) {
     }
     dowork();
   }
-  const sandbox = { input: null, output: null, state: this.state, props: { homeIP: app._homeIP }};
+  const sandbox = { input: null, output: null, props: { homeIP: app._homeIP }};
   VM.createContext(sandbox);
   this.run = async () => {
     if (callback) {
@@ -134,7 +133,7 @@ const _Monitor = {
         FS.closeSync(FS.openSync(lwatch, 'w'));
       }
     }
-    return new WatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling, args.state, args.callback);
+    return new WatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling, args.callback);
   }
 
 };
