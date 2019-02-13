@@ -144,10 +144,13 @@ async function MainPageWS(ctx) {
     const existApps = {};
     const newApps = {};
     status.services.forEach((service) => {
-      if (!(service.name in oldApps)) {
-        newApps[service.name] = { netid: status.app._id, name: service.target, network: networks.findIndex(net => net.name === status.app._name) };
+      if (service.name in oldApps) {
+        existApps[service.name] = oldApps[service.name];
       }
-      existApps[service.name] = newApps[service.name];
+      else {
+        newApps[service.name] = { netid: status.app._id, name: service.target, network: networks.findIndex(net => net.name === status.app._name) };
+        existApps[service.name] = newApps[service.name];
+      }
       delete oldApps[service.name];
     });
     remoteApps[status.app._id] = existApps;
