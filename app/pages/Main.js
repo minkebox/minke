@@ -9,6 +9,7 @@ function genApp(app, networks) {
     name: app._name,
     status: app._status,
     ip: app._status === 'running' && !app._features.vpn ? app._homeIP : null,
+    link: app._forward && app._forward.url,
     network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
       if (app._features.vpn) {
         return net.name === app._name;

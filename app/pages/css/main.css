@@ -137,6 +137,12 @@ body {
 .app .right.link:hover {
   background-color: #eee;
 }
+.app .left a {
+  text-decoration: none;
+}
+.app .left a h6:hover {
+  color: #333;
+}
 .app h5 {
   text-transform: uppercase;
   color: #999;
