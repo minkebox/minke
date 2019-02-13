@@ -87,13 +87,13 @@
     `,
     header: `
       <style>
-      .i { display: inline-block; width: 140px; vertical-align: top; padding-top: 2px; line-height: 130%; }
-      .i span { display: inline-block; width: 15px; height: 15px; margin-right: 10px; background: #b12427 }
+      .vpnc-i { display: inline-block; width: 140px; vertical-align: top; padding-top: 2px; line-height: 130%; }
+      .vpnc-i span { display: inline-block; width: 15px; height: 15px; margin-right: 10px; background: #b12427 }
       </style>
     `,
     template: `
       <div style="width:550px">
-        <div class="i">
+        <div class="vpnc-i">
           <div>Bandwidth</div>
           <div><span></span>{{rx}} kB/s</div>
           <div><span style="background:#278b30"></span>{{tx}} kB/s</div>
