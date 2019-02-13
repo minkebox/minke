@@ -216,23 +216,23 @@ async function ConfigurePageWS(ctx) {
       if (file) {
         file.data = value;
         delete file.altData;
-        if (app._fs) {
-          const skeleton = Skeletons.loadSkeleton(app._image, false);
-          if (skeleton) {
-            const action = skeleton.actions.find(action => action.name === filename);
-            if (action && action.pattern) {
-              const table = JSON.parse(value);
-              value = [];
-              table.forEach((row) => {
-                let line = action.pattern;
-                for (let i = 0; i < row.length; i++) {
-                  line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), row[i]);
-                }
-                value.push(line);
-              });
-              file.altData = value.join('\n');
-            }
+        const skeleton = Skeletons.loadSkeleton(app._image, false);
+        if (skeleton) {
+          const action = skeleton.actions.find(action => action.name === filename);
+          if (action && action.pattern) {
+            const table = JSON.parse(value);
+            value = [];
+            table.forEach((row) => {
+              let line = action.pattern;
+              for (let i = 0; i < row.length; i++) {
+                line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), row[i]);
+              }
+              value.push(line);
+            });
+            file.altData = value.join('\n');
           }
+        }
+        if (app._fs) {
           app._fs.makeFile(file);
         }
         return APPCHANGE;
