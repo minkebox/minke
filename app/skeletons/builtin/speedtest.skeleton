@@ -1,0 +1,100 @@
+{
+  name: `Internet Speed Test`,
+  description: `Run a latency and bandwidth test on your Internet connection every hour`,
+  image: `registry.gitlab.com/minkebox/speedtest`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure`
+    },
+    {
+      type: `Text`,
+      text: `Select the Speedtest.net server id, or leave blank to automatically pick the best. The xml list can be found here: https://www.speedtest.net/speedtest-servers-static.php`
+    },
+    {
+      type: `Text`,
+      text: `For example, Sonic.net's server id is 17846`
+    },
+    {
+      type: `Environment`,
+      description: `Server ID`,
+      name: `SERVER_ID`
+    },
+    {
+      type: `Environment`,
+      description: `Number of minutes between tests`,
+      name: `CRONJOB_ITERATION`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      description: `Select which network to test (you probably want the default)`
+    }
+  ],
+  properties: [
+    {
+      type: `Port`,
+      name: `443/tcp`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
+      nat: false,
+      web: true,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
+    {
+      type: `Environment`,
+      name: `SERVER_ID`
+    },
+    {
+      type: `Environment`,
+      name: `CRONJOB_ITERATION`,
+      defaultValue: 60
+    },
+    {
+      type: `Directory`,
+      name: `/var/www/html/data`
+    }
+  ],
+  monitor: {
+    cmd: `tail -1 /var/www/html/data/result.csv`,
+    watch: `/var/www/html/data/result.csv`,
+    polling: 0,
+    parser: `
+      const v = input.split(',');
+      output = {
+        time: new Date(parseInt(v[0])).toLocaleTimeString(),
+        ping: parseFloat(v[1]),
+        down: parseFloat(v[2]).toFixed(1),
+        up: parseFloat(v[3]).toFixed(1)
+      };
+    `,
+    header: `
+      <style>
+        .ist-o { display: inline-block; width: 250px; padding-top: 20px; float: right; }
+        .ist-b { color: grey; text-align: right; padding: 0 5px 10px 0; }
+        .ist-l { display: inline-block; font-size: 24px; color: black; width: 140px; }
+        .ist-g { padding-bottom: 30px }
+      </style>
+    `,
+    template: `
+      <div class='ist-o'>
+        <div class='ist-b ist-g'>{{time}}</div>
+        <div class='ist-b'><div class='ist-l'>{{ping}} ms</div><div>Ping</div></div>
+        <div class='ist-b'><div class='ist-l'>{{down}} Mb/s</div><div>Download</div></div>
+        <div class='ist-b'><div class='ist-l'>{{up}} Mb/s</div><div>Upload</div></div>
+      </div>
+    `
+  }
+}
