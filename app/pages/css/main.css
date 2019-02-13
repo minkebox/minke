@@ -242,19 +242,15 @@ body {
   width: 450px;
   height: 100%;
   padding-left: 200px;
-  border-bottom: 1px solid #ddd;
   border-right: 1px solid #ddd;
   z-index: 1;
+  background-color: white;
 }
 
 .info {
   height: 100%;
   width: 100%;
   padding-left: 450px;
-}
-.info .apps-info {
-  
-  height: 100%;
   background-color: #f8f8f8;
 }
 .info .apps-info-container {
