@@ -2,6 +2,6 @@
   <div class="pure-u-1-4 left" onclick="openInlinePage('configure/{{_id}}/')">
     <h5>{{status}}</h5>
     <h4>{{name}}</h4>
-    {{#if link}}<a href="{{link}}" target="_blank">{{/if}}<h6>{{ip}}</h6>{{#if link}}</a>{{/if}}
+    {{#if link}}<a onclick="window.event.stopPropagation()" href="{{link}}" target="_blank">{{/if}}<h6>{{ip}}</h6>{{#if link}}</a>{{/if}}
   </div>
 </div>
