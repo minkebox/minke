@@ -88,15 +88,15 @@
     header: `
       <style>
       .vpnc-i { display: inline-block; width: 140px; vertical-align: top; padding-top: 2px; line-height: 130%; }
-      .vpnc-i span { display: inline-block; width: 15px; height: 15px; margin-right: 10px; background: #b12427 }
+      .vpnc-i span { display: inline-block; width: 15px; height: 15px; margin-right: 10px; background: #88cce7 }
       </style>
     `,
     template: `
       <div style="width:550px">
         <div class="vpnc-i">
           <div>Bandwidth</div>
-          <div><span></span>{{rx}} kB/s</div>
-          <div><span style="background:#278b30"></span>{{tx}} kB/s</div>
+          <div><span></span>Rx {{rx}} kB/s</div>
+          <div><span style="background:#278b30"></span>Tx {{tx}} kB/s</div>
         </div>
         {{{graph.traffic}}}
       </div>
