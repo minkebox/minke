@@ -255,13 +255,18 @@ MinkeApp.prototype = {
         config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
         break;
     }
-    config.Env.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
+    // Need management network if we're not connected to the home network in some way
+    let management = null;
+    if (!((primary === 'home' || primary === 'host') || secondary === 'home')) {
+      config.Env.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
+      management = await Network.getManagementNetwork();
+    }
 
     switch (primary) {
       case 'none':
-        if (secondary === 'none') {
-          const management = await Network.getManagementNetwork();
+        if (management) {
           config.HostConfig.NetworkMode = management.id;
+          management = null;
         }
         else {
           config.HostConfig.NetworkMode = 'none';
@@ -316,6 +321,9 @@ MinkeApp.prototype = {
         PathInContainer: '/dev/net/tun',
         CgroupPermissions: 'rwm'
       });
+      config.HostConfig.CapAdd.push('NET_ADMIN');
+    }
+    if (this._features.dhcp) {
       config.HostConfig.CapAdd.push('NET_ADMIN');
     }
 
@@ -403,11 +411,11 @@ MinkeApp.prototype = {
         }
       }
 
-      if (!(primary === 'none' && secondary === 'none')) {
-        const management = await Network.getManagementNetwork();
+      if (management) {
         await management.connect({
           Container: this._helperContainer.id
         });
+        management = null;
       }
 
       // Wait while the helper configures everything.
