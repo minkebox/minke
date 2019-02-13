@@ -4,7 +4,7 @@ const FS = require('fs');
 const ETC = (process.env.DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
 const DNSMASQ_CONFIG = `${ETC}dnsmasq.conf`;
-const DNSMASQ_CONFIG_DIR = `${ETC}dnsmasq.d/`;
+const DNSMASQ_CONFIG_DIR = (process.env.DEBUG ? '/tmp/' : `${ETC}dnsmasq.d/`);
 const DNSMASQ_RESOLV = `${DNSMASQ_CONFIG_DIR}resolv.conf`;
 
 let dns = null;
