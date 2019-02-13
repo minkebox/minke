@@ -65,8 +65,8 @@
       if (rxtx.length == 2) {
         state.rx.shift();
         state.tx.shift();
-        state.rx.push((rxtx[0] - state.last[0]) / (1024 * 5));
-        state.tx.push((rxtx[1] - state.last[1]) / (1024 * 5));
+        state.rx.push((rxtx[0] - state.last[0]) * 8 / (1000000 * 5));
+        state.tx.push((rxtx[1] - state.last[1]) * 8 / (1000000 * 5));
         output.rx = state.rx.slice(-1)[0].toFixed(1);
         output.tx = state.tx.slice(-1)[0].toFixed(1);
         state.last = rxtx;
@@ -95,8 +95,8 @@
       <div style="width:550px">
         <div class="vpnc-i">
           <div>Bandwidth</div>
-          <div><span></span>Rx {{rx}} kB/s</div>
-          <div><span style="background:#278b30"></span>Tx {{tx}} kB/s</div>
+          <div><span></span>Rx {{rx}} Mb/s</div>
+          <div><span style="background:#278b30"></span>Tx {{tx}} Mb/s</div>
         </div>
         {{{graph.traffic}}}
       </div>
