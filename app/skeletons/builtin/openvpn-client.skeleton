@@ -46,7 +46,7 @@
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `__self`
+      defaultValue: `__create`
     }
   ],
   monitor: {

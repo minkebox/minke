@@ -117,7 +117,7 @@ MinkeApp.prototype = {
           r[prop.name] = defs.networks[prop.name];
         }
         else {
-          r[prop.name] = (prop.defaultValue === '__self' ? this._name : prop.defaultValue) || 'none';
+          r[prop.name] = prop.defaultValue || 'none';
         }
       }
       return r;
@@ -237,7 +237,7 @@ MinkeApp.prototype = {
         config.Env.push(`__HOST_INTERFACE=eth${netid++}`);
         break;
       default:
-        if (primary === this._name) {
+        if (primary === '__create') {
           console.error('Cannot create a VPN as primary network');
         }
         else {
@@ -299,7 +299,7 @@ MinkeApp.prototype = {
         // If we're using a private network as primary, then we also select the X.X.X.2
         // address as both the default gateway and the dns server. The server at X.X.X.2
         // should be the creator (e.g. VPN client/server) for this network.
-        const vpn = await Network.getPrivateNetwork(primary);
+        const vpn = await Network.getPrivateNetwork(primary === '__create' ? this._name : primary);
         config.HostConfig.NetworkMode = vpn.id;
         const dns = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
         config.Env.push(`__DNSSERVER=${dns}`);
@@ -317,9 +317,8 @@ MinkeApp.prototype = {
         PathInContainer: '/dev/net/tun',
         CgroupPermissions: 'rwm'
       });
-      config.HostConfig.CapAdd.push('NET_ADMIN');
     }
-    if (this._features.dhcp) {
+    if (this._features.vpn || this._features.dhcp) {
       config.HostConfig.CapAdd.push('NET_ADMIN');
     }
 
@@ -398,7 +397,7 @@ MinkeApp.prototype = {
           }
           default:
           {
-            const vpn = await Network.getPrivateNetwork(secondary);
+            const vpn = await Network.getPrivateNetwork(secondary === '__create' ? this._name : secondary);
             await vpn.connect({
               Container: this._helperContainer.id
             });
@@ -598,7 +597,7 @@ MinkeApp.prototype = {
     await Database.removeApp(this._id);
 
     MinkeApp.emit('app.remove', { app: this });
-    if (this._features.vpn === 'network') {
+    if (this._willCreateNetwork()) {
       MinkeApp.emit('net.remove', { network: { _id: this._name.replace(/ /g, '-'), name: this._name } });
     }
   },
@@ -685,6 +684,10 @@ MinkeApp.prototype = {
 
   _safeName: function() {
     return this._name.replace(/[^a-zA-Z0-9]/g, '');
+  },
+
+  _willCreateNetwork: function() {
+    return (this._networks.primary === '__create' || this._networks.secondary === '__create');
   },
 
   _setupUpdateListeners: function() {
@@ -853,7 +856,7 @@ MinkeApp.startApps = async function(app) {
   // Start up any VPNs. We want them to claim the lowest IP on their networks.
   await Promise.all(applications.map(async (app) => {
     try {
-      if (app._features.vpn === 'network') {
+      if (app._willCreateNetwork()) {
         await app.start();
       }
     }
@@ -889,7 +892,7 @@ MinkeApp.create = async function(image) {
   applications.push(app);
   await app.save();
   MinkeApp.emit('app.create', { app: app });
-  if (app._features.vpn === 'network') {
+  if (app._willCreateNetwork()) {
     MinkeApp.emit('net.create', { network: { _id: app._name.replace(/ /g, '-'), name: app._name }});
   }
   return app;
@@ -901,7 +904,7 @@ MinkeApp.getApps = function() {
 
 MinkeApp.getNetworks = function() {
   return MinkeApp.getApps().reduce((acc, app) => {
-    if (app._features.vpn === 'network') {
+    if (app._willCreateNetwork()) {
       acc.push({
         _id: app._name.replace(/ /g, '-'),
         name: app._name
