@@ -33,30 +33,24 @@ const Network = {
   },
 
   getHomeNetwork: async function() {
-    return await this._getNetwork({
-      Name: HOME_NETWORK_NAME
-    });
-    /*
-    let net = networks[HOME_NETWORK_NAME];
+    const net = networks[HOME_NETWORK_NAME];
     if (net) {
       return net;
     }
     const iface = await Network.getActiveInterface();
     return await this._getNetwork({
       Name: HOME_NETWORK_NAME,
-      CheckDuplicate: true,
-      Driver: 'macvlan',
+      Driver: 'bridge',
       IPAM: {
         Config: [{
           Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
-          Gateway: iface.network.gateway_ip
+          Gateway: iface.network.ip_address // Dont use gateway_ip
         }]
       },
       Options: {
-        parent: iface.network.name
+        'com.docker.network.bridge.name': 'br0'
       }
     });
-    */
   },
 
   getBridgeNetwork: async function() {
