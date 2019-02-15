@@ -78,7 +78,7 @@ async function ConfigurePageHTML(ctx) {
         }
         case 'Feature':
         {
-          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.checked)`, value: app._features[action.name] || false }, action);
+          return Object.assign({ action: `window.action('${action.type}.${action.name}',this.checked)`, value: app._features[action.name] }, action);
         }
         case 'File':
         {

@@ -15,3 +15,4 @@ docker run --name minke -d --privileged \
   --mount type=bind,source=${PWD}/app/skeletons/local,target=/app/skeletons/local,bind-propagation=rshared \
   --network=home --ip=192.168.1.14 \
   registry.gitlab.com/minkebox/minke
+

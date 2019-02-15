@@ -11,7 +11,7 @@ function genApp(app, networks) {
     ip: app._status === 'running' && !app._features.vpn ? app._homeIP : null,
     link: app._forward && app._forward.url,
     network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
-      if (app._features.vpn) {
+      if (app._features.vpn === 'network') {
         return net.name === app._name;
       }
       else {
@@ -30,7 +30,7 @@ function genAppStatus(acc, app, networks) {
       link: app._forward && app._forward.url,
       running: app._status === 'running',
       network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
-        if (app._features.vpn) {
+        if (app._features.vpn === 'network') {
           return net.name === app._name;
         }
         else {

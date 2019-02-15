@@ -598,7 +598,7 @@ MinkeApp.prototype = {
     await Database.removeApp(this._id);
 
     MinkeApp.emit('app.remove', { app: this });
-    if (this._features.vpn) {
+    if (this._features.vpn === 'network') {
       MinkeApp.emit('net.remove', { network: { _id: this._name.replace(/ /g, '-'), name: this._name } });
     }
   },
@@ -853,7 +853,7 @@ MinkeApp.startApps = async function(app) {
   // Start up any VPNs. We want them to claim the lowest IP on their networks.
   await Promise.all(applications.map(async (app) => {
     try {
-      if (app._features.vpn) {
+      if (app._features.vpn === 'network') {
         await app.start();
       }
     }
@@ -889,7 +889,7 @@ MinkeApp.create = async function(image) {
   applications.push(app);
   await app.save();
   MinkeApp.emit('app.create', { app: app });
-  if (app._features.vpn) {
+  if (app._features.vpn === 'network') {
     MinkeApp.emit('net.create', { network: { _id: app._name.replace(/ /g, '-'), name: app._name }});
   }
   return app;
@@ -901,7 +901,7 @@ MinkeApp.getApps = function() {
 
 MinkeApp.getNetworks = function() {
   return MinkeApp.getApps().reduce((acc, app) => {
-    if (app._features.vpn) {
+    if (app._features.vpn === 'network') {
       acc.push({
         _id: app._name.replace(/ /g, '-'),
         name: app._name

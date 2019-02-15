@@ -37,7 +37,7 @@ async function imageToSkeleton(image) {
         { type: 'Feature', name: 'dhcp' }
       ] : [],
       Object.keys(info.ContainerConfig.Volumes || {}).find(key => key === '/etc/openvpn') ? [
-        { type: 'Feature', name: 'vpn' }
+        { type: 'Feature', name: 'vpn', defaultValue: 'network' }
       ] : [],
       // Directories
       Object.keys(info.ContainerConfig.Volumes || {}).map((key) => {
