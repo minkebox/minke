@@ -1,5 +1,11 @@
+
+#
+# Network setup assumed already created a bridge on the host
+#
+#docker network create --driver=bridge --subnet=192.168.1.0/24 --gateway=192.168.1.15 -o "com.docker.network.bridge.name=br0" home # --aux-address="DefaultGatewayIPv4=192.168.1.1" home
+#
+
 #docker build -t registry.gitlab.com/minkebox/minke .
-#docker network create --driver=macvlan home
 docker container rm minke
 docker run --name minke -d --privileged \
   -v /etc/timezone:/etc/timezone:ro \
