@@ -33,6 +33,10 @@ const Network = {
   },
 
   getHomeNetwork: async function() {
+    return await this._getNetwork({
+      Name: HOME_NETWORK_NAME
+    });
+    /*
     let net = networks[HOME_NETWORK_NAME];
     if (net) {
       return net;
@@ -52,6 +56,7 @@ const Network = {
         parent: iface.network.name
       }
     });
+    */
   },
 
   getBridgeNetwork: async function() {
