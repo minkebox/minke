@@ -28,10 +28,11 @@ MinkeApp.prototype = {
     this._image = app.image;
     this._args = app.args;
     this._env = app.env;
-    this._features = app.features || {},
+    this._features = app.features,
     this._ports = app.ports;
     this._binds = app.binds;
     this._files = app.files;
+    this._shares = app.shares;
     this._networks = app.networks;
     this._monitor = app.monitor;
 
@@ -49,10 +50,11 @@ MinkeApp.prototype = {
       args: this._args,
       env: this._env,
       features: this._features,
-      networks: this._networks,
       ports: this._ports,
       binds: this._binds,
       files: this._files,
+      shares: this._shares,
+      networks: this._networks,
       monitor: this._monitor
     }
   },
@@ -153,9 +155,9 @@ MinkeApp.prototype = {
           r.push({
             host: Path.normalize(`/dir/${prop.name}`),
             target: target,
-            shareable: false,
+            shareable: prop.shareable || false,
             shared: false,
-            description: ''
+            description: prop.description || target
           });
         }
       }
@@ -206,11 +208,6 @@ MinkeApp.prototype = {
       },
       Env: [].concat(this._env)
     };
-
-    // Share filesystems
-    this._binds.forEach((map) => {
-      this._fs.shareVolume(map);
-    });
 
     // Create network environment
     let netid = 0;
@@ -556,15 +553,39 @@ MinkeApp.prototype = {
     catch (_) {
     }
 
-    // Wait for things to stop before unmounting
-    if (this._fs) {
-      this._fs.unshareVolumes();
-      this._fs = null;
-    }
+    this._fs = null;
 
     this._setStatus('stopped');
 
     return this;
+  },
+
+  updateShares: function(shares) {
+    let changed = false;
+    const nshares = shares.reduce((acc, share) => {
+      const idx = this._shares.findIndex(oshare => oshare.appid === share.appid && oshare.host === share.host);
+      if (share.shared) {
+        acc.push({
+          appid: share.appid,
+          host: share.host,
+          target: share.target
+        });
+        if (idx === -1) {
+          changed = true;
+        }
+      }
+      else {
+        if (idx !== -1) {
+          changed = true;
+        }
+      }
+      if (idx !== -1) {
+        this._shares.splice(idx, 1);
+      }
+      return acc;
+    }, []);
+    this._shares = this._shares.concat(nshares);
+    return changed;
   },
 
   restart: async function(save) {
@@ -912,6 +933,24 @@ MinkeApp.getNetworks = function() {
     }
     return acc;
   }, [ { name: 'home' }]);
+}
+
+MinkeApp.getShareables = function() {
+  return MinkeApp.getApps().reduce((acc, app) => {
+    const shares = app._binds.reduce((shares, bind) => {
+      if (bind.shareable) {
+        shares.push(bind);
+      }
+      return shares;
+    }, []);
+    if (shares.length) {
+      acc.push({
+        app: app,
+        shares: shares
+      });
+    }
+    return acc;
+  }, []);
 }
 
 module.exports = MinkeApp;

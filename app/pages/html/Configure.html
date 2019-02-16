@@ -105,6 +105,21 @@
             </table>
           </div>
           {{/if}}
+          {{#if (eq type "Shareables")}}
+          <div class="action shareables pure-control-group">
+            <label class="description">{{description}}</label>
+            <div class="shares pure-u-16-24">
+              {{#each shareables}}
+              {{#each shares}}
+              <div class="share">
+                <label class="description">{{target}}</label>
+                <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
+              </div>
+              {{/each}}
+              {{/each}}
+            </div>
+          </div>
+          {{/if}}
           {{else}}
           <div class="content-header">Nothing to configure</div>
           {{/each}}

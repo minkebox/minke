@@ -117,6 +117,9 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
+.configure .actions .share {
+  display: block;
+}
 
 .configure .skeleton .editor {
   height: 600px;
