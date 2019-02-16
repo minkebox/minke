@@ -94,13 +94,12 @@ async function MainPageWS(ctx) {
 
   const oldStatus = {};
   const onlines = {};
-  const oldNetworkStatus = {};
   const remoteApps = {};
 
   let apps = MinkeApp.getApps();
 
   function updateNetworkConfig(event) {
-    const networks = MinkeApp.getNetworks();
+    const networks = event.app.getAvailableNetworks();
     const html = appTemplate(genApp(event.app, networks));
     send({
       type: 'html.replace',
@@ -139,7 +138,7 @@ async function MainPageWS(ctx) {
   }
 
   function updateServices(status) {
-    const networks = MinkeApp.getNetworks();
+    const networks = status.app.getAvailableNetworks();
     const oldApps = remoteApps[status.app._id] || {};
     const existApps = {};
     const newApps = {};
@@ -190,7 +189,7 @@ async function MainPageWS(ctx) {
   }
 
   function createApp(status) {
-    const networks = MinkeApp.getNetworks();
+    const networks = status.app.getAvailableNetworks();
     const html = appTemplate(genApp(status.app, networks));
     send({
       type: 'html.append',
@@ -223,7 +222,7 @@ async function MainPageWS(ctx) {
   }
 
   function createNet(status) {
-    const html = netTemplate({ _id: status.network._id, name: status.network.name, index: MinkeApp.getNetworks().length - 1 });
+    const html = netTemplate({ _id: status.network._id, name: status.network.name, index: status.app.getAvailableNetworks().length - 1 });
     send({
       type: 'html.append',
       selector: `#network-insertion-point`,

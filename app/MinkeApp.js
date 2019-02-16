@@ -588,6 +588,19 @@ MinkeApp.prototype = {
     return changed;
   },
 
+  getAvailableNetworks: function()
+  {
+    return MinkeApp.getApps().reduce((acc, app) => {
+      if (app._willCreateNetwork() || (app === this && app._features.vpn)) {
+        acc.push({
+          _id: app._name.replace(/ /g, '-'),
+          name: app._name
+        });
+      }
+      return acc;
+    }, [ { name: 'home' } ]);
+  },
+
   restart: async function(save) {
     if (this._status === 'running') {
       await this.stop();
