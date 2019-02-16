@@ -112,7 +112,7 @@ async function ConfigurePageHTML(ctx) {
               return {
                 target: share.target,
                 host: share.host,
-                action: `window.action('${action.type}#${shareable.app._id}#${share.host}#${share.target}',this.checked)`,
+                action: `window.action('${action.type}#${shareable.app._id}#${share.host}#${action.name}/${share.target}',this.checked)`,
                 value: !!app._shares.find(ashare => ashare.appid === shareable.app._id && ashare.host == share.host)
               };
             })};
@@ -284,7 +284,7 @@ async function ConfigurePageWS(ctx) {
           shares.push({
             appid: match[1],
             host: match[2],
-            target: `/shareable/${match[3]}`,
+            target: match[3],
             shared: changes[property]
           });
         }
