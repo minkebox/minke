@@ -593,12 +593,12 @@ MinkeApp.prototype = {
     return MinkeApp.getApps().reduce((acc, app) => {
       if (app._willCreateNetwork() || (app === this && app._features.vpn)) {
         acc.push({
-          _id: app._name.replace(/ /g, '-'),
+          _id: Network.safeName(app._name),
           name: app._name
         });
       }
       return acc;
-    }, [ { name: 'home' } ]);
+    }, [ { _id: 'home', name: 'home' } ]);
   },
 
   restart: async function(save) {
@@ -940,12 +940,12 @@ MinkeApp.getNetworks = function() {
   return MinkeApp.getApps().reduce((acc, app) => {
     if (app._willCreateNetwork()) {
       acc.push({
-        _id: app._name.replace(/ /g, '-'),
+        _id: Network.safeName(app._name),
         name: app._name
       });
     }
     return acc;
-  }, [ { name: 'home' }]);
+  }, [ { _id: 'home', name: 'home' } ]);
 }
 
 MinkeApp.getShareables = function() {
