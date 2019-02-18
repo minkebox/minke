@@ -296,7 +296,7 @@ MinkeApp.prototype = {
         // If we're using a private network as primary, then we also select the X.X.X.2
         // address as both the default gateway and the dns server. The server at X.X.X.2
         // should be the creator (e.g. VPN client/server) for this network.
-        const vpn = await Network.getPrivateNetwork(primary === '__create' ? this._name : primary);
+        const vpn = await Network.getPrivateNetwork(primary === '__create' ? this._id : primary);
         config.HostConfig.NetworkMode = vpn.id;
         const dns = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
         config.Env.push(`__DNSSERVER=${dns}`);
@@ -394,7 +394,7 @@ MinkeApp.prototype = {
           }
           default:
           {
-            const vpn = await Network.getPrivateNetwork(secondary === '__create' ? this._name : secondary);
+            const vpn = await Network.getPrivateNetwork(secondary === '__create' ? this._id : secondary);
             await vpn.connect({
               Container: this._helperContainer.id
             });
@@ -593,7 +593,7 @@ MinkeApp.prototype = {
     return MinkeApp.getApps().reduce((acc, app) => {
       if (app._willCreateNetwork() || (app === this && app._features.vpn)) {
         acc.push({
-          _id: Network.safeName(app._name),
+          _id: app._id,
           name: app._name
         });
       }
@@ -653,7 +653,7 @@ MinkeApp.prototype = {
       services[name].forEach((service) => {
         const target = service.target.replace(/(.*).local/, '$1');
         const localapp = applications.find(app => app._safeName() === target);
-        if (localapp && (localapp._networks.primary === this._name || localapp._networks.secondary === this._name)) {
+        if (localapp && (localapp._networks.primary === this._id || localapp._networks.secondary === this._id)) {
           // Ignore local apps connected to this network
         }
         else {
@@ -940,7 +940,7 @@ MinkeApp.getNetworks = function() {
   return MinkeApp.getApps().reduce((acc, app) => {
     if (app._willCreateNetwork()) {
       acc.push({
-        _id: Network.safeName(app._name),
+        _id: app._id,
         name: app._name
       });
     }

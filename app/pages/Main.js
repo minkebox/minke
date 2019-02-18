@@ -12,10 +12,10 @@ function genApp(app, networks) {
     link: app._forward && app._forward.url,
     network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
       if (app._willCreateNetwork()) {
-        return net.name === app._name;
+        return net._id === app._id;
       }
       else {
-        return net.name === app._networks.primary;
+        return net._id === app._networks.primary;
       }
     })
   }
@@ -31,10 +31,10 @@ function genAppStatus(acc, app, networks) {
       running: app._status === 'running',
       network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
         if (app._willCreateNetwork()) {
-          return net.name === app._name;
+          return net._id === app._id;
         }
         else {
-          return net.name === app._networks.primary;
+          return net._id === app._networks.primary;
         }
       })
     });

@@ -24,9 +24,9 @@ const Network = {
     });
   },
 
-  getPrivateNetwork: async function(networkName) {
+  getPrivateNetwork: async function(networkId) {
     return await this._getNetwork({
-      Name: Network.safeName(networkName),
+      Name: networkId,
       CheckDuplicate: true,
       Driver: 'bridge'
     });
@@ -65,10 +65,6 @@ const Network = {
       CheckDuplicate: true,
       Driver: 'bridge'
     });
-  },
-
-  safeName: function(networkName) {
-    return networkName.replace(/[^a-zA-Z0-9]/g, '');
   },
 
   _getNetwork: Barrier(async function(config) {
