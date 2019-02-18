@@ -202,7 +202,6 @@ MinkeApp.prototype = {
       Image: this._image,
       HostConfig: {
         Mounts: this._fs.getAllMounts(),
-        AutoRemove: true,
         Devices: [],
         CapAdd: []
       },
@@ -329,7 +328,6 @@ MinkeApp.prototype = {
         Image: Images.MINKE_HELPER,
         HostConfig: {
           NetworkMode: config.HostConfig.NetworkMode,
-          AutoRemove: true,
           CapAdd: [ 'NET_ADMIN' ],
           ExtraHosts: config.HostConfig.ExtraHosts,
           Dns: config.HostConfig.Dns,
@@ -508,10 +506,12 @@ MinkeApp.prototype = {
     catch (_) {
     }
     try {
-      this._networkMonitor.stop();
-      this._networkMonitor = null;
-      this.off('update.network.status', this._updateNetworkStatus);
-      this._remoteServices = null;
+      if (this._networkMonitor) {
+        this._networkMonitor.stop();
+        this._networkMonitor = null;
+        this.off('update.network.status', this._updateNetworkStatus);
+        this._remoteServices = null;
+      }
     }
     catch (_) {
     }
@@ -538,20 +538,52 @@ MinkeApp.prototype = {
     }
     this._homeIP = null;
 
+    // Stop everything
     const stopping = [];
     if (this._helperContainer) {
       stopping.push(this._helperContainer.stop());
-      this._helperContainer = null;
     }
     if (this._container) {
       stopping.push(this._container.stop());
-      this._container = null;
     }
     try {
       await Promise.all(stopping.map(stop => stop.catch(e => console.log(e)))); // Ignore exceptions
     }
     catch (_) {
     }
+
+    // Log everything
+    await new Promise((resolve) => {
+      if (this._container) {
+        const log = await this._container.logs({
+          follow: false,
+          stdout: true,
+          stderr: true
+        });
+        function logStream() {
+          return {
+            write: function(chunk) {
+              chunk.toString('utf8');
+              // Don't do anything with the output yet
+            }
+          }
+        }
+        docker.modem.demuxStream(log, logStream, logStream);
+        log.on('end', resolve);
+      }
+    });
+
+    // Remove everything
+    const removing = [];
+    if (this._container) {
+      removing.push(this._container.remove());
+      this._container = null;
+    }
+    if (this._helperContainer) {
+      removing.push(this._helperContainer.remove());
+      this._helperContainer = null;
+    }
+    await Promise.all(removing.map(rm => rm.catch(e => console.log(e)))); // Ignore exceptions
 
     this._fs = null;
 
@@ -588,8 +620,7 @@ MinkeApp.prototype = {
     return changed;
   },
 
-  getAvailableNetworks: function()
-  {
+  getAvailableNetworks: function() {
     return MinkeApp.getApps().reduce((acc, app) => {
       if (app._willCreateNetwork() || (app === this && app._features.vpn)) {
         acc.push({
