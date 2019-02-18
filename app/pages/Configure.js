@@ -109,10 +109,11 @@ async function ConfigurePageHTML(ctx) {
         {
           const shareables = MinkeApp.getShareables().map((shareable) => {
             return { shares: shareable.shares.map((share) => {
+              const target = `${shareable.app._name}.${share.target}`.replace(/\//g, '.');
               return {
-                target: share.target,
+                target: target,
                 host: share.host,
-                action: `window.action('${action.type}#${shareable.app._id}#${share.host}#${action.name}/${shareable.app._name}.${share.target}',this.checked)`,
+                action: `window.action('${action.type}#${shareable.app._id}#${share.host}#${action.name}/${target}',this.checked)`,
                 value: !!app._shares.find(ashare => ashare.appid === shareable.app._id && ashare.host == share.host)
               };
             })};
