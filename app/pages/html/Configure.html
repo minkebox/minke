@@ -61,7 +61,11 @@
           {{#if (eq type "File")}}
           <div class="action file pure-control-group">
             <label class="description">{{description}}</label>
+            {{#if (eq style "Download")}}
+            <input class="value" type="button" {{#unless value}}disabled{{/unless}}>
+            {{else if (eq style "Inline")}}
             <div class="value pure-input-rounded pure-u-16-24" spellcheck="false" contenteditable="true" oninput="{{action}}">{{value}}</div>
+            {{/if}}
           </div>
           {{/if}}
           {{#if (eq type "NAT")}}
