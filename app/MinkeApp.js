@@ -553,23 +553,34 @@ MinkeApp.prototype = {
     }
 
     // Log everything
-    await new Promise((resolve) => {
+    await new Promise(async (resolve) => {
       if (this._container) {
         const log = await this._container.logs({
           follow: false,
           stdout: true,
           stderr: true
         });
-        function logStream() {
-          return {
-            write: function(chunk) {
-              chunk.toString('utf8');
-              // Don't do anything with the output yet
+        let outlog = '';
+        let errlog = '';
+        docker.modem.demuxStream(log,
+          {
+            write: (chunk) => {
+              outlog += chunk.toString('utf8');
+            }
+          },
+          {
+            write: (chunk) => {
+              errlog += chunk.toString('utf8');
             }
           }
-        }
-        docker.modem.demuxStream(log, logStream, logStream);
-        log.on('end', resolve);
+        );
+        log.on('end', () => {
+          this._fs.saveLogs(outlog, errlog);
+          resolve();
+        });
+      }
+      else {
+        resolve();
       }
     });
 

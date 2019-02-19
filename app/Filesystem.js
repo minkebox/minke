@@ -97,6 +97,12 @@ Filesystem.prototype = {
       }
     };
     rmAll(this._root);
+  },
+
+  saveLogs: function(stdout, stderr) {
+    FS.mkdirSync(`${this._root}/logs`, { recursive: true });
+    FS.writeFileSync(`${this._root}/logs/stdout.txt`, stdout);
+    FS.writeFileSync(`${this._root}/logs/stderr.txt`, stderr);
   }
 
 }
