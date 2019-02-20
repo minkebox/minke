@@ -1,4 +1,5 @@
 const FS = require('fs');
+const Path = require('path');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Skeletons = require('../skeletons/Skeletons');
@@ -109,7 +110,7 @@ async function ConfigurePageHTML(ctx) {
         {
           const shareables = MinkeApp.getShareables().map((shareable) => {
             return { shares: shareable.shares.map((share) => {
-              const target = `${shareable.app._name}.${share.target}`.replace(/\//g, '.');
+              const target = Path.normalize(`${shareable.app._name}/${share.target}`).replace(/\//g, '.');
               return {
                 target: target,
                 host: share.host,
