@@ -556,7 +556,7 @@ MinkeApp.prototype = {
     await new Promise(async (resolve) => {
       if (this._container) {
         const log = await this._container.logs({
-          follow: false,
+          follow: true,
           stdout: true,
           stderr: true
         });
@@ -907,10 +907,12 @@ MinkeApp.startApps = async function(app) {
   await Promise.all(applications.map(async (app) => {
     let idx = runningNames.indexOf(`/${app._safeName()}__${app._id}`);
     if (idx !== -1) {
+      console.log('stopping', runningNames[idx]);
       await docker.getContainer(running[idx].Id).remove({ force: true });
     }
     idx = runningNames.indexOf(`/helper-${app._safeName()}__${app._id}`);
     if (idx !== -1) {
+      console.log('stopping', runningNames[idx]);
       await docker.getContainer(running[idx].Id).remove({ force: true });
     }
   }));
