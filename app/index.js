@@ -41,6 +41,10 @@ App.listen(80);
   await MinkeApp.startApps(App);
 })();
 
+process.on('uncaughtException', (e) => {
+  console.error(e)   
+});
+
 process.on('SIGINT', async () => {
   await MinkeApp.shutdown();
   process.exit();
