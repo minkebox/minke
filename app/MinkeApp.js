@@ -659,7 +659,7 @@ MinkeApp.prototype = {
 
   getAvailableNetworks: function() {
     return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
-      return app._willCreateNetwork() || (app === this && this._features.vpn) ? { _id: app._id, name: app._name } : null;
+      return (app && app._willCreateNetwork()) || (app === this && this._features.vpn) ? { _id: app._id, name: app._name } : null;
     }));
   },
 
@@ -1020,7 +1020,7 @@ MinkeApp.getApps = function() {
 
 MinkeApp.getNetworks = function() {
   return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
-    return app._willCreateNetwork() ? { _id: app._id, name: app._name } : null;
+    return app && app._willCreateNetwork() ? { _id: app._id, name: app._name } : null;
   }));
 }
 
