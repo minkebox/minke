@@ -69,7 +69,7 @@ MinkeApp.prototype = {
       }
     }
 
-    this._id = undefined;
+    this._id = Database.newAppId();
     this._name = name;
     this._image = skel.image,
   
@@ -119,7 +119,7 @@ MinkeApp.prototype = {
           r[prop.name] = defs.networks[prop.name];
         }
         else {
-          r[prop.name] = prop.defaultValue || 'none';
+          r[prop.name] = (prop.defaultValue === '__create' ? this._id : prop.defaultValue) || 'none';
         }
       }
       return r;
@@ -184,6 +184,7 @@ MinkeApp.prototype = {
       }
       return r;
     }, []);
+    this._shares = [];
     this._monitor = skel.monitor;
 
     return this;
@@ -233,7 +234,7 @@ MinkeApp.prototype = {
         config.Env.push(`__HOST_INTERFACE=eth${netid++}`);
         break;
       default:
-        if (primary === '__create') {
+        if (primary === this._id) {
           console.error('Cannot create a VPN as primary network');
         }
         else {
@@ -295,7 +296,7 @@ MinkeApp.prototype = {
         // If we're using a private network as primary, then we also select the X.X.X.2
         // address as both the default gateway and the dns server. The server at X.X.X.2
         // should be the creator (e.g. VPN client/server) for this network.
-        const vpn = await Network.getPrivateNetwork(primary === '__create' ? this._id : primary);
+        const vpn = await Network.getPrivateNetwork(primary);
         config.HostConfig.NetworkMode = vpn.id;
         const dns = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
         config.Env.push(`__DNSSERVER=${dns}`);
@@ -392,7 +393,7 @@ MinkeApp.prototype = {
           }
           default:
           {
-            const vpn = await Network.getPrivateNetwork(secondary === '__create' ? this._id : secondary);
+            const vpn = await Network.getPrivateNetwork(secondary);
             await vpn.connect({
               Container: this._helperContainer.id
             });
@@ -633,7 +634,7 @@ MinkeApp.prototype = {
 
   getAvailableNetworks: function() {
     return MinkeApp.getApps().reduce((acc, app) => {
-      if (app._willCreateNetwork() || (app === this && app._features.vpn)) {
+      if ((app === this && app._features.vpn) || app._willCreateNetwork()) {
         acc.push({
           _id: app._id,
           name: app._name
@@ -763,7 +764,7 @@ MinkeApp.prototype = {
   },
 
   _willCreateNetwork: function() {
-    return (this._networks.primary === '__create' || this._networks.secondary === '__create');
+    return (this._networks.primary === this._id || this._networks.secondary === this._id);
   },
 
   _setupUpdateListeners: function() {
@@ -966,12 +967,11 @@ MinkeApp.shutdown = async function() {
 
 MinkeApp.create = async function(image) {
   const app = new MinkeApp().createFromSkeleton(await Skeletons.loadSkeleton(image, true));
-  app._id = Database.newAppId();
   applications.push(app);
   await app.save();
   MinkeApp.emit('app.create', { app: app });
   if (app._willCreateNetwork()) {
-    MinkeApp.emit('net.create', { network: { _id: app._id, name: app._name }});
+    MinkeApp.emit('net.create', { app: app, network: { _id: app._id, name: app._name }});
   }
   return app;
 }
