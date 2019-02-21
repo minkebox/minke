@@ -87,7 +87,7 @@ async function ConfigurePageHTML(ctx) {
           if (file && app._fs) {
             app._fs.readFile(file);
           }
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.innerText)`, value: file ? file.data : '' }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.innerText)`, value: file ? file.data : '', filename: Path.basename(action.name) }, action);
         }
         case 'Table':
         {

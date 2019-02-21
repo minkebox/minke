@@ -62,7 +62,17 @@
           <div class="action file pure-control-group">
             <label class="description">{{description}}</label>
             {{#if (eq style "Download")}}
-            <input class="value" type="button" {{#unless value}}disabled{{/unless}}>
+            {{#if value}}
+            <a id="{{name}}" class="pure-button pure-button-active">Download</a>
+            <script>
+              const a = document.getElementById("{{name}}");
+              const url = URL.createObjectURL(new Blob([ `{{{value}}}` ], { type: 'text/plain' }));
+              a.href = url;
+              a.download = "{{filename}}";
+            </script>
+            {{else}}
+            <input class="pure-button pure-button-active" type="button" disabled value="Download">
+            {{/if}}
             {{else if (eq style "Inline")}}
             <div class="value pure-input-rounded pure-u-16-24" spellcheck="false" contenteditable="true" oninput="{{action}}">{{value}}</div>
             {{/if}}
