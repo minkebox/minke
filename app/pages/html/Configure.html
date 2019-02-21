@@ -79,7 +79,9 @@
             <label class="description">{{description}}</label>
             <select onchange="{{action}}">
               {{#each networks}}
+              {{#if _id}}
               <option value="{{_id}}" {{#if (eq ../value _id)}}selected{{/if}}>{{name}}</option>
+              {{/if}}
               {{/each}}
             </select>
           </div>

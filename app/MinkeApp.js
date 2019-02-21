@@ -12,6 +12,7 @@ const Skeletons = require('./skeletons/Skeletons');
 
 let applications = null;
 let koaApp = null;
+let networkApps = null;
 
 function MinkeApp() {
   EventEmitter.call(this);
@@ -499,6 +500,9 @@ MinkeApp.prototype = {
 
       this._setStatus('running');
 
+      if (this._features.vpn) {
+        MinkeApp.emit('net.create', { app: this });
+      }
     }
     catch (e) {
 
@@ -618,6 +622,10 @@ MinkeApp.prototype = {
 
     this._setStatus('stopped');
 
+    if (this._features.vpn) {
+      MinkeApp.emit('net.create', { app: this });
+    }
+
     return this;
   },
 
@@ -650,21 +658,9 @@ MinkeApp.prototype = {
   },
 
   getAvailableNetworks: function() {
-    return MinkeApp.getApps().reduce((acc, app) => {
-      /*if ((app === this && app._features.vpn) || app._willCreateNetwork()) {
-        acc.push({
-          _id: app._id,
-          name: app._name
-        });
-      }*/
-      if (app._features.vpn) {
-        acc.push({
-          _id: app._id,
-          name: app._name
-        });
-      }
-      return acc;
-    }, [ { _id: 'home', name: 'home' } ]);
+    return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
+      return app._willCreateNetwork() || (app === this && this._features.vpn) ? { _id: app._id, name: app._name } : null;
+    }));
   },
 
   restart: async function(save) {
@@ -686,6 +682,10 @@ MinkeApp.prototype = {
     const idx = applications.indexOf(this);
     if (idx !== -1) {
       applications.splice(idx, 1);
+      const nidx = networkApps.indexOf(this);
+      if (nidx !== -1) {
+        networkApps[nidx] = null;
+      }
     }
     const fs = this._fs; // This will be nulled when we stop.
     if (this._status === 'running') {
@@ -926,6 +926,13 @@ MinkeApp.startApps = async function(app) {
   applications = (await Database.getApps()).map((json) => {
     return new MinkeApp().createFromJSON(json);
   });
+  // And networks
+  networkApps = applications.reduce((acc, app) => {
+    if (app._features.vpn) {
+      acc.push(app);
+    }
+    return acc;
+  }, []);
 
   // Stop apps if they're still running
   await Promise.all(applications.map(async (app) => {
@@ -991,11 +998,19 @@ MinkeApp.shutdown = async function() {
 MinkeApp.create = async function(image) {
   const app = new MinkeApp().createFromSkeleton(await Skeletons.loadSkeleton(image, true));
   applications.push(app);
+  if (app._features.vpn) {
+    const idx = networkApps.indexOf(null);
+    if (idx !== -1) {
+      networkApps[idx] = app;
+    }
+    else {
+      networkApps.push(app);
+    }
+    MinkeApp.emit('net.create', { app: app });
+  }
   await app.save();
   MinkeApp.emit('app.create', { app: app });
-  if (app._willCreateNetwork()) {
-    MinkeApp.emit('net.create', { app: app, network: { _id: app._id, name: app._name }});
-  }
+
   return app;
 }
 
@@ -1004,15 +1019,9 @@ MinkeApp.getApps = function() {
 }
 
 MinkeApp.getNetworks = function() {
-  return MinkeApp.getApps().reduce((acc, app) => {
-    if (app._willCreateNetwork()) {
-      acc.push({
-        _id: app._id,
-        name: app._name
-      });
-    }
-    return acc;
-  }, [ { _id: 'home', name: 'home' } ]);
+  return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
+    return app._willCreateNetwork() ? { _id: app._id, name: app._name } : null;
+  }));
 }
 
 MinkeApp.getShareables = function() {

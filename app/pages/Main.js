@@ -11,7 +11,10 @@ function genApp(app, networks) {
     ip: app._status === 'running' && !app._willCreateNetwork() ? app._homeIP : null,
     link: app._forward && app._forward.url,
     network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
-      if (app._willCreateNetwork()) {
+      if (!net) {
+        return false;
+      }
+      else if (app._willCreateNetwork()) {
         return net._id === app._id;
       }
       else {
@@ -30,7 +33,10 @@ function genAppStatus(acc, app, networks) {
       link: app._forward && app._forward.url,
       running: app._status === 'running',
       network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
-        if (app._willCreateNetwork()) {
+        if (!net) {
+          return false;
+        }
+        else if (app._willCreateNetwork()) {
           return net._id === app._id;
         }
         else {
@@ -46,13 +52,12 @@ let mainTemplate;
 let remoteAppTemplate;
 let appTemplate;
 let appStatusTemplate;
-let netTemplate;
 let netsTemplate;
 function registerTemplates() {
   const partials = [
     'App',
     'AppStatus',
-    'Net'
+    'Nets'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -61,8 +66,7 @@ function registerTemplates() {
   remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
   appTemplate = Handlebars.compile('{{> App}}');
   appStatusTemplate = Handlebars.compile('{{> AppStatus}}');
-  netTemplate = Handlebars.compile('{{> Net}}');
-  netsTemplate = Handlebars.compile('{{#each networks}}{{> Net}}{{/each}}');
+  netsTemplate = Handlebars.compile('{{> Nets}}');
 }
 if (!DEBUG) {
   registerTemplates();
@@ -138,7 +142,7 @@ async function MainPageWS(ctx) {
   }
 
   function updateServices(status) {
-    const networks = status.app.getAvailableNetworks();
+    const networks = MinkeApp.getNetworks();
     const oldApps = remoteApps[status.app._id] || {};
     const existApps = {};
     const newApps = {};
@@ -147,7 +151,7 @@ async function MainPageWS(ctx) {
         existApps[service.name] = oldApps[service.name];
       }
       else {
-        newApps[service.name] = { netid: status.app._id, name: service.target, network: networks.findIndex(net => net.name === status.app._name) };
+        newApps[service.name] = { netid: status.app._id, name: service.target, network: networks.findIndex(net => net._id === status.app._id) };
         existApps[service.name] = newApps[service.name];
       }
       delete oldApps[service.name];
@@ -167,11 +171,6 @@ async function MainPageWS(ctx) {
         html: remoteAppTemplate(newApps[name])
       });
     }
-    send({
-      type: 'html.update',
-      selector: '#network-insertion-point',
-      html: netsTemplate({ networks: networks })
-    });
   }
 
   function online(app) {
@@ -221,12 +220,11 @@ async function MainPageWS(ctx) {
     apps = MinkeApp.getApps();
   }
 
-  function createNet(status) {
-    const html = netTemplate({ _id: status.network._id, name: status.network.name, index: status.app.getAvailableNetworks().length - 1 });
+  function updateNets(status) {
     send({
-      type: 'html.append',
-      selector: `#network-insertion-point`,
-      html: html
+      type: 'html.update',
+      selector: '#network-insertion-point',
+      html: netsTemplate({ networks: MinkeApp.getNetworks() })
     });
   }
 
@@ -245,7 +243,7 @@ async function MainPageWS(ctx) {
     apps.forEach(app => offline(app));
     MinkeApp.off('app.create', createApp);
     MinkeApp.off('app.remove', removeApp);
-    MinkeApp.off('net.create', createNet);
+    MinkeApp.off('net.create', updateNets);
     MinkeApp.off('net.remove', removeNet);
   });
 
@@ -256,7 +254,7 @@ async function MainPageWS(ctx) {
   apps.forEach(app => online(app));
   MinkeApp.on('app.create', createApp);
   MinkeApp.on('app.remove', removeApp);
-  MinkeApp.on('net.create', createNet);
+  MinkeApp.on('net.create', updateNets);
   MinkeApp.on('net.remove', removeNet);
 }
 
