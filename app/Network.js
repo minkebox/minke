@@ -44,7 +44,10 @@ const Network = {
       IPAM: {
         Config: [{
           Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
-          Gateway: iface.network.ip_address // Dont use gateway_ip
+          Gateway: iface.network.ip_address, // Dont use gateway_ip - set that using aux. This sets the host IP address.
+          AuxiliaryAddresses: {
+            DefaultGatewayIPv4: iface.network.gateway_ip
+          }
         }]
       },
       Options: {
