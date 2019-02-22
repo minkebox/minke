@@ -6,6 +6,12 @@ const Skeletons = require('../skeletons/Skeletons');
 
 let template;
 function registerTemplates() {
+  const partials = [
+    'Table'
+  ];
+  partials.forEach((partial) => {
+    Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
+  });
   template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Configure.html`, { encoding: 'utf8' }));
 }
 if (!DEBUG) {
@@ -26,12 +32,6 @@ async function ConfigurePageHTML(ctx) {
   if (!skeleton) {
     console.error(`Failed to load skeleton: ${app._image}`);
   }
-
-  const env = app._env.reduce((acc, key) => {
-    const kv = key.split('=');
-    acc[kv[0]] = kv[1];
-    return acc;
-  }, {});
 
   let nextid = 100;
   const visibles = {};
@@ -58,8 +58,8 @@ async function ConfigurePageHTML(ctx) {
         case 'Environment':
         {
           const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
-          properties[`${action.type}#${action.name}`] = env[action.name];
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: env[action.name], options: property.options }, action);
+          properties[`${action.type}#${action.name}`] = app._env[action.name].value;
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: app._env[action.name].value, options: property.options }, action);
         }
         case 'Share':
         {
@@ -84,27 +84,28 @@ async function ConfigurePageHTML(ctx) {
         case 'File':
         {
           const file = app._files.find(file => file.target === action.name);
-          if (file && app._fs) {
-            app._fs.readFile(file);
+          if (action.style === 'Table') {
+            let value = null;
+            try {
+              value = JSON.parse(file.data);
+              const hlen = action.headers.length;
+              value.forEach((v) => {
+                while (v.length < hlen) {
+                  v.push('');
+                }
+              });
+            }
+            catch (_) {
+            }
+            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
           }
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.innerText)`, value: file ? file.data : '', filename: Path.basename(action.name) }, action);
-        }
-        case 'Table':
-        {
-          const file = app._files.find(file => file.target === action.name);
-          let value = null;
-          try {
-            value = JSON.parse(file.data);
-            const hlen = action.headers.length;
-            value.forEach((v) => {
-              while (v.length < hlen) {
-                v.push('');
-              }
-            });
+          else {
+            if (file && app._fs) {
+              app._fs.readFile(file);
+            }
+            const value = file ? file.data : '';
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.innerText)`, value: value, filename: Path.basename(action.name) }, action);
           }
-          catch (_) {
-          }
-          return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
         }
         case 'Shareables':
         {
@@ -153,6 +154,26 @@ async function ConfigurePageWS(ctx) {
   const SKELCHANGE = 2;
   const SHARECHANGE = 4;
 
+  function getAltData(app, name, value) {
+    const skeleton = Skeletons.loadSkeleton(app._image, false);
+    if (skeleton) {
+      const action = skeleton.actions.find(action => action.name === name);
+      if (action && action.style === 'Table') {
+        const table = JSON.parse(value);
+        value = [];
+        table.forEach((row) => {
+          let line = action.pattern || '{{0}}';
+          for (let i = 0; i < row.length; i++) {
+            line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), row[i]);
+          }
+          value.push(line);
+        });
+        return value.join(action.join || '\n');
+      }
+    }
+    return null;
+  }
+
   const patterns = [
     { p: /^Name$/, f: (value, match) => {
       if (app._name != value) {
@@ -170,13 +191,19 @@ async function ConfigurePageWS(ctx) {
       return NOCHANGE;
     }},
     { p: /^Environment#(.+)$/, f: (value, match) => {
-      const key = `${match[1]}=`;
-      const idx = app._env.findIndex(env => env.indexOf(key) === 0);
-      if (idx !== -1) {
-        if (app._env[idx] !== `${key}${value}`) {
-          app._env[idx] = `${key}${value}`;
-          return APPCHANGE;
+      const key = match[1];
+      const altValue = getAltData(app, key, value);
+      const r = app._env[key] ? app._env[key] : { value: undefined };
+      if (r.value !== value) {
+        r.value = value;
+        if (altValue !== null) {
+          r.altValue = altValue;
         }
+        else {
+          delete r.altValue;
+        }
+        app._env[key] = r;
+        return APPCHANGE;
       }
       return NOCHANGE;
     }},
@@ -220,35 +247,12 @@ async function ConfigurePageWS(ctx) {
       const file = app._files.find(file => file.target === filename);
       if (file) {
         file.data = value;
-        delete file.altData;
-        if (app._fs) {
-          app._fs.makeFile(file);
+        const altData = getAltData(app, filename, value);
+        if (altData !== null) {
+          file.altData = altData;
         }
-        return APPCHANGE;
-      }
-      return NOCHANGE;
-    }},
-    { p: /^Table#(.+)$/, f: (value, match) => {
-      const filename = match[1];
-      const file = app._files.find(file => file.target === filename);
-      if (file) {
-        file.data = value;
-        delete file.altData;
-        const skeleton = Skeletons.loadSkeleton(app._image, false);
-        if (skeleton) {
-          const action = skeleton.actions.find(action => action.name === filename);
-          if (action && action.pattern) {
-            const table = JSON.parse(value);
-            value = [];
-            table.forEach((row) => {
-              let line = action.pattern;
-              for (let i = 0; i < row.length; i++) {
-                line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), row[i]);
-              }
-              value.push(line);
-            });
-            file.altData = value.join('\n');
-          }
+        else {
+          delete file.altData;
         }
         if (app._fs) {
           app._fs.makeFile(file);

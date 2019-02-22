@@ -87,22 +87,19 @@ MinkeApp.prototype = {
   
     this._env = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Environment') {
-        if (defs.env) {
-          const key = `${prop.name}=`;
-          const found = defs.env.find(env => env.indexOf(key) === 0);
-          if (found) {
-            r.push(found);
-          }
-          else {
-            r.push(`${prop.name}=${prop.defaultValue || ''}`);
-          }
+        const found = (defs.env || {})[prop.name];
+        if (found) {
+          r[prop.name] = found;
         }
         else {
-          r.push(`${prop.name}=${prop.defaultValue || ''}`);
+          r[prop.name] = { value: prop.defaultValue || '' };
+          if ('defaultAltValue' in prop) {
+            r[prop.name].altValue = prop.defaultAltValue;
+          }
         }
       }
       return r;
-    }, []);
+    }, {});
     this._features = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Feature') {
         if (defs.features && prop.name in defs.features) {
@@ -208,7 +205,7 @@ MinkeApp.prototype = {
           Devices: [],
           CapAdd: []
         },
-        Env: [].concat(this._env)
+        Env: Object.keys(this._env).map(key => `${key}=${'altValue' in this._env[key] ? this._env[key].altValue : this._env[key].value}`)
       };
 
       // Create network environment
@@ -908,6 +905,7 @@ MinkeApp.startApps = async function(app) {
 
   // Get our IP
   MinkeApp._network = await Network.getActiveInterface();
+  console.log(JSON.stringify(MinkeApp._network, null, 2));
 
   if (MinkeApp._container) {
     const homenet = await Network.getManagementNetwork();

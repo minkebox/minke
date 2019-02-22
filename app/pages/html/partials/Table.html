@@ -1,0 +1,20 @@
+<table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24" oninput="saveTable('{{action}}',this)" onclick="addRmTableRow('{{action}}',window.event)">
+  <thead>
+    <tr>
+      {{#each headers}}
+      <th>{{this}}</th>
+      {{/each}}
+      {{#if controls}}<th class="control"><span class="add">+</span></th>{{/if}}
+    </tr>
+  </thead>
+  <tbody>
+    {{#each value}}
+    <tr>
+      {{#each this}}
+      <td contenteditable="true">{{this}}</td>
+      {{/each}}
+      {{#if ../controls}}<td class="control"><span class="remove">&minus;</span></td>{{/if}}
+    </tr>
+    {{/each}}
+  </tbody>
+</table>

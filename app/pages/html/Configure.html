@@ -28,13 +28,14 @@
           </div>
           <div class="section visible" {{#if id}}id="{{id}}"{{/if}}>
           <div class="content-header">{{title}}</div>
-          {{/if}}
-          {{#if (eq type "Text")}}
+          {{else if (eq type "Text")}}
           <div class="content-text">{{text}}</div>
-          {{/if}}
-          {{#if (eq type "Environment")}}
+          {{else if (eq type "Environment")}}
           <div class="action environment pure-control-group">
             <label class="description">{{description}}</label>
+            {{#if (eq style "Table")}}
+            {{> Table}}
+            {{else}}
             {{#if options}}
             <select class="value" onchange="{{action}}">
               {{#each options}}
@@ -44,22 +45,20 @@
             {{else}}
             <input class="pure-input-rounded pure-u-16-24 value" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
             {{/if}}
+            {{/if}}
           </div>
-          {{/if}}
-          {{#if (eq type "Argument")}}
+          {{else if (eq type "Argument")}}
           <div class="action argument pure-control-group">
             <label class="description">{{description}}</label>
             <input class="value" type="text" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
           </div>
-          {{/if}}
-          {{#if (eq type "Share")}}
+          {{else if (eq type "Share")}}
           <div class="action share pure-control-group">
             <label class="description">{{description}}</label>
             <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
           </div>
-          {{/if}}
-          {{#if (eq type "File")}}
-          <div class="action file pure-control-group">
+          {{else if (eq type "File")}}
+          <div class="action file table pure-control-group">
             <label class="description">{{description}}</label>
             {{#if (eq style "Download")}}
             {{#if value}}
@@ -75,16 +74,16 @@
             {{/if}}
             {{else if (eq style "Inline")}}
             <div class="value pure-input-rounded pure-u-16-24" spellcheck="false" contenteditable="true" oninput="{{action}}">{{value}}</div>
+            {{else if (eq style "Table")}}
+            {{> Table}}
             {{/if}}
           </div>
-          {{/if}}
-          {{#if (eq type "NAT")}}
+          {{else if (eq type "NAT")}}
           <div class="action nat pure-control-group">
             <label class="description">{{description}}</label>
             <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
           </div>
-          {{/if}}
-          {{#if (eq type "Network")}}
+\         {{else if (eq type "Network")}}
           <div class="action network pure-control-group">
             <label class="description">{{description}}</label>
             <select onchange="{{action}}">
@@ -95,33 +94,7 @@
               {{/each}}
             </select>
           </div>
-          {{/if}}
-          {{#if (eq type "Table")}}
-          <div class="action table pure-control-group">
-            <label class="description">{{description}}</label>
-            <table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24" oninput="saveTable('{{action}}',this)" onclick="addRmTableRow('{{action}}',window.event)">
-              <thead>
-                <tr>
-                  {{#each headers}}
-                  <th>{{this}}</th>
-                  {{/each}}
-                  {{#if controls}}<th class="control"><span class="add">+</span></th>{{/if}}
-                </tr>
-              </thead>
-              <tbody>
-                {{#each value}}
-                <tr>
-                  {{#each this}}
-                  <td contenteditable="true">{{this}}</td>
-                  {{/each}}
-                  {{#if ../controls}}<td class="control"><span class="remove">&minus;</span></td>{{/if}}
-                </tr>
-                {{/each}}
-              </tbody>
-            </table>
-          </div>
-          {{/if}}
-          {{#if (eq type "Shareables")}}
+          {{else if (eq type "Shareables")}}
           <div class="action shareables pure-control-group">
             <label class="description">{{description}}</label>
             <div class="shares pure-u-16-24">
