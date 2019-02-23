@@ -1,9 +1,12 @@
+const EventEmitter = require('events').EventEmitter;
+const Util = require('util');
 const Images = require('./Images');
 const DNSForward = require('./DNSForward');
 const Database = require('./Database');
-const MinkeApp = require('./MinkeApp');
 
 function MinkeSetup(savedConfig, config) {
+
+  EventEmitter.call(this);
 
   savedConfig = savedConfig || {};
 
@@ -21,9 +24,9 @@ function MinkeSetup(savedConfig, config) {
   };
   this._monitor = {};
   this._env = {
-    HOSTNAME: getEnv('HOSTNAME'),
     LOCALDOMAIN: getEnv('LOCALDOMAIN'),
     IPADDRESS: getEnv('IPADDRESS'),
+    NETMASK: getEnv('NETMASK'),
     GATEWAY: getEnv('GATEWAY'),
     DNSSERVER1: getEnv('DNSSERVER1'),
     DNSSERVER2 : getEnv('DNSSERVER2'),
@@ -31,7 +34,7 @@ function MinkeSetup(savedConfig, config) {
     NTPSERVER: getEnv('NTPSERVER'),
     ADMINMODE: getEnv('ADMINMODE')
   };
-  this._name = this._env.HOSTNAME.value;
+  this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
 
   this._setupDNS();
@@ -43,6 +46,8 @@ MinkeSetup.prototype = {
   },
 
   stop: async function() {
+    this._status = 'shutting down';
+    this.emit('update.status', { app: this, status: this._status });
   },
 
   restart: async function() {
@@ -63,18 +68,16 @@ MinkeSetup.prototype = {
     await Database.saveConfig(config);
   },
 
+  getAvailableNetworks: function() {
+    return [];
+  },
+
   _safeName: function() {
     return this._name;
   },
 
   _willCreateNetwork: function() {
     return false;
-  },
-
-  on: function() {
-  },
-
-  off: function() {
   },
 
   getAdminMode: function() {
@@ -89,5 +92,7 @@ MinkeSetup.prototype = {
   }
 
 }
+
+Util.inherits(MinkeSetup, EventEmitter);
 
 module.exports = MinkeSetup;

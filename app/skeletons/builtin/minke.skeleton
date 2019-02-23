@@ -9,17 +9,7 @@
     },
     {
       type: 'Text',
-      text: 'Select the hostname, local domain name, and IP address for this device'
-    },
-    {
-      type: 'Environment',
-      name: 'HOSTNAME',
-      description: 'Hostname'
-    },
-    {
-      type: 'Environment',
-      name: 'LOCALDOMAIN',
-      description: 'Local domain name'
+      text: 'Set the IP address, netmask, gateway and the local domain name for this device. Set the hostname by changing the name at the top/right'
     },
     {
       type: 'Environment',
@@ -28,8 +18,18 @@
     },
     {
       type: 'Environment',
+      name: 'NETMASK',
+      description: 'Netmask'
+    },
+    {
+      type: 'Environment',
       name: 'GATEWAY',
       description: 'Gateway'
+    },
+    {
+      type: 'Environment',
+      name: 'LOCALDOMAIN',
+      description: 'Local domain name'
     },
     {
       type: 'Header',
@@ -85,6 +85,10 @@
     {
       type: 'Environment',
       name: 'IPADDRESS'
+    },
+    {
+      type: 'Environment',
+      name: 'NETMASK'
     },
     {
       type: 'Environment',

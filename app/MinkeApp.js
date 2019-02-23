@@ -937,6 +937,7 @@ MinkeApp.startApps = async function(app) {
     LOCALDOMAIN: 'home',
     IPADDRESS: MinkeApp._network.network.ip_address,
     GATEWAY: MinkeApp._network.network.gateway_ip,
+    NETMASK: MinkeApp._network.netmask.mask,
     DNSSERVER1: '1.1.1.1',
     DNSSERVER2: '1.0.0.1',
     TIMEZONE: Moment.tz.guess(),

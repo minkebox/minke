@@ -63,7 +63,7 @@ body {
   display: block;
 }
 .configure .content {
-  padding: 2em 3em 0;
+  padding: 2em 3em;
 }
 .configure .content-header {
   text-transform: uppercase;

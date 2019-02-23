@@ -11,7 +11,7 @@
       {{#with skeleton}}
       <div class="sidebar pure-u-1">
         <div class="header">            
-          <div class="name" {{#unless ../minkeConfig}}contenteditable="true"{{/unless}} placeholder="{{name}}" oninput="action('Name',this.innerText)">{{value}}</div>
+          <div class="name" contenteditable="true" placeholder="{{name}}" oninput="action('Name',this.innerText)">{{value}}</div>
           <h2 class="description">{{description}}</h2>
           <nav>
             {{#unless ../minkeConfig}}
