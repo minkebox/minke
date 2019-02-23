@@ -18,7 +18,8 @@
     {
       type: `File`,
       description: `Drop your .ovpn configuration file here`,
-      name: `/etc/openvpn/config.ovpn`
+      name: `/etc/openvpn/config.ovpn`,
+      style: `Inline`
     }
   ],
   properties: [

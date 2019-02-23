@@ -3,12 +3,13 @@
   description: `Samba File Server`,
   image: `registry.gitlab.com/minkebox/samba`,
   actions: [
+    {
+      type: `Shareables`,
+      name: `/shareable`,
+      description: `Select what we should share`
+    }
   ],
   properties: [
-    {
-      type: `Directory`,
-      name: `/shareable`
-    },
     {
       type: `Directory`,
       name: `/etc/status`

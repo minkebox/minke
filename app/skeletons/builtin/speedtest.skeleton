@@ -22,7 +22,7 @@
     },
     {
       type: `Environment`,
-      description: `Number of minutes between tests`,
+      description: `Comma seperated list of minutes in the hour to run the test. (e.g. 0,30 runs the test on the hour and half hour)`,
       name: `CRONJOB_ITERATION`
     },
     {
@@ -60,7 +60,7 @@
     {
       type: `Environment`,
       name: `CRONJOB_ITERATION`,
-      defaultValue: 60
+      defaultValue: 0
     },
     {
       type: `Directory`,

@@ -12,9 +12,10 @@
       text: `Enter the range of IP addresses issued by this server.`
     },
     {
-      type: `Table`,
+      type: `File`,
       name: `/etc/dnsmasq.d/dhcp-ranges.conf`,
       description: `Address Ranges`,
+      style: `Table`,
       headers: [
         `Start IP`,
         `End IP`,
@@ -32,9 +33,10 @@
       text: `Reserve individual IP addresses for specific hosts based on their MAC addresses.`
     },
     {
-      type: `Table`,
+      type: `File`,
       name: `/etc/dnsmasq-hosts.d/user-defined-hosts.conf`,
       description: `Reserved Addresses`,
+      style: `Table`,
       headers: [
         `Hostname`,
         `MAC Address`,
@@ -92,8 +94,8 @@
     {
       type: `File`,
       name: `/etc/dnsmasq.d/dhcp-ranges.conf`,
-      defaultValue: `[["","","1h"]]`,
-      defaultAltValue: ``
+      defaultAltValue: `[["","","1h"]]`,
+      defaultValue: ``
     },
     {
       type: `Network`,

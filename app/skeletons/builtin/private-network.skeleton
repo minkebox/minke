@@ -19,22 +19,24 @@
     {
       type: `Header`,
       title: `Server`,
-      visible: `property['Environment.MODE'] == 'SERVER'`
+      visible: `property['Environment#MODE'] == 'SERVER'`
     },
     {
       type: `File`,
       description: `Generated client private network configuration file`,
-      name: `/etc/config.ovpn`
+      name: `/etc/config.ovpn`,
+      style: `Download`
     },
     {
       type: `Header`,
       title: `Client`,
-      visible: `property['Environment.MODE'] == 'CLIENT'`
+      visible: `property['Environment#MODE'] == 'CLIENT'`
     },
     {
       type: `File`,
       description: `Drop your private network configuration file here`,
-      name: `/etc/config.ovpn`
+      name: `/etc/config.ovpn`,
+      style: `Inline`
     }
   ],
   properties: [

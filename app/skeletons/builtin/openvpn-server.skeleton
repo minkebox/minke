@@ -1,0 +1,50 @@
+{
+  name: `Simple VPN`,
+  description: `Super simpler VPN to connect to your home network`,
+  image: `registry.gitlab.com/minkebox/openvpn-server`,
+  actions: [
+    {
+      type: `Network`,
+      name: `secondary`
+    },
+    {
+      type: `File`,
+      description: `Generated client configuration file`,
+      name: `/etc/config.ovpn`,
+      style: `Download`
+    }
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `vpn`,
+      defaultValue: true
+    },
+    {
+      type: `Directory`,
+      name: `/etc/openvpn`
+    },
+    {
+      type: `File`,
+      name: `/etc/config.ovpn`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      defaultValue: `none`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    state: null,
+    parser: ``,
+    template: ``
+  }
+}
