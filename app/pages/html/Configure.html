@@ -11,12 +11,14 @@
       {{#with skeleton}}
       <div class="sidebar pure-u-1">
         <div class="header">            
-          <div class="name" contenteditable="true" placeholder="{{name}}" oninput="action('Name',this.innerText)">{{value}}</div>
+          <div class="name" {{#unless ../minkeConfig}}contenteditable="true"{{/unless}} placeholder="{{name}}" oninput="action('Name',this.innerText)">{{value}}</div>
           <h2 class="description">{{description}}</h2>
           <nav>
+            {{#unless ../minkeConfig}}
             <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
             <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
             <a class="pure-button" data-popbox-target="delete">Delete</a>
+            {{/unless}}
           </nav>
         </div>
       </div>

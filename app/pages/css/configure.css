@@ -26,6 +26,9 @@ body {
   font-weight: 300;
   color: rgb(176, 202, 219);
 }
+.sidebar nav {
+  height: 47px;
+}
 .sidebar nav a {
   background: transparent;
   border: 2px solid rgb(176, 202, 219);
@@ -50,6 +53,7 @@ body {
   border: 0px;
   border-bottom: 2px solid rgb(176, 202, 219);
   outline: none;
+  white-space: pre;
 }
 
 .configure .section {

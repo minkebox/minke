@@ -8,14 +8,16 @@ const DNSMASQ_CONFIG_DIR = (process.env.DEBUG ? '/tmp/' : `${ETC}dnsmasq.d/`);
 const DNSMASQ_RESOLV = `${DNSMASQ_CONFIG_DIR}resolv.conf`;
 
 let dns = null;
-let defaultResolver = '';
+let primaryResolver = '';
+let secondaryResolver = '';
 const resolvers = {};
 const cacheSize = 256;
 
 const DNSForward = {
 
-  setDefaultResolver: function(resolver) {
-    defaultResolver = resolver ? `server=${resolver}#53\n` : '';
+  setDefaultResolver: function(resolver1, resolver2) {
+    primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
+    secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
     DNSForward._updateResolv();
     DNSForward._restart();
   },
@@ -52,7 +54,7 @@ const DNSForward = {
 
   _updateResolv: function() {
     // Note. DNS servers are checked in reverse order
-    FS.writeFileSync(DNSMASQ_RESOLV, `${defaultResolver}\n${Object.values(resolvers).map((resolve) => {
+    FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
       return `server=${resolve.IP4Address}#${resolve.Port}`;
     }).join('\n')}`);
   },

@@ -2,6 +2,7 @@ const FS = require('fs');
 const Path = require('path');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
+const Images = require('../Images');
 const Skeletons = require('../skeletons/Skeletons');
 
 let template;
@@ -131,7 +132,9 @@ async function ConfigurePageHTML(ctx) {
       }
     })
   }
-  ctx.body = template({ adminMode: MinkeApp.adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
+  const minkeConfig = app._image == Images.MINKE;
+  const adminMode = minkeConfig ? false : MinkeApp.adminMode;
+  ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
     visibles: '[' + Object.keys(visibles).map((key) => {
       return `function() { const c = document.getElementById("${key}").classList; if (${visibles[key]}) { c.add("visible"); } else { c.remove("visible"); } }`;
     }).join(',') + ']'

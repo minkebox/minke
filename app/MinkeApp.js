@@ -1,6 +1,7 @@
 const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
 const Path = require('path');
+const Moment = require('moment-timezone');
 const HTTPForward = require('./HTTPForward');
 const DNSForward = require('./DNSForward');
 const Network = require('./Network');
@@ -8,6 +9,7 @@ const Filesystem = require('./Filesystem');
 const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
+const MinkeSetup = require('./MinkeSetup');
 const Skeletons = require('./skeletons/Skeletons');
 
 let applications = null;
@@ -626,40 +628,6 @@ MinkeApp.prototype = {
     return this;
   },
 
-  updateShares: function(shares) {
-    let changed = false;
-    const nshares = shares.reduce((acc, share) => {
-      const idx = this._shares.findIndex(oshare => oshare.appid === share.appid && oshare.host === share.host);
-      if (share.shared) {
-        acc.push({
-          appid: share.appid,
-          host: share.host,
-          target: share.target
-        });
-        if (idx === -1) {
-          changed = true;
-        }
-      }
-      else {
-        if (idx !== -1) {
-          changed = true;
-        }
-      }
-      if (idx !== -1) {
-        this._shares.splice(idx, 1);
-      }
-      return acc;
-    }, []);
-    this._shares = this._shares.concat(nshares);
-    return changed;
-  },
-
-  getAvailableNetworks: function() {
-    return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
-      return (app && app._willCreateNetwork()) || (app === this && this._features.vpn) ? { _id: app._id, name: app._name } : null;
-    }));
-  },
-
   restart: async function(save) {
     if (this._status === 'running') {
       await this.stop();
@@ -697,6 +665,40 @@ MinkeApp.prototype = {
     if (this._willCreateNetwork()) {
       MinkeApp.emit('net.remove', { network: { _id: this._id, name: this._name } });
     }
+  },
+
+  updateShares: function(shares) {
+    let changed = false;
+    const nshares = shares.reduce((acc, share) => {
+      const idx = this._shares.findIndex(oshare => oshare.appid === share.appid && oshare.host === share.host);
+      if (share.shared) {
+        acc.push({
+          appid: share.appid,
+          host: share.host,
+          target: share.target
+        });
+        if (idx === -1) {
+          changed = true;
+        }
+      }
+      else {
+        if (idx !== -1) {
+          changed = true;
+        }
+      }
+      if (idx !== -1) {
+        this._shares.splice(idx, 1);
+      }
+      return acc;
+    }, []);
+    this._shares = this._shares.concat(nshares);
+    return changed;
+  },
+
+  getAvailableNetworks: function() {
+    return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
+      return (app && app._willCreateNetwork()) || (app === this && this._features.vpn) ? { _id: app._id, name: app._name } : null;
+    }));
   },
 
   _monitorNetwork: function() {
@@ -930,6 +932,16 @@ MinkeApp.startApps = async function(app) {
     }
     return acc;
   }, []);
+  // Setup at the top
+  applications.unshift(new MinkeSetup(await Database.getConfig('minke'), {
+    HOSTNAME: 'Minke',
+    LOCALDOMAIN: 'home',
+    IPADDRESS: MinkeApp._network.network.ip_address,
+    DNSSERVER1: '1.1.1.1',
+    DNSSERVER2: '1.0.0.1',
+    TIMEZONE: Moment.tz.guess(),
+    NTPSERVER: 'time.google.com'
+  }));
 
   // Stop apps if they're still running
   await Promise.all(applications.map(async (app) => {
@@ -944,9 +956,6 @@ MinkeApp.startApps = async function(app) {
       await docker.getContainer(running[idx].Id).remove({ force: true });
     }
   }));
-
-  // Hardwired default resolver
-  DNSForward.setDefaultResolver('1.1.1.1');
 
   // Start up any DHCP servers.
   await Promise.all(applications.map(async (app) => {

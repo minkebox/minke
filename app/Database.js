@@ -3,6 +3,7 @@ const FS = require('fs');
 
 const DB_PATH = process.env.DEBUG ? '/home/minke/db' : '/minke/db';
 const DB_APPS = `${DB_PATH}/apps.db`;
+const DB_CONFIG = `${DB_PATH}/config.db`;
 const DB_COMPACT_SEC = 60 * 60 * 24; // Every day
 //const DB_COMPACT_SEC = 10;
 
@@ -29,10 +30,20 @@ const Database = {
 
     Database._apps = new DB({ filename: DB_APPS, autoload: true });
     Database._apps.persistence.setAutocompactionInterval(DB_COMPACT_SEC * 1000);
+    Database._config = new DB({ filename: DB_CONFIG, autoload: true });
+    Database._config.persistence.setAutocompactionInterval(DB_COMPACT_SEC * 1000);
+  },
+
+  getConfig: async function(id) {
+    return await this._findOne(Database._config, { _id: id });
+  },
+
+  saveConfig: async function(configJson) {
+    await this._update(Database._config, { _id: configJson._id }, configJson, { upsert: true });
   },
 
   getApps: async function() {
-    return this._find(Database._apps, {});
+    return await this._find(Database._apps, {});
   },
 
   saveApp: async function(appJson) {
