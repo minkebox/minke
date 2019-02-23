@@ -82,7 +82,7 @@ async function MainPageHTML(ctx) {
   const networks = MinkeApp.getNetworks();
   const apps = MinkeApp.getApps().map(app => genApp(app, networks));
   const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app, networks), []);
-  ctx.body = mainTemplate({ adminMode: MinkeApp.adminMode, networks: networks, apps: apps, statuses: statuses });
+  ctx.body = mainTemplate({ adminMode: MinkeApp.getAdminMode(), networks: networks, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
 }
 

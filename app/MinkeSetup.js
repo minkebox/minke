@@ -1,6 +1,7 @@
 const Images = require('./Images');
 const DNSForward = require('./DNSForward');
 const Database = require('./Database');
+const MinkeApp = require('./MinkeApp');
 
 function MinkeSetup(savedConfig, config) {
 
@@ -25,7 +26,8 @@ function MinkeSetup(savedConfig, config) {
     DNSSERVER1: getEnv('DNSSERVER1'),
     DNSSERVER2 : getEnv('DNSSERVER2'),
     TIMEZONE: getEnv('TIMEZONE'),
-    NTPSERVER: getEnv('NTPSERVER')
+    NTPSERVER: getEnv('NTPSERVER'),
+    ADMINMODE: getEnv('ADMINMODE')
   };
   this._name = this._env.HOSTNAME.value;
   this._homeIP = this._env.IPADDRESS.value;
@@ -50,6 +52,7 @@ MinkeSetup.prototype = {
     const config = {
       DNSSERVER1: null,
       DNSSERVER2: null,
+      ADMINMODE: null
     };
     for (let key in config) {
       config[key] = this._env[key].value;
@@ -70,6 +73,10 @@ MinkeSetup.prototype = {
   },
 
   off: function() {
+  },
+
+  getAdminMode: function() {
+    return this._env.ADMINMODE.value === 'ENABLED';
   },
 
   _setupDNS: function() {

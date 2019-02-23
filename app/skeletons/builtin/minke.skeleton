@@ -61,6 +61,15 @@
       type: 'Environment',
       name: 'NTPSERVER',
       description: 'Time Server'
+    },
+    {
+      type: 'Header',
+      title: 'Advanced'
+    },
+    {
+      type: 'Environment',
+      name: 'ADMINMODE',
+      description: 'Admin Mode'
     }
   ],
   properties: [
@@ -83,6 +92,14 @@
     {
       type: 'Environment',
       name: 'NTPSERVER'
+    },
+    {
+      type: 'Environment',
+      name: 'ADMINMODE',
+      options: [
+        { name: 'Disabled', value: 'DISABLED' },
+        { name: 'Enabled', value: 'ENABLED' }
+      ]
     },
     {
       type: 'Environment',

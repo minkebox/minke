@@ -1,6 +1,7 @@
 const FS = require('fs');
 const Path = require('path');
 const Glob = require('fast-glob');
+const Images = require('../Images');
 
 const LOCALS_DIR = `${__dirname}/local`;
 const BUILTINS_DIR = `${__dirname}/builtin`;
@@ -160,11 +161,13 @@ function loadSkeleton(image, create) {
 function catalog() {
   const cat = {};
   for (let image in Builtins) {
-    cat[image] = {
-      name: Builtins[image].name,
-      description: Builtins[image].description,
-      image: image
-    };
+    if (image !== Images.MINKE) {
+      cat[image] = {
+        name: Builtins[image].name,
+        description: Builtins[image].description,
+        image: image
+      };
+    }
   }
   const locals = Glob.sync([ `${LOCALS_DIR}/*.skeleton`, `${LOCALS_DIR}/*/*.skeleton`, `${LOCALS_DIR}/*/*/*.skeleton` ]);
   locals.forEach((file) => {

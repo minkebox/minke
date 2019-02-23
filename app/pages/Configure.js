@@ -133,7 +133,7 @@ async function ConfigurePageHTML(ctx) {
     })
   }
   const minkeConfig = app._image == Images.MINKE;
-  const adminMode = minkeConfig ? false : MinkeApp.adminMode;
+  const adminMode = minkeConfig ? false : MinkeApp.getAdminMode();
   ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
     visibles: '[' + Object.keys(visibles).map((key) => {
       return `function() { const c = document.getElementById("${key}").classList; if (${visibles[key]}) { c.add("visible"); } else { c.remove("visible"); } }`;

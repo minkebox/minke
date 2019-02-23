@@ -15,6 +15,7 @@ const Skeletons = require('./skeletons/Skeletons');
 let applications = null;
 let koaApp = null;
 let networkApps = null;
+let setup = null;
 
 function MinkeApp() {
   EventEmitter.call(this);
@@ -834,8 +835,6 @@ Object.assign(MinkeApp, {
   emit: (evt, data) => { return MinkeApp._events.emit(evt, data); },
 });
 
-MinkeApp.adminMode = true;
-
 MinkeApp._monitorEvents = async function() {
   const stream = await docker.getEvents({});
   await new Promise(() => {
@@ -933,15 +932,17 @@ MinkeApp.startApps = async function(app) {
     return acc;
   }, []);
   // Setup at the top
-  applications.unshift(new MinkeSetup(await Database.getConfig('minke'), {
+  setup = new MinkeSetup(await Database.getConfig('minke'), {
     HOSTNAME: 'Minke',
     LOCALDOMAIN: 'home',
     IPADDRESS: MinkeApp._network.network.ip_address,
     DNSSERVER1: '1.1.1.1',
     DNSSERVER2: '1.0.0.1',
     TIMEZONE: Moment.tz.guess(),
-    NTPSERVER: 'time.google.com'
-  }));
+    NTPSERVER: 'time.google.com',
+    ADMINMODE: 'DISABLED'
+  });
+  applications.unshift(setup);
 
   // Stop apps if they're still running
   await Promise.all(applications.map(async (app) => {
@@ -990,6 +991,10 @@ MinkeApp.startApps = async function(app) {
       console.error(e);
     }
   }));
+}
+
+MinkeApp.getAdminMode = function() {
+  return setup ? setup.getAdminMode() : false;
 }
 
 MinkeApp.shutdown = async function() {
