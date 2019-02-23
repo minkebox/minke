@@ -15,6 +15,7 @@ function MinkeSetup(savedConfig, config) {
   this._image = Images.MINKE;
   this._status = 'running';
   this._features = {};
+  this._binds = [];
   this._networks = {
     primary: 'host'
   };
