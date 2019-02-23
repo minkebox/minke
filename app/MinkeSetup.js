@@ -24,6 +24,7 @@ function MinkeSetup(savedConfig, config) {
     HOSTNAME: getEnv('HOSTNAME'),
     LOCALDOMAIN: getEnv('LOCALDOMAIN'),
     IPADDRESS: getEnv('IPADDRESS'),
+    GATEWAY: getEnv('GATEWAY'),
     DNSSERVER1: getEnv('DNSSERVER1'),
     DNSSERVER2 : getEnv('DNSSERVER2'),
     TIMEZONE: getEnv('TIMEZONE'),

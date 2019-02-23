@@ -936,10 +936,11 @@ MinkeApp.startApps = async function(app) {
     HOSTNAME: 'Minke',
     LOCALDOMAIN: 'home',
     IPADDRESS: MinkeApp._network.network.ip_address,
+    GATEWAY: MinkeApp._network.network.gateway_ip,
     DNSSERVER1: '1.1.1.1',
     DNSSERVER2: '1.0.0.1',
     TIMEZONE: Moment.tz.guess(),
-    NTPSERVER: 'time.google.com',
+    NTPSERVER: 'pool.ntp.org',
     ADMINMODE: 'DISABLED'
   });
   applications.unshift(setup);

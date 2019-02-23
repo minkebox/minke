@@ -27,8 +27,13 @@
       description: 'IP Address'
     },
     {
+      type: 'Environment',
+      name: 'GATEWAY',
+      description: 'Gateway'
+    },
+    {
       type: 'Header',
-      title: 'DNS Settings'
+      title: 'DNS'
     },
     {
       type: 'Text',
@@ -80,6 +85,10 @@
     {
       type: 'Environment',
       name: 'IPADDRESS'
+    },
+    {
+      type: 'Environment',
+      name: 'GATEWAY'
     },
     {
       type: 'Environment',
