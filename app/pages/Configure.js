@@ -85,17 +85,19 @@ async function ConfigurePageHTML(ctx) {
         {
           const file = app._files.find(file => file.target === action.name);
           if (action.style === 'Table') {
-            let value = null;
-            try {
-              value = JSON.parse(file.data);
-              const hlen = action.headers.length;
-              value.forEach((v) => {
-                while (v.length < hlen) {
-                  v.push('');
-                }
-              });
-            }
-            catch (_) {
+            let value = [];
+            if (file && file.altData) {
+              try {
+                value = JSON.parse(file.altData);
+                const hlen = action.headers.length;
+                value.forEach((v) => {
+                  while (v.length < hlen) {
+                    v.push('');
+                  }
+                });
+              }
+              catch (_) {
+              }
             }
             return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
           }
@@ -154,7 +156,7 @@ async function ConfigurePageWS(ctx) {
   const SKELCHANGE = 2;
   const SHARECHANGE = 4;
 
-  function getAltData(app, name, value) {
+  function getTableData(app, name, value) {
     const skeleton = Skeletons.loadSkeleton(app._image, false);
     if (skeleton) {
       const action = skeleton.actions.find(action => action.name === name);
@@ -192,18 +194,21 @@ async function ConfigurePageWS(ctx) {
     }},
     { p: /^Environment#(.+)$/, f: (value, match) => {
       const key = match[1];
-      const altValue = getAltData(app, key, value);
+      const tableValue = getTableData(app, key, value);
       const r = app._env[key] ? app._env[key] : { value: undefined };
-      if (r.value !== value) {
-        r.value = value;
-        if (altValue !== null) {
-          r.altValue = altValue;
+      if (tableValue !== null) {
+        if (r.value !== tableValue) {
+          r.value = tableValue;
+          r.altValue = value;
+          return APPCHANGE;
         }
-        else {
+      }
+      else {
+        if (r.value !== value) {
+          r.value = value;
           delete r.altValue;
+          return APPCHANGE;
         }
-        app._env[key] = r;
-        return APPCHANGE;
       }
       return NOCHANGE;
     }},
@@ -246,18 +251,27 @@ async function ConfigurePageWS(ctx) {
       const filename = match[1];
       const file = app._files.find(file => file.target === filename);
       if (file) {
-        file.data = value;
-        const altData = getAltData(app, filename, value);
-        if (altData !== null) {
-          file.altData = altData;
+        const tableValue = getTableData(app, filename, value);
+        if (tableValue !== null) {
+          if (file.data !== tableValue) {
+            file.data = tableValue;
+            file.altData = value;
+            if (app._fs) {
+              app._fs.makeFile(file);
+            }
+            return APPCHANGE;
+          }
         }
         else {
-          delete file.altData;
+          if (file.data !== value) {
+            file.data = value;
+            delete file.altData;
+            if (app._fs) {
+              app._fs.makeFile(file);
+            }
+            return APPCHANGE;
+          }
         }
-        if (app._fs) {
-          app._fs.makeFile(file);
-        }
-        return APPCHANGE;
       }
       return NOCHANGE;
     }},

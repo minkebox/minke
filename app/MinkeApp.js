@@ -205,7 +205,7 @@ MinkeApp.prototype = {
           Devices: [],
           CapAdd: []
         },
-        Env: Object.keys(this._env).map(key => `${key}=${'altValue' in this._env[key] ? this._env[key].altValue : this._env[key].value}`)
+        Env: Object.keys(this._env).map(key => `${key}=${this._env[key].value}`)
       };
 
       // Create network environment
@@ -905,7 +905,6 @@ MinkeApp.startApps = async function(app) {
 
   // Get our IP
   MinkeApp._network = await Network.getActiveInterface();
-  console.log(JSON.stringify(MinkeApp._network, null, 2));
 
   if (MinkeApp._container) {
     const homenet = await Network.getManagementNetwork();
