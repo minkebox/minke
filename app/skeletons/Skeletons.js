@@ -70,8 +70,8 @@ async function imageToSkeleton(image) {
       cmd: '',
       watch: '',
       polling: 0,
-      state: null,
       parser: '',
+      header: '',
       template: ''
     }
   }

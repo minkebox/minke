@@ -104,11 +104,32 @@
     }
   ],
   monitor: {
-    cmd: ``,
-    watch: ``,
-    polling: 0,
-    state: null,
-    parser: ``,
-    template: ``
+    cmd: `cat /etc/dnsmasq-state.d/leases`,
+    watch: `/etc/dnsmasq-state.d/leases`,
+    polling: 600,
+    parser: `
+      const now = Math.floor(Date.now() / 1000);
+      const times = input.split('\\n').map(line => parseInt(line.split(' ')[0]) - now);
+      output = {
+        active: times.reduce((acc, time) => acc += (time > 0) ? 1 : 0, 0),
+        lapsed: times.reduce((acc, time) => acc += (time < 0) ? 1 : 0, 0)
+      };
+      output.total = output.active + output.lapsed;
+    `,
+    header: `
+      <style>
+        .dhcp-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
+        .dhcp-b { color: grey; text-align: right; padding: 0 5px 10px 0; }
+        .dhcp-v { display: inline-block; font-size: 24px; color: black; }
+        .dhcp-r { display: inline-block; font-size: 16px; color: black; }
+      </style>
+    `,
+    template: `
+      <div class="dhcp-o">
+        <div class="dhcp-b"><div class="dhcp-v">{{active}}</div><div>Active Leases</div></div>
+        <div class="dhcp-b"><div class="dhcp-v">{{lapsed}}</div><div>Lapsed</div></div>
+        <div class="dhcp-b"><div class="dhcp-v">{{total}}</div><div>Total</div></div>
+      </div>
+    `
   }
 }

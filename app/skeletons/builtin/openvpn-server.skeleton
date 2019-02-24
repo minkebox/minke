@@ -4,12 +4,20 @@
   image: `registry.gitlab.com/minkebox/openvpn-server`,
   actions: [
     {
-      type: `Network`,
-      name: `secondary`
+      type: `Header`,
+      title: `Client Configuration`
+    },
+    {
+      type: `Text`,
+      text: `The VPN will generate a client configuration file which anyone can use to connect to your network. It can be used by any number of people or machines, and requires no password. Guard it well!.`
+    },
+    {
+      type: `Text`,
+      text: `This can take a while to generate and the download button will be blue once it is available.`
     },
     {
       type: `File`,
-      description: `Generated client configuration file`,
+      description: `Download the configuration file`,
       name: `/etc/config.ovpn`,
       style: `Download`
     }
