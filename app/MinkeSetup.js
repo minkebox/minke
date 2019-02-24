@@ -100,6 +100,9 @@ MinkeSetup.prototype = {
   },
 
   _setupTimezone: function() {
+    if (DEBUG) {
+      return false;
+    }
     const timezone = this._env.TIMEZONE.value;
     const oldtimezone = FS.readFileSync('/etc/timezone').toString('utf8');
     const zonefile = `/usr/share/zoneinfo/${timezone}`;
