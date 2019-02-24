@@ -1,9 +1,10 @@
 FROM alpine:edge
 
 COPY app/ /app
+COPY etc/ /etc
 COPY startup.sh /startup.sh
 
-RUN apk --no-cache add nodejs nodejs-npm dnsmasq tzdata; \
+RUN apk --no-cache add nodejs nodejs-npm dnsmasq tzdata openntpd; \
     cd /app ; npm install ; \
     apk --no-cache del nodejs-npm
 

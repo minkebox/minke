@@ -1,3 +1,4 @@
+const FS = require('fs');
 const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
 const Images = require('./Images');
@@ -31,13 +32,13 @@ function MinkeSetup(savedConfig, config) {
     DNSSERVER1: getEnv('DNSSERVER1'),
     DNSSERVER2 : getEnv('DNSSERVER2'),
     TIMEZONE: getEnv('TIMEZONE'),
-    NTPSERVER: getEnv('NTPSERVER'),
     ADMINMODE: getEnv('ADMINMODE')
   };
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
 
   this._setupDNS();
+  this._setupTimezone();
 }
 
 MinkeSetup.prototype = {
@@ -53,6 +54,7 @@ MinkeSetup.prototype = {
   restart: async function() {
     this.save();
     this._setupDNS();
+    this._setupTimezone();
   },
 
   save: async function() {
@@ -60,7 +62,6 @@ MinkeSetup.prototype = {
       LOCALDOMAIN: null,
       DNSSERVER1: null,
       DNSSERVER2: null,
-      NTPSERVER: null,
       ADMINMODE: null
     };
     for (let key in config) {
@@ -90,15 +91,24 @@ MinkeSetup.prototype = {
     return this._env.LOCALDOMAIN.value;
   },
 
-  getNtpServer: function() {
-    return this._env.NTPSERVER.value;
-  },
-
   _setupDNS: function() {
     DNSForward.setDefaultResolver(
       this._env.DNSSERVER1.value,
       this._env.DNSSERVER2.value
     );
+    return true;
+  },
+
+  _setupTimezone: function() {
+    const timezone = this._env.TIMEZONE.value;
+    const oldtimezone = FS.readFileSync('/etc/timezone').toString('utf8');
+    const zonefile = `/usr/share/zoneinfo/${timezone}`;
+    if (oldtimezone != timezone && FS.existsSync(zonefile)) {
+      FS.copyFileSync(zonefile, '/etc/localtime');
+      FS.writeFileSync('/etc/timezone', timezone);
+      return true;
+    }
+    return false;
   }
 
 }

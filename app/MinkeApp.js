@@ -279,7 +279,6 @@ MinkeApp.prototype = {
           config.Env.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
           config.Env.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
           config.Env.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
-          config.Env.push(`__NTPSERVER=${MinkeApp.getNtpServer()}`);
           config.HostConfig.Dns = [ MinkeApp._network.network.ip_address ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
@@ -294,7 +293,6 @@ MinkeApp.prototype = {
           config.Env.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
           config.Env.push(`__HOSTIP=${this._homeIP}`);
           config.Env.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
-          config.Env.push(`__NTPSERVER=${MinkeApp.getNtpServer()}`);
           break;
         }
         default:
@@ -945,7 +943,6 @@ MinkeApp.startApps = async function(app) {
     DNSSERVER1: '1.1.1.1',
     DNSSERVER2: '1.0.0.1',
     TIMEZONE: Moment.tz.guess(),
-    NTPSERVER: 'pool.ntp.org',
     ADMINMODE: 'DISABLED'
   });
   applications.unshift(setup);
@@ -1005,10 +1002,6 @@ MinkeApp.getAdminMode = function() {
 
 MinkeApp.getLocalDomainName = function() {
   return setup ? setup.getLocalDomainName() : '';
-}
-
-MinkeApp.getNtpServer = function() {
-  return setup ? setup.getNtpServer() : '';
 }
 
 MinkeApp.shutdown = async function() {

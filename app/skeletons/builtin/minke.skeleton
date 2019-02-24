@@ -55,17 +55,12 @@
     },
     {
       type: 'Text',
-      text: 'Select the timezone and time server'
+      text: 'Select the timezone'
     },
     {
       type: 'Environment',
       name: 'TIMEZONE',
       description: 'Timezone',
-    },
-    {
-      type: 'Environment',
-      name: 'NTPSERVER',
-      description: 'Time Server'
     },
     {
       type: 'Header',
@@ -101,10 +96,6 @@
     {
       type: 'Environment',
       name: 'DNSSERVER2'
-    },
-    {
-      type: 'Environment',
-      name: 'NTPSERVER'
     },
     {
       type: 'Environment',

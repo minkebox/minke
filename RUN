@@ -10,7 +10,7 @@
 MINKE_IP=192.168.11.14
 docker container rm minke
 docker run --name minke -d --privileged \
-  -v /etc/timezone:/etc/timezone:ro \
+  -v /home/minke/etc/timezone:/etc/timezone \
   -v /var/run/docker.sock:/var/run/docker.sock \
   --mount type=bind,source=/home/minke/fs,target=/minke/fs,bind-propagation=rshared \
   --mount type=bind,source=/home/minke/db,target=/minke/db,bind-propagation=rshared \
