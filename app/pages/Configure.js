@@ -36,7 +36,9 @@ async function ConfigurePageHTML(ctx) {
 
   let nextid = 100;
   const visibles = {};
-  const properties = {};
+  const properties = {
+    AdminMode: MinkeApp.getAdminMode()
+  };
   const nskeleton = {
     name: skeleton.name,
     value: app._name,

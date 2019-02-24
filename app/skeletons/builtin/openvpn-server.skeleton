@@ -5,6 +5,20 @@
   actions: [
     {
       type: `Header`,
+      title: `Network Selection`,
+      visible: `property['AdminMode'] == true`
+    },
+    {
+      type: `Text`,
+      text: `Select which network the incoming computers will be connected to. Usually you want the "home" network.`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      description: `Network`
+    },
+    {
+      type: `Header`,
       title: `Client Configuration`
     },
     {
