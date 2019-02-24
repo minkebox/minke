@@ -64,7 +64,7 @@
             <label class="description">{{description}}</label>
             {{#if (eq style "Download")}}
             {{#if value}}
-            <a id="{{name}}" class="pure-button pure-button-active">Download</a>
+            <a id="{{name}}" class="pure-button pure-button-primary">Download</a>
             <script>
               const a = document.getElementById("{{name}}");
               const url = URL.createObjectURL(new Blob([ `{{{value}}}` ], { type: 'text/plain' }));
