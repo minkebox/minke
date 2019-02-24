@@ -84,6 +84,14 @@ MinkeSetup.prototype = {
     return this._env.ADMINMODE.value === 'ENABLED';
   },
 
+  getLocalDomainName: function() {
+    return this._env.LOCALDOMAIN.value;
+  },
+
+  getNtpServer: function() {
+    return this._env.NTPSERVER.value;
+  },
+
   _setupDNS: function() {
     DNSForward.setDefaultResolver(
       this._env.DNSSERVER1.value,
