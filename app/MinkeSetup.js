@@ -57,8 +57,10 @@ MinkeSetup.prototype = {
 
   save: async function() {
     const config = {
+      LOCALDOMAIN: null,
       DNSSERVER1: null,
       DNSSERVER2: null,
+      NTPSERVER: null,
       ADMINMODE: null
     };
     for (let key in config) {
