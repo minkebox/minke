@@ -141,7 +141,7 @@ function install(app) {
 }
 
 document.addEventListener('drop', function(event) {
-  if (event.target.getAttribute('contenteditable') === 'true') {
+  if (event.target.getAttribute('contenteditable') === 'true' || event.target.nodeName === 'TEXTAREA') {
     event.stopPropagation();
     event.preventDefault();
     if (event.dataTransfer && event.dataTransfer && event.dataTransfer.items && event.dataTransfer.items[0]) {

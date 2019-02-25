@@ -104,7 +104,7 @@ async function ConfigurePageHTML(ctx) {
               app._fs.readFile(file);
             }
             const value = file ? file.data : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.innerText)`, value: value, filename: Path.basename(action.name) }, action);
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
           }
         }
         case 'Shareables':
