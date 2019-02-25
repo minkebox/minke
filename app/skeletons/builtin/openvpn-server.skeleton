@@ -1,6 +1,6 @@
 {
   name: `Simple VPN`,
-  description: `Super simpler VPN to connect to your home network`,
+  description: `Super simple VPN to connect to your home network`,
   image: `registry.gitlab.com/minkebox/openvpn-server`,
   actions: [
     {
