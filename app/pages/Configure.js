@@ -64,11 +64,6 @@ async function ConfigurePageHTML(ctx) {
           properties[`${action.type}#${action.name}`] = app._env[action.name].value;
           return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: app._env[action.name].value, options: property.options }, action);
         }
-        case 'Share':
-        {
-          const bind = app._binds.find(bind => bind.target === action.name) || { shared: false };
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: bind.shared }, action);
-        }
         case 'NAT':
         {
           const natport = app._ports.find(port => action.ports.indexOf(port.target) !== -1) || { nat: false };
@@ -115,15 +110,19 @@ async function ConfigurePageHTML(ctx) {
         case 'Shareables':
         {
           const shareables = MinkeApp.getShareables().map((shareable) => {
-            return { shares: shareable.shares.map((share) => {
-              const target = Path.normalize(`${shareable.app._name}/${share.target}`).replace(/\//g, '.');
-              return {
-                target: target,
-                host: share.host,
-                action: `window.action('${action.type}#${shareable.app._id}#${share.host}#${action.name}/${target}',this.checked)`,
-                value: !!app._shares.find(ashare => ashare.appid === shareable.app._id && ashare.host == share.host)
-              };
-            })};
+            return { shares: shareable.shares.reduce((shares, bind) => {
+              bind.shares.forEach((share) => {
+                const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
+                const host = Path.normalize(`${bind.host}/${share.name}/`).slice(0, -1);
+                shares.push({
+                  target: target,
+                  host: host,
+                  action: `window.action('${action.type}#${shareable.app._id}#${host}#${action.name}/${target}',this.checked)`,
+                  value: !!app._shares.find(ashare => ashare.appid === shareable.app._id && ashare.host == host)
+                });
+              });
+              return shares;
+            }, [])};
           });
           return Object.assign({ shareables: shareables }, action);
           break;
@@ -138,7 +137,7 @@ async function ConfigurePageHTML(ctx) {
   const adminMode = minkeConfig ? false : MinkeApp.getAdminMode();
   ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
     visibles: '[' + Object.keys(visibles).map((key) => {
-      return `function() { const c = document.getElementById("${key}").classList; if (${visibles[key]}) { c.add("visible"); } else { c.remove("visible"); } }`;
+      return `function() { const c = document.getElementById("${key}").classList; try { if (${visibles[key]}) { c.add("visible"); } else { c.remove("visible"); } } catch (_) { c.remove("visible"); } }`;
     }).join(',') + ']'
   });
   ctx.type = 'text/html'
@@ -212,19 +211,6 @@ async function ConfigurePageWS(ctx) {
         if (r.value !== value) {
           r.value = value;
           delete r.altValue;
-          return APPCHANGE;
-        }
-      }
-      return NOCHANGE;
-    }},
-    { p: /^Share#(.+)$/, f: (value, match) => {
-      const key = match[1];
-      value = !!value;
-      const bind = app._binds.find(bind => bind.target === key);
-      if (bind) {
-        if (value !== bind.shared) {
-          bind.shareable = value;
-          bind.shared = value;
           return APPCHANGE;
         }
       }
@@ -318,7 +304,7 @@ async function ConfigurePageWS(ctx) {
 
       const uapp = app;
 
-      if (Object.keys(shares).length) {
+      if (shares.length) {
         if (uapp.updateShares(shares)) {
           changed |= SHARECHANGE;
         }

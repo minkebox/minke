@@ -54,11 +54,6 @@
             <label class="description">{{description}}</label>
             <input class="value" type="text" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
           </div>
-          {{else if (eq type "Share")}}
-          <div class="action share pure-control-group">
-            <label class="description">{{description}}</label>
-            <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
-          </div>
           {{else if (eq type "File")}}
           <div class="action file table pure-control-group">
             <label class="description">{{description}}</label>

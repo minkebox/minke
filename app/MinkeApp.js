@@ -154,10 +154,9 @@ MinkeApp.prototype = {
         }
         else {
           r.push({
-            host: Path.normalize(`/dir/${prop.name}`),
+            host: Path.normalize(`/dir/${target}`),
             target: target,
-            shareable: prop.shareable || false,
-            shared: false,
+            shares: prop.shares || [],
             description: prop.description || target
           });
         }
@@ -1045,7 +1044,7 @@ MinkeApp.getNetworks = function() {
 MinkeApp.getShareables = function() {
   return MinkeApp.getApps().reduce((acc, app) => {
     const shares = app._binds.reduce((shares, bind) => {
-      if (bind.shareable) {
+      if (bind.shares && bind.shares.length) {
         shares.push(bind);
       }
       return shares;
