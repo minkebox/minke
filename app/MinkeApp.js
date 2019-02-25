@@ -562,17 +562,11 @@ MinkeApp.prototype = {
     this._homeIP = null;
 
     // Stop everything
-    const stopping = [];
-    if (this._helperContainer) {
-      stopping.push(this._helperContainer.stop());
-    }
     if (this._container) {
-      stopping.push(this._container.stop());
+      await this._container.stop();
     }
-    try {
-      await Promise.all(stopping.map(stop => stop.catch(e => console.log(e)))); // Ignore exceptions
-    }
-    catch (_) {
+    if (this._helperContainer) {
+      await this._helperContainer.stop();
     }
 
     // Log everything
