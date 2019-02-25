@@ -151,7 +151,7 @@ async function MainPageWS(ctx) {
         existApps[service.name] = oldApps[service.name];
       }
       else {
-        newApps[service.name] = { netid: status.app._id, name: service.target, network: networks.findIndex(net => net._id === status.app._id) };
+        newApps[service.name] = { netid: status.app._id, name: service.target, network: networks.findIndex(net => net && net._id === status.app._id) };
         existApps[service.name] = newApps[service.name];
       }
       delete oldApps[service.name];
