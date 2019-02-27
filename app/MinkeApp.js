@@ -904,9 +904,14 @@ MinkeApp.startApps = async function(app) {
 
   if (MinkeApp._container) {
     const homenet = await Network.getManagementNetwork();
-    await homenet.connect({
-      Container: MinkeApp._container.id
-    });
+    try {
+      await homenet.connect({
+        Container: MinkeApp._container.id
+      });
+    }
+    catch (e) {
+      console.error(e);
+    }
   }
 
   // Monitor docker events
