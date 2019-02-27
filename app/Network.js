@@ -24,19 +24,28 @@ const Network = {
     });
   },
 
-  getPrivateNetwork: async function(networkId) {
+  getPrivateNetwork: Barrier(async function(networkId) {
     return await this._getNetwork({
       Name: networkId,
       CheckDuplicate: true,
       Driver: 'bridge'
     });
-  },
+  }),
 
-  getHomeNetwork: async function() {
+  getHomeNetwork: Barrier(async function() {
     const net = networks[HOME_NETWORK_NAME];
     if (net) {
       return net;
     }
+
+    // We delete and re-create the Home network on first-use. This is to handle a change in the underlying
+    // machine network configuration.
+    try {
+      await docker.getNetwork(HOME_NETWORK_NAME).remove();
+    }
+    catch (_) {
+    }
+
     const iface = await Network.getActiveInterface();
     return await this._getNetwork({
       Name: HOME_NETWORK_NAME,
@@ -44,7 +53,7 @@ const Network = {
       IPAM: {
         Config: [{
           Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
-          Gateway: iface.network.ip_address, // Dont use gateway_ip - set that using aux. This sets the host IP address.
+          Gateway: iface.network.ip_address, // Dont use gateway_ip - set that using aux. This (re)sets the host IP address.
           AuxiliaryAddresses: {
             DefaultGatewayIPv4: iface.network.gateway_ip
           }
@@ -54,23 +63,23 @@ const Network = {
         'com.docker.network.bridge.name': 'br0'
       }
     });
-  },
+  }),
 
-  getBridgeNetwork: async function() {
+  getBridgeNetwork: Barrier(async function() {
     return await this._getNetwork({
       Name: 'bridge'
     });
-  },
+  }),
 
-  getManagementNetwork: async function() {
+  getManagementNetwork: Barrier(async function() {
     return await this._getNetwork({
       Name: MANAGEMENT_NETWORK_NAME,
       CheckDuplicate: true,
       Driver: 'bridge'
     });
-  },
+  }),
 
-  _getNetwork: Barrier(async function(config) {
+  _getNetwork: async function(config) {
     let net = networks[config.Name];
     if (!net) {
       net = docker.getNetwork(config.Name);
@@ -88,7 +97,7 @@ const Network = {
       }
     }
     return net;
-  })
+  }
 
 }
 
