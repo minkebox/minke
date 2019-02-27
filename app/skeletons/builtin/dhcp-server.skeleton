@@ -1,7 +1,7 @@
 {
   name: `DHCP`,
   description: `DHCP Server`,
-  image: `registry.gitlab.com/minkebox/dhcp-server`,
+  image: `registry.gitlab.com/minkebox/dhcpserver`,
   actions: [
     {
       type: `Header`,
