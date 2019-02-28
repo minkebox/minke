@@ -910,7 +910,7 @@ MinkeApp.startApps = async function(app) {
   MinkeApp._network = await Network.getActiveInterface();
 
   // Startup home network early (in background)
-  Networks.getHomeNetwork();
+  Network.getHomeNetwork();
 
   // Monitor docker events
   MinkeApp._monitorEvents();
