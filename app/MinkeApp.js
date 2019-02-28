@@ -317,6 +317,9 @@ MinkeApp.prototype = {
           PathInContainer: '/dev/net/tun',
           CgroupPermissions: 'rwm'
         });
+        config.HostConfig.Sysctls = {
+          "net.ipv4.ip_forward": "1"
+        };
       }
       if (this._features.vpn || this._features.dhcp) {
         config.HostConfig.CapAdd.push('NET_ADMIN');
@@ -902,7 +905,7 @@ MinkeApp.startApps = async function(app) {
   // Get our IP
   MinkeApp._network = await Network.getActiveInterface();
 
-  if (MinkeApp._container) {
+  /*if (MinkeApp._container) {
     const homenet = await Network.getManagementNetwork();
     try {
       await homenet.connect({
@@ -912,7 +915,7 @@ MinkeApp.startApps = async function(app) {
     catch (e) {
       console.error(e);
     }
-  }
+  }*/
 
   // Monitor docker events
   MinkeApp._monitorEvents();
