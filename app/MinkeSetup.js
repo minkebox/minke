@@ -55,6 +55,7 @@ MinkeSetup.prototype = {
     this.save();
     this._setupDNS();
     this._setupTimezone();
+    this.emit('update.status', { app: this, status: this._status });
   },
 
   save: async function() {
@@ -96,6 +97,8 @@ MinkeSetup.prototype = {
       this._env.DNSSERVER1.value,
       this._env.DNSSERVER2.value
     );
+    DNSForward.setHostname(this._safeName());
+    DNSForward.setDomainName(this.getLocalDomainName());
     return true;
   },
 
