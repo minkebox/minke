@@ -9,5 +9,5 @@ cp /usr/share/zoneinfo/$(cat /etc/timezone) /etc/localtime
 # Start syncing time
 ntpd -s -f /etc/ntpd.conf
 
-# Go
+# Minke
 exec /app/index.js

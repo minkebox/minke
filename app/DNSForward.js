@@ -1,13 +1,20 @@
 const ChildProcess = require('child_process');
 const FS = require('fs');
 
-const ETC = (process.env.DEBUG ? '/tmp/' : '/etc/');
+const DEBUG = process.env.DEBUG;
+
+const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
+const AVAHI = '/usr/sbin/avahi-daemon'
+const HOSTNAME = '/bin/hostname';
 const DNSMASQ_CONFIG = `${ETC}dnsmasq.conf`;
-const DNSMASQ_CONFIG_DIR = (process.env.DEBUG ? '/tmp/' : `${ETC}dnsmasq.d/`);
+const DNSMASQ_CONFIG_DIR = (DEBUG ? '/tmp/' : `${ETC}dnsmasq.d/`);
 const DNSMASQ_RESOLV = `${DNSMASQ_CONFIG_DIR}resolv.conf`;
+const HOSTNAME_FILE = `${ETC}hostname`;
 
 let dns = null;
+let avahi = null;
+let domainName = 'home';
 let primaryResolver = '';
 let secondaryResolver = '';
 const resolvers = {};
@@ -41,6 +48,20 @@ const DNSForward = {
     DNSForward._restart();
   },
 
+  setHostname: function(hostname) {
+    FS.writeFileSync(HOSTNAME_FILE, hostname || 'Minke');
+    if (!DEBUG) {
+      ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
+    }
+    this._restart();
+  },
+
+  setDomainName: function(domain) {
+    domainName = domain || 'home';
+    DNSForward._updateResolv();
+    DNSForward._restart();
+  },
+
   _updateConfig: function() {
     FS.writeFileSync(DNSMASQ_CONFIG, `${[
       'user=root',
@@ -54,7 +75,7 @@ const DNSForward = {
 
   _updateResolv: function() {
     // Note. DNS servers are checked in reverse order
-    FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
+    FS.writeFileSync(DNSMASQ_RESOLV, `domain ${domainName}\nsearch ${domainName}. local.\n${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
       return `server=${resolve.IP4Address}#${resolve.Port}`;
     }).join('\n')}`);
   },
@@ -63,6 +84,10 @@ const DNSForward = {
     if (dns) {
       dns.kill();
       dns = null;
+    }
+    if (avahi) {
+      avahi.kill();
+      avahi = null;
     }
   }
 
@@ -74,12 +99,17 @@ const DNSForward = {
 DNSForward._updateResolv();
 DNSForward._updateConfig();
 
-if (!process.env.DEBUG) {
-  function run() {
+if (!DEBUG) {
+  function dnsRun() {
     dns = ChildProcess.spawn(DNSMASQ, [ '-k' ]);
-    dns.on('exit', run);
+    dns.on('exit', dnsRun);
   }
-  run();
+  dnsRun();
+  function avahiRun() {
+    avahi = ChildProcess.spawn(AVAHI, [ '--no-drop-root' ]);
+    avahi.on('exit', avahiRun);
+  }
+  avahiRun();
 }
 
 
