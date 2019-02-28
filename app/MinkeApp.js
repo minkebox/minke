@@ -2,6 +2,7 @@ const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
 const Path = require('path');
 const Moment = require('moment-timezone');
+const UUID = require('uuid/v4');
 const HTTPForward = require('./HTTPForward');
 const DNSForward = require('./DNSForward');
 const Network = require('./Network');
@@ -76,6 +77,7 @@ MinkeApp.prototype = {
     this._id = Database.newAppId();
     this._name = name;
     this._image = skel.image,
+    this._globalId = UUID();
   
     this.updateFromSkeleton(skel, {});
 
@@ -310,6 +312,8 @@ MinkeApp.prototype = {
           break;
         }
       }
+
+      config.Env.push(`__GLOBALID=${this._globalId}`);
 
       if (this._features.vpn) {
         config.HostConfig.Devices.push({
@@ -905,17 +909,8 @@ MinkeApp.startApps = async function(app) {
   // Get our IP
   MinkeApp._network = await Network.getActiveInterface();
 
-  /*if (MinkeApp._container) {
-    const homenet = await Network.getManagementNetwork();
-    try {
-      await homenet.connect({
-        Container: MinkeApp._container.id
-      });
-    }
-    catch (e) {
-      console.error(e);
-    }
-  }*/
+  // Startup home network early (in background)
+  Networks.getHomeNetwork();
 
   // Monitor docker events
   MinkeApp._monitorEvents();
