@@ -11,6 +11,7 @@ const DNSMASQ_CONFIG = `${ETC}dnsmasq.conf`;
 const DNSMASQ_CONFIG_DIR = (DEBUG ? '/tmp/' : `${ETC}dnsmasq.d/`);
 const DNSMASQ_RESOLV = `${DNSMASQ_CONFIG_DIR}resolv.conf`;
 const HOSTNAME_FILE = `${ETC}hostname`;
+const LOCAL_RESOLV = `${ETC}resolv.conf`;
 
 let dns = null;
 let avahi = null;
@@ -18,7 +19,7 @@ let domainName = 'home';
 let primaryResolver = '';
 let secondaryResolver = '';
 const resolvers = {};
-const cacheSize = 256;
+const cacheSize = 1024;
 
 const DNSForward = {
 
@@ -49,7 +50,7 @@ const DNSForward = {
   },
 
   setHostname: function(hostname) {
-    FS.writeFileSync(HOSTNAME_FILE, hostname || 'Minke');
+    FS.writeFileSync(HOSTNAME_FILE, `${hostname || 'Minke'}\n`);
     if (!DEBUG) {
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
@@ -75,9 +76,10 @@ const DNSForward = {
 
   _updateResolv: function() {
     // Note. DNS servers are checked in reverse order
-    FS.writeFileSync(DNSMASQ_RESOLV, `domain ${domainName}\nsearch ${domainName}. local.\n${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
+    FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
       return `server=${resolve.IP4Address}#${resolve.Port}`;
     }).join('\n')}`);
+    FS.writeFileSync(LOCAL_RESOLV, `domain ${domainName}\nsearch ${domainName}. local.\nnameserver 127.0.0.1\n`);
   },
 
   _restart: function() {
