@@ -395,10 +395,17 @@ MinkeApp.prototype = {
               break;
             case 'home':
             {
-              const homenet = await Network.getHomeNetwork();
-              await homenet.connect({
-                Container: this._helperContainer.id
-              });
+              try {
+                const homenet = await Network.getHomeNetwork();
+                await homenet.connect({
+                  Container: this._helperContainer.id
+                });
+              }
+              catch (e) {
+                // Sometimes we get an error setting up the gateway, but we don't want it to set the gateway anyway so it's safe
+                // to ignore.
+                //console.error(e);
+              }
               break;
             }
             default:
@@ -420,9 +427,13 @@ MinkeApp.prototype = {
         }
 
         if (management) {
-          await management.connect({
-            Container: this._helperContainer.id
-          });
+          try {
+            await management.connect({
+              Container: this._helperContainer.id
+            });
+          }
+          catch (_) {
+          }
           management = null;
         }
 
