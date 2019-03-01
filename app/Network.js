@@ -1,9 +1,16 @@
+const FS = require('fs');
 const Net = require('network');
 const Netmask = require('netmask');
 const Barrier = require('./utils/Barrier');
 
+const DEBUG = process.env.DEBUG;
+
+const ETC = (DEBUG ? '/tmp/' : '/etc/');
+const NETWORK_FILE = `${ETC}systemd/network/bridge.network`;
 const HOME_NETWORK_NAME = 'home';
 const MANAGEMENT_NETWORK_NAME = 'management';
+const BRIDGE_NETWORK = 'br0';
+
 const networks = {};
 
 const Network = {
@@ -32,18 +39,30 @@ const Network = {
     });
   }),
 
+  setHomeNetwork: function(config) {
+    // address, netmask, gateway
+    let data = '';
+    if (config.address === 'dhcp') {
+      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nDHCP=ipv4\n`;
+    }
+    else {
+      const netmask = new Netmask.Netmask(`${config.address}/${config.netmask}`);
+      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nAddress=${config.address}/${netmask.bitmask}\nGateway=${config.gateway}\n`;
+    }
+    const olddata = FS.readFileSync(NETWORK_FILE, { encoding: 'utf8' });
+    if (olddata != data) {
+      FS.writeFileSync(NETWORK_FILE, data);
+      return true;
+    }
+    else {
+      return false;
+    }
+  },
+
   getHomeNetwork: Barrier(async function() {
     const net = networks[HOME_NETWORK_NAME];
     if (net) {
       return net;
-    }
-
-    // We delete and re-create the Home network on first-use. This is to handle a change in the underlying
-    // machine network configuration.
-    try {
-      await docker.getNetwork(HOME_NETWORK_NAME).remove();
-    }
-    catch (_) {
     }
 
     const iface = await Network.getActiveInterface();
@@ -60,7 +79,7 @@ const Network = {
         }]
       },
       Options: {
-        'com.docker.network.bridge.name': 'br0'
+        'com.docker.network.bridge.name': BRIDGE_NETWORK
       }
     });
   }),

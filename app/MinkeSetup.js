@@ -3,6 +3,7 @@ const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
 const Images = require('./Images');
 const DNSForward = require('./DNSForward');
+const Network = require('./Network');
 const Database = require('./Database');
 
 function MinkeSetup(savedConfig, config) {
@@ -52,9 +53,10 @@ MinkeSetup.prototype = {
   },
 
   restart: async function() {
-    this.save();
+    this._setupHomeNetwork();
     this._setupDNS();
     this._setupTimezone();
+    this.save();
     this.emit('update.status', { app: this, status: this._status });
   },
 
@@ -90,6 +92,14 @@ MinkeSetup.prototype = {
 
   getLocalDomainName: function() {
     return this._env.LOCALDOMAIN.value;
+  },
+
+  _setupHomeNetwork: function() {
+    return Network.setHomeNetwork({
+      address: this._env.IPADDRESS.value,
+      netmask: this._env.NETMASK.value,
+      gateway: this._env.GATEWAY.value
+    });
   },
 
   _setupDNS: function() {
