@@ -1,10 +1,14 @@
 const FS = require('fs');
 const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
+const ChildProcess = require('child_process');
 const Images = require('./Images');
 const DNSForward = require('./DNSForward');
 const Network = require('./Network');
 const Database = require('./Database');
+
+const REBOOT = '/sbin/reboot';
+
 
 function MinkeSetup(savedConfig, config) {
 
@@ -52,12 +56,15 @@ MinkeSetup.prototype = {
     this.emit('update.status', { app: this, status: this._status });
   },
 
-  restart: async function() {
+  restart: async function(save, forced) {
     this._setupHomeNetwork();
     this._setupDNS();
     this._setupTimezone();
     this.save();
     this.emit('update.status', { app: this, status: this._status });
+    if (forced) {
+      this._reboot();
+    }
   },
 
   save: async function() {
@@ -125,6 +132,12 @@ MinkeSetup.prototype = {
       return true;
     }
     return false;
+  },
+
+  _reboot: function() {
+    if (!DEBUG) {
+      ChildProcess.spawnSync(REBOOT);
+    }
   }
 
 }

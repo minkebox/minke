@@ -631,7 +631,7 @@ MinkeApp.prototype = {
     return this;
   },
 
-  restart: async function(save) {
+  restart: async function(save, forced) {
     if (this._status === 'running') {
       await this.stop();
     }

@@ -12,6 +12,10 @@
       text: 'Set the IP address, netmask, gateway and the local domain name for this device. Set the hostname by changing the name at the top/right'
     },
     {
+      type: 'Text',
+      text: 'Changes to the IP address, netmask and gateway will not take effect until you restart.'
+    },
+    {
       type: 'Environment',
       name: 'IPADDRESS',
       description: 'IP Address'

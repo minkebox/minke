@@ -16,7 +16,9 @@
           <nav>
             {{#unless ../minkeConfig}}
             <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
+            {{/unless}}
             <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
+            {{#unless ../minkeConfig}}
             <a class="pure-button" data-popbox-target="delete">Delete</a>
             {{/unless}}
           </nav>
@@ -31,7 +33,7 @@
           <div class="section visible" {{#if id}}id="{{id}}"{{/if}}>
           <div class="content-header">{{title}}</div>
           {{else if (eq type "Text")}}
-          <div class="content-text">{{text}}</div>
+          <div class="content-text">{{{text}}}</div>
           {{else if (eq type "Environment")}}
           <div class="action environment pure-control-group">
             <label class="description">{{description}}</label>
