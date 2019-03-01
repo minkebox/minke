@@ -42,7 +42,7 @@ const Network = {
   setHomeNetwork: function(config) {
     // address, netmask, gateway
     let data = '';
-    if (config.address === 'dhcp') {
+    if (config.address.toLowerCase() === 'dhcp') {
       data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nDHCP=ipv4\n`;
     }
     else {
