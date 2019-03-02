@@ -12,7 +12,7 @@
       <div class="sidebar pure-u-1">
         <div class="header">            
           <div class="name" contenteditable="true" placeholder="{{name}}" oninput="action('Name',this.innerText)">{{value}}</div>
-          <h2 class="description">{{description}}</h2>
+          <h2 class="description">{{{description}}}</h2>
           <nav>
             {{#unless ../minkeConfig}}
             <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
@@ -36,7 +36,7 @@
           <div class="content-text">{{{text}}}</div>
           {{else if (eq type "Environment")}}
           <div class="action environment table pure-control-group">
-            <label class="description">{{description}}</label>
+            <label class="description">{{{description}}}</label>
             {{#if (eq style "Table")}}
             {{> Table}}
             {{else if (eq style "Checkbox")}}
@@ -55,12 +55,12 @@
           </div>
           {{else if (eq type "Argument")}}
           <div class="action argument pure-control-group">
-            <label class="description">{{description}}</label>
+            <label class="description">{{{description}}}</label>
             <input class="value" type="text" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
           </div>
           {{else if (eq type "File")}}
           <div class="action file table pure-control-group">
-            <label class="description">{{description}}</label>
+            <label class="description">{{{description}}}</label>
             {{#if (eq style "Download")}}
             {{#if value}}
             <a id="{{name}}" class="pure-button pure-button-primary">Download</a>
@@ -81,12 +81,12 @@
           </div>
           {{else if (eq type "NAT")}}
           <div class="action nat pure-control-group">
-            <label class="description">{{description}}</label>
+            <label class="description">{{{description}}}</label>
             <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
           </div>
-\         {{else if (eq type "Network")}}
+          {{else if (eq type "Network")}}
           <div class="action network pure-control-group">
-            <label class="description">{{description}}</label>
+            <label class="description">{{{description}}}</label>
             <select onchange="{{action}}">
               {{#each networks}}
               {{#if _id}}
@@ -97,7 +97,7 @@
           </div>
           {{else if (eq type "Shareables")}}
           <div class="action shareables pure-control-group">
-            <label class="description">{{description}}</label>
+            <label class="description">{{{description}}}</label>
             <div class="shares pure-u-16-24">
               {{#each shareables}}
               {{#each shares}}

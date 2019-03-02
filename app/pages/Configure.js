@@ -94,7 +94,9 @@ async function ConfigurePageHTML(ctx) {
         case 'NAT':
         {
           const natport = app._ports.find(port => action.ports.indexOf(port.target) !== -1) || { nat: false };
-          return Object.assign({ action: `window.action('${action.type}#${action.ports.join('#')}',this.checked)`, value: natport.nat }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.ports.join('#')}',this.checked)`, value: natport.nat }, action, {
+            description: (action.description || '').replace(/\{\{GLOBALNAME\}\}/g, `${app._globalId}.minkebox.net`)
+          });
         }
         case 'Network':
         {
@@ -231,6 +233,10 @@ async function ConfigurePageWS(ctx) {
         if (r.value !== tableValue) {
           r.value = tableValue;
           r.altValue = value;
+          const port = app._ports.find(p => p.target === key);
+          if (port) {
+            port.host = parseInt(r.value);
+          }
           return APPCHANGE;
         }
       }
@@ -238,6 +244,10 @@ async function ConfigurePageWS(ctx) {
         if (r.value !== value) {
           r.value = value;
           delete r.altValue;
+          const port = app._ports.find(p => p.target === key);
+          if (port) {
+            port.host = parseInt(r.value);
+          }
           return APPCHANGE;
         }
       }
