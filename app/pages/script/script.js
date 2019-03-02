@@ -239,7 +239,9 @@ function addRmTableRow(action, event) {
     for (let i = 1; i < tr.childElementCount; i++) {
       ntr.appendChild(document.createElement('TD')).setAttribute('contenteditable', 'true');
     }
-    ntr.appendChild(document.createElement('TD')).innerHTML = '<span class="remove">&minus;</span>';
+    const td = document.createElement('TD');
+    td.classList.add('control');
+    ntr.appendChild(td).innerHTML = '<span class="remove">&minus;</span>';
     table.querySelector('tbody').appendChild(ntr);
   }
 }
