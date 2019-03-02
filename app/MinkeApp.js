@@ -99,7 +99,7 @@ MinkeApp.prototype = {
           r[prop.name] = found;
         }
         else {
-          r[prop.name] = { value: prop.defaultValue || '' };
+          r[prop.name] = { value: 'defaultValue' in prop ? prop.defaultValue : '' };
           if ('defaultAltValue' in prop) {
             r[prop.name].altValue = prop.defaultAltValue;
           }
