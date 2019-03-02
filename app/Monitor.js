@@ -32,7 +32,7 @@ async function runCmd(app, cmd) {
   let buffer = '';
   docker.modem.demuxStream(stream.output, {
     write: (data) => {
-      //console.log('stdout', buffer.toString('utf8'));
+      //console.log('stdout', data.toString('utf8'));
       buffer += data.toString('utf8');
     }
   }, null);
@@ -71,7 +71,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
     try {
       sandbox.input = await runCmd(app, cmd);
       sandbox.output = {};
-      VM.runInContext(`(function(){${parser || DEFAULT_PARSER}})()`, sandbox);
+      VM.runInContext(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, sandbox);
       if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
         for (let name in sandbox.output.graph) {
           const graph = sandbox.output.graph[name];
@@ -81,6 +81,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
           }
         }
       }
+      //console.log(sandbox.output);
       return ctemplate(sandbox.output);
     }
     catch (e) {
