@@ -17,6 +17,8 @@
     {
       type: `Port`,
       name: `137/udp`,
+      host: 137,
+      protocol: 'UDP',
       nat: false,
       web: false,
       mdns: null
@@ -24,6 +26,8 @@
     {
       type: `Port`,
       name: `138/udp`,
+      host: 138,
+      protocol: 'UDP',
       nat: false,
       web: false,
       mdns: null
@@ -31,6 +35,8 @@
     {
       type: `Port`,
       name: `139/tcp`,
+      host: 139,
+      protocol: 'TCP',
       nat: false,
       web: false,
       mdns: null
@@ -38,6 +44,8 @@
     {
       type: `Port`,
       name: `445/tcp`,
+      host: 445,
+      protocol: 'TCP',
       nat: false,
       web: false,
       mdns: {
@@ -47,6 +55,8 @@
     {
       type: `Port`,
       name: `0/tcp`,
+      host: 0,
+      protocol: 'TCP',
       nat: false,
       web: false,
       mdns: {
