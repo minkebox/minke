@@ -138,8 +138,8 @@ MinkeApp.prototype = {
         else {
           r.push({
             target: prop.name,
-            host: parseInt(prop.name),
-            protocol: prop.name.split('/')[1].toUpperCase(),
+            host: prop.host,
+            protocol: prop.protocol,
             web: prop.web,
             dns: prop.dns,
             nat: prop.nat,
