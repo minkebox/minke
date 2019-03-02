@@ -1,0 +1,90 @@
+{
+  name: `Network Proxy`,
+  description: `Allows web requests to specific domains to be sent via a different network`,
+  image: `registry.gitlab.com/minkebox/netproxy`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Networking`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      description: `Select network target for the proxied traffic`
+    },
+    {
+      type: `Header`,
+      title: `Proxied Domains`
+    },
+    {
+      type: `File`,
+      name: `/etc/dnsmasq.d/proxies.preconf`,
+      description: `Add the domains (which will automatically include any sub-domains) here. All traffic to these domains will be proxied through the selected network.`,
+      style: `Table`,
+      headers: [
+        `Domain name`
+      ],
+      pattern: `{{0}}`
+    }
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `dns`
+    },
+    {
+      type: `File`,
+      name: `/etc/dnsmasq.d/proxies.preconf`
+    },
+    {
+      type: `Port`,
+      name: `443/tcp`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `53/tcp`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `53/udp`,
+      nat: false,
+      web: false,
+      dns: true,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `none`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
