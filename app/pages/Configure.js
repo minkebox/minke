@@ -62,7 +62,33 @@ async function ConfigurePageHTML(ctx) {
         {
           const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
           properties[`${action.type}#${action.name}`] = app._env[action.name].value;
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: app._env[action.name].value, options: property.options }, action);
+          if (action.style === 'Table') {
+            let value = [];
+            if (property && property.altData) {
+              try {
+                value = JSON.parse(property.altData);
+                const hlen = action.headers.length;
+                value.forEach((v) => {
+                  while (v.length < hlen) {
+                    v.push('');
+                  }
+                });
+              }
+              catch (_) {
+              }
+            }
+            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
+          }
+          else {
+            let act;
+            if (action.style === 'Checkbox') {
+              act = `window.action('${action.type}#${action.name}',this.checked)`;
+            }
+            else {
+              act = `window.action('${action.type}#${action.name}',this.value)`;
+            }
+            return Object.assign({ action: act, value: app._env[action.name].value, options: property.options }, action);
+          }
         }
         case 'NAT':
         {
