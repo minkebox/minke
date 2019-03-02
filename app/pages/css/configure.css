@@ -73,7 +73,7 @@ body {
   font-size: 80%;
   font-weight: 500;
   letter-spacing: 0.1em;
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 .configure .content-text {
   color: #777;
