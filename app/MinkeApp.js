@@ -28,6 +28,7 @@ MinkeApp.prototype = {
   createFromJSON: function(app) {
 
     this._id = app._id;
+    this._globalId = app.globalId;
     this._name = app.name;
     this._description = app.description;
     this._image = app.image;
@@ -49,6 +50,7 @@ MinkeApp.prototype = {
   toJSON: function() {
     return {
       _id: this._id,
+      globalId: this._globalId,
       name: this._name,
       description: this._description,
       image: this._image,
