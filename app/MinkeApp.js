@@ -581,10 +581,22 @@ MinkeApp.prototype = {
 
     // Stop everything
     if (this._container) {
-      await this._container.stop();
+      try {
+        await this._container.stop();
+      }
+      catch (e) {
+        console.error(e);
+        this._container = null;
+      }
     }
     if (this._helperContainer) {
-      await this._helperContainer.stop();
+      try {
+        await this._helperContainer.stop();
+      }
+      catch (e) {
+        console.error(e);
+        this._helperContainer = null;
+      }
     }
 
     // Log everything
