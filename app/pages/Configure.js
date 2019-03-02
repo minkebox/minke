@@ -61,12 +61,13 @@ async function ConfigurePageHTML(ctx) {
         case 'Environment':
         {
           const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
-          properties[`${action.type}#${action.name}`] = app._env[action.name].value;
+          const env = app._env[action.name];
+          properties[`${action.type}#${action.name}`] = env ? env.value : '';
           if (action.style === 'Table') {
             let value = [];
-            if (property && property.altData) {
+            if (env && env.altValue) {
               try {
-                value = JSON.parse(property.altData);
+                value = JSON.parse(env.altValue);
                 const hlen = action.headers.length;
                 value.forEach((v) => {
                   while (v.length < hlen) {
@@ -87,7 +88,7 @@ async function ConfigurePageHTML(ctx) {
             else {
               act = `window.action('${action.type}#${action.name}',this.value)`;
             }
-            return Object.assign({ action: act, value: app._env[action.name].value, options: property.options }, action);
+            return Object.assign({ action: act, value: env ? env.value : '', options: property.options }, action);
           }
         }
         case 'NAT':
