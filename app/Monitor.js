@@ -62,7 +62,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   VM.createContext(sandbox);
   const extractor = VM.compileFunction(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, [], { parsingContext: sandbox });
   this.run = async () => {
-    if (!app._container) {
+    if (!app._container || this._terminated) {
       this.stop();
       return '';
     }
@@ -105,6 +105,10 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
       clearInterval(this.clock);
       this.clock = null;
     }
+  }
+  this.shutdown = () => {
+    this._terminated = true;
+    this.stop();
   }
 }
 
