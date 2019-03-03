@@ -1,0 +1,508 @@
+{
+  name: `Minecraft`,
+  description: `Moddable Minecraft Server`,
+  image: `itzg/minecraft-server`,
+  actions: [
+    {
+      type: `Text`,
+      text: `Setup your Minecraft server below. 
+  Please note many of these properties are used when the server is first initialized, and changing them later might have no effect. 
+  If you want to reinitialize the server then pleases delete all the server's data via the shared file application.`
+    },
+    {
+      type: `Header`,
+      title: `Essentials`
+    },
+    {
+      type: `Environment`,
+      name: `SERVER_NAME`,
+      description: `Server Name`
+    },
+    {
+      type: `Environment`,
+      name: `MOTD`,
+      description: `Message of the day`
+    },
+    {
+      type: `Environment`,
+      name: `MAX_PLAYERS`,
+      description: `Maxiumum number of players`
+    },
+    {
+      type: `Environment`,
+      name: `MODE`,
+      description: `Game mode`
+    },
+    {
+      type: `Environment`,
+      name: `DIFFICULTY`,
+      description: `Difficulty`
+    },
+    {
+      type: `Header`,
+      title: `Access`
+    },
+    {
+      type: `Environment`,
+      name: `WHITELIST`,
+      style: `Table`,
+      description: `List of users (if no users are listed then anyone can join this server if it is public)`,
+      headers: [
+        `Username`
+      ],
+      pattern: `{{0}}`,
+      join: `,`
+    },
+    {
+      type: `Environment`,
+      name: `OPS`,
+      style: `Table`,
+      description: `List of administrators`,
+      headers: [
+        `Username`
+      ],
+      pattern: `{{0}}`,
+      join: `,`
+    },
+    {
+      type: `Environment`,
+      name: `SERVER_PORT`,
+      description: `Server port`
+    },
+    {
+      type: `NAT`,
+      name: `PUBLIC_SERVER`,
+      description: `Make this server public and available on the Internet. The name on the Internet will be <div><b>{{GLOBALNAME}}</b></div>`,
+      ports: [
+        `SERVER_PORT`
+      ]
+    },
+    {
+      type: `Header`,
+      title: `Distances`
+    },
+    {
+      type: `Environment`,
+      name: `MAX_WORLD_SIZE`,
+      description: `Maximum block radius of the world`
+    },
+    {
+      type: `Environment`,
+      name: `MAX_BUILD_HEIGHT`,
+      description: `Maximum building height`
+    },
+    {
+      type: `Environment`,
+      name: `VIEW_DISTANCE`,
+      description: `View block radius`
+    },
+    {
+      type: `Header`,
+      title: `Features`
+    },
+    {
+      type: `Environment`,
+      style: `Checkbox`,
+      description: `Allow players to travel to the Nether`,
+      name: `ALLOW_NETHER`
+    },
+    {
+      type: `Environment`,
+      style: `Checkbox`,
+      description: `Enable command blocks`,
+      name: `ENABLE_COMMAND_BLOCK`
+    },
+    {
+      type: `Environment`,
+      style: `Checkbox`,
+      description: `Generate structures (such as villages)`,
+      name: `GENERATE_STRUCTURES`
+    },
+    {
+      type: `Environment`,
+      style: `Checkbox`,
+      description: `Enable Player-vs-player`,
+      name: `PVP`
+    },
+    {
+      type: `Environment`,
+      style: `Checkbox`,
+      description: `Dead players become spectators`,
+      name: `HARDCORE`
+    },
+    {
+      type: `Environment`,
+      style: `Checkbox`,
+      description: `Announce player achievements`,
+      name: `ANNOUNCE_PLAYER_ACHIEVEMENTS`
+    },
+    {
+      type: `Header`,
+      title: `Spawns`
+    },
+    {
+      type: `Environment`,
+      name: `SPAWN_ANIMALS`,
+      style: `Checkbox`,
+      description: `Animals`
+    },
+    {
+      type: `Environment`,
+      name: `SPAWN_MONSTERS`,
+      style: `Checkbox`,
+      description: `Monsters`
+    },
+    {
+      type: `Environment`,
+      name: `SPAWN_NPCS`,
+      style: `Checkbox`,
+      description: `Villagers`
+    },
+    {
+      type: `Header`,
+      title: `Mods and Plugins`
+    },
+    {
+      type: `Text`,
+      text: `Mods and Plugins are installed via shared folders available from the File Share application.`
+    },
+    {
+      type: `Header`,
+      title: `Advanced`
+    },
+    {
+      type: `Environment`,
+      name: `VERSION`,
+      description: `Specific Minecraft version`
+    },
+    {
+      type: `Environment`,
+      name: `SEED`,
+      description: `Seed`
+    },
+    {
+      type: `Environment`,
+      name: `LEVEL_TYPE`,
+      description: `Level type`
+    },
+    {
+      type: `Header`,
+      title: `Generator`,
+      visible: `property['Environment#LEVEL_TYPE'] === 'FLAT' || property['Environment#LEVEL_TYPE'] === 'CUSTOMIZED' || property['Environment#LEVEL_TYPE'] === 'BUFFET'`
+    },
+    {
+      type: `Environment`,
+      name: `GENERATOR_SETTINGS`,
+      description: `Generator settings`
+    }
+  ],
+  properties: [
+    {
+      type: `Environment`,
+      name: `EULA`,
+      defaultValue: true
+    },
+    {
+      type: `Environment`,
+      name: `SERVER_NAME`,
+      defaultValue: `Minecraft on Minke`
+    },
+    {
+      type: `Environment`,
+      name: `MODE`,
+      options: [
+        {
+          name: `creative`,
+          value: `creative`
+        },
+        {
+          name: `survival`,
+          value: `survival`
+        },
+        {
+          name: `adventure`,
+          value: `adventure`
+        },
+        {
+          name: `spectator`,
+          value: `spectator`
+        }
+      ],
+      defaultValue: `creative`
+    },
+    {
+      type: `Environment`,
+      name: `SERVER_PORT`,
+      defaultValue: 25565
+    },
+    {
+      type: `Environment`,
+      name: `DIFFICULTY`,
+      options: [
+        {
+          name: `peaceful`,
+          value: `peaceful`
+        },
+        {
+          name: `easy`,
+          value: `easy`
+        },
+        {
+          name: `normal`,
+          value: `normal`
+        },
+        {
+          name: `hard`,
+          value: `hard`
+        }
+      ],
+      defaultValue: `peaceful`
+    },
+    {
+      type: `Environment`,
+      name: `WHITELIST`
+    },
+    {
+      type: `Environment`,
+      name: `OPS`
+    },
+    {
+      type: `Environment`,
+      name: `ENABLE_RCON`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `ENABLE_QUERY`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `QUERY_PORT`,
+      defaultValue: 25565
+    },
+    {
+      type: `Environment`,
+      name: `MAX_PLAYERS`,
+      defaultValue: 10
+    },
+    {
+      type: `Environment`,
+      name: `MAX_WORLD_SIZE`,
+      defaultValue: 10000
+    },
+    {
+      type: `Environment`,
+      name: `ALLOW_NETHER`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `ANNOUNCE_PLAYER_ACHIEVEMENTS`,
+      defaultValue: true
+    },
+    {
+      type: `Environment`,
+      name: `ENABLE_COMMAND_BLOCK`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `GENERATE_STRUCTURES`,
+      defaultValue: true
+    },
+    {
+      type: `Environment`,
+      name: `HARDCORE`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `SNOOPER_ENABLED`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `MAX_BUILD_HEIGHT`,
+      defaultValue: 256
+    },
+    {
+      type: `Environment`,
+      name: `MAX_TICK_TIME`,
+      defaultValue: -1
+    },
+    {
+      type: `Environment`,
+      name: `FORCE_GAMEMODE`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `SPAWN_ANIMALS`,
+      defaultValue: true
+    },
+    {
+      type: `Environment`,
+      name: `SPAWN_MONSTERS`,
+      defaultValue: true
+    },
+    {
+      type: `Environment`,
+      name: `SPAWN_NPCS`,
+      defaultValue: true
+    },
+    {
+      type: `Environment`,
+      name: `VIEW_DISTANCE`,
+      defaultValue: 10
+    },
+    {
+      type: `Environment`,
+      name: `SEED`
+    },
+    {
+      type: `Environment`,
+      name: `MOTD`,
+      defaultValue: `Welcome to Minecraft on Minke`
+    },
+    {
+      type: `Environment`,
+      name: `PVP`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `LEVEL_TYPE`,
+      defaultValue: `DEFAULT`,
+      options: [
+        {
+          name: `Default`,
+          value: `DEFAULT`
+        },
+        {
+          name: `Flat`,
+          value: `FLAT`
+        },
+        {
+          name: `Large biomes`,
+          value: `LARGEBIOMES`
+        },
+        {
+          name: `Amplified`,
+          value: `AMPLIFIED`
+        },
+        {
+          name: `Customized`,
+          value: `CUSTOMIZED`
+        },
+        {
+          name: `Buffer`,
+          value: `BUFFET`
+        }
+      ]
+    },
+    {
+      type: `Environment`,
+      name: `GENERATOR_SETTINGS`
+    },
+    {
+      type: `Environment`,
+      name: `LEVEL`,
+      defaultValue: `world`
+    },
+    {
+      type: `Environment`,
+      name: `VERSION`,
+      defaultValue: `LATEST`
+    },
+    {
+      type: `Directory`,
+      name: `/config`
+    },
+    {
+      type: `Directory`,
+      name: `/data`,
+      shares: [
+        {
+          name: `/`,
+          description: `All the server configuration`
+        },
+        {
+          name: `/config`,
+          description: `Configure Mods here`
+        },
+        {
+          name: `/mods`,
+          description: `Install Mods here`
+        },
+        {
+          name: `/plugins`,
+          description: `Install Plugins here`
+        }
+      ]
+    },
+    {
+      type: `Directory`,
+      name: `/mods`
+    },
+    {
+      type: `Port`,
+      name: `SERVER_PORT`,
+      host: 25565,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `25575/tcp`,
+      host: 25575,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: `mcstatus localhost status`,
+    watch: ``,
+    polling: 60,
+    parser: `
+      const lines = input.split('\\n');
+      const nrplayers = lines[2].split(' ',2)[1].split('/');
+      output.nr = nrplayers[0];
+      output.max = nrplayers[1];
+      try {
+        output.players = eval(lines[2].replace(/^.*(\\[.*\\]).*$/, '$1')).map(p => p.split(' ')[0]);
+      }
+      catch (_) {
+        output.players = [];
+      }
+    `,
+    header: `
+      <style>
+        .mc-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
+        .mc-b { color: grey; text-align: right; padding: 0 5px 10px 0; }
+        .mc-r { display: inline-block; font-size: 18px; color: black; }
+        .mc-p { font-size: 75%; padding-left: 4px; }
+      </style>
+    `,
+    template: `
+      <div class="mc-o">
+        <div class="mc-b"><div class="mc-r">{{max}}</div><div>Max Players</div></div>
+        <div class="mc-b"><div class="mc-r">{{nr}}</div><div>Current</div></div>
+        <div class="mc-b"><div class="mc-r">
+          {{#each players}}<span class="mc-p">{{this}}</span>{{/each}}
+        </div><div>Online players</div></div>
+      </div>
+    `
+  }
+}
