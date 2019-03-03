@@ -5,9 +5,7 @@
   actions: [
     {
       type: `Text`,
-      text: `Setup your Minecraft server below. 
-  Please note many of these properties are used when the server is first initialized, and changing them later might have no effect. 
-  If you want to reinitialize the server then pleases delete all the server's data via the shared file application.`
+      text: `Setup your Minecraft server below. Please note many of these properties are used when the server is first initialized, and changing them later might have no effect. If you want to reinitialize the server then pleases delete all the server's data via the shared file application.`
     },
     {
       type: `Header`,
@@ -418,7 +416,7 @@
     {
       type: 'Environment',
       name: 'TYPE',
-      defaultValue: 'FORGE'
+      defaultValue: 'FORGE',
       options: [
         { name: 'Forge', value: 'FORGE' },
         { name: 'Bukkit', value: 'BUKKIT' },
