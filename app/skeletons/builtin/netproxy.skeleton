@@ -1,6 +1,6 @@
 {
   name: `Network Proxy`,
-  description: `Allows web requests to specific domains to be sent via a different network`,
+  description: `Send web requests to specific domains via a different network`,
   image: `registry.gitlab.com/minkebox/netproxy`,
   actions: [
     {
