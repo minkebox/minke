@@ -1,7 +1,7 @@
 const VM = require('vm');
 const FS = require('fs');
 const Handlebars = require('handlebars');
-const CSS = require('svgdom-css');
+require('svgdom-css');
 const Chartist = require('chartist');
 
 const DEFAULT_POLLING = 60; // Default polling is 60 seconds
@@ -57,8 +57,10 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
     }
     dowork();
   }
+  const graphContainer = document.createElement('div');
   const sandbox = { input: null, output: null, props: { homeIP: app._homeIP }};
   VM.createContext(sandbox);
+  const extractor = VM.compileFunction(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, [], { parsingContext: sandbox });
   this.run = async () => {
     if (!app._container) {
       this.stop();
@@ -75,13 +77,14 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
     try {
       sandbox.input = await runCmd(app, cmd);
       sandbox.output = {};
-      VM.runInContext(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, sandbox);
+      extractor();
       if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
         for (let name in sandbox.output.graph) {
           const graph = sandbox.output.graph[name];
           if (graph.series) {
             graph.series = JSON.parse(JSON.stringify(graph.series)); // Data came out of a different context so this "cleans" it.
-            sandbox.output.graph[name] = await _generateGraph(graph);
+            await _generateGraph(graphContainer, graph);
+            sandbox.output.graph[name] = graphContainer.innerHTML;
           }
         }
       }
@@ -105,10 +108,9 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   }
 }
 
-async function _generateGraph(graph) {
+async function _generateGraph(container, graph) {
   return new Promise((resolve, reject) => {
     try {
-      const div = document.createElement('div');
       const options = Object.assign({
         width: '300px',
         height: '300px',
@@ -117,10 +119,13 @@ async function _generateGraph(graph) {
         fullWidth: true,
         showPoint: false
       }, graph.options);
-      const chart = new Chartist[graph.type || 'Line'](div, { series: graph.series, labels: graph.labels }, options);
-      chart.on('created', () => {
-        resolve(div.innerHTML);
-      });
+      const chart = new Chartist[graph.type || 'Line'](container, { series: graph.series, labels: graph.labels }, options);
+      function created() {
+        chart.off('created', created);
+        chart.detach();
+        resolve();
+      }
+      chart.on('created', created);
     }
     catch (e) {
       reject(e);
