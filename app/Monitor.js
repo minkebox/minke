@@ -60,6 +60,10 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   const sandbox = { input: null, output: null, props: { homeIP: app._homeIP }};
   VM.createContext(sandbox);
   this.run = async () => {
+    if (!this._container) {
+      this.stop();
+      return '';
+    }
     if (callback) {
       if (!this.watcher && watch) {
         this.watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
