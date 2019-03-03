@@ -60,7 +60,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   const sandbox = { input: null, output: null, props: { homeIP: app._homeIP }};
   VM.createContext(sandbox);
   this.run = async () => {
-    if (!this._container) {
+    if (!app._container) {
       this.stop();
       return '';
     }
