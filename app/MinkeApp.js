@@ -42,6 +42,7 @@ MinkeApp.prototype = {
     this._customshares = app.customshares || [];
     this._networks = app.networks;
     this._monitor = app.monitor;
+    this._bootcount = app.bootcount || 1;
 
     this._setStatus('stopped');
 
@@ -64,7 +65,8 @@ MinkeApp.prototype = {
       shares: this._shares,
       customshares: this._customshares,
       networks: this._networks,
-      monitor: this._monitor
+      monitor: this._monitor,
+      bootcount: this._bootcount
     }
   },
 
@@ -192,6 +194,7 @@ MinkeApp.prototype = {
     this._shares = [];
     this._customshares = [];
     this._monitor = skel.monitor;
+    this._bootcount = 0;
 
     return this;
   },
@@ -200,6 +203,8 @@ MinkeApp.prototype = {
 
     try {
       this._setStatus('starting');
+
+      this._bootcount++;
 
       // Build the helper
       this._fs = Filesystem.create(this);

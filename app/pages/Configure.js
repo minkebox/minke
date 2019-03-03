@@ -40,7 +40,8 @@ async function ConfigurePageHTML(ctx) {
   const visibles = {};
   const enabled = {};
   const properties = {
-    AdminMode: MinkeApp.getAdminMode()
+    AdminMode: MinkeApp.getAdminMode(),
+    FirstUse: app._bootcount == 0
   };
   const nskeleton = {
     name: skeleton.name,
@@ -185,7 +186,6 @@ async function ConfigurePageHTML(ctx) {
       return `function(){const c=document.getElementById("${key}");c.disabled=(${enabled[key]}?'':'disabled');try{if(${enabled[key]}){c.classList.remove("disabled")}else{c.classList.add("disabled")}}catch(_){c.classList.add("disabled")}}`
     })).join(',') + ']'
   });
-  console.log(ctx.body);
   ctx.type = 'text/html'
 }
 
