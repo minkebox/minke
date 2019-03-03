@@ -15,7 +15,7 @@ const Skeletons = require('./skeletons/Skeletons');
 
 let applications = null;
 let koaApp = null;
-let networkApps = null;
+let networkApps = [];
 let setup = null;
 
 function MinkeApp() {

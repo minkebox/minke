@@ -21,6 +21,18 @@ function Filesystem(app) {
 Filesystem.prototype = {
 
   getAllMounts: function() {
+
+    // Remove any broken shares (in case an app was uninstalled)
+    for (let i = 0; i < this._shares.length; ) {
+      const share = this._shares[i];
+      if (FS.existsSync(`${FS_PREFIX}/fs/app/${share.appid}/${share.host}`)) {
+        i++;
+      }
+      else {
+        this._shares.splice(i, 1);
+      }
+    }
+
     return this._mappings.map(map => this._makeMount(map)).concat(
       this._files.map(file => this.makeFile(file)),
       this._shares.map(share => this.makeShare(share))
