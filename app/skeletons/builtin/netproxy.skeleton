@@ -39,8 +39,6 @@
     {
       type: `Port`,
       name: `443/tcp`,
-      host: 443,
-      protocol: 'TCP',
       nat: false,
       web: false,
       dns: false,
@@ -49,8 +47,6 @@
     {
       type: `Port`,
       name: `53/tcp`,
-      host: 53,
-      protocol: 'TCP,
       nat: false,
       web: false,
       dns: false,
@@ -59,8 +55,6 @@
     {
       type: `Port`,
       name: `53/udp`,
-      host: 53,
-      protocol: 'UDP',
       nat: false,
       web: false,
       dns: true,
@@ -69,8 +63,6 @@
     {
       type: `Port`,
       name: `80/tcp`,
-      host: 80,
-      protocol: 'TCP',
       nat: false,
       web: false,
       dns: false,

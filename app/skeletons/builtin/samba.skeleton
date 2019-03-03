@@ -1,12 +1,38 @@
 {
-  name: `Samba`,
-  description: `Samba File Server`,
+  name: `File Share`,
+  description: `Share your files on the network using Samba`,
   image: `registry.gitlab.com/minkebox/samba`,
   actions: [
     {
+      type: `Header`,
+      title: `Create`
+    },
+    {
+      type: `Text`,
+      text: `Create a list of file shares. Removing any shares from the list will also <b><u>remove all data</u></b>.`
+    },
+    {
+      type: `File`,
+      name: `/etc/extra-shares`,
+      style: `Table`,
+      description: `Shares`,
+      headers: [
+        `Name`
+      ],
+      pattern: `{{0}}`
+    },
+    {
+      type: `Header`,
+      title: `Other applications`
+    },
+    {
+      type: `Text`,
+      text: `Other applications can offer content they want to share.`
+    },
+    {
       type: `Shareables`,
       name: `/shareable`,
-      description: `Select what we should share`
+      description: `Select what to share. You can share using the default name or pick a name that's more meaningful`
     }
   ],
   properties: [
@@ -15,10 +41,18 @@
       name: `/etc/status`
     },
     {
+      type: `File`,
+      name: `/etc/extra-shares`
+    },
+    {
+      type: `Directory`,
+      name: `/myshares`
+    },
+    {
       type: `Port`,
       name: `137/udp`,
       host: 137,
-      protocol: 'UDP',
+      protocol: `UDP`,
       nat: false,
       web: false,
       mdns: null
@@ -27,7 +61,7 @@
       type: `Port`,
       name: `138/udp`,
       host: 138,
-      protocol: 'UDP',
+      protocol: `UDP`,
       nat: false,
       web: false,
       mdns: null
@@ -36,7 +70,7 @@
       type: `Port`,
       name: `139/tcp`,
       host: 139,
-      protocol: 'TCP',
+      protocol: `TCP`,
       nat: false,
       web: false,
       mdns: null
@@ -45,7 +79,7 @@
       type: `Port`,
       name: `445/tcp`,
       host: 445,
-      protocol: 'TCP',
+      protocol: `TCP`,
       nat: false,
       web: false,
       mdns: {
@@ -56,7 +90,7 @@
       type: `Port`,
       name: `0/tcp`,
       host: 0,
-      protocol: 'TCP',
+      protocol: `TCP`,
       nat: false,
       web: false,
       mdns: {
@@ -73,7 +107,7 @@
     }
   ],
   monitor: {
-    cmd: `cd /shareable ; df . ; du -d0 *`,
+    cmd: `cd /shareable;du -d0 *;cd /myshares;du -d0 *`,
     watch: `/shareable`,
     poll: 3600,
     parser: `
@@ -82,11 +116,7 @@
       const labels = [];
       const series = [];
       
-      const free = lines[1].split(/ +/)[3];
-      labels.push('Free space');
-      series.push(parseInt(free));
-      
-      for (let i = 2; i < lines.length && lines[i]; i++) {
+      for (let i = 0; i < lines.length && lines[i]; i++) {
         const p = lines[i].split(/\\t+/);
         labels.push(p[1]);
         series.push(parseInt(p[0]));
