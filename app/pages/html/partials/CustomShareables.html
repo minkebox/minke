@@ -1,0 +1,15 @@
+<table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24" oninput="saveTable('{{action}}',this)" onclick="addRmTableRow('{{action}}',window.event)">
+  <thead>
+    <tr>
+      <th>Share name</th><th class="control"><span class="add">+</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each shareables}}
+    <tr>
+      <td contenteditable="true">{{name}}</td>
+      <td class="control"><span class="remove">&minus;</span></td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>

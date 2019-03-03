@@ -104,6 +104,11 @@
             <div style="text-align: center">No applications sharing.</div>
             {{/if}}
           </div>
+          {{else if (eq type "CustomShareables")}}
+          <div class="action shareables pure-control-group">
+            <label class="description">{{{description}}}</label>
+            {{> CustomShareables}}
+          </div>
           {{/if}}
           {{else}}
           <div class="content-header">Nothing to configure</div>
