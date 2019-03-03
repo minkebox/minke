@@ -110,10 +110,6 @@ async function ConfigurePageHTML(ctx) {
           const network = app._networks[action.name] || 'none'
           return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, networks: networks, value: network }, action);
         }
-        case 'Feature':
-        {
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: app._features[action.name] }, action);
-        }
         case 'File':
         {
           const file = app._files.find(file => file.target === action.name);
@@ -177,6 +173,7 @@ async function ConfigurePageHTML(ctx) {
       }
     })
   }
+  console.log(nskeleton);
   const minkeConfig = app._image == Images.MINKE;
   const adminMode = minkeConfig ? false : MinkeApp.getAdminMode();
   ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
@@ -230,14 +227,6 @@ async function ConfigurePageWS(ctx) {
     { p: /^Name$/, f: (value, match) => {
       if (app._name != value) {
         app._name = value;
-        return APPCHANGE;
-      }
-      return NOCHANGE;
-    }},
-    { p: /^Feature#(.+)$/, f: (value, match) => {
-      const feature = match[1];
-      if ((feature in app._features) && app._features[feature] !== value) {
-        app._features[feature] = value;
         return APPCHANGE;
       }
       return NOCHANGE;
