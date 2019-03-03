@@ -94,7 +94,7 @@
     }
   ],
   monitor: {
-    cmd: `cd /shareable;du -d0 *;cd /myshares;du -d0 *`,
+    cmd: `cd /shareable;du -d0 *`,
     watch: `/shareable`,
     poll: 3600,
     parser: `
