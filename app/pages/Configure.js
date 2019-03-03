@@ -173,7 +173,6 @@ async function ConfigurePageHTML(ctx) {
       }
     })
   }
-  console.log(nskeleton);
   const minkeConfig = app._image == Images.MINKE;
   const adminMode = minkeConfig ? false : MinkeApp.getAdminMode();
   ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
