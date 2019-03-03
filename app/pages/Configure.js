@@ -38,6 +38,7 @@ async function ConfigurePageHTML(ctx) {
 
   let nextid = 100;
   const visibles = {};
+  const enabled = {};
   const properties = {
     AdminMode: MinkeApp.getAdminMode()
   };
@@ -46,16 +47,18 @@ async function ConfigurePageHTML(ctx) {
     value: app._name,
     description: skeleton.description,
     actions: skeleton.actions.map((action) => {
+      if ('visible' in action) {
+        const vid = `v${++nextid}`;
+        visibles[vid] = action.visible;
+        action = Object.assign({ vid: vid }, action);
+      }
+      if ('enabled' in action) {
+        const eid = `e${++nextid}`;
+        enabled[eid] = action.enabled;
+        action = Object.assign({ eid: eid }, action);
+      }
       switch (action.type) {
         case 'Header':
-        {
-          let id = null;
-          if (action.visible) {
-            id = `h${++nextid}`;
-            visibles[id] = action.visible;
-          }
-          return Object.assign({ id: id }, action);
-        }
         case 'Text':
         {
           return action;
@@ -176,10 +179,13 @@ async function ConfigurePageHTML(ctx) {
   const minkeConfig = app._image == Images.MINKE;
   const adminMode = minkeConfig ? false : MinkeApp.getAdminMode();
   ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
-    visibles: '[' + Object.keys(visibles).map((key) => {
-      return `function() { const c = document.getElementById("${key}").classList; try { if (${visibles[key]}) { c.add("visible"); } else { c.remove("visible"); } } catch (_) { c.remove("visible"); } }`;
-    }).join(',') + ']'
+    changes: '[' + Object.keys(visibles).map((key) => {
+      return `function(){const c=document.getElementById("${key}").classList;try{if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){c.add("invisible")}}`;
+    }).concat(Object.keys(enabled).map((key) => {
+      return `function(){const c=document.getElementById("${key}");c.disabled=(${enabled[key]}?'':'disabled');try{if(${enabled[key]}){c.classList.remove("disabled")}else{c.classList.add("disabled")}}catch(_){c.classList.add("disabled")}}`
+    })).join(',') + ']'
   });
+  console.log(ctx.body);
   ctx.type = 'text/html'
 }
 

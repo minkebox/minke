@@ -26,11 +26,11 @@
       </div>
       <div class="content pure-u-1">
         <form class="actions pure-form pure-form-aligned">
-          <div class="section visible">
+          <div class="section">
           {{#each actions}}
           {{#if (eq type "Header")}}
           </div>
-          <div class="section visible" {{#if id}}id="{{id}}"{{/if}}>
+          <div class="section" {{#if vid}}id="{{vid}}"{{/if}}>
           <div class="content-header">{{title}}</div>
           {{else if (eq type "Text")}}
           <div class="content-text">{{{text}}}</div>
@@ -40,16 +40,16 @@
             {{#if (eq style "Table")}}
             {{> Table}}
             {{else if (eq style "Checkbox")}}
-            <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
+            <input {{#if eid}}id="{{eid}}"{{/if}} class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
             {{else}}
             {{#if options}}
-            <select class="value" onchange="{{action}}">
+            <select {{#if eid}}id="{{eid}}"{{/if}} class="value" onchange="{{action}}">
               {{#each options}}
               <option value="{{value}}" {{#if (eq value ../value)}}selected{{/if}}>{{name}}</option>
               {{/each}}
             </select>
             {{else}}
-            <input class="pure-input-rounded pure-u-16-24 value" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
+            <input {{#if eid}}id="{{eid}}"{{/if}} class="pure-input-rounded pure-u-16-24 value" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
             {{/if}}
             {{/if}}
           </div>
@@ -139,7 +139,7 @@
     </div>
     <script>
       setActionProperties({{{properties}}});
-      registerVisibles({{{visibles}}});
+      registerChanges({{{changes}}});
       const popbox = new Popbox({ blur:false, overlay:true });
       document.addEventListener('popbox_closing', (e) => {
         if (e.detail.source.classList.contains('button-delete-app')) {

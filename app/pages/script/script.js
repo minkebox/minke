@@ -52,19 +52,19 @@ function onPageShow() {
 }
 
 let property = {};
-let visibles = [];
+let changes = [];
 function setActionProperties(props) {
   property = props || {};
 }
-function registerVisibles(vis) {
-  visibles = vis || [];
-  visibles.forEach(v => v());
+function registerChanges(ch) {
+  changes = ch || [];
+  changes.forEach(c => c());
 }
 
 function action(id, value) {
   if (property[id] != value) {
     property[id] = value;
-    visibles.forEach(v => v());
+    changes.forEach(c => c());
   }
   ws.send(JSON.stringify({
     type: 'action.change',
@@ -82,7 +82,7 @@ function share(id, elem) {
   }
   if (property[id] != checked.checked) {
     property[id] = checked.checked;
-    visibles.forEach(v => v());
+    changes.forEach(c => c());
   }
   ws.send(JSON.stringify({
     type: 'action.change',
