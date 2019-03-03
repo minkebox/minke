@@ -1,0 +1,26 @@
+<table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24">
+  {{#each shareables}}
+  {{#if shares}}
+  <thead>
+    <tr>
+      <th>{{app._name}}</th><th>Description</th><th class="control">Share</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each shares}}
+    <tr>
+      <td>
+        <input type="text" placeholder="{{name}}" value="{{altname}}" oninput="{{action}}">
+      </td>
+      <td>
+        {{description}}
+      </td>
+      <td>
+        <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+  {{/if}}
+  {{/each}}
+</table>

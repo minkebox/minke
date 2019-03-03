@@ -73,6 +73,24 @@ function action(id, value) {
   }));
 }
 
+function share(id, elem) {
+  const parent = elem.parentElement.parentElement;
+  const name = parent.firstElementChild.firstElementChild;
+  const checked = parent.firstElementChild.nextElementSibling.nextElementSibling.firstElementChild;
+  if (name == elem) {
+    checked.checked = true;
+  }
+  if (property[id] != checked.checked) {
+    property[id] = checked.checked;
+    visibles.forEach(v => v());
+  }
+  ws.send(JSON.stringify({
+    type: 'action.change',
+    property: id,
+    value: { shared: checked.checked, target: name.value }
+  }));
+}
+
 function cmd(command) {
   ws.send(JSON.stringify({
     type: command

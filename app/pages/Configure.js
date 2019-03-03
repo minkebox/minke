@@ -8,7 +8,8 @@ const Skeletons = require('../skeletons/Skeletons');
 let template;
 function registerTemplates() {
   const partials = [
-    'Table'
+    'Table',
+    'Shareables'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -138,23 +139,27 @@ async function ConfigurePageHTML(ctx) {
         }
         case 'Shareables':
         {
-          const shareables = MinkeApp.getShareables().map((shareable) => {
-            return { shares: shareable.shares.reduce((shares, bind) => {
+          const allShares = MinkeApp.getShareables();
+          allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
+          const shareables = allShares.map((shareable) => {
+            return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
               bind.shares.forEach((share) => {
                 const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
                 const host = Path.normalize(`${bind.host}/${share.name}/`).slice(0, -1);
+                const ashare = app._shares.find(ashare => ashare.appid === shareable.app._id && ashare.host == host);
                 shares.push({
-                  target: target,
+                  name: target,
+                  altname: ashare && ashare.target != target ? ashare.target : null,
+                  description: share.description,
                   host: host,
-                  action: `window.action('${action.type}#${shareable.app._id}#${host}#${action.name}/${target}',this.checked)`,
-                  value: !!app._shares.find(ashare => ashare.appid === shareable.app._id && ashare.host == host)
+                  action: `window.share('${action.type}#${shareable.app._id}#${host}#${action.name}#${target}',this)`,
+                  value: !!ashare
                 });
               });
               return shares;
             }, [])};
           });
           return Object.assign({ shareables: shareables }, action);
-          break;
         }
         case 'Argument':
         default:
@@ -327,13 +332,14 @@ async function ConfigurePageWS(ctx) {
           }
           return false;
         });
-        const match = property.match(/^Shareables#(.*)#(.*)#(.*)$/);
+        const match = property.match(/^Shareables#(.*)#(.*)#(.*)#(.*)$/);
         if (match) {
           shares.push({
             appid: match[1],
             host: match[2],
-            target: match[3],
-            shared: changes[property]
+            root: match[3],
+            target: changes[property].target.replace(/\//, '.') || match[4],
+            shared: changes[property].shared
           });
         }
       }

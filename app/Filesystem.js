@@ -62,7 +62,7 @@ Filesystem.prototype = {
     return {
       Type: 'bind',
       Source: Path.normalize(`${FS_HOSTPREFIX}/app/${share.appid}/${share.host}`),
-      Target: share.target,
+      Target: Path.normalize(`${share.root}/${share.target}`),
       BindOptions: {
         Propagation: 'rshared'
       }

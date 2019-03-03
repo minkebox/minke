@@ -703,9 +703,10 @@ MinkeApp.prototype = {
         acc.push({
           appid: share.appid,
           host: share.host,
+          root: share.root,
           target: share.target
         });
-        if (idx === -1) {
+        if (idx === -1 || this._shares[idx].target !== share.target) {
           changed = true;
         }
       }
