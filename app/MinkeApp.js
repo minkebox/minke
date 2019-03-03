@@ -39,6 +39,7 @@ MinkeApp.prototype = {
     this._binds = app.binds;
     this._files = app.files;
     this._shares = app.shares;
+    this._customshares = app.customshares || [];
     this._networks = app.networks;
     this._monitor = app.monitor;
 
@@ -61,17 +62,17 @@ MinkeApp.prototype = {
       binds: this._binds,
       files: this._files,
       shares: this._shares,
+      customshares: this._customshares,
       networks: this._networks,
       monitor: this._monitor
     }
   },
 
   createFromSkeleton: function(skel) {
-    const apps = MinkeApp.getApps();
     let name = null;
     for (let i = 1; ; i++) {
       name = `${skel.name} ${i}`;
-      if (!apps.find(app => name === app._name)) {
+      if (!applications.find(app => name === app._name)) {
         break;
       }
     }
@@ -189,6 +190,7 @@ MinkeApp.prototype = {
       return r;
     }, []);
     this._shares = [];
+    this._customshares = [];
     this._monitor = skel.monitor;
 
     return this;
@@ -542,7 +544,7 @@ MinkeApp.prototype = {
   
     try {
       if (this._statusMonitor) {
-        this._statusMonitor.stop();
+        this._statusMonitor.shutdown();
         this._statusMonitor = null;
       }
     }
@@ -550,7 +552,7 @@ MinkeApp.prototype = {
     }
     try {
       if (this._networkMonitor) {
-        this._networkMonitor.stop();
+        this._networkMonitor.shutdown();
         this._networkMonitor = null;
         this.off('update.network.status', this._updateNetworkStatus);
         this._remoteServices = null;
@@ -724,10 +726,47 @@ MinkeApp.prototype = {
     return changed;
   },
 
+  updateCustomShare: function(share) {
+    const idx = this._customshares.findIndex(oshare => oshare.target === share.target);
+    if (idx !== -1) {
+      this._customshares[idx] = share;
+    }
+    else {
+      this._customshares.push(share);
+    }
+    return true;
+  },
+
   getAvailableNetworks: function() {
     return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
       return (app && app._willCreateNetwork()) || (app === this && this._features.vpn) ? { _id: app._id, name: app._name } : null;
     }));
+  },
+
+  getAvailableShareables: function() {
+    return applications.reduce((acc, app) => {
+      if (app !== this) {
+        let shares = app._binds.reduce((shares, bind) => {
+          if (bind.shares && bind.shares.length) {
+            shares.push(bind);
+          }
+          return shares;
+        }, []);
+        shares = app._customshares.reduce((shares, bind) => {
+          if (bind.shares && bind.shares.length) {
+            shares.push(bind);
+          }
+          return shares;
+        }, shares);
+        if (shares.length) {
+          acc.push({
+            app: app,
+            shares: shares
+          });
+        }
+      }
+      return acc;
+    }, []);
   },
 
   _monitorNetwork: function() {
@@ -1062,24 +1101,6 @@ MinkeApp.getNetworks = function() {
   return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
     return app && app._willCreateNetwork() ? { _id: app._id, name: app._name } : null;
   }));
-}
-
-MinkeApp.getShareables = function() {
-  return MinkeApp.getApps().reduce((acc, app) => {
-    const shares = app._binds.reduce((shares, bind) => {
-      if (bind.shares && bind.shares.length) {
-        shares.push(bind);
-      }
-      return shares;
-    }, []);
-    if (shares.length) {
-      acc.push({
-        app: app,
-        shares: shares
-      });
-    }
-    return acc;
-  }, []);
 }
 
 module.exports = MinkeApp;

@@ -9,7 +9,8 @@ let template;
 function registerTemplates() {
   const partials = [
     'Table',
-    'Shareables'
+    'Shareables',
+    'CustomShareables'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -139,7 +140,7 @@ async function ConfigurePageHTML(ctx) {
         }
         case 'Shareables':
         {
-          const allShares = MinkeApp.getShareables();
+          const allShares = app.getAvailableShareables();
           allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
           const shareables = allShares.map((shareable) => {
             return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
@@ -160,6 +161,11 @@ async function ConfigurePageHTML(ctx) {
             }, [])};
           });
           return Object.assign({ shareables: shareables }, action);
+        }
+        case 'CustomShareables':
+        {
+          const root = app._customshares.find(share => share.target == action.name) || { shares: [] };
+          return Object.assign({ action: `${action.type}#${action.name}`, shareables: root.shares }, action);
         }
         case 'Argument':
         default:
@@ -305,6 +311,20 @@ async function ConfigurePageWS(ctx) {
             return APPCHANGE;
           }
         }
+      }
+      return NOCHANGE;
+    }},
+    { p: /^CustomShareables#(.+)$/, f: (value, match) => {
+      const shareroot = match[1];
+      const bind = {
+        host: Path.normalize(`/dir/${shareroot}`),
+        target: Path.normalize(shareroot),
+        shares: JSON.parse(value).map((row) => {
+          return { name: Path.normalize(`${row[0]}`) };
+        })
+      };
+      if (app.updateCustomShare(bind)) {
+        return SHARECHANGE;
       }
       return NOCHANGE;
     }},

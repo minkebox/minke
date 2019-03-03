@@ -25,6 +25,7 @@ function MinkeSetup(savedConfig, config) {
   this._status = 'running';
   this._features = {};
   this._binds = [];
+  this._customshares = [];
   this._networks = {
     primary: 'host'
   };

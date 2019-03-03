@@ -11,9 +11,10 @@ let FS_HOSTPREFIX = `${FS_PREFIX}/fs`;
 
 function Filesystem(app) {
   this._app = app;
-  this._mappings = app._binds;
+  this._binds = app._binds;
   this._files = app._files;
   this._shares = app._shares;
+  this._customshares = app._customshares;
   this._root = `${FS_PREFIX}/fs/app/${this._app._id}`;
   this._hostroot = `${FS_HOSTPREFIX}/app/${this._app._id}`;
 }
@@ -33,10 +34,11 @@ Filesystem.prototype = {
       }
     }
 
-    return this._mappings.map(map => this._makeMount(map)).concat(
+    return this._binds.map(map => this._makeMount(map)).concat(
       this._files.map(file => this.makeFile(file)),
-      this._shares.map(share => this.makeShare(share))
-    );
+      this._shares.map(share => this.makeShare(share)),
+      this._customshares.map(map => this.makeCustomShare(map))
+    ).flat();
   },
 
   _makeMount: function(bind) {
@@ -81,9 +83,23 @@ Filesystem.prototype = {
     }
   },
 
+  makeCustomShare: function(bind) {
+    return bind.shares.map((share) => {
+      FS.mkdirSync(`${this._root}/${bind.host}/${share.name}`, { recursive: true });
+      return {
+        Type: 'bind',
+        Source: Path.normalize(`${this._hostroot}/${bind.host}/${share.name}`),
+        Target: Path.normalize(`${bind.target}/${share.name}`),
+        BindOptions: {
+          Propagation: 'rshared'
+        }
+      }
+    });
+  },
+
   mapFilenameToLocal: function(filename) {
-    for (let i = 0; i < this._mappings.length; i++) {
-      const bind = this._mappings[i];
+    for (let i = 0; i < this._binds.length; i++) {
+      const bind = this._binds[i];
       if (filename.startsWith(bind.target)) {
         return Path.normalize(`${this._root}/${bind.host}/${filename.substring(bind.target.length)}`);
       }

@@ -9,17 +9,12 @@
     },
     {
       type: `Text`,
-      text: `Create a list of file shares. Removing any shares from the list will also <b><u>remove all data</u></b>.`
+      text: `Create a list of file shares. Removing any shares from the list will not remove the data, although it will become in accessible until the share is re-created. Data is only removed when the application is uninstalled.`
     },
     {
-      type: `File`,
-      name: `/etc/extra-shares`,
-      style: `Table`,
-      description: `Shares`,
-      headers: [
-        `Name`
-      ],
-      pattern: `{{0}}`
+      type: `CustomShareables`,
+      name: `/shareable`,
+      description: `Create a list of file shares`
     },
     {
       type: `Header`,
@@ -39,14 +34,6 @@
     {
       type: `Directory`,
       name: `/etc/status`
-    },
-    {
-      type: `File`,
-      name: `/etc/extra-shares`
-    },
-    {
-      type: `Directory`,
-      name: `/myshares`
     },
     {
       type: `Port`,
