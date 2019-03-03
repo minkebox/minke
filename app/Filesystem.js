@@ -38,7 +38,7 @@ Filesystem.prototype = {
       this._files.map(file => this.makeFile(file)),
       this._shares.map(share => this.makeShare(share)),
       this._customshares.map(map => this.makeCustomShare(map))
-    ).flat();
+    ).reduce((a, b) => a.concat(b), []);
   },
 
   _makeMount: function(bind) {
