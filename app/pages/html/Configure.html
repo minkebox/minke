@@ -97,8 +97,12 @@
           </div>
           {{else if (eq type "Shareables")}}
           <div class="action shareables pure-control-group">
+            {{#if shareables}}
             <label class="description">{{{description}}}</label>
             {{> Shareables}}
+            {{else}}
+            <div style="text-align: center">No applications sharing.</div>
+            {{/if}}
           </div>
           {{/if}}
           {{else}}
