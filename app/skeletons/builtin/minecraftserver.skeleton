@@ -416,6 +416,21 @@
       defaultValue: `LATEST`
     },
     {
+      type: 'Environment',
+      name: 'TYPE',
+      defaultValue: 'FORGE'
+      options: [
+        { name: 'Forge', value: 'FORGE' },
+        { name: 'Bukkit', value: 'BUKKIT' },
+        { name: 'Spigot', value: 'SPIGOT' },
+        { name: 'Paper Spigot', value: 'PAPER' },
+        { name: 'Feed-The-Beast', value: 'FTB' },
+        { name: 'CurseForge', value: 'CURSEFORGE' },
+        { name: 'SpongeVanilla', value: 'SPONGEVANILLA' },
+        { name: 'Custom', value: 'CUSTOM' }
+      ]
+    },
+    {
       type: `Directory`,
       name: `/config`
     },
