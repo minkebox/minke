@@ -30,26 +30,26 @@
           {{#each actions}}
           {{#if (eq type "Header")}}
           </div>
-          <div class="section" {{#if vid}}id="{{vid}}"{{/if}}>
+          <div class="section" {{#if vid}}id="{{vid}}"{{else if eid}}id="{{eid}}"{{/if}}>
           <div class="content-header">{{title}}</div>
           {{else if (eq type "Text")}}
           <div class="content-text">{{{text}}}</div>
           {{else if (eq type "Environment")}}
-          <div class="action environment table pure-control-group">
+          <div {{#if eid}}id="{{eid}}"{{/if}} class="action environment table pure-control-group">
             <label class="description">{{{description}}}</label>
             {{#if (eq style "Table")}}
             {{> Table}}
             {{else if (eq style "Checkbox")}}
-            <input {{#if eid}}id="{{eid}}"{{/if}} class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
+            <input class="value can-disable" type="checkbox" onchange="{{action}}">
             {{else}}
             {{#if options}}
-            <select {{#if eid}}id="{{eid}}"{{/if}} class="value" onchange="{{action}}">
+            <select class="value can-disable" onchange="{{action}}">
               {{#each options}}
               <option value="{{value}}" {{#if (eq value ../value)}}selected{{/if}}>{{name}}</option>
               {{/each}}
             </select>
             {{else}}
-            <input {{#if eid}}id="{{eid}}"{{/if}} class="pure-input-rounded pure-u-16-24 value" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
+            <input class="pure-input-rounded pure-u-16-24 value can-disable" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
             {{/if}}
             {{/if}}
           </div>

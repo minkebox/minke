@@ -181,9 +181,9 @@ async function ConfigurePageHTML(ctx) {
   const adminMode = minkeConfig ? false : MinkeApp.getAdminMode();
   ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
     changes: '[' + Object.keys(visibles).map((key) => {
-      return `function(){const c=document.getElementById("${key}").classList;try{if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){c.add("invisible")}}`;
+      return `function(){const c=document.getElementById("${key}").classList;try{if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){}}`;
     }).concat(Object.keys(enabled).map((key) => {
-      return `function(){const c=document.getElementById("${key}");c.disabled=(${enabled[key]}?'':'disabled');try{if(${enabled[key]}){c.classList.remove("disabled")}else{c.classList.add("disabled")}}catch(_){c.classList.add("disabled")}}`
+      return `function(){try{const v=(${enabled[key]});document.querySelectorAll("#${key}.can-disable,#${key} .can-disable").forEach((e)=>{e.disabled=(v?'':'disabled');if(v){e.classList.remove("disabled")}else{e.classList.add("disabled")}})}catch(_){}}`
     })).join(',') + ']'
   });
   ctx.type = 'text/html'
