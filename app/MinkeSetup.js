@@ -146,7 +146,9 @@ MinkeSetup.prototype = {
 
   _setupMDNS: function() {
     MDNS.start({
-      hostname: this._name
+      uuid: this._env.GLOBALID.value,
+      hostname: this._name,
+      ipaddress: this._env.IPADDRESS.value
     });
     return true;
   },

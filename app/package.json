@@ -3,6 +3,7 @@
     "@achingbrain/ssdp": "^2.1.2",
     "ace-builds": "^1.4.2",
     "chartist": "^0.11.0",
+    "dns-packet": "^5.2.0",
     "dockerode": "^2.5.7",
     "fast-glob": "^2.2.6",
     "handlebars": "^4.1.0",
