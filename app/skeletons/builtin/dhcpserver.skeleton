@@ -21,8 +21,9 @@
         `End IP`,
         `Time to live`
       ],
-      pattern: `dhcp-range={{0}},{{1}},{{2}}\\n`,
-      join: '',
+      pattern: `dhcp-range={{0}},{{1}},{{2}}
+`,
+      join: ``,
       controls: false
     },
     {
@@ -43,8 +44,9 @@
         `MAC Address`,
         `IP Address`
       ],
-      pattern: `{{1}},{{2}},{{0}}\\n`,
-      join: ''
+      pattern: `{{1}},{{2}},{{0}}
+`,
+      join: ``
     }
   ],
   properties: [
@@ -60,7 +62,7 @@
       type: `Port`,
       name: `1053/tcp`,
       host: 1053,
-      protocol: 'TCP',
+      protocol: `TCP`,
       nat: false,
       web: false,
       mdns: null
@@ -69,7 +71,7 @@
       type: `Port`,
       name: `1053/udp`,
       host: 1053,
-      protocol: 'UDP',
+      protocol: `UDP`,
       nat: false,
       web: false,
       dns: true,
@@ -79,7 +81,7 @@
       type: `Port`,
       name: `67/udp`,
       host: 67,
-      protocol: 'UDP',
+      protocol: `UDP`,
       nat: false,
       web: false,
       mdns: null
@@ -88,7 +90,7 @@
       type: `Port`,
       name: `68/udp`,
       host: 68,
-      protocol: 'UDP',
+      protocol: `UDP`,
       nat: false,
       web: false,
       mdns: null
