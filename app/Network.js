@@ -40,6 +40,9 @@ const Network = {
   }),
 
   setHomeNetwork: function(config) {
+    if (DEBUG) {
+      return false;
+    }
     // address, netmask, gateway
     let data = '';
     if (config.address.toLowerCase() === 'dhcp') {
@@ -49,12 +52,17 @@ const Network = {
       const netmask = new Netmask.Netmask(`${config.address}/${config.netmask}`);
       data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nAddress=${config.address}/${netmask.bitmask}\nGateway=${config.gateway}\n`;
     }
-    const olddata = FS.readFileSync(NETWORK_FILE, { encoding: 'utf8' });
-    if (olddata != data) {
-      FS.writeFileSync(NETWORK_FILE, data);
-      return true;
+    try {
+      const olddata = FS.readFileSync(NETWORK_FILE, { encoding: 'utf8' });
+      if (olddata != data) {
+        FS.writeFileSync(NETWORK_FILE, data);
+        return true;
+      }
+      else {
+        return false;
+      }
     }
-    else {
+    catch (_) {
       return false;
     }
   },
