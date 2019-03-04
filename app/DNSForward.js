@@ -1,11 +1,12 @@
 const ChildProcess = require('child_process');
 const FS = require('fs');
+const MDNS = require('./MDNS');
+const UPNP = require('./UPNP');
 
 const DEBUG = process.env.DEBUG;
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
-const AVAHI = '/usr/sbin/avahi-daemon'
 const HOSTNAME = '/bin/hostname';
 const DNSMASQ_CONFIG = `${ETC}dnsmasq.conf`;
 const DNSMASQ_CONFIG_DIR = (DEBUG ? '/tmp/' : `${ETC}dnsmasq.d/`);
@@ -14,8 +15,8 @@ const HOSTNAME_FILE = `${ETC}hostname`;
 const LOCAL_RESOLV = `${ETC}resolv.conf`;
 
 let dns = null;
-let avahi = null;
 let domainName = 'home';
+let hostname = 'Minke';
 let primaryResolver = '';
 let secondaryResolver = '';
 const resolvers = {};
@@ -49,8 +50,9 @@ const DNSForward = {
     DNSForward._restart();
   },
 
-  setHostname: function(hostname) {
-    FS.writeFileSync(HOSTNAME_FILE, `${hostname || 'Minke'}\n`);
+  setHostname: function(name) {
+    hostname = name || 'Minke';
+    FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
     if (!DEBUG) {
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
@@ -87,10 +89,12 @@ const DNSForward = {
       dns.kill();
       dns = null;
     }
-    if (avahi) {
-      avahi.kill();
-      avahi = null;
-    }
+    MDNS.update({
+      hostname: hostname
+    });
+    UPNP.update({
+      hostname: hostname
+    });
   }
 
 }
@@ -107,11 +111,6 @@ if (!DEBUG) {
     dns.on('exit', dnsRun);
   }
   dnsRun();
-  function avahiRun() {
-    avahi = ChildProcess.spawn(AVAHI, [ '--no-drop-root' ]);
-    avahi.on('exit', avahiRun);
-  }
-  avahiRun();
 }
 
 

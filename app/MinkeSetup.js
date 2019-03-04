@@ -6,6 +6,7 @@ const Images = require('./Images');
 const DNSForward = require('./DNSForward');
 const Network = require('./Network');
 const Database = require('./Database');
+const MDNS = require('./MDNS');
 const UPNP = require('./UPNP');
 
 const REBOOT = '/sbin/reboot';
@@ -45,8 +46,9 @@ function MinkeSetup(savedConfig, config) {
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
 
-  this._setupDNS();
   this._setupTimezone();
+  this._setupDNS();
+  this._setupMDNS();
   this._setupUPNP();
 }
 
@@ -116,16 +118,6 @@ MinkeSetup.prototype = {
     });
   },
 
-  _setupDNS: function() {
-    DNSForward.setDefaultResolver(
-      this._env.DNSSERVER1.value,
-      this._env.DNSSERVER2.value
-    );
-    DNSForward.setHostname(this._safeName());
-    DNSForward.setDomainName(this.getLocalDomainName());
-    return true;
-  },
-
   _setupTimezone: function() {
     if (DEBUG) {
       return false;
@@ -141,12 +133,30 @@ MinkeSetup.prototype = {
     return false;
   },
 
+  _setupDNS: function() {
+    DNSForward.setDefaultResolver(
+      this._env.DNSSERVER1.value,
+      this._env.DNSSERVER2.value
+    );
+    DNSForward.setHostname(this._safeName());
+    DNSForward.setDomainName(this.getLocalDomainName());
+    return true;
+  },
+
+  _setupMDNS: function() {
+    MDNS.start({
+      hostname: this._name
+    });
+    return true;
+  },
+
   _setupUPNP: function() {
     UPNP.start({
       uuid: this._env.GLOBALID.value,
       hostname: this._name,
       ipaddress: this._env.IPADDRESS.value
     });
+    return true;
   },
 
   _reboot: function() {

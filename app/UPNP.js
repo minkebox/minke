@@ -63,6 +63,10 @@ const UPNP = {
       await ssdp.stop();
       ssdp = null;
     }
+  },
+
+  update: function(config) {
+    this._hostname = config.hostname;
   }
 
 };
