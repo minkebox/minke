@@ -115,6 +115,10 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
 async function _generateGraph(container, graph) {
   return new Promise((resolve, reject) => {
     try {
+      // Empty container (otherwise it just fills up with graphs)
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
       const options = Object.assign({
         width: '250px',
         height: '250px',
