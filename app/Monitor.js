@@ -116,8 +116,8 @@ async function _generateGraph(container, graph) {
   return new Promise((resolve, reject) => {
     try {
       const options = Object.assign({
-        width: '300px',
-        height: '300px',
+        width: '250px',
+        height: '250px',
         axisX: { showLabel: false, showGrid: false, offset: 0 },
         axisY: { showLabel: false, showGrid: false, offset: 0 },
         fullWidth: true,

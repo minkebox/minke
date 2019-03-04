@@ -169,7 +169,7 @@ body {
   flex: 1;
   display: none;
   margin: 10px;
-  height: 328px;
+  height: 278px;
   background: white;
   border: solid 2px #ccc;
   border-radius: 5px;
@@ -188,8 +188,8 @@ body {
   background-color: #eee;
 }
 .apps-info-container .application-status .status {
-  height: 300px;
-  max-height: 300px;
+  height: 250px;
+  max-height: 250px;
   overflow: hidden;
 }
 
