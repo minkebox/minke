@@ -21,7 +21,8 @@
         `End IP`,
         `Time to live`
       ],
-      pattern: `dhcp-range={{0}},{{1}},{{2}}`,
+      pattern: `dhcp-range={{0}},{{1}},{{2}}\\n`,
+      join: '',
       controls: false
     },
     {
@@ -42,7 +43,8 @@
         `MAC Address`,
         `IP Address`
       ],
-      pattern: `{{1}},{{2}},{{0}}`
+      pattern: `{{1}},{{2}},{{0}}\\n`,
+      join: ''
     }
   ],
   properties: [
@@ -112,7 +114,7 @@
     }
   ],
   monitor: {
-    cmd: `wc -l /etc/dnsmasq-hosts.d/user-defined-hosts.conf ; cat /etc/dnsmasq.d/dhcp-ranges.conf ; echo ; cat /etc/dnsmasq-state.d/leases`,
+    cmd: `wc -l /etc/dnsmasq-hosts.d/user-defined-hosts.conf ; cat /etc/dnsmasq.d/dhcp-ranges.conf ; cat /etc/dnsmasq-state.d/leases`,
     watch: `/etc/dnsmasq-state.d/leases`,
     polling: 600,
     parser: `

@@ -216,7 +216,7 @@ async function ConfigurePageWS(ctx) {
           }
           value.push(line);
         });
-        return value.join(action.join || '\n');
+        return value.join('join' in action ? action.join : '\n');
       }
     }
     return null;
