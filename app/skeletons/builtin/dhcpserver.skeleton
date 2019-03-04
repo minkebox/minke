@@ -123,7 +123,7 @@
       output.active = times.reduce((acc, time) => acc += (time > 0) ? 1 : 0, 0);
       output.from = range[1];
       output.to = range[2];
-      output.fixed = lines[0];
+      output.fixed = lines[0].trim().split(' ')[0];
     `,
     header: `
       <style>
