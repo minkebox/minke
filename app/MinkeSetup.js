@@ -60,6 +60,7 @@ MinkeSetup.prototype = {
   stop: async function() {
     this._status = 'shutting down';
     this.emit('update.status', { app: this, status: this._status });
+    MDNS.stop();
     UPNP.stop();
   },
 
