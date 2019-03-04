@@ -41,6 +41,9 @@ const MDNS = {
   },
 
   _create: function() {
+    function eq(a, b) {
+      return a.localeCompare(b, 'en', { sensitivity: 'base'}) == 0;
+    }
     this._socket = Dgram.createSocket({
       type: 'udp4',
       reuseAddr: true
@@ -50,20 +53,20 @@ const MDNS = {
         pkt.questions.forEach((q) => {
           switch (q.name) {
             case SERVICES:
-              this._answer([{ name: SERVICES, type: 'PTR', ttl: 4500, data: HTTP }]);
+              this._answer([{ name: q.name, type: 'PTR', ttl: 4500, data: HTTP }]);
               break;
             case HTTP:
-              this._answer([{ name: HTTP, type: 'PTR', data: `${this._hostname}.${HTTP}` }]);
+              this._answer([{ name: q.name, type: 'PTR', data: `${this._hostname}.${HTTP}` }]);
               break;
             default:
-              if (q.name === `${this._hostname}.${HTTP}`) {
+              if (eq(q.name, `${this._hostname}.${HTTP}`)) {
                 this._answer([
-                  { name: `${this._hostname}.${HTTP}`, type: 'SRV', data: { priority: 0, weight: 0, port: 80, target: `${this._hostname}.local` }},
-                  { name: `${this._hostname}.${HTTP}`, type: 'TXT', data: [] }
+                  { name: q.name, type: 'SRV', data: { priority: 0, weight: 0, port: 80, target: `${this._hostname}.local` }},
+                  { name: q.name, type: 'TXT', data: [] }
                 ]);
               }
-              else if (q.name === `${this._hostname}.local`) {
-                this._answer([{ name: `${this._hostname}.local`, type: 'A', data: this._ip }]);
+              else if (eq(q.name, `${this._hostname}.local`)) {
+                this._answer([{ name: q.name, type: 'A', data: this._ip }]);
               }
               break;
           }
