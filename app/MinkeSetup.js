@@ -78,6 +78,7 @@ MinkeSetup.prototype = {
     for (let key in config) {
       config[key] = this._env[key].value;
     }
+    config.HOSTNAME = this._name;
     config._id = this._id;
     await Database.saveConfig(config);
   },
