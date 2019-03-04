@@ -139,6 +139,7 @@ body {
 }
 .app .left a {
   text-decoration: none;
+  color: inherit;
 }
 .app .left a h6:hover {
   color: #333;
