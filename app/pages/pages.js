@@ -49,4 +49,6 @@ function pages(root, wsroot) {
   }
 }
 
-module.exports = pages;
+module.exports = {
+  register: pages
+};

@@ -1,6 +1,5 @@
 #! /usr/bin/node
 
-const FS = require('fs');
 const Koa = require('koa');
 const Router = require('koa-router');
 const Websockify = require('koa-websocket');
@@ -11,6 +10,7 @@ global.DEBUG = !!process.env.DEBUG;
 
 const Pages = require('./pages/pages');
 const MinkeApp = require('./MinkeApp');
+const UPNP = require('./UPNP');
 
 
 const App = Websockify(new Koa());
@@ -25,7 +25,8 @@ App.use(CacheControl({ noCache: true }));
 const root = Router();
 const wsroot = Router();
 
-Pages(root, wsroot);
+Pages.register(root, wsroot);
+UPNP.register(root, wsroot);
 
 App.use(root.middleware());
 App.ws.use(wsroot.middleware());

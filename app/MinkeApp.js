@@ -1009,7 +1009,8 @@ MinkeApp.startApps = async function(app) {
     DNSSERVER1: '1.1.1.1',
     DNSSERVER2: '1.0.0.1',
     TIMEZONE: Moment.tz.guess(),
-    ADMINMODE: 'DISABLED'
+    ADMINMODE: 'DISABLED',
+    GLOBALID: UUID()
   });
   applications.unshift(setup);
 
