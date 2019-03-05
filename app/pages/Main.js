@@ -2,7 +2,6 @@ const FS = require('fs');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 
-
 function genApp(app, networks) {
   return {
     _id: app._id,

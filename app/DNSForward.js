@@ -3,8 +3,6 @@ const FS = require('fs');
 const MDNS = require('./MDNS');
 const UPNP = require('./UPNP');
 
-const DEBUG = process.env.DEBUG;
-
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
 const HOSTNAME = '/bin/hostname';

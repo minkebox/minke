@@ -1,13 +1,12 @@
 #! /usr/bin/node
 
+global.DEBUG = !!process.env.DEBUG;
+
 const Koa = require('koa');
 const Router = require('koa-router');
 const Websockify = require('koa-websocket');
 const CacheControl = require('koa-cache-control');
 const Docker = require('dockerode');
-
-global.DEBUG = !!process.env.DEBUG;
-
 const Pages = require('./pages/pages');
 const MinkeApp = require('./MinkeApp');
 const UPNP = require('./UPNP');

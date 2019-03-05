@@ -1,6 +1,5 @@
 const DnsPacket = require('dns-packet');
 const Dgram = require('dgram');
-const OS = require('os');
 
 const MCAST_ADDRESS = '224.0.0.251';
 const PORT = 5353;
