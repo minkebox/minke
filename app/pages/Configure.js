@@ -374,7 +374,7 @@ async function ConfigurePageWS(ctx) {
         });
       }
       if (changed) {
-        await uapp.restart(true, false);
+        await uapp.restart();
       }
       else if (uapp._status === 'stopped') {
         await uapp.start();
@@ -399,7 +399,17 @@ async function ConfigurePageWS(ctx) {
           break;
         case 'app.restart':
           if (app) {
-            app.restart(false, true);
+            app.restart('restart');
+          }
+          break;
+        case 'app.reboot':
+          if (app) {
+            app.restart('reboot');
+          }
+          break;
+        case 'app.halt':
+          if (app) {
+            app.restart('halt');
           }
           break;
         case 'app.delete':

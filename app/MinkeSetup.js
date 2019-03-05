@@ -9,7 +9,8 @@ const Database = require('./Database');
 const MDNS = require('./MDNS');
 const UPNP = require('./UPNP');
 
-const REBOOT = '/sbin/reboot';
+const RESTART = '/sbin/reboot';
+const RESTART_REASON = '/tmp/minke-restart-reason';
 
 
 function MinkeSetup(savedConfig, config) {
@@ -64,14 +65,15 @@ MinkeSetup.prototype = {
     await UPNP.stop();
   },
 
-  restart: async function(save, forced) {
+  restart: async function(reason) {
+    console.log('restart', reason);
     this._setupHomeNetwork();
     this._setupDNS();
     this._setupTimezone();
     this.save();
     this.emit('update.status', { app: this, status: this._status });
-    if (forced) {
-      this._reboot();
+    if (reason) {
+      this._restart(reason);
     }
   },
 
@@ -162,9 +164,10 @@ MinkeSetup.prototype = {
     return true;
   },
 
-  _reboot: function() {
+  _restart: function(reason) {
+    FS.writeFileSync(RESTART_REASON, reason);
     if (!DEBUG) {
-      ChildProcess.spawnSync(REBOOT);
+      ChildProcess.spawnSync(RESTART);
     }
   }
 

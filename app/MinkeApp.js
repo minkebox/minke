@@ -663,13 +663,11 @@ MinkeApp.prototype = {
     return this;
   },
 
-  restart: async function(save, forced) {
+  restart: async function(reason) {
     if (this._status === 'running') {
       await this.stop();
     }
-    if (save) {
-      await this.save();
-    }
+    await this.save();
     await this.start();
   },
 

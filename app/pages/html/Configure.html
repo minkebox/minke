@@ -14,13 +14,15 @@
           <div class="name" contenteditable="true" placeholder="{{name}}" oninput="action('Name',this.innerText)">{{value}}</div>
           <h2 class="description">{{{description}}}</h2>
           <nav>
-            {{#unless ../minkeConfig}}
-            <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
-            {{/unless}}
+            {{#if ../minkeConfig}}
             <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
-            {{#unless ../minkeConfig}}
+            <a class="pure-button" onclick="cmd('app.reboot')">Reboot</a>
+            <a class="pure-button" onclick="cmd('app.halt')">Halt</a>
+            {{else}}
+            <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
+            <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
             <a class="pure-button" data-popbox-target="delete">Delete</a>
-            {{/unless}}
+            {{/if}}
           </nav>
         </div>
       </div>
