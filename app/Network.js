@@ -23,7 +23,7 @@ const Network = {
           resolve({
             network: nic,
             netmask: new Netmask.Netmask(`${nic.ip_address}/${nic.netmask}`),
-            dhcp: DEBUG ? false : FS.readFileSync(NETWORK_FILE).indexOf('DHCP=') != -1
+            dhcp: DEBUG ? false : this._getHomeNetworkFile().indexOf('DHCP=') != -1
           });
         }
       })
@@ -52,8 +52,7 @@ const Network = {
       data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nAddress=${config.address}/${netmask.bitmask}\nGateway=${config.gateway}\n`;
     }
     try {
-      const olddata = FS.readFileSync(NETWORK_FILE, { encoding: 'utf8' });
-      if (olddata != data) {
+      if (this._getHomeNetworkFile() != data) {
         FS.writeFileSync(NETWORK_FILE, data);
         return true;
       }
@@ -123,6 +122,15 @@ const Network = {
       }
     }
     return net;
+  },
+
+  _getHomeNetworkFile: function() {
+    try {
+      return FS.readFileSync(NETWORK_FILE, { encoding: 'utf8' });
+    }
+    catch (_) {
+      return '';
+    }
   }
 
 }
