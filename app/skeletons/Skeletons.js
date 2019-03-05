@@ -47,6 +47,31 @@ async function imageToSkeleton(image) {
           name: key
         }
       }),
+      // Environment - ignore some variables we don't want to include by default.
+      info.ContainerConfig.Env.reduce((acc, env) => {
+        const kv = env.split('=');
+        switch (kv[0]) {
+          case 'PATH':
+          case 'LANG':
+          case 'UID':
+          case 'GID':
+            break;
+          default:
+            if (kv[0].startsWith('JAVA_')) {
+              break;
+            }
+            const e = {
+              type: 'Environment',
+              name: kv[0]
+            };
+            if (kv[1] !== '') {
+              e.defaultValue = kv[1];
+            }
+            acc.push(e);
+            break;
+        }
+        return acc;
+      }, []),
       // Ports
       Object.keys(info.ContainerConfig.ExposedPorts || {}).map((key) => {
         return {
