@@ -1,15 +1,14 @@
 const FS = require('fs');
 const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
-const ChildProcess = require('child_process');
 const Images = require('./Images');
 const DNSForward = require('./DNSForward');
 const Network = require('./Network');
 const Database = require('./Database');
 const MDNS = require('./MDNS');
 const UPNP = require('./UPNP');
+const MinkeApp = require('./MinkeApp');
 
-const RESTART = '/sbin/reboot';
 const RESTART_REASON = '/tmp/minke-restart-reason';
 
 
@@ -165,10 +164,20 @@ MinkeSetup.prototype = {
     return true;
   },
 
-  _restart: function(reason) {
+  _restart: async function(reason) {
     FS.writeFileSync(RESTART_REASON, reason);
-    if (!DEBUG) {
-      ChildProcess.spawnSync(RESTART);
+    switch (reason) {
+      case 'restart':
+        await MinkeApp.shutdown({ inherit: true });
+        process.exit();
+        break;
+
+      case 'reboot':
+      case 'halt':
+      default:
+        await MinkeApp.shutdown({});
+        process.exit();
+        break;
     }
   }
 

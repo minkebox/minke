@@ -10,7 +10,6 @@ const Filesystem = require('./Filesystem');
 const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
-const MinkeSetup = require('./MinkeSetup');
 const Skeletons = require('./skeletons/Skeletons');
 
 let applications = null;
@@ -199,12 +198,14 @@ MinkeApp.prototype = {
     return this;
   },
 
-  start: async function() {
+  start: async function(inherit) {
 
     try {
       this._setStatus('starting');
 
       this._bootcount++;
+
+      inherit = inherit || {};
 
       // Build the helper
       this._fs = Filesystem.create(this);
@@ -387,7 +388,12 @@ MinkeApp.prototype = {
           }
         }
 
-        this._helperContainer = await docker.createContainer(helperConfig);
+        if (inherit.helperContainer) {
+          this._helperContainer = inherit.helperContainer;
+        }
+        else {
+          this._helperContainer = await docker.createContainer(helperConfig);
+        }
 
         config.Hostname = null;
         config.HostConfig.ExtraHosts = null;
@@ -396,7 +402,9 @@ MinkeApp.prototype = {
         config.HostConfig.DnsOptions = null;
         config.HostConfig.NetworkMode = `container:${this._helperContainer.id}`;
 
-        await this._helperContainer.start();
+        if (inherit.helperContainer !== this._helperContainer) {
+          await this._helperContainer.start();
+        }
 
         if (primary != 'none') {
           switch (secondary) {
@@ -470,8 +478,13 @@ MinkeApp.prototype = {
 
       }
     
-      this._container = await docker.createContainer(config);
-      await this._container.start();
+      if (inherit.container) {
+        this._container = inherit.container;
+      }
+      else {
+        this._container = await docker.createContainer(config);
+        await this._container.start();
+      }
 
       let ipAddr = this._homeIP;
       if (!ipAddr && this._helperContainer) {
@@ -483,6 +496,7 @@ MinkeApp.prototype = {
 
         const webport = this._ports.find(port => port.web);
         if (webport) {
+          console.log(webport);
           if (this._homeIP) {
             if (webport.web === 'newtab') {
               this._forward = HTTPForward.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${ipAddr}:${webport.host}` });
@@ -954,7 +968,7 @@ MinkeApp._monitorEvents = async function() {
   });
 }
 
-MinkeApp.startApps = async function(app) {
+MinkeApp.startApps = async function(app, config) {
 
   koaApp = app;
 
@@ -996,7 +1010,9 @@ MinkeApp.startApps = async function(app) {
     }
     return acc;
   }, []);
-  // Setup at the top
+  // Setup at the top. We load this now rather than at the top of the file because it will attempt to load us
+  // recursively (which won't work).
+  const MinkeSetup = require('./MinkeSetup');
   setup = new MinkeSetup(await Database.getConfig('minke'), {
     HOSTNAME: 'Minke',
     LOCALDOMAIN: 'home',
@@ -1012,17 +1028,29 @@ MinkeApp.startApps = async function(app) {
   });
   applications.unshift(setup);
 
-  // Stop apps if they're still running
+  // Stop or inherit apps if they're still running
+  const inheritables = {};
   await Promise.all(applications.map(async (app) => {
-    let idx = runningNames.indexOf(`/${app._safeName()}__${app._id}`);
-    if (idx !== -1) {
-      console.log('stopping', runningNames[idx]);
-      await docker.getContainer(running[idx].Id).remove({ force: true });
+    const aidx = runningNames.indexOf(`/${app._safeName()}__${app._id}`);
+    const hidx = runningNames.indexOf(`/helper-${app._safeName()}__${app._id}`);
+    const inherit = {
+      container: aidx === -1 ? null : docker.getContainer(running[aidx].Id),
+      helperContainer: hidx === -1 ? null : docker.getContainer(running[hidx].Id)
+    };
+    // We can only inherit under specific circumstances
+    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._network.primary === 'host'))) {
+      console.log(`Inheriting ${app._name}`);
+      inheritables[app._id] = inherit;
     }
-    idx = runningNames.indexOf(`/helper-${app._safeName()}__${app._id}`);
-    if (idx !== -1) {
-      console.log('stopping', runningNames[idx]);
-      await docker.getContainer(running[idx].Id).remove({ force: true });
+    else {
+      if (inherit.container) {
+        console.log(`Stopping ${app._name}`);
+        await inherit.container.remove({ force: true });
+      }
+      if (inherit.helperContainer) {
+        console.log(`Stopping helper-${app._name}`);
+        await inherit.helperContainer.remove({ force: true });
+      }
     }
   }));
 
@@ -1030,7 +1058,7 @@ MinkeApp.startApps = async function(app) {
   await Promise.all(applications.map(async (app) => {
     try {
       if (app._features.dhcp) {
-        await app.start();
+        await app.start(inheritables[app._id]);
       }
     }
     catch (e) {
@@ -1041,7 +1069,7 @@ MinkeApp.startApps = async function(app) {
   await Promise.all(applications.map(async (app) => {
     try {
       if (app._willCreateNetwork()) {
-        await app.start();
+        await app.start(inheritables[app._id]);
       }
     }
     catch (e) {
@@ -1052,7 +1080,7 @@ MinkeApp.startApps = async function(app) {
   await Promise.all(applications.map(async (app) => {
     try {
       if (app._status === 'stopped') {
-        await app.start();
+        await app.start(inheritables[app._id]);
       }
     }
     catch (e) {
@@ -1069,11 +1097,15 @@ MinkeApp.getLocalDomainName = function() {
   return setup ? setup.getLocalDomainName() : '';
 }
 
-MinkeApp.shutdown = async function() {
+MinkeApp.shutdown = async function(config) {
   await Promise.all(applications.map(async (app) => {
     if (app._status === 'running') {
-      await app.stop();
-      await app.save();
+      // If we shutdown with 'inherit' set, we leave the children running so we
+      // can inherit them when on a restart.
+      if (!config.inherit) {
+        await app.stop();
+        await app.save();
+      }
     }
   }));
 }

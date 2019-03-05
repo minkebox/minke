@@ -37,19 +37,21 @@ App.ws.use(async (ctx, next) => {
 });
 App.listen(80);
 
-(async function() {
-  await MinkeApp.startApps(App);
-})();
+MinkeApp.startApps(App, { inherit: process.env.RESTART_REASON === 'restart' });
 
 process.on('uncaughtException', (e) => {
   console.error(e)   
 });
 
 process.on('SIGINT', async () => {
-  await MinkeApp.shutdown();
+  await MinkeApp.shutdown({});
   process.exit();
 });
 process.on('SIGTERM', async () => {
-  await MinkeApp.shutdown();
+  await MinkeApp.shutdown({});
+  process.exit();
+});
+process.on('SIGUSR1', async() => {
+  await MinkeApp.shutdown({ inherit: true });
   process.exit();
 });
