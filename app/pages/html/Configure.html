@@ -17,7 +17,7 @@
             {{#if ../minkeConfig}}
             <a class="pure-button admin-only" data-popbox-target="restart">Restart</a>
             <a class="pure-button" data-popbox-target="reboot">Reboot</a>
-            <a class="pure-button" data-popbox-target="halt">Halt</a>
+            <a class="pure-button" data-popbox-target="halt">Power Off</a>
             {{else}}
             <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
             <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
@@ -165,12 +165,12 @@
     </div>
     <div data-popbox-id="halt" class="popbox">
         <div class="popbox_container">
-          <div class="content-header">Halt</div>
+          <div class="content-header">Power Off</div>
           <div class="content-text">
-            Are you sure you want to halt the machine?
+            Are you sure you want to power off the machine?
           </div>
           <div class="spacer">
-            <button class="pure-button button-halt" data-popbox-close="halt">Halt</button>
+            <button class="pure-button button-halt" data-popbox-close="halt">Power Off</button>
             <button class="pure-button button-no" data-popbox-close="halt">No</button>
           </div>
         </div>
