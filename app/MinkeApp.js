@@ -39,10 +39,10 @@ MinkeApp.prototype = {
     this._binds = app.binds;
     this._files = app.files;
     this._shares = app.shares;
-    this._customshares = app.customshares || [];
+    this._customshares = app.customshares;
     this._networks = app.networks;
     this._monitor = app.monitor;
-    this._bootcount = app.bootcount || 1;
+    this._bootcount = app.bootcount;
 
     this._setStatus('stopped');
 
