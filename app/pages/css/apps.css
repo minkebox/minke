@@ -88,6 +88,11 @@ html {
   font-size: 200%;
   padding: 5px;
   border-radius: 5px;
+  border: 5px solid rgba(0,0,0,0.2);
+  text-transform: lowercase;
+}
+.skel .icon::first-letter {
+  text-transform: uppercase;
 }
 .skel .info {
   display: inline-block;
