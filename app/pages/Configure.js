@@ -174,7 +174,7 @@ async function ConfigurePageHTML(ctx) {
     })
   }
   const minkeConfig = app._image == Images.MINKE;
-  const adminMode = minkeConfig ? false : MinkeApp.getAdminMode();
+  const adminMode = MinkeApp.getAdminMode();
   ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
     changes: '[' + Object.keys(visibles).map((key) => {
       return `function(){const c=document.getElementById("${key}").classList;try{if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){}}`;
