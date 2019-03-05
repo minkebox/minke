@@ -66,7 +66,6 @@ MinkeSetup.prototype = {
   },
 
   restart: async function(reason) {
-    console.log('restart', reason);
     this._setupHomeNetwork();
     this._setupDNS();
     this._setupTimezone();

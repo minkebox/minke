@@ -15,9 +15,9 @@
           <h2 class="description">{{{description}}}</h2>
           <nav>
             {{#if ../minkeConfig}}
-            <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
-            <a class="pure-button" onclick="cmd('app.reboot')">Reboot</a>
-            <a class="pure-button" onclick="cmd('app.halt')">Halt</a>
+            <a class="pure-button admin-only" data-popbox-target="restart">Restart</a>
+            <a class="pure-button" data-popbox-target="reboot">Reboot</a>
+            <a class="pure-button" data-popbox-target="halt">Halt</a>
             {{else}}
             <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
             <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
@@ -139,13 +139,62 @@
         </div>
       </div>
     </div>
+    <div data-popbox-id="restart" class="popbox">
+      <div class="popbox_container">
+        <div class="content-header">Restart</div>
+        <div class="content-text">
+          Are you sure you want to restart all the applications?
+        </div>
+        <div class="spacer">
+          <button class="pure-button button-restart" data-popbox-close="restart">Restart</button>
+          <button class="pure-button button-no" data-popbox-close="restart">No</button>
+        </div>
+      </div>
+    </div>
+    <div data-popbox-id="reboot" class="popbox">
+      <div class="popbox_container">
+        <div class="content-header">Reboot</div>
+        <div class="content-text">
+          Are you sure you want to reboot the machine?
+        </div>
+        <div class="spacer">
+          <button class="pure-button button-reboot" data-popbox-close="reboot">Reboot</button>
+          <button class="pure-button button-no" data-popbox-close="reboot">No</button>
+        </div>
+      </div>
+    </div>
+    <div data-popbox-id="halt" class="popbox">
+        <div class="popbox_container">
+          <div class="content-header">Halt</div>
+          <div class="content-text">
+            Are you sure you want to halt the machine?
+          </div>
+          <div class="spacer">
+            <button class="pure-button button-halt" data-popbox-close="halt">Halt</button>
+            <button class="pure-button button-no" data-popbox-close="halt">No</button>
+          </div>
+        </div>
+      </div>
     <script>
       setActionProperties({{{properties}}});
       registerChanges({{{changes}}});
       const popbox = new Popbox({ blur:false, overlay:true });
       document.addEventListener('popbox_closing', (e) => {
+        console.log(e);
         if (e.detail.source.classList.contains('button-delete-app')) {
           cmd('app.delete');
+          window.parent.closeInlinePage();
+        }
+        else if (e.detail.source.classList.contains('button-restart')) {
+          cmd('app.restart');
+          window.parent.closeInlinePage();
+        }
+        else if (e.detail.source.classList.contains('button-reboot')) {
+          cmd('app.reboot');
+          window.parent.closeInlinePage();
+        }
+        else if (e.detail.source.classList.contains('button-halt')) {
+          cmd('app.halt');
           window.parent.closeInlinePage();
         }
       });
