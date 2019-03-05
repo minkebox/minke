@@ -1000,6 +1000,7 @@ MinkeApp.startApps = async function(app) {
   setup = new MinkeSetup(await Database.getConfig('minke'), {
     HOSTNAME: 'Minke',
     LOCALDOMAIN: 'home',
+    DHCP: MinkeApp._network.dhcp,
     IPADDRESS: MinkeApp._network.network.ip_address,
     GATEWAY: MinkeApp._network.network.gateway_ip,
     NETMASK: MinkeApp._network.netmask.mask,

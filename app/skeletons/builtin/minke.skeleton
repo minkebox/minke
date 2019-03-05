@@ -36,6 +36,12 @@
       description: 'Local domain name'
     },
     {
+      type: 'Environment',
+      name: 'DHCP',
+      style: 'Checkbox',
+      description: 'Use DHCP to set address'
+    },
+    {
       type: 'Header',
       title: 'DNS'
     },
@@ -92,6 +98,10 @@
     {
       type: 'Environment',
       name: 'GATEWAY'
+    },
+    {
+      type: 'Environment',
+      name: 'DHCP'
     },
     {
       type: 'Environment',

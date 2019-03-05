@@ -22,7 +22,8 @@ const Network = {
         else {
           resolve({
             network: nic,
-            netmask: new Netmask.Netmask(`${nic.ip_address}/${nic.netmask}`)
+            netmask: new Netmask.Netmask(`${nic.ip_address}/${nic.netmask}`),
+            dhcp: DEBUG ? false : FS.readFileSync(NETWORK_FILE).indexOf('DHCP=') != -1
           });
         }
       })

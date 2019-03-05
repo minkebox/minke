@@ -36,6 +36,7 @@ function MinkeSetup(savedConfig, config) {
   this._monitor = {};
   this._env = {
     LOCALDOMAIN: getEnv('LOCALDOMAIN'),
+    DHCP: getEnv('DHCP'),
     IPADDRESS: getEnv('IPADDRESS'),
     NETMASK: getEnv('NETMASK'),
     GATEWAY: getEnv('GATEWAY'),
@@ -47,13 +48,6 @@ function MinkeSetup(savedConfig, config) {
   };
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
-
-  // Stash the current network settings so we can see if it changes.
-  this._cNet = {
-    IPADDRESS: this._env.IPADDRESS.value,
-    NETMASK: this._env.NETMASK.value,
-    GATEWAY: this._env.GATEWAY.value
-  };
 
   this._setupTimezone();
   this._setupDNS();
@@ -121,21 +115,11 @@ MinkeSetup.prototype = {
   },
 
   _setupHomeNetwork: function() {
-    if (this._env.IPADDRESS.value != this._cNet.IPADDRESS || this._env.NETMASK.value != this._cNet.NETMASK || this._env.GATEWAY.value != this._cNet.GATEWAY) {
-      this._cNet = {
-        IPADDRESS: this._env.IPADDRESS.value,
-        NETMASK: this._env.NETMASK.value,
-        GATEWAY: this._env.GATEWAY.value
-      };
-      return Network.setHomeNetwork({
-        address: this._env.IPADDRESS.value,
-        netmask: this._env.NETMASK.value,
-        gateway: this._env.GATEWAY.value
-      });
-    }
-    else {
-      false;
-    }
+    return Network.setHomeNetwork({
+      address: this._env.DHCP ? 'dhcp' : this._env.IPADDRESS.value,
+      netmask: this._env.NETMASK.value,
+      gateway: this._env.GATEWAY.value
+    });
   },
 
   _setupTimezone: function() {
