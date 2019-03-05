@@ -595,7 +595,6 @@ MinkeApp.prototype = {
       }
       catch (e) {
         console.error(e);
-        this._container = null;
       }
     }
     if (this._helperContainer) {
@@ -604,13 +603,12 @@ MinkeApp.prototype = {
       }
       catch (e) {
         console.error(e);
-        this._helperContainer = null;
       }
     }
 
     // Log everything
     await new Promise(async (resolve) => {
-      if (this._container) {
+      try {
         const log = await this._container.logs({
           follow: true,
           stdout: true,
@@ -635,7 +633,7 @@ MinkeApp.prototype = {
           resolve();
         });
       }
-      else {
+      catch (_) {
         resolve();
       }
     });
@@ -685,13 +683,14 @@ MinkeApp.prototype = {
         networkApps[nidx] = null;
       }
     }
-    const fs = this._fs; // This will be nulled when we stop.
     if (this._status === 'running') {
       await this.stop();
     }
-    if (fs) {
-      fs.uninstall();
-    }
+
+    // Create a new filesystem so we can uninstall. If the app wasn't running when we
+    // uninstall then there was no file system available to use for this operation.
+    Filesystem.create(this).uninstall();
+  
     await Database.removeApp(this._id);
 
     MinkeApp.emit('app.remove', { app: this });
