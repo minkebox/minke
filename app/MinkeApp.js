@@ -496,7 +496,6 @@ MinkeApp.prototype = {
 
         const webport = this._ports.find(port => port.web);
         if (webport) {
-          console.log(webport);
           if (this._homeIP) {
             if (webport.web === 'newtab') {
               this._forward = HTTPForward.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${ipAddr}:${webport.host}` });
