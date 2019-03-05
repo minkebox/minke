@@ -29,6 +29,7 @@ function MinkeSetup(savedConfig, config) {
   this._features = {};
   this._binds = [];
   this._customshares = [];
+  this._ports = [];
   this._networks = {
     primary: 'host'
   };
