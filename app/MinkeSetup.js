@@ -48,6 +48,13 @@ function MinkeSetup(savedConfig, config) {
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
 
+  // Stash the current network settings so we can see if it changes.
+  this._cNet = {
+    IPADDRESS: this._env.IPADDRESS.value,
+    NETMASK: this._env.NETMASK.value,
+    GATEWAY: this._env.GATEWAY.value
+  };
+
   this._setupTimezone();
   this._setupDNS();
   this._setupMDNS();
@@ -114,11 +121,21 @@ MinkeSetup.prototype = {
   },
 
   _setupHomeNetwork: function() {
-    return Network.setHomeNetwork({
-      address: this._env.IPADDRESS.value,
-      netmask: this._env.NETMASK.value,
-      gateway: this._env.GATEWAY.value
-    });
+    if (this._env.IPADDRESS.value != this._cNet.IPADDRESS || this._env.NETMASK.value != this._cNet.NETMASK || this._env.GATEWAY.value != this._cNet.GATEWAY) {
+      this._cNet = {
+        IPADDRESS: this._env.IPADDRESS.value,
+        NETMASK: this._env.NETMASK.value,
+        GATEWAY: this._env.GATEWAY.value
+      };
+      return Network.setHomeNetwork({
+        address: this._env.IPADDRESS.value,
+        netmask: this._env.NETMASK.value,
+        gateway: this._env.GATEWAY.value
+      });
+    }
+    else {
+      false;
+    }
   },
 
   _setupTimezone: function() {
