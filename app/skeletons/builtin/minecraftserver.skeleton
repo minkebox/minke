@@ -162,7 +162,12 @@
     },
     {
       type: `Text`,
-      text: `Mods and Plugins are installed via shared folders available from the File Share application.`
+      text: `Select the Mod type, then install Mods and Plugins via shared folders (see the File Share application).`
+    },
+    {
+      type: `Environment`,
+      name: `TYPE`,
+      description: 'Mod type'
     },
     {
       type: `Header`,
@@ -416,8 +421,12 @@
     {
       type: `Environment`,
       name: `TYPE`,
-      defaultValue: `FORGE`,
+      defaultValue: `VANILLA`,
       options: [
+        {
+          name: `Vanilla`,
+          value: `VANILLA`
+        },
         {
           name: `Forge`,
           value: `FORGE`
