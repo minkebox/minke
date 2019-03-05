@@ -48,15 +48,16 @@ async function ConfigurePageHTML(ctx) {
     value: app._name,
     description: skeleton.description,
     actions: skeleton.actions.map((action) => {
-      if ('visible' in action) {
-        const vid = `v${++nextid}`;
-        visibles[vid] = action.visible;
-        action = Object.assign({ vid: vid }, action);
-      }
-      if ('enabled' in action) {
-        const eid = `e${++nextid}`;
-        enabled[eid] = action.enabled;
-        action = Object.assign({ eid: eid }, action);
+      if ('visible' in action || 'enabled' in action) {
+        const id = `x${++nextid}`;
+        if ('visible' in action) {
+          visibles[id] = action.visible;
+          action = Object.assign({ id: id }, action);
+        }
+        if ('enabled' in action) {
+          enabled[id] = action.enabled;
+          action = Object.assign({ id: id }, action);
+        }
       }
       switch (action.type) {
         case 'Header':
