@@ -22,7 +22,6 @@ const _Pull = {
           this._pullStream = stream;
           docker.modem.followProgress(stream, 
             (err, output) => {
-              console.log(err);
               if (err) {
                 progress({ download: 0, extract: 0 });
                 reject(err);
