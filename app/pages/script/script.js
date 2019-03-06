@@ -54,6 +54,33 @@ function onPageShow() {
         break;
     }
   });
+  ws.addEventListener('close', function() {
+    if (window.location.pathname === '/') {
+      const TIMEOUT = 10000;
+      function reload() {
+        const req = new XMLHttpRequest();
+        req.open('GET', window.location);
+        req.onreadystatechange = function() {
+          console.log(req.status, req.statusText);
+          if (req.readyState === 4) {
+            if (req.status == 200) {
+              window.location.reload();
+            }
+            else {
+              setTimeout(reload, TIMEOUT);
+            }
+          }
+        }
+        req.timeout = TIMEOUT;
+        try {
+          req.send(null);
+        }
+        catch (_) {
+        }
+      }
+      setTimeout(reload, TIMEOUT);
+    }
+  });
 }
 
 let property = {};
