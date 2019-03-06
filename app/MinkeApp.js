@@ -11,7 +11,6 @@ const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Skeletons = require('./skeletons/Skeletons');
-const Updater = require('./Updater');
 
 let applications = null;
 let koaApp = null;
@@ -1024,7 +1023,8 @@ MinkeApp.startApps = async function(app, config) {
     DNSSERVER2: '1.0.0.1',
     TIMEZONE: Moment.tz.guess(),
     ADMINMODE: 'DISABLED',
-    GLOBALID: UUID()
+    GLOBALID: UUID(),
+    UPDATETIME: '03:00'
   });
   applications.unshift(setup);
 
@@ -1087,9 +1087,6 @@ MinkeApp.startApps = async function(app, config) {
       console.error(e);
     }
   }));
-
-  // Periodically update the apps
-  Updater.start();
 }
 
 MinkeApp.getAdminMode = function() {
@@ -1101,7 +1098,6 @@ MinkeApp.getLocalDomainName = function() {
 }
 
 MinkeApp.shutdown = async function(config) {
-  Updater.stop();
   await Promise.all(applications.map(async (app) => {
     if (app._status === 'running') {
       // If we shutdown with 'inherit' set, we leave the children running so we

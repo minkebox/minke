@@ -1,11 +1,12 @@
 const Images = require('./Images');
 const Pull = require('./Pull');
 
+const DEFAULT_TIME = { hour: 3, minute: 0 }; // 3am
 let MinkeApp;
 
 const Updater = {
 
-  _updateTimeOfDay: { hour: 3, minute: 0 }, // 3am
+  _updateTimeOfDay: Object.assign({}, DEFAULT_TIME),
   _tick: null,
 
   start: function() {
@@ -37,6 +38,13 @@ const Updater = {
       clearTimeout(this._tick);
       this._tick = null;
     }
+  },
+
+  restart: function(config) {
+    this._updateTimeOfDay.hour = config.hour || DEFAULT_TIME.hour;
+    this._updateTimeOfDay.minute = config.minute || DEFAULT_TIME.minute;
+    this.stop();
+    this.start();
   },
 
   _updateImages: async function() {

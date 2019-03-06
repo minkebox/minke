@@ -8,6 +8,7 @@ const Database = require('./Database');
 const MDNS = require('./MDNS');
 const UPNP = require('./UPNP');
 const MinkeApp = require('./MinkeApp');
+const Updater = require('./Updater');
 
 const RESTART_REASON = '/tmp/minke-restart-reason';
 
@@ -43,7 +44,8 @@ function MinkeSetup(savedConfig, config) {
     DNSSERVER2 : getEnv('DNSSERVER2'),
     TIMEZONE: getEnv('TIMEZONE'),
     ADMINMODE: getEnv('ADMINMODE'),
-    GLOBALID: getEnv('GLOBALID')
+    GLOBALID: getEnv('GLOBALID'),
+    UPDATETIME: getEnv('UPDATETIME')
   };
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
@@ -52,6 +54,7 @@ function MinkeSetup(savedConfig, config) {
   this._setupDNS();
   this._setupMDNS();
   this._setupUPNP();
+  this._setupUpdates();
 }
 
 MinkeSetup.prototype = {
@@ -70,6 +73,7 @@ MinkeSetup.prototype = {
     this._setupHomeNetwork();
     this._setupDNS();
     this._setupTimezone();
+    this._setupUpdates();
     this.save();
     this.emit('update.status', { app: this, status: this._status });
     if (reason) {
@@ -83,7 +87,8 @@ MinkeSetup.prototype = {
       DNSSERVER1: null,
       DNSSERVER2: null,
       ADMINMODE: null,
-      GLOBALID: null
+      GLOBALID: null,
+      UPDATETIME: null
     };
     for (let key in config) {
       config[key] = this._env[key].value;
@@ -134,6 +139,21 @@ MinkeSetup.prototype = {
       return true;
     }
     return false;
+  },
+
+  _setupUpdates: function() {
+    try {
+      const time = this._env.UPDATETIME.value.split(':')
+      const config = {
+        hour: parseInt(time[0]),
+        minute: parseInt(time[1])
+      };
+      if (config.hour >= 0 && config.hour <= 23 && config.minute >= 0 && config.minute <= 59) {
+        Updater.restart(config);
+      }
+    }
+    catch (_) {
+    }
   },
 
   _setupDNS: function() {

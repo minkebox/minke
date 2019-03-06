@@ -70,11 +70,16 @@
     {
       type: 'Environment',
       name: 'TIMEZONE',
-      description: 'Timezone',
+      description: 'Timezone'
     },
     {
       type: 'Header',
       title: 'Advanced'
+    },
+    {
+      type: 'Environment',
+      name: 'UPDATETIME',
+      description: 'Select what time of day (e.g. 19:00) we check for application updates'
     },
     {
       type: 'Environment',
@@ -118,6 +123,11 @@
         { name: 'Disabled', value: 'DISABLED' },
         { name: 'Enabled', value: 'ENABLED' }
       ]
+    },
+    {
+      type: 'Environment',
+      name: 'UPDATETIME',
+      defaultValue: '03:00'
     },
     {
       type: 'Environment',
