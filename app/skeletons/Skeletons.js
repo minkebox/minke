@@ -177,8 +177,11 @@ function loadSkeleton(image, create) {
   else {
     skeleton = Builtins[image];
     if (!skeleton && create) {
-      return new Promise((resolve) => {
-        resolve(imageToSkeleton(image));
+      return imageToSkeleton(image).then((skel) => {
+        saveSkeleton(skel);
+        return skel;
+      }).catch (() => {
+        return null;
       });
     }
   }
