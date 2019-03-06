@@ -39,6 +39,11 @@ function onPageShow() {
           elem.remove();
         });
         break;
+      case 'css.class.add':
+        document.querySelectorAll(msg.selector).forEach(function(elem) {
+          elem.classList.add(msg.className);
+        });
+        break;
       case 'page.reload':
         window.location.reload();
         break;
@@ -330,7 +335,9 @@ Popbox.prototype = {
              e.preventDefault();
           var popbox_id = e.target.getAttribute('data-popbox-id');
           if(popbox_id){
-            self.close(popbox_id, e.target);
+            if (!e.target.getAttribute('data-popbox-noautoclose')) {
+              self.close(popbox_id, e.target);
+            }
           }
           }, false);
 

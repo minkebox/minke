@@ -47,10 +47,13 @@
         {{/each}}
       </div></div>
     </div>
-    <div data-popbox-id="download" class="popbox">
+    <div data-popbox-id="download" data-popbox-noautoclose="1" class="popbox">
       <div class="popbox_container">
         <div class="section">
-          <div class="text">Downloading and installing application...</div>
+          <div class="pure-g">
+            <div class="text pure-u-3-4">Downloading and installing application</div>
+            <div class="download-spinner lds-dual-ring pure-u-1-4"></div>
+          </div>
           <div class="pure-g">
             <div class="bar-title pure-u-1-2">
               <span>Downloading</span>
@@ -61,9 +64,26 @@
               <progress class="extract" value=0 max=100></progress>
             </div>
           </div>
+          <div class="download-button pure-g">
+            <div class="pure-u-1-2"> 
+              <button class="pure-button button-cancel" data-popbox-close="download">Cancel</button>
+            </div>
+            <div class="pure-u-1-2 download-message"></div>
+          </div>
         </div>
       </div>
     </div>
-    <script>const popbox = new Popbox({ blur:false, overlay:true })</script>
+    <script>
+      const popbox = new Popbox({ blur: false, overlay: true });
+      document.addEventListener('popbox_opening', () => {
+        document.querySelector('.download-spinner').classList.remove('error');
+        document.querySelector('.download-message').innerHTML = '';
+        document.querySelector('.download').value = 0;
+        document.querySelector('.extract').value = 0;
+      });
+      document.addEventListener('popbox_closing', () => {
+        cmd('newapp.cancel');
+      });
+    </script>
   </body>
 </html>

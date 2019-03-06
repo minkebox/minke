@@ -1,27 +1,40 @@
 const Path = require('path');
 const MinkeApp = require('./MinkeApp');
 
+const TAG = 'latest';
+
 const _Pull = {
 
+  _pullStream: null,
+
   _downloadImage: async function(name, progress) {
-    const tag = 'latest';
     return new Promise((resolve, reject) => {
       const downloading = {};
       const extracting = {};
-      docker.pull(`${name}:${tag}`, {}, (err, stream) => {
+      docker.pull(`${name}:${TAG}`, {}, (err, stream) => {
         if (err) {
           reject(err);
         }
         else {
+          if (this._pullStream) {
+            this._pullStream.destroy();
+          }
+          this._pullStream = stream;
           docker.modem.followProgress(stream, 
             (err, output) => {
+              console.log(err);
               if (err) {
                 progress({ download: 0, extract: 0 });
                 reject(err);
               }
               else {
-                progress({ download: 100, extract: 100 });
-                resolve();
+                // Actually check it downloaded. If the stream terminated early we don't get an error.
+                docker.getImage(name).inspect().then(() => {
+                  progress({ download: 100, extract: 100 });
+                  resolve();
+                }).catch((e) => {
+                  reject(e);
+                });
               }
             },
             (event) => {
@@ -104,6 +117,13 @@ const _Pull = {
       info = await img.inspect();
     }
     return image;
+  },
+
+  cancel: function() {
+    if (this._pullStream) {
+      this._pullStream.destroy();
+      this._pullStream = null;
+    }
   }
 
 };

@@ -180,7 +180,6 @@
       registerChanges({{{changes}}});
       const popbox = new Popbox({ blur:false, overlay:true });
       document.addEventListener('popbox_closing', (e) => {
-        console.log(e);
         if (e.detail.source.classList.contains('button-delete-app')) {
           cmd('app.delete');
           window.parent.closeInlinePage();

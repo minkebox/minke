@@ -56,8 +56,18 @@ async function PageWS(ctx) {
               const app = await MinkeApp.create(info);
               send({ type: 'page.redirect', url: `/configure/${app._id}/`});
             }
+            else {
+              send({ type: 'css.class.add', selector: '.download-spinner', className: 'error' });
+              send({ type: 'html.update', selector: '.download-message', html: 'Download failed' });
+            }
           })();
+          break;
         }
+        case 'newapp.cancel':
+          Pull.cancel();
+          break;
+        default:
+          break;
       }
     }
     catch (_) {

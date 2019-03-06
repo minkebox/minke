@@ -112,6 +112,50 @@ html {
   
 }
 
+.download-button {
+  padding-top: 20px;
+}
+.popbox .button-cancel {
+  background: rgb(202, 60, 60); /* this is a maroon */
+  color: white;
+  border-radius: 4px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.download-spinner.error {
+  display: none;
+}
+
+/* Spinner */
+
+.lds-dual-ring {
+  display: inline-block;
+  xwidth: 64px;
+  xheight: 64px;
+  padding-left: 20px;
+}
+
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 34px;
+  height: 34px;
+  margin: 1px;
+  border-radius: 50%;
+  border: 5px solid #aaa;
+  border-color: #aaa transparent #aaa transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Spinner */
+
 html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
   display: none;
 }
