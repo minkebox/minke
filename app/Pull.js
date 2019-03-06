@@ -94,6 +94,29 @@ const _Pull = {
     });
   },
 
+  updateImage: async function(name) {
+    return new Promise((resolve, reject) => {
+      docker.pull(`${name}:${TAG}`, {}, (err, stream) => {
+        if (err) {
+          reject(err);
+        }
+        else {
+          docker.modem.followProgress(stream, 
+            (err, output) => {
+              if (err) {
+                reject(err);
+              }
+              else {
+                resolve(output[output.length - 1].status.startsWith('Status: Downloaded newer image'));
+              }
+            },
+            () => {}
+          );
+        }
+      });
+    });
+  },
+
   loadImage: async function(image, inProgress) {
     let info;
     try {

@@ -168,6 +168,7 @@ MinkeSetup.prototype = {
     FS.writeFileSync(RESTART_REASON, reason);
     switch (reason) {
       case 'restart':
+      case 'update':
         await MinkeApp.shutdown({ inherit: true });
         process.exit();
         break;
