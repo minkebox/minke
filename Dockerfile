@@ -1,4 +1,4 @@
-FROM alpine:edge
+FROM alpine:latest
 
 COPY app/ /app
 COPY startup.sh /startup.sh
