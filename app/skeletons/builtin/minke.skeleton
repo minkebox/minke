@@ -79,8 +79,8 @@
     {
       type: 'Environment',
       name: 'UPDATETIME',
-      description: 'Select what time of day (e.g. 19:00) we check for application updates',
-      visible: `property.AdminMode == true`
+      description: 'Select what time of day (e.g. 19:00) we install updates',
+      visible: `property['AdminMode'] == true`
     },
     {
       type: 'Environment',

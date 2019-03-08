@@ -56,7 +56,7 @@ body {
   white-space: pre;
 }
 
-.configure .section.invisible {
+.configure .section.invisible, .configure .action.invisible {
   display: none;
 }
 .configure .section {
