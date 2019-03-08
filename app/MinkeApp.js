@@ -11,6 +11,7 @@ const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Skeletons = require('./skeletons/Skeletons');
+const DDNS = require('./DDNS');
 
 let applications = [];
 let koaApp = null;
@@ -362,6 +363,7 @@ MinkeApp.prototype = {
           helperConfig.Env.push('ENABLE_DHCP=1');
         }
 
+        this._ddns = false;
         if (this._ports.length) {
           const nat = [];
           const mdns = [];
@@ -382,6 +384,7 @@ MinkeApp.prototype = {
           });
           if (nat.length) {
             helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
+            this._ddns = true;
           }
           if (mdns.length) {
             helperConfig.Env.push(`ENABLE_MDNS=${mdns.join(' ')}`);
@@ -539,6 +542,10 @@ MinkeApp.prototype = {
         });
       }
 
+      if (this._ddns) {
+        DDNS.register(this);
+      }
+
       this._setStatus('running');
 
       if (this._features.vpn) {
@@ -559,6 +566,11 @@ MinkeApp.prototype = {
   stop: async function() {
 
     this._setStatus('stopping');
+
+    if (this._ddns) {
+      DDNS.unregister(this);
+      this._ddns = null;
+    }
   
     try {
       if (this._statusMonitor) {
