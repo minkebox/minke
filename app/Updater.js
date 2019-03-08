@@ -27,7 +27,7 @@ const Updater = {
           }
         }));
         if (this._checkNativeUpdates()) {
-          updateMinke.restart('update-native');
+          this._getApps().find(app => app._image === Images.MINKE).restart('update-native');
         }
         else if (updateMinke) {
           updateMinke.restart('update');
@@ -52,9 +52,13 @@ const Updater = {
     this.start();
   },
 
-  _updateImages: async function() {
+  _getApps: function() {
     MinkeApp = MinkeApp || require('./MinkeApp');
-    const apps = MinkeApp.getApps();
+    return MinkeApp.getApps();
+  },
+
+  _updateImages: async function() {
+    const apps = this._getApps();
     const updates = [];
     for (let i = 0; i < apps.length; i++) {
       try {
