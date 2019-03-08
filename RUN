@@ -9,11 +9,13 @@
 
 MINKE_IP=192.168.11.14
 RESTART_STATUS=/tmp/minke-restart-reason
-touch ${RESTART_STATUS}
+TRACER_OUT=/tmp/tracer.out
+touch ${RESTART_STATUS} ${TRACER_OUT}
 docker container rm minke
 docker run --name minke -d --privileged \
   -v /home/minke/etc/timezone:/etc/timezone \
   -v ${RESTART_STATUS}:${RESTART_STATUS} \
+  -v ${TRACER_OUT}:${TRACER_OUT} \
   -v /var/run/docker.sock:/var/run/docker.sock \
   --mount type=bind,source=/home/minke/fs,target=/minke/fs,bind-propagation=rshared \
   --mount type=bind,source=/home/minke/db,target=/minke/db,bind-propagation=rshared \

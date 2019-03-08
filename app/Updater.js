@@ -1,6 +1,8 @@
+const FS = require('fs');
 const Images = require('./Images');
 const Pull = require('./Pull');
 
+const TRACER_OUTPUT = '/tmp/tracer.out';
 const DEFAULT_TIME = { hour: 3, minute: 0 }; // 3am
 let MinkeApp;
 
@@ -24,7 +26,10 @@ const Updater = {
             updateMinke = app;
           }
         }));
-        if (updateMinke) {
+        if (this._checkNativeUpdates()) {
+          updateMinke.restart('update-native');
+        }
+        else if (updateMinke) {
           updateMinke.restart('update');
         }
       }
@@ -82,6 +87,18 @@ const Updater = {
       date.setDate(date.getDate() + 1);
       return date.getTime() - now;
     }
+  },
+
+  _checkNativeUpdates: function() {
+    try {
+      const info = FS.readFileSync(TRACER_OUTPUT, { encoding: 'utf8' });
+      if (info.trim() != '') {
+        return true;
+      }
+    }
+    catch (_) {
+    }
+    return false;
   }
 
 }

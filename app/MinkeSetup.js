@@ -131,7 +131,7 @@ MinkeSetup.prototype = {
       return false;
     }
     const timezone = this._env.TIMEZONE.value;
-    const oldtimezone = FS.readFileSync('/etc/timezone').toString('utf8');
+    const oldtimezone = FS.readFileSync('/etc/timezone', { encoding: 'utf8' });
     const zonefile = `/usr/share/zoneinfo/${timezone}`;
     if (oldtimezone != timezone && FS.existsSync(zonefile)) {
       FS.copyFileSync(zonefile, '/etc/localtime');
@@ -189,6 +189,7 @@ MinkeSetup.prototype = {
     switch (reason) {
       case 'restart':
       case 'update':
+      case 'update-native':
         await MinkeApp.shutdown({ inherit: true });
         process.exit();
         break;

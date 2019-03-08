@@ -12,7 +12,7 @@ const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Skeletons = require('./skeletons/Skeletons');
 
-let applications = null;
+let applications = [];
 let koaApp = null;
 let networkApps = [];
 let setup = null;
