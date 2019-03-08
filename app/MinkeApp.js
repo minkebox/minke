@@ -896,7 +896,9 @@ MinkeApp.prototype = {
         if (this.listenerCount(event) === 0 && state.start) {
           await state.start();
         }
-        listener(state.data);
+        if (state.data) {
+          listener(state.data);
+        }
       }
     });
 
