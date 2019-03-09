@@ -11,6 +11,8 @@ const DNSMASQ_CONFIG_DIR = (DEBUG ? '/tmp/' : `${ETC}dnsmasq.d/`);
 const DNSMASQ_RESOLV = `${DNSMASQ_CONFIG_DIR}resolv.conf`;
 const HOSTNAME_FILE = `${ETC}hostname`;
 const LOCAL_RESOLV = `${ETC}resolv.conf`;
+const DNSMASQ_HOSTS_DIR = (DEBUG ? '/tmp/' : `${ETC}dnshosts.d/`);
+const MINKE_HOSTS = `${DNSMASQ_HOSTS_DIR}hosts.conf`;
 
 let dns = null;
 let domainName = 'home';
@@ -19,6 +21,7 @@ let primaryResolver = '';
 let secondaryResolver = '';
 const resolvers = {};
 const cacheSize = 1024;
+const hosts = {};
 
 const DNSForward = {
 
@@ -37,15 +40,15 @@ const DNSForward = {
       Port: args.port || 53
     };
     resolvers[args._id] = resolve;
-    DNSForward._updateResolv();
-    DNSForward._restart();
+    this._updateResolv();
+    this._restart();
     return resolve;
   },
 
   removeForward: function(resolve) {
     delete resolvers[resolve._id];
-    DNSForward._updateResolv();
-    DNSForward._restart();
+    this._updateResolv();
+    this._restart();
   },
 
   setHostname: function(name) {
@@ -59,8 +62,18 @@ const DNSForward = {
 
   setDomainName: function(domain) {
     domainName = domain || 'home';
-    DNSForward._updateResolv();
-    DNSForward._restart();
+    this._updateResolv();
+    this._updateHosts();
+  },
+
+  registerHostIP: function(hostname, ip) {
+    hosts[hostname] = ip;
+    this._updateHosts();
+  },
+
+  unregisterHostIP: function(hostname, ip) {
+    delete hosts[hostname];
+    this._updateHosts();
   },
 
   _updateConfig: function() {
@@ -68,6 +81,7 @@ const DNSForward = {
       'user=root',
       'no-resolv',
       `conf-dir=${DNSMASQ_CONFIG_DIR},*.conf`,
+      `hostsdir=${DNSMASQ_HOSTS_DIR}`,
       'clear-on-reload',
       'strict-order',
       `cache-size=${cacheSize}`
@@ -80,6 +94,12 @@ const DNSForward = {
       return `server=${resolve.IP4Address}#${resolve.Port}`;
     }).join('\n')}`);
     FS.writeFileSync(LOCAL_RESOLV, `domain ${domainName}\nsearch ${domainName}. local.\nnameserver 127.0.0.1\n`);
+  },
+
+  _updateHosts: function() {
+    FS.writeFileSync(MINKE_HOSTS, Object.keys(hosts).map((host) => {
+      return `${hosts[host]} ${host} ${host}.${domainName}\n`
+    }).join(''));
   },
 
   _restart: function() {

@@ -479,6 +479,10 @@ MinkeApp.prototype = {
           }, null);
         });
 
+        if (this._homeIP) {
+          DNSForward.registerHostIP(this._safeName(), this._homeIP);
+        }
+
       }
     
       if (inherit.container) {
@@ -611,7 +615,11 @@ MinkeApp.prototype = {
       }
       this._forward = null;
     }
-    this._homeIP = null;
+
+    if (this._homeIP) {
+      DNSForward.unregisterHostIP(this._safeName(), this._homeIP);
+      this._homeIP = null;
+    }
 
     // Stop everything
     if (this._container) {
@@ -789,6 +797,21 @@ MinkeApp.prototype = {
           acc.push({
             app: app,
             shares: shares
+          });
+        }
+      }
+      return acc;
+    }, []);
+  },
+
+  getAvailableWebsites: function() {
+    return applications.reduce((acc, app) => {
+      if (app !== this && this._networks.primary === app._networks.primary) {
+        const webport = app._ports.find(port => port.web);
+        if (webport) {
+          acc.push({
+            app: app,
+            port: webport
           });
         }
       }
