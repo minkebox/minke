@@ -43,6 +43,8 @@
             {{> Table}}
             {{else if (eq style "Checkbox")}}
             <input class="value can-disable" type="checkbox" onchange="{{action}}" {{#if value}}checked{{/if}}>
+            {{else if (eq style "Websites")}}
+            {{> Websites}}
             {{else}}
             {{#if options}}
             <select class="value can-disable" onchange="{{action}}">

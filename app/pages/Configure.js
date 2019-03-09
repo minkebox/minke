@@ -10,7 +10,8 @@ function registerTemplates() {
   const partials = [
     'Table',
     'Shareables',
-    'CustomShareables'
+    'CustomShareables',
+    'Websites'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -86,6 +87,27 @@ async function ConfigurePageHTML(ctx) {
               }
             }
             return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
+          }
+          else if (action.style === 'Websites') {
+            let currentSites = [];
+            if (env && env.altValue) {
+              try {
+                currentSites = JSON.parse(env.altValue);
+              }
+              catch (_) {
+              }
+            }
+            const websites = app.getAvailableWebsites().map((site) => {
+              const match = currentSites.find(cs => cs[1] === site.app._id);
+              return {
+                appid: site.app._id,
+                name: site.app._name,
+                port: site.port.host,
+                dns: match ? match[2] : '',
+                published: match ? !!match[3] : false
+              };
+            });
+            return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action);
           }
           else {
             let act;
@@ -207,7 +229,7 @@ async function ConfigurePageWS(ctx) {
     const skeleton = Skeletons.loadSkeleton(app._image, false);
     if (skeleton) {
       const action = skeleton.actions.find(action => action.name === name);
-      if (action && action.style === 'Table') {
+      if (action && (action.style === 'Table' || action.style === 'Websites')) {
         const table = JSON.parse(value);
         value = [];
         table.forEach((row) => {
@@ -236,9 +258,9 @@ async function ConfigurePageWS(ctx) {
       const tableValue = getTableData(app, key, value);
       const r = app._env[key] ? app._env[key] : { value: undefined };
       if (tableValue !== null) {
+        r.altValue = value;
         if (r.value !== tableValue) {
           r.value = tableValue;
-          r.altValue = value;
           const port = app._ports.find(p => p.target === key);
           if (port) {
             port.host = parseInt(r.value);
@@ -247,9 +269,9 @@ async function ConfigurePageWS(ctx) {
         }
       }
       else {
+        delete r.altValue;
         if (r.value !== value) {
           r.value = value;
-          delete r.altValue;
           const port = app._ports.find(p => p.target === key);
           if (port) {
             port.host = parseInt(r.value);

@@ -106,8 +106,8 @@ function action(id, value) {
 
 function share(id, elem) {
   const parent = elem.parentElement.parentElement;
-  const name = parent.firstElementChild.firstElementChild;
-  const checked = parent.firstElementChild.nextElementSibling.nextElementSibling.firstElementChild;
+  const name = parent.querySelector('input[type="text"]');
+  const checked = parent.querySelector('input[type="checkbox"]');
   if (name == elem) {
     checked.checked = true;
   }
@@ -120,6 +120,15 @@ function share(id, elem) {
     property: id,
     value: { shared: checked.checked, target: name.value }
   }));
+}
+
+function publish(elem) {
+  const parent = elem.parentElement.parentElement;
+  const name = parent.querySelector('input[type="text"]');
+  const checked = parent.querySelector('input[type="checkbox"]');
+  if (name == elem) {
+    checked.checked = true;
+  }
 }
 
 function cmd(command) {
@@ -300,8 +309,14 @@ function saveTable(action, table) {
   for (let tr = table.querySelector('tbody tr'); tr; tr = tr.nextElementSibling) {
     const row = [];
     for (let td = tr.firstElementChild; td; td = td.nextElementSibling) {
-      if (!td.classList.contains('control')) {
-        row.push(td.innerText);
+      if (!td.classList.contains('control') && !('ignore' in td.dataset)) {
+        const ipt = td.querySelector('input');
+        if (ipt) {
+          row.push(ipt.type === 'checkbox' ? ipt.checked : ipt.value);
+        }
+        else {
+          row.push(td.innerText);
+        }
       }
     }
     values.push(row);
