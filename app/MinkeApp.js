@@ -287,6 +287,7 @@ MinkeApp.prototype = {
         {
           const homenet = await Network.getHomeNetwork();
           config.HostConfig.NetworkMode = homenet.id;
+          config.MacAddress = this._primaryMacAddress();
           config.Env.push(`__DNSSERVER=${MinkeApp._network.network.ip_address}`);
           config.Env.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
           config.Env.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
@@ -356,6 +357,7 @@ MinkeApp.prototype = {
             DnsSearch: config.HostConfig.DnsSearch,
             DnsOptions: config.HostConfig.DnsOptions
           },
+          MacAddress: config.MacAddress,
           Env: [].concat(config.Env)
         };
 
@@ -404,6 +406,7 @@ MinkeApp.prototype = {
         config.HostConfig.DnsSearch = null;
         config.HostConfig.DnsOptions = null;
         config.HostConfig.NetworkMode = `container:${this._helperContainer.id}`;
+        config.MacAddress = null;
 
         if (inherit.helperContainer !== this._helperContainer) {
           await this._helperContainer.start();
@@ -901,6 +904,11 @@ MinkeApp.prototype = {
 
   _safeName: function() {
     return this._name.replace(/[^a-zA-Z0-9]/g, '');
+  },
+
+  _primaryMacAddress: function() {
+    const r = this._globalId.split('-')[4];
+    return `${r[0]}a:${r[2]}${r[3]}:${r[4]}${r[5]}:${r[6]}${r[7]}:${r[8]}${r[9]}:${r[10]}${r[11]}`;
   },
 
   _willCreateNetwork: function() {
