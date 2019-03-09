@@ -69,11 +69,13 @@ const DNSForward = {
   registerHostIP: function(hostname, ip) {
     hosts[hostname] = ip;
     this._updateHosts();
+    this._restartDNS();
   },
 
   unregisterHostIP: function(hostname, ip) {
     delete hosts[hostname];
     this._updateHosts();
+    this._restartDNS();
   },
 
   _updateConfig: function() {
@@ -102,11 +104,15 @@ const DNSForward = {
     }).join(''));
   },
 
-  _restart: function() {
+  _restartDNS: function() {
     if (dns) {
       dns.kill();
       dns = null;
     }
+  },
+
+  _restart: function() {
+    this._restartDNS();
     MDNS.update({
       hostname: hostname
     });
