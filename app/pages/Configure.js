@@ -98,13 +98,14 @@ async function ConfigurePageHTML(ctx) {
               }
             }
             const websites = app.getAvailableWebsites().map((site) => {
-              const match = currentSites.find(cs => cs[1] === site.app._id);
+              const match = currentSites.find(cs => cs[0] === site.app._id);
               return {
                 appid: site.app._id,
                 name: site.app._name,
+                hostname: site.app._safeName(),
                 port: site.port.host,
-                dns: match ? match[2] : '',
-                published: match ? !!match[3] : false
+                dns: match ? match[3] : '',
+                published: match ? !!match[4] : false
               };
             });
             return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action);
