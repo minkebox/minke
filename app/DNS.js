@@ -28,8 +28,8 @@ const DNS = {
   setDefaultResolver: function(resolver1, resolver2) {
     primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
     secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
-    this._updateResolv();
-    this._reloadDNS();
+    this._updateResolvServers();
+    this._restartDNS();
   },
 
   createForward: function(args) {
@@ -40,15 +40,15 @@ const DNS = {
       Port: args.port || 53
     };
     resolvers[args._id] = resolve;
-    this._updateResolv();
-    this._reloadDNS();
+    this._updateResolvServers();
+    this._restartDNS();
     return resolve;
   },
 
   removeForward: function(resolve) {
     delete resolvers[resolve._id];
-    this._updateResolv();
-    this._reloadDNS();
+    this._updateResolvServers();
+    this._restartDNS();
   },
 
   setHostname: function(name) {
@@ -63,7 +63,7 @@ const DNS = {
 
   setDomainName: function(domain) {
     domainName = domain || 'home';
-    this._updateResolv();
+    this._updateLocalResolv();
     this._updateHosts();
     this._reloadDNS();
   },
@@ -84,6 +84,7 @@ const DNS = {
     FS.writeFileSync(DNSMASQ_CONFIG, `${[
       'user=root',
       'no-poll',
+      'bind-interfaces',
       'no-resolv',
       `conf-dir=${DNSMASQ_CONFIG_DIR},*.conf`,
       `hostsdir=${DNSMASQ_HOSTS_DIR}`,
@@ -93,12 +94,15 @@ const DNS = {
     ].join('\n')}\n`);    
   },
 
-  _updateResolv: function() {
+  _updateLocalResolv: function() {
+    FS.writeFileSync(LOCAL_RESOLV, `domain ${domainName}\nsearch ${domainName}. local.\nnameserver 127.0.0.1\n`);
+  },
+
+  _updateResolvServers: function() {
     // Note. DNS servers are checked in reverse order
     FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
-      return `server=${resolve.IP4Address}#${resolve.Port}`;
-    }).join('\n')}`);
-    FS.writeFileSync(LOCAL_RESOLV, `domain ${domainName}\nsearch ${domainName}. local.\nnameserver 127.0.0.1\n`);
+      return `server=${resolve.IP4Address}#${resolve.Port}\n`;
+    })}`);
   },
 
   _updateHosts: function() {
@@ -111,14 +115,20 @@ const DNS = {
     if (dns) {
       dns.kill('SIGHUP');
     }
-  }
+  },
+
+  _restartDNS: function() {
+    dns.kill();
+    dns = ChildProcess.spawn(DNSMASQ, [ '-k' ]);
+  },
 
 }
 
 //
 // Create default config.
 //
-DNS._updateResolv();
+DNS._updateLocalResolv();
+DNS._updateResolvServers();
 DNS._updateConfig();
 
 if (!DEBUG) {
