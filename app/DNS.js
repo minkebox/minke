@@ -23,13 +23,13 @@ const resolvers = {};
 const cacheSize = 1024;
 const hosts = {};
 
-const DNSForward = {
+const DNS = {
 
   setDefaultResolver: function(resolver1, resolver2) {
     primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
     secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
-    DNSForward._updateResolv();
-    DNSForward._reloadDNS();
+    this._updateResolv();
+    this._reloadDNS();
   },
 
   createForward: function(args) {
@@ -118,12 +118,12 @@ const DNSForward = {
 //
 // Create default config.
 //
-DNSForward._updateResolv();
-DNSForward._updateConfig();
+DNS._updateResolv();
+DNS._updateConfig();
 
 if (!DEBUG) {
   dns = ChildProcess.spawn(DNSMASQ, [ '-k' ]);
 }
 
 
-module.exports = DNSForward;
+module.exports = DNS;
