@@ -168,6 +168,7 @@ body {
   box-shadow: none;
   height: 1.2em;
   padding: 0;
+  text-overflow: ellipsis;
 }
 .configure .actions .shareables input[type="text"]::placeholder {
   color: #ccc;
