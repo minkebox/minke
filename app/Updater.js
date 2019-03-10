@@ -15,6 +15,7 @@ const Updater = {
     if (!this._tick) {
       const update = async () => {
         this._tick = setTimeout(update, this._calcTimeToNextUpdate());
+        await this._pruneImages();
         const updated = await this._updateImages();
         let updateMinke = null;
         await Promise.all(updated.map(async (app) => {
@@ -74,6 +75,15 @@ const Updater = {
       }
     }
     return updates;
+  },
+
+  _pruneImages: async function() {
+    try {
+      await docker.pruneImages({});
+    }
+    catch (e) {
+      console.error(e);
+    }
   },
 
   _calcTimeToNextUpdate: function() {
