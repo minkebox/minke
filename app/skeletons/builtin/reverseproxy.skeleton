@@ -1,0 +1,102 @@
+{
+  name: `HTTP Proxy`,
+  description: `Make your websites available to the outside world.`,
+  image: `registry.gitlab.com/minkebox/reverseproxy`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Websites`
+    },
+    {
+      type: `Environment`,
+      name: `WEBSITES`,
+      style: `Websites`,
+      description: `Select and name each of the websites you wish to publish`,
+      pattern: `{{1}}#{{2}}#{{3}}#{{4}}`,
+      join: ` `
+    },
+    {
+      type: `Environment`,
+      name: `HTTP_PORT`,
+      description: `Select the HTTP port for the proxy. This is usually 80.`
+    },
+    {
+      type: `NAT`,
+      name: `WEB_NAT`,
+      description: `Make websites available on the Internet. The name on the Internet will be <div><b>{{GLOBALNAME}}</b></div>`,
+      ports: [
+        `HTTP_PORT`
+      ]
+    },
+    {
+      type: `Text`,
+      text: `You can use CNAMEs on your favorite Domain Registry to point to this name above, or use the DDNS options below.`
+    },
+    {
+      type: `Header`,
+      title: `Dynamic DNS`
+    },
+    {
+      type: `Text`,
+      text: `The URL below is used to update an external Dynamic DNS service with the IP addresses for the selected websites.`
+    },
+    {
+      type: `Environment`,
+      name: `DDNS_URL`,
+      description: `DDNS URL`,
+      placeholder: `https://USER:PASS@dynupdate.no-ip.com/nic/update?hostname={{HOSTNAME}}.{{DOMAINNAME}}&myip={{IP}}`
+    },
+    {
+      type: `Text`,
+      text: `The following variables are automatically provided: {{HOSTNAME}}, {{DOMAINNAME}}, and {{IP}}`
+    }
+  ],
+  properties: [
+    {
+      type: `Environment`,
+      name: `WEBSITES`
+    },
+    {
+      type: `Environment`,
+      name: `DDNS_URL`
+    },
+    {
+      type: `Environment`,
+      name: `HTTP_PORT`,
+      defaultValue: 80
+    },
+    {
+      type: `Port`,
+      name: `HTTP_PORT`,
+      host: 80,
+      protocol: `TCP`,
+      nat: false,
+      web: true,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `53/udp`,
+      host: 53,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: true,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
