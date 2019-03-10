@@ -156,7 +156,8 @@ function stringToSkeleton(str) {
   try {
     eval(`skel=${str}`)
   }
-  catch (_) {
+  catch (e) {
+    console.error(e);
   }
   return skel;
 }
