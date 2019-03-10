@@ -4,7 +4,7 @@ const Path = require('path');
 const Moment = require('moment-timezone');
 const UUID = require('uuid/v4');
 const HTTPForward = require('./HTTPForward');
-const DNSForward = require('./DNSForward');
+const DNS = require('./DNS');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
@@ -483,7 +483,7 @@ MinkeApp.prototype = {
         });
 
         if (this._homeIP) {
-          DNSForward.registerHostIP(this._safeName(), this._homeIP);
+          DNS.registerHostIP(this._safeName(), this._homeIP);
         }
 
       }
@@ -527,7 +527,7 @@ MinkeApp.prototype = {
 
         const dnsport = this._ports.find(port => port.dns);
         if (dnsport) {
-          this._dns = DNSForward.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.host });
+          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.host });
         }
 
       }
@@ -599,7 +599,7 @@ MinkeApp.prototype = {
     }
 
     if (this._dns) {
-      DNSForward.removeForward(this._dns);
+      DNS.removeForward(this._dns);
       this._dns = null;
     }
 
@@ -620,7 +620,7 @@ MinkeApp.prototype = {
     }
 
     if (this._homeIP) {
-      DNSForward.unregisterHostIP(this._safeName(), this._homeIP);
+      DNS.unregisterHostIP(this._safeName(), this._homeIP);
       this._homeIP = null;
     }
 

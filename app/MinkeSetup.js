@@ -2,7 +2,7 @@ const FS = require('fs');
 const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
 const Images = require('./Images');
-const DNSForward = require('./DNSForward');
+const DNS = require('./DNS');
 const Network = require('./Network');
 const Database = require('./Database');
 const MDNS = require('./MDNS');
@@ -157,12 +157,12 @@ MinkeSetup.prototype = {
   },
 
   _setupDNS: function() {
-    DNSForward.setDefaultResolver(
+    DNS.setDefaultResolver(
       this._env.DNSSERVER1.value,
       this._env.DNSSERVER2.value
     );
-    DNSForward.setHostname(this._safeName());
-    DNSForward.setDomainName(this.getLocalDomainName());
+    DNS.setHostname(this._safeName());
+    DNS.setDomainName(this.getLocalDomainName());
     return true;
   },
 
