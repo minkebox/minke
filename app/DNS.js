@@ -118,8 +118,10 @@ const DNS = {
   },
 
   _restartDNS: function() {
-    dns.kill();
-    dns = ChildProcess.spawn(DNSMASQ, [ '-k' ]);
+    if (dns) {
+      dns.kill();
+      dns = ChildProcess.spawn(DNSMASQ, [ '-k' ]);
+    }
   },
 
 }
