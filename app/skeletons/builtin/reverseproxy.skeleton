@@ -21,20 +21,25 @@
       description: `Select the HTTP port for the proxy. This is usually 80.`
     },
     {
+      type: `Header`,
+      title: `Internet access`
+    },
+    {
       type: `NAT`,
       name: `WEB_NAT`,
-      description: `Make websites available on the Internet. The name on the Internet will be <div><b>{{GLOBALNAME}}</b></div>`,
+      description: `Make websites available on the Internet`,
       ports: [
         `HTTP_PORT`
       ]
     },
     {
       type: `Text`,
-      text: `You can use CNAMEs on your favorite Domain Registry to point to this name above, or use the DDNS options below.`
+      text: 'Use CNAMEs with your favorite Domain Registry to forward requests to <b>"{{GLOBALNAME}}"</b>. This name will automatically track any change to your Home IP address.'
     },
     {
       type: `Header`,
-      title: `Dynamic DNS`
+      title: `Dynamic DNS`,
+      visible: 'false'
     },
     {
       type: `Text`,
