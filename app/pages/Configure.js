@@ -37,6 +37,10 @@ async function ConfigurePageHTML(ctx) {
     console.error(`Failed to load skeleton: ${app._image}`);
   }
 
+  function expand(text) {
+    return (text || '').replace(/\{\{GLOBALNAME\}\}/g, `${MinkeApp.getGlobalID()}.minkebox.net`);
+  }
+
   let nextid = 100;
   const visibles = {};
   const enabled = {};
@@ -62,9 +66,12 @@ async function ConfigurePageHTML(ctx) {
       }
       switch (action.type) {
         case 'Header':
-        case 'Text':
         {
           return action;
+        }
+        case 'Text':
+        {
+          return Object.assign({}, action, { text: expand(action.text) });
         }
         case 'Environment':
         {
@@ -124,9 +131,7 @@ async function ConfigurePageHTML(ctx) {
         case 'NAT':
         {
           const natport = app._ports.find(port => action.ports.indexOf(port.target) !== -1) || { nat: false };
-          return Object.assign({ action: `window.action('${action.type}#${action.ports.join('#')}',this.checked)`, value: natport.nat }, action, {
-            description: (action.description || '').replace(/\{\{GLOBALNAME\}\}/g, `${app._globalId}.minkebox.net`)
-          });
+          return Object.assign({ action: `window.action('${action.type}#${action.ports.join('#')}',this.checked)`, value: natport.nat }, action, { description: expand(action.description) });
         }
         case 'Network':
         {
