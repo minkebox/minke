@@ -29,7 +29,7 @@ const DNSForward = {
     primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
     secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
     DNSForward._updateResolv();
-    DNSForward._restart();
+    DNSForward._reloadDNS();
   },
 
   createForward: function(args) {
@@ -41,14 +41,14 @@ const DNSForward = {
     };
     resolvers[args._id] = resolve;
     this._updateResolv();
-    this._restart();
+    this._reloadDNS();
     return resolve;
   },
 
   removeForward: function(resolve) {
     delete resolvers[resolve._id];
     this._updateResolv();
-    this._restart();
+    this._reloadDNS();
   },
 
   setHostname: function(name) {
@@ -57,30 +57,33 @@ const DNSForward = {
     if (!DEBUG) {
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
-    this._restart();
+    MDNS.update({ hostname: hostname });
+    UPNP.update({ hostname: hostname });
   },
 
   setDomainName: function(domain) {
     domainName = domain || 'home';
     this._updateResolv();
     this._updateHosts();
+    this._reloadDNS();
   },
 
-  registerHostIP: function(hostname, ip) {
+  registerHostIP: async function(hostname, ip) {
     hosts[hostname] = ip;
     this._updateHosts();
-    this._restartDNS();
+    this._reloadDNS();
   },
 
-  unregisterHostIP: function(hostname, ip) {
+  unregisterHostIP: async function(hostname, ip) {
     delete hosts[hostname];
     this._updateHosts();
-    this._restartDNS();
+    this._reloadDNS();
   },
 
   _updateConfig: function() {
     FS.writeFileSync(DNSMASQ_CONFIG, `${[
       'user=root',
+      'no-poll',
       'no-resolv',
       `conf-dir=${DNSMASQ_CONFIG_DIR},*.conf`,
       `hostsdir=${DNSMASQ_HOSTS_DIR}`,
@@ -104,21 +107,10 @@ const DNSForward = {
     }).join(''));
   },
 
-  _restartDNS: function() {
+  _reloadDNS: function() {
     if (dns) {
-      dns.kill();
-      dns = null;
+      dns.kill('SIGHUP');
     }
-  },
-
-  _restart: function() {
-    this._restartDNS();
-    MDNS.update({
-      hostname: hostname
-    });
-    UPNP.update({
-      hostname: hostname
-    });
   }
 
 }
@@ -130,11 +122,7 @@ DNSForward._updateResolv();
 DNSForward._updateConfig();
 
 if (!DEBUG) {
-  function dnsRun() {
-    dns = ChildProcess.spawn(DNSMASQ, [ '-k' ]);
-    dns.on('exit', dnsRun);
-  }
-  dnsRun();
+  dns = ChildProcess.spawn(DNSMASQ, [ '-k' ]);
 }
 
 
