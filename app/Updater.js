@@ -60,10 +60,12 @@ const Updater = {
   _updateImages: async function() {
     const apps = this._getApps();
     const updates = [];
+    const helper = await Pull.updateImage(Images.MINKE_HELPER);
     for (let i = 0; i < apps.length; i++) {
       try {
-        if (await Pull.updateImage(apps[i]._image)) {
-          // Image was updated
+        const updated = await Pull.updateImage(apps[i]._image);
+        if (apps[i].isRunning() && (updated || (helper && apps[i]._helperContainer))) {
+          // Image or helper was updated
           updates.push(apps[i]);
         }
       }
@@ -71,8 +73,6 @@ const Updater = {
         console.error(e);
       }
     }
-    // Update the helper, but we won't update any app if it changes
-    await Pull.updateImage(Images.MINKE_HELPER);
     return updates;
   },
 

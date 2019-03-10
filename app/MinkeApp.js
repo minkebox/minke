@@ -698,7 +698,7 @@ MinkeApp.prototype = {
   },
 
   restart: async function(reason) {
-    if (this._status === 'running') {
+    if (this.isRunning()) {
       await this.stop();
     }
     await this.save();
@@ -719,7 +719,7 @@ MinkeApp.prototype = {
         networkApps[nidx] = null;
       }
     }
-    if (this._status === 'running') {
+    if (this.isRunning()) {
       await this.stop();
     }
 
@@ -902,6 +902,10 @@ MinkeApp.prototype = {
     this._emit('update.status', { status: status });
   },
 
+  isRunning: function() {
+    return this._status === 'running';
+  },
+
   _safeName: function() {
     return this._name.replace(/[^a-zA-Z0-9]/g, '');
   },
@@ -986,7 +990,7 @@ MinkeApp._monitorEvents = async function() {
                   const id = event.id;
                   const app = applications.find(app => (app._container && app._container.id === id) || 
                     (app._helperContainer && app._helperContainer.id === id));
-                  if (app && app._status === 'running') {
+                  if (app && app.isRunning()) {
                     app.stop();
                   }
                   break;
@@ -1144,7 +1148,7 @@ MinkeApp.getLocalDomainName = function() {
 
 MinkeApp.shutdown = async function(config) {
   await Promise.all(applications.map(async (app) => {
-    if (app._status === 'running') {
+    if (app.isRunning()) {
       // If we shutdown with 'inherit' set, we leave the children running so we
       // can inherit them when on a restart.
       if (!config.inherit) {

@@ -55,7 +55,7 @@
     watch: ``,
     polling: 5,
     parser: `
-    const rxtx = input.split(' ');
+      const rxtx = input.split(' ');
       if (rxtx.length == 2) {
         if (!this.state) {
           state = {
