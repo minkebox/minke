@@ -9,6 +9,7 @@ const MDNS = require('./MDNS');
 const UPNP = require('./UPNP');
 const MinkeApp = require('./MinkeApp');
 const Updater = require('./Updater');
+const DDNS = require('./DDNS');
 
 const RESTART_REASON = '/tmp/minke-restart-reason';
 
@@ -49,9 +50,11 @@ function MinkeSetup(savedConfig, config) {
   };
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
+  this._globalId = this._env.GLOBALID.value;
 
   this._setupTimezone();
   this._setupDNS();
+  this._setupDDNS();
   this._setupMDNS();
   this._setupUPNP();
   this._setupUpdates();
@@ -118,6 +121,10 @@ MinkeSetup.prototype = {
     return this._env.LOCALDOMAIN.value;
   },
 
+  isRunning: function() {
+    return true;
+  },
+
   _setupHomeNetwork: function() {
     return Network.setHomeNetwork({
       address: this._env.DHCP ? 'dhcp' : this._env.IPADDRESS.value,
@@ -166,9 +173,13 @@ MinkeSetup.prototype = {
     return true;
   },
 
+  _setupDDNS: function() {
+    DDNS.register(this);
+  },
+
   _setupMDNS: function() {
     MDNS.start({
-      uuid: this._env.GLOBALID.value,
+      uuid: this._globalId,
       hostname: this._name,
       ipaddress: this._env.IPADDRESS.value
     });
@@ -177,7 +188,7 @@ MinkeSetup.prototype = {
 
   _setupUPNP: function() {
     UPNP.start({
-      uuid: this._env.GLOBALID.value,
+      uuid: this._globalId,
       hostname: this._name,
       ipaddress: this._env.IPADDRESS.value
     });

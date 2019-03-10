@@ -11,7 +11,6 @@ const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Skeletons = require('./skeletons/Skeletons');
-const DDNS = require('./DDNS');
 
 let applications = [];
 let koaApp = null;
@@ -325,7 +324,7 @@ MinkeApp.prototype = {
         }
       }
 
-      config.Env.push(`__GLOBALID=${this._globalId}`);
+      config.Env.push(`__GLOBALID=${MinkeApp.getGlobalID()}`);
 
       if (this._features.vpn) {
         config.HostConfig.Devices.push({
@@ -549,10 +548,6 @@ MinkeApp.prototype = {
         });
       }
 
-      if (this._ddns) {
-        DDNS.register(this);
-      }
-
       this._setStatus('running');
 
       if (this._features.vpn) {
@@ -573,11 +568,6 @@ MinkeApp.prototype = {
   stop: async function() {
 
     this._setStatus('stopping');
-
-    if (this._ddns) {
-      DDNS.unregister(this);
-      this._ddns = null;
-    }
   
     try {
       if (this._statusMonitor) {
@@ -1186,6 +1176,10 @@ MinkeApp.getNetworks = function() {
   return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
     return app && app._willCreateNetwork() ? { _id: app._id, name: app._name } : null;
   }));
+},
+
+MinkeApp.getGlobalID = function() {
+  return setup ? setup._globalId : null;
 }
 
 module.exports = MinkeApp;
