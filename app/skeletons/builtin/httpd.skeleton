@@ -1,0 +1,50 @@
+{
+  name: `Simple Website`,
+  description: `A simple, static, website based on the Apache web server`,
+  image: `httpd`,
+  actions: [
+    {
+      type: 'Text',
+      text: 'Configure this website by copying pages to the "Website pages" shared folder. This can be found in the "File Share" application.'
+    }
+  ],
+  properties: [
+    {
+      type: 'Directory',
+      name: '/usr/local/apache2/htdocs',
+      shares: [
+        { name: '/', description: 'Website pages' }
+      ]
+    },
+    {
+      type: 'Directory',
+      name: '/usr/local/apache2/logs',
+      shares: [
+        { name: '/', description: 'Website logs' }
+      ]
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
+      host: 80,
+      protocol: `TCP`,
+      nat: false,
+      web: true,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
