@@ -7,8 +7,7 @@ const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
 const HOSTNAME = '/bin/hostname';
 const DNSMASQ_CONFIG = `${ETC}dnsmasq.conf`;
-const DNSMASQ_CONFIG_DIR = (DEBUG ? '/tmp/' : `${ETC}dnsmasq.d/`);
-const DNSMASQ_RESOLV = `${DNSMASQ_CONFIG_DIR}resolv.conf`;
+const DNSMASQ_RESOLV = `${ETC}dnsmasq-servers.conf`;
 const HOSTNAME_FILE = `${ETC}hostname`;
 const LOCAL_RESOLV = `${ETC}resolv.conf`;
 const DNSMASQ_HOSTS_DIR = (DEBUG ? '/tmp/' : `${ETC}dnshosts.d/`);
@@ -29,7 +28,7 @@ const DNS = {
     primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
     secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
     this._updateResolvServers();
-    this._restartDNS();
+    this._reloadDNS();
   },
 
   createForward: function(args) {
@@ -41,14 +40,14 @@ const DNS = {
     };
     resolvers[args._id] = resolve;
     this._updateResolvServers();
-    this._restartDNS();
+    this._reloadDNS();
     return resolve;
   },
 
   removeForward: function(resolve) {
     delete resolvers[resolve._id];
     this._updateResolvServers();
-    this._restartDNS();
+    this._reloadDNS();
   },
 
   setHostname: function(name) {
@@ -64,29 +63,32 @@ const DNS = {
   setDomainName: function(domain) {
     domainName = domain || 'home';
     this._updateLocalResolv();
-    this._updateHosts();
-    this._reloadDNS();
+    for (let hostname in hosts) {
+      FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${hosts[hostname]} ${hostname} ${hostname}.${domainName}\n`);
+    }
   },
 
   registerHostIP: async function(hostname, ip) {
     hosts[hostname] = ip;
-    this._updateHosts();
-    this._reloadDNS();
+    FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${ip} ${hostname} ${hostname}.${domainName}\n`);
   },
 
   unregisterHostIP: async function(hostname, ip) {
     delete hosts[hostname];
-    this._updateHosts();
-    this._reloadDNS();
+    try {
+      FS.unlinkSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`);
+    }
+    catch (e) {
+      console.error(e);
+    }
   },
 
   _updateConfig: function() {
     FS.writeFileSync(DNSMASQ_CONFIG, `${[
       'user=root',
-      'no-poll',
       'bind-interfaces',
       'no-resolv',
-      `conf-dir=${DNSMASQ_CONFIG_DIR},*.conf`,
+      `servers-file=${DNSMASQ_RESOLV}`,
       `hostsdir=${DNSMASQ_HOSTS_DIR}`,
       'clear-on-reload',
       'strict-order',
