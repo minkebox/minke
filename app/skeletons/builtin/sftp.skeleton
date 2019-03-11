@@ -1,6 +1,6 @@
 {
   name: `Secure FTP`,
-  description: `Provide secure ftp (sftp) access to selected folders and files.`,
+  description: `Provide secure ftp (sftp) access to selected folders and files`,
   image: `amimof/sftp`,
   actions: [
     {
