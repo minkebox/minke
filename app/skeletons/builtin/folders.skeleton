@@ -1,0 +1,35 @@
+{
+  name: `MyApp`,
+  description: ``,
+  image: `registry.gitlab.com/minkebox/folders`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Files and Folders`
+    },
+    {
+      type: `CustomShareables`,
+      name: `/folders`,
+      description: `Create a list of folders to store file and other data. These folders can be share with other apps.`
+    }
+  ],
+  properties: [
+    {
+      type: `Directory`,
+      name: `/folders`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
