@@ -35,7 +35,7 @@
     {
       type: `Port`,
       name: `443/tcp`,
-      host: 443,
+      port: 443,
       protocol: 'TCP',
       nat: false,
       web: false,
@@ -45,7 +45,7 @@
     {
       type: `Port`,
       name: `80/tcp`,
-      host: 80,
+      port: 80,
       protocol: 'TCP',
       nat: false,
       web: true,

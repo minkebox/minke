@@ -502,7 +502,7 @@
     {
       type: `Port`,
       name: `SERVER_PORT`,
-      host: 25565,
+      port: 25565,
       protocol: `TCP`,
       nat: false,
       web: false,
@@ -512,7 +512,7 @@
     {
       type: `Port`,
       name: `25575/tcp`,
-      host: 25575,
+      port: 25575,
       protocol: `TCP`,
       nat: false,
       web: false,

@@ -77,7 +77,7 @@ async function imageToSkeleton(image) {
         return {
           type: 'Port',
           name: key,
-          host: parseInt(key),
+          port: parseInt(key),
           protocol: key.split('/')[1].toUpperCase(),
           nat: false,
           web: key === '80/tcp' ? true : false,

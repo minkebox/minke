@@ -43,6 +43,15 @@ MinkeApp.prototype = {
     this._monitor = app.monitor;
     this._bootcount = app.bootcount;
 
+    // ---
+    this._ports.forEach((port) => {
+      if ('host' in port) {
+        port.port = port.host;
+        delete port.host;
+      }
+    });
+    // ---
+
     this._setStatus('stopped');
 
     return this;
@@ -140,7 +149,7 @@ MinkeApp.prototype = {
         else {
           r.push({
             target: prop.name,
-            host: prop.host,
+            port: prop.port,
             protocol: prop.protocol,
             web: prop.web,
             dns: prop.dns,
@@ -370,10 +379,10 @@ MinkeApp.prototype = {
           const mdns = [];
           this._ports.forEach((port) => {
             if (port.nat) {
-              nat.push(`${port.host}:${port.protocol}`);
+              nat.push(`${port.port}:${port.protocol}`);
             }
             if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
-              mdns.push(`${port.mdns.type}:${port.host}:` + (!port.mdns.txt ? '' : Object.keys(port.mdns.txt).map((key) => {
+              mdns.push(`${port.mdns.type}:${port.port}:` + (!port.mdns.txt ? '' : Object.keys(port.mdns.txt).map((key) => {
                 if (port.mdns.txt[key]) {
                   return `<txt-record>${key}=${port.mdns.txt[key].replace(/ /g, '%20')}</txt-record>`
                 }
@@ -507,14 +516,14 @@ MinkeApp.prototype = {
         if (webport) {
           if (this._homeIP) {
             if (webport.web === 'newtab') {
-              this._forward = HTTPForward.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${ipAddr}:${webport.host}` });
+              this._forward = HTTPForward.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}` });
             }
             else {
-              this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.host === 443 ? 's' : ''}://${ipAddr}:${webport.host}` });
+              this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}` });
             }
           }
           else {
-            this._forward = HTTPForward.createForward({ prefix: `/a/${this._id}`, IP4Address: ipAddr, port: webport.host });
+            this._forward = HTTPForward.createForward({ prefix: `/a/${this._id}`, IP4Address: ipAddr, port: webport.port });
           }
           if (this._forward.http) {
             koaApp.use(this._forward.http);
@@ -526,7 +535,7 @@ MinkeApp.prototype = {
 
         const dnsport = this._ports.find(port => port.dns);
         if (dnsport) {
-          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.host });
+          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.port });
         }
 
       }

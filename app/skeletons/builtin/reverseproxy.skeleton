@@ -97,7 +97,7 @@
     {
       type: `Port`,
       name: `HTTP_PORT`,
-      host: 80,
+      port: 80,
       protocol: `TCP`,
       nat: false,
       web: true,
@@ -107,7 +107,7 @@
     {
       type: `Port`,
       name: `53/udp`,
-      host: 53,
+      port: 53,
       protocol: `UDP`,
       nat: false,
       web: false,

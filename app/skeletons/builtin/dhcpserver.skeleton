@@ -61,7 +61,7 @@
     {
       type: `Port`,
       name: `1053/tcp`,
-      host: 1053,
+      port: 1053,
       protocol: `TCP`,
       nat: false,
       web: false,
@@ -70,7 +70,7 @@
     {
       type: `Port`,
       name: `1053/udp`,
-      host: 1053,
+      port: 1053,
       protocol: `UDP`,
       nat: false,
       web: false,
@@ -80,7 +80,7 @@
     {
       type: `Port`,
       name: `67/udp`,
-      host: 67,
+      port: 67,
       protocol: `UDP`,
       nat: false,
       web: false,
@@ -89,7 +89,7 @@
     {
       type: `Port`,
       name: `68/udp`,
-      host: 68,
+      port: 68,
       protocol: `UDP`,
       nat: false,
       web: false,

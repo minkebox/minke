@@ -110,7 +110,7 @@ async function ConfigurePageHTML(ctx) {
                 appid: site.app._id,
                 name: site.app._name,
                 hostname: site.app._safeName(),
-                port: site.port.host,
+                port: site.port.port,
                 dns: match ? match[3] : '',
                 published: match ? !!match[4] : false
               };
@@ -269,7 +269,7 @@ async function ConfigurePageWS(ctx) {
           r.value = tableValue;
           const port = app._ports.find(p => p.target === key);
           if (port) {
-            port.host = parseInt(r.value);
+            port.port = parseInt(r.value);
           }
           return APPCHANGE;
         }
@@ -280,7 +280,7 @@ async function ConfigurePageWS(ctx) {
           r.value = value;
           const port = app._ports.find(p => p.target === key);
           if (port) {
-            port.host = parseInt(r.value);
+            port.port = parseInt(r.value);
           }
           return APPCHANGE;
         }
