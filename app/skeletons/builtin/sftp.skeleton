@@ -52,7 +52,7 @@
     {
       type: `Environment`,
       name: `SSH_USERID`,
-      defaultValue: `1337`
+      defaultValue: `0`
     },
     {
       type: `Environment`,
