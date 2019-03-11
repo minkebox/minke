@@ -46,7 +46,7 @@ Filesystem.prototype = {
     return {
       Type: 'bind',
       Source: Path.normalize(`${this._hostroot}/${bind.host}`),
-      Target: bind.target,
+      Target: this._expand(bind.target),
       BindOptions: {
         Propagation: 'rshared'
       }
@@ -60,7 +60,7 @@ Filesystem.prototype = {
     return {
       Type: 'bind',
       Source: Path.normalize(`${this._hostroot}/${file.host}`),
-      Target: file.target,
+      Target: this._expand(file.target),
       BindOptions: {
         Propagation: 'rshared'
       }
@@ -76,7 +76,7 @@ Filesystem.prototype = {
     return {
       Type: 'bind',
       Source: Path.normalize(`${FS_HOSTPREFIX}/app/${share.appid}/${share.host}`),
-      Target: Path.normalize(`${share.root}/${share.target}`),
+      Target: this._expand(Path.normalize(`${share.root}/${share.target}`)),
       BindOptions: {
         Propagation: 'rshared'
       }
@@ -89,7 +89,7 @@ Filesystem.prototype = {
       return {
         Type: 'bind',
         Source: Path.normalize(`${this._hostroot}/${bind.host}/${share.name}`),
-        Target: Path.normalize(`${bind.target}/${share.name}`),
+        Target: this._expand(Path.normalize(`${bind.target}/${share.name}`)),
         BindOptions: {
           Propagation: 'rshared'
         }
@@ -100,7 +100,7 @@ Filesystem.prototype = {
   mapFilenameToLocal: function(filename) {
     for (let i = 0; i < this._binds.length; i++) {
       const bind = this._binds[i];
-      if (filename.startsWith(bind.target)) {
+      if (filename.startsWith(this._expand(bind.target))) {
         return Path.normalize(`${this._root}/${bind.host}/${filename.substring(bind.target.length)}`);
       }
     }
@@ -131,6 +131,16 @@ Filesystem.prototype = {
     FS.mkdirSync(`${this._root}/logs`, { recursive: true });
     FS.writeFileSync(`${this._root}/logs/stdout.txt`, stdout);
     FS.writeFileSync(`${this._root}/logs/stderr.txt`, stderr);
+  },
+
+  _expand: function(path) {
+    if (path.indexOf('{{') !== -1) {
+      const env = this._app._env;
+      for (let key in env) {
+        path = path.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
+      }
+    }
+    return path;
   }
 
 }
