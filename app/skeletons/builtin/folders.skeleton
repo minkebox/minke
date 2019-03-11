@@ -1,5 +1,5 @@
 {
-  name: `MyApp`,
+  name: `Files and Folders`,
   description: ``,
   image: `registry.gitlab.com/minkebox/folders`,
   actions: [
