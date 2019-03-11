@@ -58,7 +58,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
     dowork();
   }
   const graphContainer = document.createElement('div');
-  const sandbox = { input: null, output: null, props: { homeIP: app._homeIP }};
+  const sandbox = { input: null, output: null, state: null, props: { homeIP: app._homeIP }};
   VM.createContext(sandbox);
   const extractor = VM.compileFunction(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, [], { parsingContext: sandbox });
   this.run = async () => {
@@ -105,6 +105,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
       clearInterval(this.clock);
       this.clock = null;
     }
+    delete sandbox.state;
   }
   this.shutdown = () => {
     this._terminated = true;
