@@ -22,7 +22,7 @@
       description: `Add the domains (which will automatically include any sub-domains) here. All traffic to these domains will be proxied through the selected network.`,
       style: `Table`,
       headers: [
-        `Domain name`
+        { name: `Domain name` }
       ],
       pattern: `{{0}}`
     }

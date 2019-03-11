@@ -17,9 +17,9 @@
       description: `Address Ranges`,
       style: `Table`,
       headers: [
-        `Start IP`,
-        `End IP`,
-        `Time to live`
+        { name: `Start IP` },
+        { name: `End IP` },
+        { name: `Time to live` }
       ],
       pattern: `dhcp-range={{0}},{{1}},{{2}}
 `,
@@ -40,9 +40,9 @@
       description: `Reserved Addresses`,
       style: `Table`,
       headers: [
-        `Hostname`,
-        `MAC Address`,
-        `IP Address`
+        { name: `Hostname` },
+        { name: `MAC Address` },
+        { name: `IP Address` }
       ],
       pattern: `{{1}},{{2}},{{0}}
 `,

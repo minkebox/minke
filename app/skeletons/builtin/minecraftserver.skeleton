@@ -47,7 +47,7 @@
       style: `Table`,
       description: `List of users (if no users are listed then anyone can join this server if it is public)`,
       headers: [
-        `Username`
+        { name: `Username` }
       ],
       pattern: `{{0}}`,
       join: `,`
@@ -58,7 +58,7 @@
       style: `Table`,
       description: `List of administrators`,
       headers: [
-        `Username`
+        { name: `Username` }
       ],
       pattern: `{{0}}`,
       join: `,`
