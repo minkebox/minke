@@ -1,0 +1,113 @@
+{
+  name: `Secure FTP`,
+  description: `Provide secure ftp (sftp) access to selected folders and files.`,
+  image: `amimof/sftp`,
+  actions: [
+    {
+      type: `Header`,
+      title: `User`
+    },
+    {
+      type: `Environment`,
+      name: `SSH_USERNAME`,
+      description: `Select the user's login name`
+    },
+    {
+      type: `Environment`,
+      name: `SSH_PASSWORD`,
+      description: `Select the user's password`
+    },
+    {
+      type: `Header`,
+      title: `Folders`
+    },
+    {
+      type: `Shareables`,
+      name: `/home/{{SSH_USERNAME}}`,
+      description: `Select the folders to share with this user`
+    },
+    {
+      type: `Header`,
+      title: `Advanced`
+    },
+    {
+      type: `Environment`,
+      name: `SSH_PORT`,
+      description: `Select the SSH port (usually 22)`
+    },
+    {
+      type: `NAT`,
+      description: `Make available on the Internet with the name <div><b>{{GLOBALNAME}}</b></div>`,
+      ports: [
+        `SSH_PORT`
+      ]
+    }
+  ],
+  properties: [
+    {
+      type: `Environment`,
+      name: `SSH_USERNAME`,
+      defaultValue: `sftpuser`
+    },
+    {
+      type: `Environment`,
+      name: `SSH_USERID`,
+      defaultValue: `1337`
+    },
+    {
+      type: `Environment`,
+      name: `SSH_DATADIR_NAME`,
+      defaultValue: `../../tmp/ignore`
+    },
+    {
+      type: `Environment`,
+      name: `SSH_GENERATE_HOSTKEYS`,
+      defaultValue: `true`
+    },
+    {
+      type: `Environment`,
+      name: `SSH_PASSWORD`,
+      defaultValue: `sftppassword`
+    },
+    {
+      type: `Environment`,
+      name: `SSH_PORT`,
+      defaultValue: 22
+    },
+    {
+      type: `Environment`,
+      name: `LOGLEVEL`
+    },
+    {
+      type: `Environment`,
+      name: `DEBUG`
+    },
+    {
+      type: `Port`,
+      name: `SSH_PORT`,
+      host: 22,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Directory`,
+      name: `/etc/ssh/host_keys`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
