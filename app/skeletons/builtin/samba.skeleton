@@ -5,7 +5,8 @@
   actions: [
     {
       type: `Header`,
-      title: `Create`
+      title: `Create`,
+      visible: 'false'
     },
     {
       type: `Text`,
@@ -18,7 +19,7 @@
     },
     {
       type: `Header`,
-      title: `Other applications`
+      title: `Applications Folders`
     },
     {
       type: `Text`,
