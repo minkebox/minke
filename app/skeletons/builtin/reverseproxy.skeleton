@@ -16,13 +16,33 @@
       join: ` `
     },
     {
+      type: `Header`,
+      title: `Other Websites`
+    },
+    {
+      type: 'Text',
+      text: 'You can also published other websites which are not hosted by Minke'
+    },
+    {
       type: `Environment`,
-      name: `HTTP_PORT`,
-      description: `Select the HTTP port for the proxy. This is usually 80.`
+      name: `OTHER_WEBSITES`,
+      style: `Table`,
+      description: `Publish non-Minke websites`,
+      headers: [
+        { name: 'URL' },
+        { name: 'Published Name' }
+      ],
+      pattern: `{{0}}#{{1}}`,
+      join: ` `
     },
     {
       type: `Header`,
       title: `Internet access`
+    },
+    {
+      type: `Environment`,
+      name: `HTTP_PORT`,
+      description: `Select the HTTP port for the proxy. This is usually 80.`
     },
     {
       type: `NAT`,
@@ -60,6 +80,10 @@
     {
       type: `Environment`,
       name: `WEBSITES`
+    },
+    {
+      type: `Environment`,
+      name: `OTHER_WEBSITES`
     },
     {
       type: `Environment`,
