@@ -90,7 +90,9 @@
       nat: false,
       web: false,
       dns: false,
-      mdns: null
+      mdns: {
+        type: `_sftp-ssh._tcp`
+      }
     },
     {
       type: `Directory`,
