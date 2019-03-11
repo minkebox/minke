@@ -1,12 +1,8 @@
 const FS = require('fs');
 const Path = require('path');
-const ChildProcess = require('child_process');
-const Images = require('./Images');
+const Disks = require('./Disks');
 
 process.umask(0);
-
-const FS_PREFIX = process.env.DEBUG ? '/home/minke' : '/minke';
-let FS_HOSTPREFIX = `${FS_PREFIX}/fs`;
 
 
 function Filesystem(app) {
@@ -15,8 +11,6 @@ function Filesystem(app) {
   this._files = app._files;
   this._shares = app._shares;
   this._customshares = app._customshares;
-  this._root = `${FS_PREFIX}/fs/app/${this._app._id}`;
-  this._hostroot = `${FS_HOSTPREFIX}/app/${this._app._id}`;
 }
 
 Filesystem.prototype = {
@@ -26,7 +20,7 @@ Filesystem.prototype = {
     // Remove any broken shares (in case an app was uninstalled)
     for (let i = 0; i < this._shares.length; ) {
       const share = this._shares[i];
-      if (FS.existsSync(`${FS_PREFIX}/fs/app/${share.appid}/${share.host}`)) {
+      if (FS.existsSync(`${Disks.getRoot(share.style)}/boot/${share.appid}/${share.host}`)) {
         i++;
       }
       else {
@@ -42,10 +36,11 @@ Filesystem.prototype = {
   },
 
   _makeMount: function(bind) {
-    FS.mkdirSync(`${this._root}/${bind.host}`, { recursive: true });
+    const src = Path.normalize(`${this._getRoot(bind.style)}/${bind.host}`);
+    FS.mkdirSync(src, { recursive: true });
     return {
       Type: 'bind',
-      Source: Path.normalize(`${this._hostroot}/${bind.host}`),
+      Source: src,
       Target: this._expand(bind.target),
       BindOptions: {
         Propagation: 'rshared'
@@ -54,12 +49,12 @@ Filesystem.prototype = {
   },
 
   makeFile: function(file) {
-    const src = Path.normalize(`${this._root}/${file.host}`);
+    const src = Path.normalize(`${this._getRoot(file.style)}/${file.host}`);
     FS.mkdirSync(Path.dirname(src), { recursive: true });
     FS.writeFileSync(src, file.data);
     return {
       Type: 'bind',
-      Source: Path.normalize(`${this._hostroot}/${file.host}`),
+      Source: src,
       Target: this._expand(file.target),
       BindOptions: {
         Propagation: 'rshared'
@@ -68,14 +63,15 @@ Filesystem.prototype = {
   },
 
   readFile: function(file) {
-    const src = Path.normalize(`${this._root}/${file.host}`);
+    const src = Path.normalize(`${this._getRoot(file.style)}/${file.host}`);
     file.data = FS.readFileSync(src, { encoding: 'utf8' });
   },
 
   makeShare: function(share) {
+    const src = Path.normalize(`${Disks.getRoot(share.style)}/boot/${share.appid}/${share.host}`);
     return {
       Type: 'bind',
-      Source: Path.normalize(`${FS_HOSTPREFIX}/app/${share.appid}/${share.host}`),
+      Source: src,
       Target: this._expand(Path.normalize(`${share.root}/${share.target}`)),
       BindOptions: {
         Propagation: 'rshared'
@@ -85,10 +81,11 @@ Filesystem.prototype = {
 
   makeCustomShare: function(bind) {
     return bind.shares.map((share) => {
-      FS.mkdirSync(`${this._root}/${bind.host}/${share.name}`, { recursive: true });
+      const src = Path.normalize(`${this._getRoot(bind.style)}/${bind.host}/${share.name}`);
+      FS.mkdirSync(src, { recursive: true });
       return {
         Type: 'bind',
-        Source: Path.normalize(`${this._hostroot}/${bind.host}/${share.name}`),
+        Source: src,
         Target: this._expand(Path.normalize(`${bind.target}/${share.name}`)),
         BindOptions: {
           Propagation: 'rshared'
@@ -101,7 +98,7 @@ Filesystem.prototype = {
     for (let i = 0; i < this._binds.length; i++) {
       const bind = this._binds[i];
       if (filename.startsWith(this._expand(bind.target))) {
-        return Path.normalize(`${this._root}/${bind.host}/${filename.substring(bind.target.length)}`);
+        return Path.normalize(`${this._getRoot(bind.style)}/${bind.host}/${filename.substring(bind.target.length)}`);
       }
     }
     return null;
@@ -124,23 +121,23 @@ Filesystem.prototype = {
         FS.rmdirSync(path);
       }
     };
-    rmAll(this._root);
+    rmAll(this._getRoot('boot'));
+    rmAll(this._getRoot('store'));
   },
 
   saveLogs: function(stdout, stderr) {
-    FS.mkdirSync(`${this._root}/logs`, { recursive: true });
-    FS.writeFileSync(`${this._root}/logs/stdout.txt`, stdout);
-    FS.writeFileSync(`${this._root}/logs/stderr.txt`, stderr);
+    const root = this._getRoot('boot');
+    FS.mkdirSync(`${root}/logs`, { recursive: true });
+    FS.writeFileSync(`${root}/logs/stdout.txt`, stdout);
+    FS.writeFileSync(`${root}/logs/stderr.txt`, stderr);
+  },
+
+  _getRoot: function(style) {
+    return `${Disks.getRoot(style)}/boot/${this._app._id}`;
   },
 
   _expand: function(path) {
-    if (path.indexOf('{{') !== -1) {
-      const env = this._app._env;
-      for (let key in env) {
-        path = path.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
-      }
-    }
-    return path;
+    return this._app.expand(path);
   }
 
 }
@@ -149,11 +146,6 @@ const _Filesystem = {
 
   create: function(app) {
     return new Filesystem(app);
-  },
-
-  setHostPrefix: function(prefix) {
-    FS_HOSTPREFIX = prefix;
-    FS.mkdirSync(`${FS_PREFIX}/fs/dir/shareable`, { recursive: true });
   }
 
 };
