@@ -113,6 +113,10 @@
             <label class="description">{{{description}}}</label>
             {{> CustomShareables}}
           </div>
+          {{else if (eq type "__Disk")}}
+          <div class="action disks pure-control-group">
+            {{> Disks}}
+          </div>
           {{/if}}
           {{else}}
           <div class="content-header">Nothing to configure</div>

@@ -11,7 +11,8 @@ function registerTemplates() {
     'Table',
     'Shareables',
     'CustomShareables',
-    'Websites'
+    'Websites',
+    'Disks'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -38,7 +39,7 @@ async function ConfigurePageHTML(ctx) {
   }
 
   function expand(text) {
-    return (text || '').replace(/\{\{GLOBALNAME\}\}/g, `${MinkeApp.getGlobalID()}.minkebox.net`);
+    return app.expand(text);
   }
 
   let nextid = 100;
@@ -48,6 +49,7 @@ async function ConfigurePageHTML(ctx) {
     AdminMode: MinkeApp.getAdminMode(),
     FirstUse: app._bootcount == 0
   };
+  const minkeConfig = app._image == Images.MINKE;
   const nskeleton = {
     name: skeleton.name,
     value: app._name,
@@ -196,13 +198,19 @@ async function ConfigurePageHTML(ctx) {
           const root = app._customshares.find(share => share.target == action.name) || { shares: [] };
           return Object.assign({ action: `${action.type}#${action.name}`, shareables: root.shares }, action);
         }
+        case '__Disks':
+        {
+          if (!minkeConfig) {
+            return {};
+          }
+          return action;
+        }
         case 'Argument':
         default:
           return action;
       }
     })
   }
-  const minkeConfig = app._image == Images.MINKE;
   const adminMode = MinkeApp.getAdminMode();
   ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton),
     changes: '[' + Object.keys(visibles).map((key) => {
