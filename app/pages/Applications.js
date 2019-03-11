@@ -8,7 +8,7 @@ function _strhash(str) {
   let hash = 5381;
   const bytes = Buffer.from(str, 'utf8');
   for (let i = 0; i < bytes.length; i++) {
-    hash = (hash << 5) + hash + bytes[i];
+    hash = (hash << 5) - hash + bytes[i];
   }
   return hash & 0x7fffffff;
 }
@@ -25,7 +25,7 @@ async function PageHTML(ctx) {
   const catalog = Skeletons.catalog();
   ctx.body = template({ adminMode: MinkeApp.getAdminMode(), skeletons: catalog.map(skel => Object.assign({ 
     pre: skel.name.substr(0, 2),
-    color: _strhash(skel.name.substr(0, 2)) % 10
+    color: _strhash(skel.name.toLowerCase()) % 10
   }, skel)) });
   ctx.type = 'text/html';
 }
