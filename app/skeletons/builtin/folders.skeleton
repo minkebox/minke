@@ -1,6 +1,6 @@
 {
   name: `Files and Folders`,
-  description: ``,
+  description: `Create folders which can be shared with other applications`,
   image: `registry.gitlab.com/minkebox/folders`,
   actions: [
     {
