@@ -52,8 +52,8 @@ const DNS = {
 
   setHostname: function(name) {
     hostname = name || 'Minke';
-    FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
     if (!DEBUG) {
+      FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
     MDNS.update({ hostname: hostname });
@@ -63,54 +63,68 @@ const DNS = {
   setDomainName: function(domain) {
     domainName = domain || 'home';
     this._updateLocalResolv();
-    for (let hostname in hosts) {
-      FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${hosts[hostname]} ${hostname} ${hostname}.${domainName}\n`);
+    if (!DEBUG) {
+      for (let hostname in hosts) {
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${hosts[hostname]} ${hostname} ${hostname}.${domainName}\n`);
+      }
     }
   },
 
   registerHostIP: async function(hostname, ip) {
     hosts[hostname] = ip;
-    FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${ip} ${hostname} ${hostname}.${domainName}\n`);
+    if (!DEBUG) {
+      FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${ip} ${hostname} ${hostname}.${domainName}\n`);
+    }
   },
 
   unregisterHostIP: async function(hostname, ip) {
     delete hosts[hostname];
-    try {
-      FS.unlinkSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`);
-    }
-    catch (e) {
-      console.error(e);
+    if (!DEBUG) {
+      try {
+        FS.unlinkSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`);
+      }
+      catch (e) {
+        console.error(e);
+      }
     }
   },
 
   _updateConfig: function() {
-    FS.writeFileSync(DNSMASQ_CONFIG, `${[
-      'user=root',
-      'bind-interfaces',
-      'no-resolv',
-      `servers-file=${DNSMASQ_RESOLV}`,
-      `hostsdir=${DNSMASQ_HOSTS_DIR}`,
-      'clear-on-reload',
-      'strict-order',
-      `cache-size=${cacheSize}`
-    ].join('\n')}\n`);    
+    if (!DEBUG) {
+      FS.writeFileSync(DNSMASQ_CONFIG, `${[
+        'user=root',
+        'bind-interfaces',
+        'no-resolv',
+        `servers-file=${DNSMASQ_RESOLV}`,
+        `hostsdir=${DNSMASQ_HOSTS_DIR}`,
+        'clear-on-reload',
+        'strict-order',
+        `cache-size=${cacheSize}`
+      ].join('\n')}\n`);
+    }
   },
 
   _updateLocalResolv: function() {
-    FS.writeFileSync(LOCAL_RESOLV, `domain ${domainName}\nsearch ${domainName}. local.\nnameserver 127.0.0.1\n`);
+    if (!DEBUG) {
+      FS.writeFileSync(LOCAL_RESOLV, `domain ${domainName}\nsearch ${domainName}. local.\nnameserver 127.0.0.1\n`);
+    }
   },
 
   _updateResolvServers: function() {
-    // Note. DNS servers are checked in reverse order
-    FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
-      return `server=${resolve.IP4Address}#${resolve.Port}\n`;
-    })}`);
+    if (!DEBUG) {
+      // Note. DNS servers are checked in reverse order
+      FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
+        return `server=${resolve.IP4Address}#${resolve.Port}\n`;
+      })}`);
+    }
   },
 
   _updateHosts: function() {
-    FS.writeFileSync(MINKE_HOSTS, Object.keys(hosts).map((host) => {
-      return `${hosts[host]} ${host} ${host}.${domainName}\n`
-    }).join(''));
+    if (!DEBUG) {
+      FS.writeFileSync(MINKE_HOSTS, Object.keys(hosts).map((host) => {
+        return `${hosts[host]} ${host} ${host}.${domainName}\n`
+      }).join(''));
+    }
   },
 
   _reloadDNS: function() {
