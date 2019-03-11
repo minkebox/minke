@@ -89,7 +89,7 @@ function Redirect(args) {
   });
 }
 
-const HTTPForward = {
+const HTTP = {
 
   createForward: function(args) {
     const f = new Forward(args);
@@ -120,4 +120,4 @@ const HTTPForward = {
 
 }
 
-module.exports = HTTPForward;
+module.exports = HTTP;

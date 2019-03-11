@@ -3,7 +3,7 @@ const Util = require('util');
 const Path = require('path');
 const Moment = require('moment-timezone');
 const UUID = require('uuid/v4');
-const HTTPForward = require('./HTTPForward');
+const HTTP = require('./HTTP');
 const DNS = require('./DNS');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
@@ -516,14 +516,14 @@ MinkeApp.prototype = {
         if (webport) {
           if (this._homeIP) {
             if (webport.web === 'newtab') {
-              this._forward = HTTPForward.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}` });
+              this._forward = HTTP.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}` });
             }
             else {
-              this._forward = HTTPForward.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}` });
+              this._forward = HTTP.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}` });
             }
           }
           else {
-            this._forward = HTTPForward.createForward({ prefix: `/a/${this._id}`, IP4Address: ipAddr, port: webport.port });
+            this._forward = HTTP.createForward({ prefix: `/a/${this._id}`, IP4Address: ipAddr, port: webport.port });
           }
           if (this._forward.http) {
             koaApp.use(this._forward.http);
