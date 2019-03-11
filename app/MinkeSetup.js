@@ -125,6 +125,10 @@ MinkeSetup.prototype = {
     return true;
   },
 
+  expand: function(txt) {
+    return txt;
+  },
+
   _setupHomeNetwork: function() {
     return Network.setHomeNetwork({
       address: this._env.DHCP ? 'dhcp' : this._env.IPADDRESS.value,

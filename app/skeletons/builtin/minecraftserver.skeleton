@@ -72,7 +72,7 @@
     {
       type: `NAT`,
       name: `PUBLIC_SERVER`,
-      description: `Make this server public and available on the Internet. The name on the Internet will be <div><b>{{GLOBALNAME}}</b></div>`,
+      description: `Make this server public and available on the Internet. The name on the Internet will be <div><b>{{__GLOBALNAME}}</b></div>`,
       ports: [
         `SERVER_PORT`
       ]

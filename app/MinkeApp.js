@@ -821,6 +821,19 @@ MinkeApp.prototype = {
     }, []);
   },
 
+  expand: function(txt) {
+    if (txt && txt.indexOf('{{') !== -1) {
+      const env = Object.assign({
+        __APPNAME: { value: this._name },
+        __GLOBALNAME: { value: `${MinkeApp.getGlobalID()}.minkebox.net` }
+      }, this._env);
+      for (let key in env) {
+        txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
+      }
+    }
+    return txt;
+  },
+
   _monitorNetwork: function() {
     this._networkMonitor = this._createMonitor({
       event: 'update.network.status',
@@ -1026,11 +1039,6 @@ MinkeApp.startApps = async function(app, config) {
   (await docker.listContainers({})).forEach((container) => {
     if (container.Image.endsWith('/minke')) {
       MinkeApp._container = docker.getContainer(container.Id);
-      container.Mounts.forEach((mount) => {
-        if (mount.Type === 'bind' && mount.Destination === '/minke/fs') {
-          Filesystem.setHostPrefix(mount.Source);
-        }
-      })
     }
   });
 

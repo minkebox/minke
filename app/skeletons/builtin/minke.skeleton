@@ -61,6 +61,17 @@
     },
     {
       type: 'Header',
+      title: 'Disks'
+    },
+    {
+      type: 'Text',
+      text: 'Disk sizes and free space available'
+    },
+    {
+      type: '__Disks'
+    },
+    {
+      type: 'Header',
       title: 'Time'
     },
     {

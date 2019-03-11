@@ -54,7 +54,7 @@
     },
     {
       type: `Text`,
-      text: 'Use CNAMEs with your favorite Domain Registry to forward requests to <b>"{{GLOBALNAME}}"</b>. This name will automatically track any change to your Home IP address.'
+      text: 'Use CNAMEs with your favorite Domain Registry to forward requests to <b>"{{__GLOBALNAME}}"</b>. This name will automatically track any change to your Home IP address.'
     },
     {
       type: `Header`,

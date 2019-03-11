@@ -37,7 +37,7 @@
     },
     {
       type: `NAT`,
-      description: `Make available on the Internet with the name <div><b>{{GLOBALNAME}}</b></div>`,
+      description: `Make available on the Internet with the name <div><b>{{__GLOBALNAME}}</b></div>`,
       ports: [
         `SSH_PORT`
       ]
