@@ -156,7 +156,7 @@ body {
 .configure .actions .shareables thead th.control {
   width: 0px;
 }
-.configure .actions .shareables thead:not(:first-child) th:nth-child(2) {
+.configure .actions .shareables thead:not(:first-child) th:not(:first-child) {
   visibility: hidden;
 }
 .configure .actions .shareables input[type="text"] {
