@@ -158,6 +158,7 @@ function stringToSkeleton(str) {
   }
   catch (e) {
     console.error(e);
+    console.error(str.substring(0, 200));
   }
   return skel;
 }
