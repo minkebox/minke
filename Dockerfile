@@ -11,7 +11,7 @@ RUN apk --no-cache add nodejs nodejs-npm dnsmasq tzdata openntpd ;\
 COPY etc/ /etc
 
 EXPOSE 53/tcp 53/udp 80/tcp
-VOLUME /minke/db /minke/boot /app/skeletons/local
+VOLUME /minke/db /minke/apps /app/skeletons/local
 
 ENTRYPOINT ["/startup.sh"]
  

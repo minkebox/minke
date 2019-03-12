@@ -1,6 +1,18 @@
 
 const DiskInfo = require('@dropb/diskinfo');
 
+/*
+ * Disk structure:
+ * /minke
+ *       /db/...            Databases
+ *       /apps
+ *            /<id>/...     Application data (boot)
+ * /mnt
+ *     /store
+ *           /apps
+ *                /<id>/... Application data needing large disk (store)
+ */
+
 const Disks = {
 
   _info: null,
@@ -24,7 +36,7 @@ const Disks = {
         const style = name === 'sda' ? 'boot' : 'store';
         acc[type] = {
           style: style,
-          root: style === 'boot' ? '/minke' : `/mnt/${style}`,
+          root: style === 'boot' ? '/minke' : `/mnt/store`,
           name: name,
           size: disk.size,
           used: disk.used
@@ -35,11 +47,16 @@ const Disks = {
     return this._info;
   },
 
+  /*
+   * Get the rood directory for the storage style requested.
+   * If no style is given, we default to 'store' (which is bigger than boot).
+   * If 'store' doesn't exists, we use 'boot'.
+   */
   getRoot: function(style) {
     if (!this._info) {
       this.getInfo();
     }
-    return (this._info[style || 'boot'] || this._info.boot).root;
+    return (this._info[style || 'store'] || this._info.boot).root;
   }
 
 }

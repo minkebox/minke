@@ -100,6 +100,7 @@ MinkeApp.prototype = {
   },
 
   updateFromSkeleton: function(skel, defs) {
+
     this._description = skel.description;
     this._args = '';
   
@@ -169,7 +170,7 @@ MinkeApp.prototype = {
         }
         else {
           r.push({
-            host: Path.normalize(`/dir/${target}`),
+            src: Filesystem.getNativePath(this._id, prop.style, `/dir/${target}`),
             target: target,
             shares: prop.shares || [],
             description: prop.description || target
@@ -187,7 +188,7 @@ MinkeApp.prototype = {
         }
         else {
           const f = {
-            host: Path.normalize(`/file/${prop.name.replace(/\//g, '_')}`),
+            src: Filesystem.getNativePath(this._id, prop.style, `/file/${prop.name.replace(/\//g, '_')}`),
             target: target,
             data: prop.defaultValue || ''
           };
@@ -737,12 +738,10 @@ MinkeApp.prototype = {
   updateShares: function(shares) {
     let changed = false;
     const nshares = shares.reduce((acc, share) => {
-      const idx = this._shares.findIndex(oshare => oshare.appid === share.appid && oshare.host === share.host);
+      const idx = this._shares.findIndex(oshare => oshare.src === share.src);
       if (share.shared) {
         acc.push({
-          appid: share.appid,
-          host: share.host,
-          root: share.root,
+          src: share.src,
           target: share.target
         });
         if (idx === -1 || this._shares[idx].target !== share.target) {
@@ -1187,6 +1186,10 @@ MinkeApp.create = async function(image) {
 
 MinkeApp.getApps = function() {
   return applications;
+}
+
+MinkeApp.getAppById = function(id) {
+  return applications.find(app => app._id === id);
 }
 
 MinkeApp.getNetworks = function() {

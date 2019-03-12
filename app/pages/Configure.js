@@ -4,6 +4,7 @@ const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
 const Skeletons = require('../skeletons/Skeletons');
+const Filesystem = require('../Filesystem');
 
 let template;
 function registerTemplates() {
@@ -29,7 +30,7 @@ async function ConfigurePageHTML(ctx) {
     registerTemplates();
   }
 
-  const app = MinkeApp.getApps().find(item => item._id === ctx.params.id);
+  const app = MinkeApp.getAppById(ctx.params.id);
   if (!app) {
     throw Error(`Missing app: ${ctx.params.id}`);
   }
@@ -177,14 +178,14 @@ async function ConfigurePageHTML(ctx) {
             return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
               bind.shares.forEach((share) => {
                 const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
-                const host = Path.normalize(`${bind.host}/${share.name}/`).slice(0, -1);
-                const ashare = app._shares.find(ashare => ashare.appid === shareable.app._id && ashare.host == host);
+                const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
+                const ashare = app._shares.find(ashare => ashare.src === src);
+                const alttarget = ashare ? ashare.target.substr(action.name.length + 1) : '';
                 shares.push({
                   name: target,
-                  altname: ashare && ashare.target != target ? ashare.target : null,
+                  altname: alttarget != target ? alttarget : null,
                   description: share.description,
-                  host: host,
-                  action: `window.share('${action.type}#${shareable.app._id}#${host}#${action.name}#${target}',this)`,
+                  action: `window.share('${action.type}#${shareable.app._id}#${src}#${action.name}#${target}',this)`,
                   value: !!ashare
                 });
               });
@@ -232,7 +233,8 @@ async function ConfigurePageWS(ctx) {
     }
   }
 
-  let app = MinkeApp.getApps().find(item => item._id === ctx.params.id);
+  let app = MinkeApp.getAppById(ctx.params.id);
+  const skeleton = Skeletons.loadSkeleton(app._image, false);
 
   const NOCHANGE = 0;
   const APPCHANGE = 1;
@@ -240,21 +242,18 @@ async function ConfigurePageWS(ctx) {
   const SHARECHANGE = 4;
 
   function getTableData(app, name, value) {
-    const skeleton = Skeletons.loadSkeleton(app._image, false);
-    if (skeleton) {
-      const action = skeleton.actions.find(action => action.name === name);
-      if (action && (action.style === 'Table' || action.style === 'Websites')) {
-        const table = JSON.parse(value);
-        value = [];
-        table.forEach((row) => {
-          let line = action.pattern || '{{0}}';
-          for (let i = 0; i < row.length; i++) {
-            line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), row[i]);
-          }
-          value.push(line);
-        });
-        return value.join('join' in action ? action.join : '\n');
-      }
+    const action = skeleton.actions.find(action => action.name === name);
+    if (action && (action.style === 'Table' || action.style === 'Websites')) {
+      const table = JSON.parse(value);
+      value = [];
+      table.forEach((row) => {
+        let line = action.pattern || '{{0}}';
+        for (let i = 0; i < row.length; i++) {
+          line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), row[i]);
+        }
+        value.push(line);
+      });
+      return value.join('join' in action ? action.join : '\n');
     }
     return null;
   }
@@ -347,8 +346,9 @@ async function ConfigurePageWS(ctx) {
     }},
     { p: /^CustomShareables#(.+)$/, f: (value, match) => {
       const shareroot = match[1];
+      const action = skeleton.actions.find(action => action.name === shareroot);
       const bind = {
-        host: Path.normalize(`/dir/${shareroot}`),
+        src: Filesystem.getNativePath(app._id, action.style, `/dir/${shareroot}`),
         target: Path.normalize(shareroot),
         shares: JSON.parse(value).map((row) => {
           return { name: Path.normalize(`${row[0]}`) };
@@ -386,10 +386,8 @@ async function ConfigurePageWS(ctx) {
         const match = property.match(/^Shareables#(.*)#(.*)#(.*)#(.*)$/);
         if (match) {
           shares.push({
-            appid: match[1],
-            host: match[2],
-            root: match[3],
-            target: changes[property].target.replace(/\//, '.') || match[4],
+            src: match[2],
+            target: `${match[3]}/${changes[property].target.replace(/\//, '.') || match[4]}`,
             shared: changes[property].shared
           });
         }
