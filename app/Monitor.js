@@ -105,7 +105,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
       clearInterval(this.clock);
       this.clock = null;
     }
-    delete sandbox.state;
+    sandbox.state = null;
   }
   this.shutdown = () => {
     this._terminated = true;
