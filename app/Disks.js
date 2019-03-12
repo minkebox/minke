@@ -1,5 +1,5 @@
 
-const DiskInfo = require('@dropb/diskinfo');
+const DF = require('@sindresorhus/df');
 
 /*
  * Disk structure:
@@ -17,33 +17,30 @@ const Disks = {
 
   _info: null,
 
-  getInfo: async function() {
-    if (DEBUG) {
-      this._info = {
-        boot: {
-          style: 'boot',
-          root: '/minke',
-          name: 'sda',
-          size: 1024 * 1024 * 1024,
-          used: 0
-        }
-      };
-    }
-    else {
-      const dinfo = await DiskInfo();
-      this._info = dinfo.reduce((acc, disk) => {
-        const name = disk.fstype.split('/').slice(-1)[0];
-        const style = name === 'sda' ? 'boot' : 'store';
-        acc[type] = {
+  init: async function() {
+    return await this._update();
+  },
+
+  _update: async function() {
+    const dinfo = await DF();
+    this._info = dinfo.reduce((acc, disk) => {
+      if (disk.filesystem.startsWith('/dev/sd')) {
+        const name = disk.filesystem.split('/').slice(-1)[0];
+        const style = name === 'sda1' ? 'boot' : 'store';
+        acc[style] = {
           style: style,
           root: style === 'boot' ? '/minke' : `/mnt/store`,
           name: name,
           size: disk.size,
           used: disk.used
         };
-        return acc;
-      }, {});
-    }
+      }
+      return acc;
+    }, {});
+  },
+
+  getInfo: async function() {
+    await this._update();
     return this._info;
   },
 
@@ -53,9 +50,6 @@ const Disks = {
    * If 'store' doesn't exists, we use 'boot'.
    */
   getRoot: function(style) {
-    if (!this._info) {
-      this.getInfo();
-    }
     return (this._info[style || 'store'] || this._info.boot).root;
   }
 

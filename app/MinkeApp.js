@@ -10,6 +10,7 @@ const Filesystem = require('./Filesystem');
 const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
+const Disks = require('./Disks');
 const Skeletons = require('./skeletons/Skeletons');
 
 let applications = [];
@@ -1030,6 +1031,9 @@ MinkeApp._monitorEvents = async function() {
 MinkeApp.startApps = async function(app, config) {
 
   koaApp = app;
+
+  // Start disks
+  await Disks.init();
 
   // Start DB
   await Database.init();
