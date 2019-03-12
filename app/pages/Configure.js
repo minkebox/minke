@@ -5,6 +5,7 @@ const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
 const Skeletons = require('../skeletons/Skeletons');
 const Filesystem = require('../Filesystem');
+const Disks = require('../Disks');
 
 let template;
 function registerTemplates() {
@@ -204,7 +205,17 @@ async function ConfigurePageHTML(ctx) {
           if (!minkeConfig) {
             return {};
           }
-          return action;
+          const diskinfo = Disks.getInfo();
+          return {
+            type: '__Disks',
+            disks: Object.values(diskinfo).map((disk) => {
+              return {
+                name: disk.style,
+                size: (disk.size / (1000 * 1000 * 1000)).toFixed(2) + 'GB',
+                percentage: (disk.used / disk.size * 100).toFixed(1)
+              }
+            })
+          };
         }
         case 'Argument':
         default:

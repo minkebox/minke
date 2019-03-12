@@ -13,11 +13,17 @@ const DF = require('@sindresorhus/df');
  *                /<id>/... Application data needing large disk (store)
  */
 
+ const TICK = 60 * 60 * 1000;
+
 const Disks = {
 
   _info: null,
+  _timer: null,
 
   init: async function() {
+    this._timer = setInterval(async () => {
+      await this._update();
+    }, TICK);
     return await this._update();
   },
 
@@ -39,8 +45,7 @@ const Disks = {
     }, {});
   },
 
-  getInfo: async function() {
-    await this._update();
+  getInfo: function() {
     return this._info;
   },
 

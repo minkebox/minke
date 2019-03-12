@@ -115,11 +115,21 @@ _Filesystem.prototype = {
           }
           else {
             //console.log(`unlink ${curPath}`);
-            FS.unlinkSync(curPath);
+            try {
+              FS.unlinkSync(curPath);
+            }
+            catch (e) {
+              console.error(e);
+            }
           }
         });
         //console.log(`rmdir ${path}`);
-        FS.rmdirSync(path);
+        try {
+          FS.rmdirSync(path);
+        }
+        catch (e) {
+          console.error(e);
+        }
       }
     };
     rmAll(Filesystem.getNativePath(this._app._id, 'boot', ''));

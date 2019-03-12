@@ -1,0 +1,7 @@
+{{#each disks}}
+<label class="pure-u-8-24">{{name}} ({{size}})</label>
+<div class="meter pure-input-rounded pure-u-16-24">
+  <div class="bar" style="width: {{percentage}}%"></div>
+  <div class="size">{{percentage}}% Used</div>
+</div>
+{{/each}}

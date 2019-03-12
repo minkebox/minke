@@ -65,7 +65,7 @@
     },
     {
       type: 'Text',
-      text: 'Disk sizes and free space available'
+      text: 'Disk sizes and space used'
     },
     {
       type: '__Disks'
