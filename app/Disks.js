@@ -1,4 +1,4 @@
-
+const FS = require('fs');
 const DF = require('@sindresorhus/df');
 
 /*
@@ -13,7 +13,7 @@ const DF = require('@sindresorhus/df');
  *                /<id>/... Application data needing large disk (store)
  */
 
- const TICK = 60 * 60 * 1000;
+const TICK = 60 * 60 * 1000;
 
 const Disks = {
 
@@ -28,21 +28,47 @@ const Disks = {
   },
 
   _update: async function() {
-    const dinfo = await DF();
-    this._info = dinfo.reduce((acc, disk) => {
-      if (disk.filesystem.startsWith('/dev/sd')) {
-        const name = disk.filesystem.split('/').slice(-1)[0];
-        const style = name === 'sda1' ? 'boot' : 'store';
-        acc[style] = {
-          style: style,
-          root: style === 'boot' ? '/minke' : `/mnt/store`,
-          name: name,
-          size: disk.size,
-          used: disk.used
-        };
+    const info = {};
+    await Promise.all([ 'a', 'b' ].map(async (letter) => {
+      if (FS.existsSync(`/sys/block/sd${letter}`)) {
+        let style = null;
+        let root = null;
+        let name = `sd${letter}`;
+        let partition = null;
+        switch (letter) {
+          case 'a':
+            style = 'boot';
+            root = '/minke';
+            partition = `/dev/sd${letter}2`;
+            break;
+
+          case 'b':
+            style = 'store';
+            root = `/mnt/${style}`;
+            partition = `/dev/sd${letter}1`;
+            break;
+
+          default:
+            break;
+        }
+        if (style) {
+          try {
+            const finfo = await DF.file(partition)
+            info[style] = {
+              style: style,
+              root: root,
+              name: name,
+              size: finfo.size,
+              used: finfo.used
+            };
+          }
+          catch (e) {
+            console.error(e);
+          }
+        }
       }
-      return acc;
-    }, {});
+    }));
+    this._info = info;
   },
 
   getInfo: function() {
