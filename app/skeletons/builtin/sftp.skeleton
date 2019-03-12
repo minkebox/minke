@@ -96,7 +96,8 @@
     },
     {
       type: `Directory`,
-      name: `/etc/ssh/host_keys`
+      name: `/etc/ssh/host_keys`,
+      style: 'boot'
     },
     {
       type: `Network`,

@@ -16,7 +16,8 @@
   properties: [
     {
       type: `Directory`,
-      name: `/folders`
+      name: `/folders`,
+      style: 'store'
     },
     {
       type: `Network`,

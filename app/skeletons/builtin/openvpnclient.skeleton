@@ -37,7 +37,8 @@
     },
     {
       type: `File`,
-      name: `/etc/openvpn/config.ovpn`
+      name: `/etc/openvpn/config.ovpn`,
+      style: 'boot',
     },
     {
       type: `Network`,

@@ -34,7 +34,8 @@
   properties: [
     {
       type: `Directory`,
-      name: `/etc/status`
+      name: `/etc/status`,
+      style: 'boot'
     },
     {
       type: `Port`,

@@ -44,11 +44,13 @@
     },
     {
       type: `Directory`,
-      name: `/etc/openvpn`
+      name: `/etc/openvpn`,
+      style: 'boot'
     },
     {
       type: `File`,
-      name: `/etc/config.ovpn`
+      name: `/etc/config.ovpn`,
+      style: 'boot'
     },
     {
       type: `Network`,

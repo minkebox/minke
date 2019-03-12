@@ -68,7 +68,8 @@
     },
     {
       type: `Directory`,
-      name: `/var/www/html/data`
+      name: `/var/www/html/data`,
+      style: 'store'
     }
   ],
   monitor: {

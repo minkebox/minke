@@ -97,15 +97,18 @@
     },
     {
       type: `Directory`,
-      name: `/etc/dnsmasq-state.d`
+      name: `/etc/dnsmasq-state.d`,
+      style: 'boot'
     },
     {
       type: `File`,
-      name: `/etc/dnsmasq-hosts.d/user-defined-hosts.conf`
+      name: `/etc/dnsmasq-hosts.d/user-defined-hosts.conf`,
+      style: 'boot'
     },
     {
       type: `File`,
       name: `/etc/dnsmasq.d/dhcp-ranges.conf`,
+      style: 'boot',
       defaultAltValue: `[["","","1h"]]`,
       defaultValue: ``
     },
