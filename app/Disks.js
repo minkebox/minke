@@ -86,7 +86,13 @@ const Disks = {
    * If 'store' doesn't exists, we use 'boot'.
    */
   getRoot: function(style) {
-    return (this._info[style || 'store'] || this._info.boot).root;
+    const info = this._info[style || 'store'];
+    if (info && info.formatted) {
+      return info.root;
+    }
+    else {
+      return this._info.boot.root;
+    }
   }
 
 }
