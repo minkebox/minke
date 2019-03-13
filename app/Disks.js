@@ -105,18 +105,18 @@ const Disks = {
       [ 'umount', [ info.root ]],
       [ 'parted', [ '-s', disk, 'mklabel gpt' ]],
       [ 'parted', [ '-s', '-a', 'opt', disk, 'mkpart store ext4 0% 100%' ]],
-      [ 'mkfs.ext4', [ '-F', `${disk}${part}`]],
+      [ 'mkfs.ext4', [ '-F', '-O', '64bit', `${disk}${part}`]],
       [ 'mount', [ info.root ]]
     ];
     for (let i = 0; i < cmds.length; i++) {
       await new Promise((resolve) => {
         const cp = ChildProcess.spawn(cmds[i][0], cmds[i][1]);
-        //cp.stdout.on('data', (data) => {
-        //  console.log(`stdout: ${data}`);
-        //});
-        //cp.stderr.on('data', (data) => {
-        //  console.log(`stderr: ${data}`);
-        //});
+        cp.stdout.on('data', (data) => {
+          console.log(`stdout: ${data}`);
+        });
+        cp.stderr.on('data', (data) => {
+          console.log(`stderr: ${data}`);
+        });
         cp.on('close', resolve);
       });
     }
