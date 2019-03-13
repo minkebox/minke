@@ -113,10 +113,16 @@ const Disks = {
       console.log(i, cmds[i]);
       await new Promise((resolve) => {
         const cp = ChildProcess.spawn(cmds[i][0], cmds[i][1]);
-        cp.on('data', (data) => {
-          console.log(data.toString());
+        cp.stdout.on('data', (data) => {
+          console.log(`stdout: ${data}`);
         });
-        cp.on('close', resolve);
+        cp.stderr.on('data', (data) => {
+          console.log(`stderr: ${data}`);
+        });
+        cp.on('close', (code) => {
+          console.log(`code: ${code}`);
+          resolve();
+        });
       });
     }
     console.log('done');
