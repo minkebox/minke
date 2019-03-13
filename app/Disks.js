@@ -58,7 +58,7 @@ const Disks = {
           }
           catch (_) {
             finfo = {
-              size: parseInt(FS.readFileSync(`/sys/block/sd${letter}/size`, { encoding: 'utf8' })),
+              size: 512 * parseInt(FS.readFileSync(`/sys/block/sd${letter}/size`, { encoding: 'utf8' })),
               used: 0,
             }
           }

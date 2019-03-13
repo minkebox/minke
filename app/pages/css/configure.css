@@ -212,6 +212,7 @@ body {
   box-shadow: inset 0 1px 3px #ddd;
   padding: 0.4em;
   z-index: 0;
+  margin-bottom: 8px;
 }
 .configure .actions .disks .meter .bar {
   position: absolute;
@@ -222,7 +223,7 @@ body {
 }
 .configure .actions .disks .meter .size {
   color: black;
-  padding: 1px 0 0 7px;
+  padding: 2px 0 0 7px;
 }
 
 html:not(.admin-mode) .admin-only, html.admin-mode .user-only {

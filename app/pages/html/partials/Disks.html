@@ -2,6 +2,10 @@
 <label class="pure-u-8-24">{{name}} ({{size}})</label>
 <div class="meter pure-input-rounded pure-u-16-24">
   <div class="bar" style="width: {{percentage}}%"></div>
+  {{#if formatted}}
   <div class="size">{{percentage}}% Used</div>
+  {{else}}
+  <div class="size">Unformatted</div>
+  {{/if}}
 </div>
 {{/each}}
