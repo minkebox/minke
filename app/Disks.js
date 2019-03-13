@@ -90,7 +90,7 @@ const Disks = {
     // already formatted it.
     const mounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' });
     if (mounts.indexOf(disk) === -1) {
-      ChildProcess.spawnSync('mount', [ disk ]);
+      ChildProcess.spawnSync('mount', [ info.root ]);
     }
   
     // Must remove the tag to reformat.
@@ -102,11 +102,11 @@ const Disks = {
     
     // Partition and format disk, then tag it.
     const cmds = [
-      [ 'umount', [ disk ]],
+      [ 'umount', [ info.root ]],
       [ 'parted', [ '-s', disk, 'mklabel gpt' ]],
       [ 'parted', [ '-s', '-a', 'opt', disk, 'mkpart store ext4 0% 100%' ]],
       [ 'mkfs.ext4', [ '-F', `${disk}${part}`]],
-      [ 'mount', [ disk ]]
+      [ 'mount', [ info.root ]]
     ];
     console.log('starting');
     for (let i = 0; i < cmds.length; i++) {
