@@ -15,11 +15,6 @@
   ],
   properties: [
     {
-      type: `Directory`,
-      name: `/folders`,
-      style: 'store'
-    },
-    {
       type: `Network`,
       name: `primary`,
       defaultValue: `home`
