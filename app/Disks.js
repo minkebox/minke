@@ -14,7 +14,7 @@ const DF = require('@sindresorhus/df');
  *                /<id>/... Application data needing large disk (store)
  */
 
-const TICK = 60 * 60 * 1000;
+const TICK = 10 * 60 * 1000;
 const TAG = '.minke-formatted';
 
 const Disks = {
