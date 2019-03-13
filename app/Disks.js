@@ -52,19 +52,24 @@ const Disks = {
             break;
         }
         if (style) {
+          let finfo = { size: 1, used: 1 };
           try {
-            const finfo = await DF.file(partition)
-            info[style] = {
-              style: style,
-              root: root,
-              name: name,
-              size: finfo.size,
-              used: finfo.used
-            };
+            finfo = await DF.file(partition);
           }
-          catch (e) {
-            console.error(e);
+          catch (_) {
+            finfo = {
+              size: parseInt(FS.readFileSync(`/sys/block/sd${letter}/size`, { encoding: 'utf8' })),
+              used: 0,
+            }
           }
+          info[style] = {
+            style: style,
+            root: root,
+            name: name,
+            size: finfo.size,
+            used: finfo.used,
+            formatted: FS.existsSync(partition)
+          };
         }
       }
     }));
