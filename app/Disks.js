@@ -123,6 +123,7 @@ const Disks = {
     FS.writeFileSync(`${info.root}/${TAG}`, '');
 
     info.status = 'ready';
+    await this._update();
   },
 
   getInfo: function() {
