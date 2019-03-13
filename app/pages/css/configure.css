@@ -215,13 +215,19 @@ body {
   margin-bottom: 8px;
 }
 .configure .actions .disks .meter .bar {
-  position: absolute;
   height: 21px;
-  background-color: #ffd6d6;
+  background-color: #d6ffd9;
   border-radius: 10px;
   z-index: -1;
 }
+.bar.color-6, .bar.color-7, .bar.color-8 {
+  background-color: #facbcb !important;
+}
+.bar.color-9, .bar.color-10 {
+  background-color: #fc7070 !important;
+}
 .configure .actions .disks .meter .size {
+  position: absolute;
   color: black;
   padding: 2px 0 0 7px;
 }

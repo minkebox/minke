@@ -212,8 +212,9 @@ async function ConfigurePageHTML(ctx) {
               return {
                 name: disk.style,
                 size: (disk.size / (1000 * 1000 * 1000)).toFixed(2) + 'GB',
-                percentage: (disk.used / disk.size * 100).toFixed(1),
-                formatted: disk.formatted
+                percentage: disk.size === 0 ? 0 : (disk.used / disk.size * 100).toFixed(1),
+                tenth: parseInt(disk.size === 0 ? 0 : (disk.used / disk.size * 10)),
+                status: disk.status
               }
             })
           };

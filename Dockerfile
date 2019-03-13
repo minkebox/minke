@@ -3,10 +3,10 @@ FROM alpine:latest
 COPY app/ /app
 COPY startup.sh /startup.sh
 
-RUN apk --no-cache add nodejs nodejs-npm dnsmasq tzdata openntpd ;\
+RUN apk --no-cache add nodejs nodejs-npm dnsmasq tzdata openntpd e2fsprogs parted ;\
     cd /app ; npm install ;\
     apk --no-cache del nodejs-npm ;\
-    mkdir -p /etc/dnsmasq.d /etc/dnshosts.d
+    mkdir -p /etc/dnshosts.d
 
 COPY etc/ /etc
 
