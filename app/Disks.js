@@ -77,7 +77,7 @@ const Disks = {
     }
   },
 
-  _formatDisk: function(style) {
+  _formatDisk: async function(style) {
     const info = this._info[style];
     if (style !== 'store' || !info) {
       throw new Error('Can only format "store" disk');
@@ -97,6 +97,8 @@ const Disks = {
     if (FS.existsSync(`${info.root}/${TAG}`)) {
       throw new Error('Disk already formatted');
     }
+
+    info.status = 'formatting';
     
     // Partition and format disk, then tag it.
     const cmds = [
@@ -106,10 +108,14 @@ const Disks = {
       [ 'mkfs.ext4', [ '-F', `${disk}${part}`]],
       [ 'mount', [ disk ]]
     ];
-    cmds.forEach((cmd) => {
-      ChildProcess.spawnSync(cmd[0], cmd[1]);
-    });
+    for (let i = 0; i < cmds.length; i++) {
+      await new Promise((resolve) => {
+        ChildProcess.spawn(cmds[i][0], cmds[i][1]).on('close', resolve);
+      });
+    }
     FS.writeFileSync(`${info.root}/${TAG}`, '');
+
+    info.status = 'ready';
   },
 
   getInfo: function() {
@@ -129,6 +135,17 @@ const Disks = {
     else {
       return this._info.boot.root;
     }
+  },
+
+  format: function(style, done) {
+    (async () => {
+      try {
+        await this._formatDisk(style);
+      }
+      catch (_) {
+      }
+      done();
+    })();
   }
 
 }

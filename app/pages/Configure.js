@@ -466,6 +466,15 @@ async function ConfigurePageWS(ctx) {
           app = null;
           uapp.uninstall();
           break;
+        case 'app.format-disk':
+          if (app._image === Images.MINKE) {
+            Disks.format('store', () => {
+              send({
+                type: 'page.reload'
+              });
+            });
+          }
+          break;
         default:
           break;
       }

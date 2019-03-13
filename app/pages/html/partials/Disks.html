@@ -1,11 +1,44 @@
 {{#each disks}}
-<label class="pure-u-8-24">{{name}} ({{size}})</label>
-<div class="meter pure-input-rounded pure-u-16-24">
+<label class="pure-u-8-24">
+  {{#if (or (eq status "unformatted") (eq status "partitioned"))}}
+  <input class="pure-button format name-{{name}}" type="button" value="Format" data-popbox-target="format">
+  {{/if}}
+  {{name}} ({{size}})
+</label>
+<div class="meter pure-input-rounded pure-u-16-24 name-{{name}}">
   {{#if (eq status "ready")}}
   <div class="size">{{percentage}}% Used</div>
+  {{else if (eq status "partitioned")}}
+  <div class="size">Unknown data</div>
+  {{else if (eq status "formatting")}}
+  <div class="size">Formatting ...</div>
   {{else}}
   <div class="size">Unformatted</div>
   {{/if}}
-  <div class="bar color-{{tenth}}" style="width: {{percentage}}%"></div>
+  <div class="bar color-{{tenth}}" style="width:{{percentage}}%"></div>
 </div>
 {{/each}}
+<div data-popbox-id="format" class="popbox">
+  <div class="popbox_container">
+    <div class="content-header">Format Disk</div>
+    <div class="content-text">
+      Are you sure you want to format the disk? EVERYTHING on your disk will be REMOVED!
+    </div>
+    <div class="spacer">
+      <button class="pure-button button-format" data-popbox-close="format">Format</button>
+      <button class="pure-button button-no" data-popbox-close="format">No</button>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('popbox_closing', (e) => {
+  if (e.detail.source.classList.contains('button-format')) {
+    const disk = 'store';
+    document.querySelector(`.disks input.name-${disk}`).disabled = true;
+    document.querySelector(`.disks .name-${disk} .size`).innerText = 'Formatting ...';
+    document.querySelector(`.disks .name-${disk} .bar`).style.width = '100%';
+    document.querySelector(`.disks .name-${disk} .bar`).className = 'bar color-loading';
+    cmd('app.format-disk');
+  }
+});
+</script>
