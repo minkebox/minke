@@ -55,7 +55,7 @@ const Disks = {
 
       const info = this._info.store;
       if (FS.existsSync(`/sys/block/${info.name}/${info.name}1`)) {
-        this._info.store.status = 'formatted';
+        this._info.store.status = 'partitioned';
         if (FS.existsSync(`${info.root}/${TAG}`)) {
           this._info.store.status = 'ready';
         }
@@ -65,9 +65,9 @@ const Disks = {
 
   _update: async function() {
     for (let style in this._info) {
-      if (this._info[style].formatted) {
+      if (this._info[style].status === 'ready') {
         try {
-          const finfo = await DF.file(partition);
+          const finfo = await DF.file(this._info[style].root);
           this._info[style].size = finfo.size;
           this._info[style].used = finfo.used;
         }
