@@ -108,7 +108,9 @@ const Disks = {
       [ 'mkfs.ext4', [ '-F', `${disk}${part}`]],
       [ 'mount', [ disk ]]
     ];
+    console.log('starting');
     for (let i = 0; i < cmds.length; i++) {
+      console.log(i, cmds[i]);
       await new Promise((resolve) => {
         const cp = ChildProcess.spawn(cmds[i][0], cmds[i][1]);
         cp.on('data', (data) => {
@@ -117,6 +119,7 @@ const Disks = {
         cp.on('close', resolve);
       });
     }
+    console.log('done');
     FS.writeFileSync(`${info.root}/${TAG}`, '');
 
     info.status = 'ready';
@@ -142,11 +145,13 @@ const Disks = {
   },
 
   format: function(style, done) {
+    console.log('format', style);
     (async () => {
       try {
         await this._formatDisk(style);
       }
       catch (_) {
+        console.log(_);
       }
       done();
     })();
