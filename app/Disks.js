@@ -110,7 +110,11 @@ const Disks = {
     ];
     for (let i = 0; i < cmds.length; i++) {
       await new Promise((resolve) => {
-        ChildProcess.spawn(cmds[i][0], cmds[i][1]).on('close', resolve);
+        const cp = ChildProcess.spawn(cmds[i][0], cmds[i][1]);
+        cp.on('data', (data) => {
+          console.log(data.toString());
+        });
+        cp.on('close', resolve);
       });
     }
     FS.writeFileSync(`${info.root}/${TAG}`, '');
