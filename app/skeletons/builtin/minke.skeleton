@@ -13,7 +13,7 @@
     },
     {
       type: 'Text',
-      text: 'Changes to the IP address, netmask and gateway will not take effect until you restart.'
+      text: 'Changes to the IP address, netmask and gateway will not take effect until you reboot.'
     },
     {
       type: 'Environment',
