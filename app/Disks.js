@@ -16,6 +16,8 @@ const DF = require('@sindresorhus/df');
 
 const TICK = 10 * 60 * 1000;
 const TAG = '.minke-formatted';
+const NAME = 'sdb';
+const PART = 1;
 
 const Disks = {
 
@@ -37,18 +39,19 @@ const Disks = {
       style: 'boot',
       root: '/minke',
       name: 'sda',
+      part: 2,
       size: 0,
       used: 0,
       status: 'ready'
     };
 
-    const name = 'sdb';
-    if (FS.existsSync(`/sys/block/${name}`)) {
+    if (FS.existsSync(`/sys/block/${NAME}`)) {
       this._info.store = {
         style: 'store',
         root: '/mnt/store',
-        name: name,
-        size: 512 * parseInt(FS.readFileSync(`/sys/block/${name}/size`, { encoding: 'utf8' })),
+        name: NAME,
+        part: PART,
+        size: 512 * parseInt(FS.readFileSync(`/sys/block/${NAME}/size`, { encoding: 'utf8' })),
         used: 0,
         status: 'unformatted'
       };
@@ -85,7 +88,6 @@ const Disks = {
     }
   
     const disk = `/dev/${info.name}`;
-    const part = 1;
 
     // If disk isn't mounted, attempt to mount it so we can check to see if we
     // already formatted it.
@@ -106,8 +108,8 @@ const Disks = {
       [ 'umount', [ info.root ]],
       [ 'parted', [ '-s', disk, 'mklabel gpt' ]],
       [ 'parted', [ '-s', '-a', 'opt', disk, 'mkpart store ext4 0% 100%' ]],
-      [ 'sh', [ '-c', `mknod -m 0660 ${disk}${part} b $(cat /sys/block/${info.name}/${info.name}${part}/dev | sed "s/:/ /g")` ]],
-      [ 'mkfs.ext4', [ '-F', '-O', '64bit', `${disk}${part}`]],
+      [ 'sh', [ '-c', `mknod -m 0660 ${disk}${info.part} b $(cat /sys/block/${info.name}/${info.name}${info.part}/dev | sed "s/:/ /g")` ]],
+      [ 'mkfs.ext4', [ '-F', '-O', '64bit', `${disk}${info.part}`]],
       [ 'mount', [ info.root ]]
     ];
     for (let i = 0; i < cmds.length; i++) {
