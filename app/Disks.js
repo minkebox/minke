@@ -113,19 +113,26 @@ const Disks = {
     for (let i = 0; i < cmds.length; i++) {
       await new Promise((resolve) => {
         const cp = ChildProcess.spawn(cmds[i][0], cmds[i][1]);
-        cp.stdout.on('data', (data) => {
-          console.log(`stdout: ${data}`);
-        });
-        cp.stderr.on('data', (data) => {
-          console.log(`stderr: ${data}`);
-        });
+        //cp.stdout.on('data', (data) => {
+        //  console.log(`stdout: ${data}`);
+        //});
+        //cp.stderr.on('data', (data) => {
+        //  console.log(`stderr: ${data}`);
+        //});
         cp.on('close', resolve);
       });
     }
-    FS.writeFileSync(`${info.root}/${TAG}`, '');
 
-    info.status = 'ready';
-    await this._update();
+    const nmounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' });
+    if (nmounts.indexOf(disk) === -1) {
+      // Failed
+      info.status = 'unformatted';
+    }
+    else {
+      FS.writeFileSync(`${info.root}/${TAG}`, '');
+      info.status = 'ready';
+      await this._update();
+    }
   },
 
   getInfo: function() {
