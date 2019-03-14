@@ -56,7 +56,8 @@ const Disks = {
       const info = this._info.store;
       if (FS.existsSync(`/sys/block/${info.name}/${info.name}1`)) {
         this._info.store.status = 'partitioned';
-        if (FS.existsSync(`${info.root}/${TAG}`)) {
+        const mounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' });
+        if (mounts.indexOf(info.root) !== -1 && FS.existsSync(`${info.root}/${TAG}`)) {
           this._info.store.status = 'ready';
         }
       }
@@ -105,6 +106,7 @@ const Disks = {
       [ 'umount', [ info.root ]],
       [ 'parted', [ '-s', disk, 'mklabel gpt' ]],
       [ 'parted', [ '-s', '-a', 'opt', disk, 'mkpart store ext4 0% 100%' ]],
+      [ 'sh', [ '-c', `mknod -m 0660 /dev/${disk}${part} b $(cat /sys/block/${disk}/${disk}${part}/dev | sed "s/:/ /g")` ]],
       [ 'mkfs.ext4', [ '-F', '-O', '64bit', `${disk}${part}`]],
       [ 'mount', [ info.root ]]
     ];
