@@ -106,7 +106,7 @@ const Disks = {
       [ 'umount', [ info.root ]],
       [ 'parted', [ '-s', disk, 'mklabel gpt' ]],
       [ 'parted', [ '-s', '-a', 'opt', disk, 'mkpart store ext4 0% 100%' ]],
-      [ 'sh', [ '-c', `mknod -m 0660 /dev/${disk}${part} b $(cat /sys/block/${disk}/${disk}${part}/dev | sed "s/:/ /g")` ]],
+      [ 'sh', [ '-c', `mknod -m 0660 ${disk}${part} b $(cat /sys/block/${info.name}/${info.name}${part}/dev | sed "s/:/ /g")` ]],
       [ 'mkfs.ext4', [ '-F', '-O', '64bit', `${disk}${part}`]],
       [ 'mount', [ info.root ]]
     ];
