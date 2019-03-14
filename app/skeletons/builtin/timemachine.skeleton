@@ -1,0 +1,90 @@
+{
+  name: `TimeMachine Backups`,
+  description: `Destination for your Apple TimeMachine backups`,
+  image: `registry.gitlab.com/minkebox/timemachine`,
+  actions: [
+  ],
+  properties: [
+    {
+      type: `Environment`,
+      name: `MAXSIZE`
+    },
+    {
+      type: `Port`,
+      name: `137/udp`,
+      port: 137,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `9/tcp`,
+      port: 9,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: {
+        type: `_adisk._tcp`,
+        txt: {
+          waMa: `0`,
+          sys: `adVF=0x100`,
+          dk0: `adVF=0x82,adVN=TimeMachine`
+        }
+      }
+    },
+    {
+      type: `Port`,
+      name: `138/udp`,
+      port: 138,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `139/tcp`,
+      port: 139,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `445/tcp`,
+      port: 445,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: {
+        type: `_smb._tcp`
+      }
+    },
+    {
+      type: `Directory`,
+      name: `/backups`,
+      style: `store`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
