@@ -51,8 +51,7 @@
     },
     {
       type: `Environment`,
-      name: `SSH_USERID`,
-      defaultValue: `0`
+      name: `SSH_USERID`
     },
     {
       type: `Environment`,
