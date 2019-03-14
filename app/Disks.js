@@ -148,7 +148,7 @@ const Disks = {
    */
   getRoot: function(style) {
     const info = this._info[style || 'store'];
-    if (info && info.formatted) {
+    if (info && info.style === 'ready') {
       return info.root;
     }
     else {
