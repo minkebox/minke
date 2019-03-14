@@ -3,6 +3,15 @@
   description: `Destination for your Apple TimeMachine backups`,
   image: `registry.gitlab.com/minkebox/timemachine`,
   actions: [
+    {
+      type: 'Header',
+      title: 'Configuration'
+    },
+    {
+      type: 'Environment',
+      name: 'MAXSIZE',
+      description: 'Maximum space available for backups (e.g. 50G, 5T)'
+    }
   ],
   properties: [
     {
