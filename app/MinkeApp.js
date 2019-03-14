@@ -1097,7 +1097,7 @@ MinkeApp.startApps = async function(app, config) {
       helperContainer: hidx === -1 ? null : docker.getContainer(running[hidx].Id)
     };
     // We can only inherit under specific circumstances
-    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._network.primary === 'host'))) {
+    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._networks.primary === 'host'))) {
       console.log(`Inheriting ${app._name}`);
       inheritables[app._id] = inherit;
     }
