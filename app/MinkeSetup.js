@@ -60,7 +60,8 @@ MinkeSetup.prototype = {
     this._setTimezone();
     this._setUpdateTime();
 
-    await MDNS.start({
+    this._mdns = MDNS.getInstance();
+    await this._mdns.start({
       ipaddress: this._env.IPADDRESS.value
     });
     DNS.start({
@@ -75,7 +76,7 @@ MinkeSetup.prototype = {
       ipaddress: this._env.IPADDRESS.value
     });
 
-    this._hostMdns = await MDNS.addRecord({
+    this._hostMdns = await this._mdns.addRecord({
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
@@ -88,13 +89,13 @@ MinkeSetup.prototype = {
   stop: async function() {
     this._status = 'shutting down';
     this.emit('update.status', { app: this, status: this._status });
-    await MDNS.stop();
+    await this._mdns.stop();
     await UPNP.stop();
   },
 
   restart: async function(reason) {
-    await MDNS.removeRecord(this._hostMdns);
-    this._hostMdns = await MDNS.addRecord({
+    await this._mdns.removeRecord(this._hostMdns);
+    this._hostMdns = await this._mdns.addRecord({
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,

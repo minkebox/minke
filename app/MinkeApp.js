@@ -527,22 +527,25 @@ MinkeApp.prototype = {
           this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.port });
         }
 
-        this._mdns = [];
+        this._mdnsRecords = [];
         if (this._ports.length) {
-          await Promise.all(this._ports.map(async (port) => {
-            if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
-              this._mdns.push(await MDNS.addRecord({
-                hostname: this._safeName(),
-                domainname: 'local',
-                ip: ipAddr,
-                port: port.port,
-                service: port.mdns.type,
-                txt: !port.mdns.txt ? [] : Object.keys(port.mdns.txt).map((key) => {
-                  return `${key}=${port.mdns.txt[key]}`;
-                })
-              }));
-            }
-          }));
+          if (primary === 'home' && secondary === 'none') {
+            this._mdns = MDNS.getInstance();
+            await Promise.all(this._ports.map(async (port) => {
+              if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
+                this._mdnsRecords.push(await this._mdns.addRecord({
+                  hostname: this._safeName(),
+                  domainname: 'local',
+                  ip: ipAddr,
+                  port: port.port,
+                  service: port.mdns.type,
+                  txt: !port.mdns.txt ? [] : Object.keys(port.mdns.txt).map((key) => {
+                    return `${key}=${port.mdns.txt[key]}`;
+                  })
+                }));
+              }
+            }));
+          }
         }
 
       }
@@ -605,8 +608,9 @@ MinkeApp.prototype = {
     }
 
     if (this._mdns) {
-      await Promise.all(this._mdns.map(rec => MDNS.removeRecord(rec)));
+      await Promise.all(this._mdnsRecords.map(rec => this._mdns.removeRecord(rec)));
       this._mdns = null;
+      this._mdnsRecords = null;
     }
 
     if (this._dns) {

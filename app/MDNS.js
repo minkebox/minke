@@ -9,11 +9,15 @@ function eq(a, b) {
   return a.localeCompare(b, 'en', { sensitivity: 'base' }) == 0;
 }
 
-const MDNS = {
+function MDNS() {
+  this._network = null;
+  this._records = [];
+}
 
-  _records: [],
+MDNS.prototype = {
 
   start: async function(config) {
+    this._network = config.network;
     await this._create(config.ipaddress);
   },
 
@@ -148,4 +152,10 @@ const MDNS = {
 
 };
 
-module.exports = MDNS;
+const _mdns = new MDNS();
+
+module.exports = {
+  getInstance: function() {
+    return _mdns;
+  }
+}
