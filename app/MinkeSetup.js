@@ -51,18 +51,37 @@ function MinkeSetup(savedConfig, config) {
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
   this._globalId = this._env.GLOBALID.value;
-
-  this._setupTimezone();
-  this._setupDNS();
-  this._setupDDNS();
-  this._setupMDNS();
-  this._setupUPNP();
-  this._setupUpdates();
 }
 
 MinkeSetup.prototype = {
 
   start: async function() {
+
+    this._setTimezone();
+    this._setUpdateTime();
+
+    await MDNS.start({
+      ipaddress: this._env.IPADDRESS.value
+    });
+    DNS.start({
+      hostname: this._name,
+      domainname: this.getLocalDomainName(),
+      resolvers: [ this._env.DNSSERVER1.value, this._env.DNSSERVER2.value ],
+    });
+    DDNS.start(this);
+    UPNP.start({
+      uuid: this._globalId,
+      hostname: this._name,
+      ipaddress: this._env.IPADDRESS.value
+    });
+
+    this._hostMdns = await MDNS.addRecord({
+      hostname: this._name,
+      ip: this._env.IPADDRESS.value,
+      service: '_http._tcp.local',
+      port: 80,
+      txt: []
+    });
   },
 
   stop: async function() {
@@ -73,10 +92,28 @@ MinkeSetup.prototype = {
   },
 
   restart: async function(reason) {
-    this._setupHomeNetwork();
-    this._setupDNS();
-    this._setupTimezone();
-    this._setupUpdates();
+    await MDNS.removeRecord(this._hostMdns);
+    this._hostMdns = await MDNS.addRecord({
+      hostname: this._name,
+      ip: this._env.IPADDRESS.value,
+      service: '_http._tcp.local',
+      port: 80,
+      txt: []
+    });
+    UPNP.update({ hostname: this._name });
+    DNS.setHostname(this._name);
+    DNS.setDefaultResolver(
+      this._env.DNSSERVER1.value,
+      this._env.DNSSERVER2.value
+    );
+    DNS.setDomainName(this.getLocalDomainName());
+    Network.setHomeNetwork({
+      address: this._env.DHCP ? 'dhcp' : this._env.IPADDRESS.value,
+      netmask: this._env.NETMASK.value,
+      gateway: this._env.GATEWAY.value
+    });
+    this._setTimezone();
+    this._setUpdateTime();
     this.save();
     this.emit('update.status', { app: this, status: this._status });
     if (reason) {
@@ -129,15 +166,7 @@ MinkeSetup.prototype = {
     return txt;
   },
 
-  _setupHomeNetwork: function() {
-    return Network.setHomeNetwork({
-      address: this._env.DHCP ? 'dhcp' : this._env.IPADDRESS.value,
-      netmask: this._env.NETMASK.value,
-      gateway: this._env.GATEWAY.value
-    });
-  },
-
-  _setupTimezone: function() {
+  _setTimezone: function() {
     if (DEBUG) {
       return false;
     }
@@ -152,7 +181,7 @@ MinkeSetup.prototype = {
     return false;
   },
 
-  _setupUpdates: function() {
+  _setUpdateTime: function() {
     try {
       const time = this._env.UPDATETIME.value.split(':')
       const config = {
@@ -165,38 +194,6 @@ MinkeSetup.prototype = {
     }
     catch (_) {
     }
-  },
-
-  _setupDNS: function() {
-    DNS.setDefaultResolver(
-      this._env.DNSSERVER1.value,
-      this._env.DNSSERVER2.value
-    );
-    DNS.setHostname(this._safeName());
-    DNS.setDomainName(this.getLocalDomainName());
-    return true;
-  },
-
-  _setupDDNS: function() {
-    DDNS.register(this);
-  },
-
-  _setupMDNS: function() {
-    MDNS.start({
-      uuid: this._globalId,
-      hostname: this._name,
-      ipaddress: this._env.IPADDRESS.value
-    });
-    return true;
-  },
-
-  _setupUPNP: function() {
-    UPNP.start({
-      uuid: this._globalId,
-      hostname: this._name,
-      ipaddress: this._env.IPADDRESS.value
-    });
-    return true;
   },
 
   _restart: async function(reason) {
