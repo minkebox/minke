@@ -5,6 +5,7 @@ const Moment = require('moment-timezone');
 const UUID = require('uuid/v4');
 const HTTP = require('./HTTP');
 const DNS = require('./DNS');
+const MDNS = require('./MDNS');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
@@ -377,29 +378,15 @@ MinkeApp.prototype = {
 
         this._ddns = false;
         if (this._ports.length) {
-          const nat = [];
-          const mdns = [];
-          this._ports.forEach((port) => {
+          const nat = this._ports.reduce((acc, port) => {
             if (port.nat) {
-              nat.push(`${port.port}:${port.protocol}`);
+              acc.push(`${port.port}:${port.protocol}`);
             }
-            if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
-              mdns.push(`${port.mdns.type}:${port.port}:` + (!port.mdns.txt ? '' : Object.keys(port.mdns.txt).map((key) => {
-                if (port.mdns.txt[key]) {
-                  return `<txt-record>${key}=${port.mdns.txt[key].replace(/ /g, '%20')}</txt-record>`
-                }
-                else {
-                  return '';
-                }
-              }).join('')));
-            }
-          });
+            return acc;
+          }, []);
           if (nat.length) {
             helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
             this._ddns = true;
-          }
-          if (mdns.length) {
-            helperConfig.Env.push(`ENABLE_MDNS=${mdns.join(' ')}`);
           }
         }
 
@@ -540,6 +527,23 @@ MinkeApp.prototype = {
           this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.port });
         }
 
+        this._mdns = [];
+        if (this._ports.length) {
+          await Promise.all(this._ports.map(async (port) => {
+            if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
+              this._mdns.push(await MDNS.addRecord({
+                hostname: this._safeName(),
+                ip: ipAddr,
+                port: port.port,
+                service: `${port.mdns.type}.local`,
+                txt: !port.mdns.txt ? [] : Object.keys(port.mdns.txt).map((key) => {
+                  return `${key}=${port.mdns.txt[key]}`;
+                })
+              }));
+            }
+          }));
+        }
+
       }
 
       if (this._image === Images.MINKE_PRIVATE_NETWORK) {
@@ -597,6 +601,11 @@ MinkeApp.prototype = {
       }
     }
     catch (_) {
+    }
+
+    if (this._mdns) {
+      await Promise.all(this._mdns.map(rec => MDNS.removeRecord(rec)));
+      this._mdns = null;
     }
 
     if (this._dns) {
@@ -1087,6 +1096,12 @@ MinkeApp.startApps = async function(app, config) {
   });
   applications.unshift(setup);
 
+  // Safe to start listening - only on the home network.
+  app.listen({
+    host: MinkeApp._network.network.ip_address,
+    port: 80
+  });
+
   // Stop or inherit apps if they're still running
   const inheritables = {};
   await Promise.all(applications.map(async (app) => {
@@ -1112,6 +1127,8 @@ MinkeApp.startApps = async function(app, config) {
       }
     }
   }));
+
+  await setup.start();
 
   // Start up any DHCP servers.
   await Promise.all(applications.map(async (app) => {
