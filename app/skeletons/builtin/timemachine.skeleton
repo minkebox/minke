@@ -20,13 +20,18 @@
     },
     {
       type: `Port`,
-      name: `137/udp`,
-      port: 137,
-      protocol: `UDP`,
+      name: `0/tcp`,
+      port: 0,
+      protocol: `TCP`,
       nat: false,
       web: false,
       dns: false,
-      mdns: null
+      mdns: {
+        type: `_device-info._tcp`,
+        txt: {
+          model: `Xserve`
+        }
+      }
     },
     {
       type: `Port`,
@@ -44,6 +49,16 @@
           dk0: `adVF=0x82,adVN=TimeMachine`
         }
       }
+    },
+    {
+      type: `Port`,
+      name: `137/udp`,
+      port: 137,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
     },
     {
       type: `Port`,
