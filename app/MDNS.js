@@ -143,7 +143,7 @@ const MDNS = {
   },
 
   _answer: async function(answers) {
-    console.log(answers);
+    //console.log(answers);
     return new Promise((resolve) => {
       const msg = DnsPacket.encode({
         type: 'response',
