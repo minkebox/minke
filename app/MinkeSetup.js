@@ -77,8 +77,9 @@ MinkeSetup.prototype = {
 
     this._hostMdns = await MDNS.addRecord({
       hostname: this._name,
+      domainname: 'local',
       ip: this._env.IPADDRESS.value,
-      service: '_http._tcp.local',
+      service: '_http._tcp',
       port: 80,
       txt: []
     });
@@ -95,8 +96,9 @@ MinkeSetup.prototype = {
     await MDNS.removeRecord(this._hostMdns);
     this._hostMdns = await MDNS.addRecord({
       hostname: this._name,
+      domainname: 'local',
       ip: this._env.IPADDRESS.value,
-      service: '_http._tcp.local',
+      service: '_http._tcp',
       port: 80,
       txt: []
     });

@@ -533,9 +533,10 @@ MinkeApp.prototype = {
             if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
               this._mdns.push(await MDNS.addRecord({
                 hostname: this._safeName(),
+                domainname: 'local',
                 ip: ipAddr,
                 port: port.port,
-                service: `${port.mdns.type}.local`,
+                service: port.mdns.type,
                 txt: !port.mdns.txt ? [] : Object.keys(port.mdns.txt).map((key) => {
                   return `${key}=${port.mdns.txt[key]}`;
                 })
