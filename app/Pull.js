@@ -93,16 +93,16 @@ const _Pull = {
   },
 
   updateImage: async function(name) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       docker.pull(this._nameWithTag(name), {}, (err, stream) => {
         if (err) {
-          reject(err);
+          resolve(false);
         }
         else {
           docker.modem.followProgress(stream, 
             (err, output) => {
               if (err) {
-                reject(err);
+                reaolve(false);
               }
               else {
                 resolve(output[output.length - 1].status.startsWith('Status: Downloaded newer image'));
