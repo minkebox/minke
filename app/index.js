@@ -35,7 +35,6 @@ App.ws.use(async (ctx, next) => {
     ctx.websocket.close();
   }
 });
-App.listen(80);
 
 MinkeApp.startApps(App, { inherit: process.env.RESTART_REASON === 'restart' });
 
