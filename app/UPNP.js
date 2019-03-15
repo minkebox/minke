@@ -99,8 +99,10 @@ const UPNP = {
           ssdp.on('ssdp:search-response', search);
           ssdp.on(`discover:${URN_IGD}`, discover);
           await ssdp.discover(URN_IGD, 10 * 1000);
-          ssdp.off('ssdp:search-response', search);
-          ssdp.off(`discover:${URN_IGD}`, discover);
+          if (ssdp) {
+            ssdp.off('ssdp:search-response', search);
+            ssdp.off(`discover:${URN_IGD}`, discover);
+          }
           if (resolve) {
             resolve(null);
           }
