@@ -3,7 +3,6 @@ const Dgram = require('dgram');
 
 const MCAST_ADDRESS = '224.0.0.251';
 const PORT = 5353;
-
 const SERVICES = '_services._dns-sd._udp';
 
 function eq(a, b) {
@@ -53,46 +52,7 @@ const MDNS = {
         type: 'udp4',
         reuseAddr: true
       }, (msg, rinfo) => {
-        const pkt = DnsPacket.decode(msg);
-        if (pkt.type === 'query') {
-          pkt.questions.forEach((q) => {
-            if (q.name.toLowerCase().startsWith(SERVICES)) {
-              const domain = q.name.split('.').slice(-1);
-              this._answer(Object.values(this._records.reduce((acc, rec) => {
-                if (eq(rec.domainname, domain)) {
-                  acc[`${rec.service}.${rec.domainname}`] = { name: `${SERVICES}.${domain}`, type: 'PTR', ttl: 4500, data: `${rec.service}.${rec.domainname}` };
-                }
-                return acc;
-              }, {})))
-            }
-            else {
-              const srec = this._records.find(rec => eq(q.name, `${rec.hostname}.${rec.service}.${rec.domainname}`));
-              if (srec) {
-                this._answer([
-                  { name: q.name, type: 'SRV', data: { priority: 0, weight: 0, port: srec.port, target: `${srec.hostname}.${srec.domainname}` }},
-                  { name: q.name, type: 'TXT', data: srec.data || [] }
-                ]);
-              }
-              else {
-                const arec = this._records.find(rec => eq(q.name, `${rec.hostname}.${rec.domainname}`));
-                if (arec) {
-                  this._answer([{ name: q.name, type: 'A', data: arec.ip }]);
-                }
-                else {
-                  const panswers = this._records.reduce((acc, rec) => {
-                    if (eq(q.name, `${rec.service}.${rec.domainname}`)) {
-                      acc.push({ name: `${rec.service}.${rec.domainname}`, type: 'PTR', data: `${rec.hostname}.${rec.service}.${rec.domainname}` });
-                    }
-                    return acc;
-                  }, []);
-                  if (panswers.length) {
-                    this._answer(panswers);
-                  }
-                }
-              }
-            }
-          });
-        }
+        this._incoming(msg);
       });
       this._socket.bind(PORT, MCAST_ADDRESS, () => {
         this._socket.setMulticastTTL(255);
@@ -102,6 +62,49 @@ const MDNS = {
         resolve();
       });
     });
+  },
+
+  _incoming: function(msg) {
+    const pkt = DnsPacket.decode(msg);
+    if (pkt.type === 'query') {
+      pkt.questions.forEach((q) => {
+        if (q.name.toLowerCase().startsWith(SERVICES)) {
+          const domain = q.name.split('.').slice(-1);
+          this._answer(Object.values(this._records.reduce((acc, rec) => {
+            if (eq(rec.domainname, domain)) {
+              acc[`${rec.service}.${rec.domainname}`] = { name: `${SERVICES}.${domain}`, type: 'PTR', ttl: 4500, data: `${rec.service}.${rec.domainname}` };
+            }
+            return acc;
+          }, {})))
+        }
+        else {
+          const srec = this._records.find(rec => eq(q.name, `${rec.hostname}.${rec.service}.${rec.domainname}`));
+          if (srec) {
+            this._answer([
+              { name: q.name, type: 'SRV', data: { priority: 0, weight: 0, port: srec.port, target: `${srec.hostname}.${srec.domainname}` }},
+              { name: q.name, type: 'TXT', data: srec.data || [] }
+            ]);
+          }
+          else {
+            const arec = this._records.find(rec => eq(q.name, `${rec.hostname}.${rec.domainname}`));
+            if (arec) {
+              this._answer([{ name: q.name, type: 'A', data: arec.ip }]);
+            }
+            else {
+              const panswers = this._records.reduce((acc, rec) => {
+                if (eq(q.name, `${rec.service}.${rec.domainname}`)) {
+                  acc.push({ name: `${rec.service}.${rec.domainname}`, type: 'PTR', data: `${rec.hostname}.${rec.service}.${rec.domainname}` });
+                }
+                return acc;
+              }, []);
+              if (panswers.length) {
+                this._answer(panswers);
+              }
+            }
+          }
+        }
+      });
+    }
   },
 
   _announce: async function(rec) {
