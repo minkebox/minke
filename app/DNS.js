@@ -1,7 +1,5 @@
 const ChildProcess = require('child_process');
 const FS = require('fs');
-const MDNS = require('./MDNS');
-const UPNP = require('./UPNP');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
@@ -23,6 +21,12 @@ const cacheSize = 1024;
 const hosts = {};
 
 const DNS = {
+
+  start: function(config) {
+    this.setHostname(config.hostname);
+    this.setDomainName(config.domainname);
+    this.setDefaultResolver(config.resolvers[0], config.resolvers[1]);
+  },
 
   setDefaultResolver: function(resolver1, resolver2) {
     primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
@@ -56,8 +60,6 @@ const DNS = {
       FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
-    MDNS.update({ hostname: hostname });
-    UPNP.update({ hostname: hostname });
   },
 
   setDomainName: function(domain) {
