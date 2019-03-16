@@ -7,7 +7,7 @@ function genApp(app, networks) {
     _id: app._id,
     name: app._name,
     status: app._status,
-    ip: app._status === 'running' && !app._willCreateNetwork() ? app._homeIP : null,
+    ip: app._status !== 'running' ? null : app._homeIP || app._privateIP,
     link: app._forward && app._forward.url,
     network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
       if (!net) {
