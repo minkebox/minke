@@ -323,8 +323,13 @@ async function ConfigurePageWS(ctx) {
     }},
     { p: /^Network#(.+)$/, f: (value, match) => {
       const network = match[1];
-      if ((network in app._networks) && app._networks[network] !== value) {
+      const ovalue = app._networks[network];
+      if ((network in app._networks) && ovalue !== value) {
         app._networks[network] = value;
+        const napp = MinkeApp.getAppById(ovalue);
+        if (napp) {
+          napp._needRestart = true;
+        }
         return APPCHANGE;
       }
       return NOCHANGE;
@@ -423,9 +428,11 @@ async function ConfigurePageWS(ctx) {
       }
       if (changed) {
         await uapp.restart();
+        await Promise.all(MinkeApp.needRestart().map(app => app.restart()));
       }
       else if (uapp._status === 'stopped') {
         await uapp.start();
+        await Promise.all(MinkeApp.needRestart().map(app => app.restart()));
       }
     }
     catch (e) {

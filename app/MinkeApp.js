@@ -45,15 +45,6 @@ MinkeApp.prototype = {
     this._monitor = app.monitor;
     this._bootcount = app.bootcount;
 
-    // ---
-    this._ports.forEach((port) => {
-      if ('host' in port) {
-        port.port = port.host;
-        delete port.host;
-      }
-    });
-    // ---
-
     this._setStatus('stopped');
 
     return this;
@@ -216,6 +207,7 @@ MinkeApp.prototype = {
       this._setStatus('starting');
 
       this._bootcount++;
+      this._needRestart = false;
 
       inherit = inherit || {};
 
@@ -332,6 +324,12 @@ MinkeApp.prototype = {
           config.HostConfig.Dns = [ dns ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
+          // When we start a new app which is attached to a private network, we must restart the
+          // private network so it can inform the peer about the new app.
+          const napp = MinkeApp.getAppById(primary);
+          if (napp) {
+            napp._needRestart = true;
+          }
           break;
         }
       }
@@ -1179,12 +1177,10 @@ MinkeApp.startApps = async function(app, config) {
       console.error(e);
     }
   }));
-  // And then restart the Private Networks because we now know what apps are using them.
-  await Promise.all(applications.map(async (app) => {
+  // Restart any apps which have been marked
+  await Promise.all(MinkeApp.needRestart().map(async (app) => {
     try {
-      if (app._image === Images.MINKE_PRIVATE_NETWORK) {
-        await app.restart();
-      }
+      await app.restart();
     }
     catch (e) {
       console.error(e);
@@ -1244,7 +1240,16 @@ MinkeApp.getNetworks = function() {
   return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
     return app && app._willCreateNetwork() ? { _id: app._id, name: app._name } : null;
   }));
-},
+}
+
+MinkeApp.needRestart = function() {
+  return applications.reduce((acc, app) => {
+    if (app._needRestart) {
+      acc.push(app);
+    }
+    return acc;
+  }, []);
+}
 
 MinkeApp.getGlobalID = function() {
   return setup ? setup._globalId : null;
