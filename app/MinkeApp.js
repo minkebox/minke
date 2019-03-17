@@ -1179,6 +1179,17 @@ MinkeApp.startApps = async function(app, config) {
       console.error(e);
     }
   }));
+  // And then restart the Private Networks because we now know what apps are using them.
+  await Promise.all(applications.map(async (app) => {
+    try {
+      if (app._image === Images.MINKE_PRIVATE_NETWORK) {
+        await app.restart();
+      }
+    }
+    catch (e) {
+      console.error(e);
+    }
+  }));
 }
 
 MinkeApp.getAdminMode = function() {
