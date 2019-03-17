@@ -15,6 +15,7 @@ const Updater = {
     if (!this._tick) {
       const update = async () => {
         this._tick = setTimeout(update, this._calcTimeToNextUpdate());
+        await this._purgeNetworks();
         await this._pruneImages();
         const updated = await this._updateImages();
         let updateMinke = null;
@@ -83,6 +84,15 @@ const Updater = {
     }
     catch (e) {
       console.error(e);
+    }
+  },
+
+  _pruneNetworks: async function() {
+    try {
+      await docker.pruneNetworks({});
+    }
+    catch (e) {
+      console.log(e);
     }
   },
 
