@@ -140,7 +140,8 @@ async function ConfigurePageHTML(ctx) {
         case 'Network':
         {
           const networks = [ { _id: 'none', name: 'none' } ].concat(app.getAvailableNetworks());
-          const network = app._networks[action.name] || 'none'
+          const network = app._networks[action.name] || 'none';
+          properties[`${action.type}#${action.name}`] = network;
           return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, networks: networks, value: network }, action);
         }
         case 'File':
