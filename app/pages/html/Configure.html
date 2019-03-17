@@ -78,7 +78,7 @@
             <input class="pure-button pure-button-active" type="button" disabled value="Download">
             {{/if}}
             {{else if (eq style "Inline")}}
-            <textarea class="value pure-input-rounded pure-u-16-24" spellcheck="false" oninput="{{action}}">{{value}}</textarea>
+            <textarea class="can-disable value pure-input-rounded pure-u-16-24" spellcheck="false" oninput="{{action}}">{{value}}</textarea>
             {{else if (eq style "Table")}}
             {{> Table}}
             {{/if}}

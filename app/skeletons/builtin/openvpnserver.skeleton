@@ -5,17 +5,17 @@
   actions: [
     {
       type: `Header`,
-      title: `Network Selection`,
+      title: `Network`,
       visible: `property['AdminMode'] == true`
     },
     {
-      type: `Text`,
-      text: `Select which network the incoming computers will be connected to. Usually you want the "home" network.`
+      type: 'Text',
+      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.'
     },
     {
-      type: `Network`,
-      name: `secondary`,
-      description: `Network`
+      type: 'Network',
+      name: 'primary',
+      description: 'Select network'
     },
     {
       type: `Header`,
@@ -64,11 +64,56 @@
     }
   ],
   monitor: {
-    cmd: ``,
+    cmd: `ifconfig tap0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/"`,
     watch: ``,
-    polling: 0,
-    state: null,
-    parser: ``,
-    template: ``
+    polling: 5,
+    parser: `
+      const rxtx = input.split(' ');
+      if (rxtx.length == 2) {
+        if (!this.state) {
+          state = {
+            rx: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
+            tx: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
+            last: rxtx
+          };
+        }
+        state.rx.shift();
+        state.tx.shift();
+        state.rx.push((rxtx[0] - state.last[0]) * 8 / (1000000 * 5));
+        state.tx.push((rxtx[1] - state.last[1]) * 8 / (1000000 * 5));
+        output.rx = state.rx.slice(-1)[0].toFixed(1);
+        output.tx = state.tx.slice(-1)[0].toFixed(1);
+        state.last = rxtx;
+      }
+      output.graph = {
+        traffic: {
+          type: 'Line',
+          series: [ state.rx, state.tx ],
+          options: {
+            width: '400px',
+            axisY: {
+              showLabel: true,
+              showGrid: true
+            }
+          }
+        }
+      };
+    `,
+    header: `
+      <style>
+      .sns-i { display: inline-block; width: 140px; vertical-align: top; padding-top: 2px; line-height: 130%; }
+      .sns-i span { display: inline-block; width: 15px; height: 15px; margin-right: 10px; background: #88cce7 }
+      </style>
+    `,
+    template: `
+      <div style="width:550px">
+        <div class="sns-i">
+          <div>Bandwidth</div>
+          <div><span></span>Rx {{rx}} Mb/s</div>
+          <div><span style="background:#278b30"></span>Tx {{tx}} Mb/s</div>
+        </div>
+        {{{graph.traffic}}}
+      </div>
+    `
   }
 }
