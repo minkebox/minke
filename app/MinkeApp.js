@@ -352,6 +352,21 @@ MinkeApp.prototype = {
         config.HostConfig.CapAdd.push('NET_ADMIN');
       }
 
+      if (this._image === Images.MINKE_PRIVATE_NETWORK) {
+        let nr = 0;
+        applications.forEach((app) => {
+          if (app._networks.primary === this._id) {
+            app._ports.forEach((port) => {
+              if (app._privateIP) {
+                config.Env.push(`PORT_${nr}=${app._privateIP}:${port.port}:${port.mdns ? Buffer.from(JSON.stringify(port.mdns), 'utf8').toString('base64') : ''}`);
+                nr++;
+              }
+            });
+          }
+        });
+        config.Env.push(`PORTMAX=${nr-1}`);
+      }
+
       this._fullEnv = config.Env;
 
       if (primary !== 'host') {
@@ -467,9 +482,13 @@ MinkeApp.prototype = {
           docker.modem.demuxStream(log, {
             write: (data) => {
               data = data.toString('utf8');
-              const idx = data.indexOf('MINKE:HOME:IP ');
+              let idx = data.indexOf('MINKE:HOME:IP ');
               if (idx !== -1) {
                 this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
+              }
+              idx = data.indexOf('MINKE:PRIVATE:IP ');
+              if (idx !== -1) {
+                this._privateIP = data.replace(/.*MINKE:PRIVATE:IP (.*)\n.*/, '$1');
               }
               if (data.indexOf('MINKE:UP') !== -1) {
                 log.destroy();
@@ -527,10 +546,11 @@ MinkeApp.prototype = {
           this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.port });
         }
 
+        this._mdns = MDNS.getInstance();
         this._mdnsRecords = [];
+        this._netRecords = [];
         if (this._ports.length) {
           if (primary === 'home' && secondary === 'none') {
-            this._mdns = MDNS.getInstance();
             await Promise.all(this._ports.map(async (port) => {
               if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
                 this._mdnsRecords.push(await this._mdns.addRecord({
@@ -609,6 +629,7 @@ MinkeApp.prototype = {
 
     if (this._mdns) {
       await Promise.all(this._mdnsRecords.map(rec => this._mdns.removeRecord(rec)));
+      await Promise.all(this._netRecords.map(rec => this._mdns.removeRecord(rec)));
       this._mdns = null;
       this._mdnsRecords = null;
     }
@@ -638,6 +659,7 @@ MinkeApp.prototype = {
       DNS.unregisterHostIP(this._safeName(), this._homeIP);
       this._homeIP = null;
     }
+    this._privateIP = null;
 
     // Stop everything
     if (this._container) {
@@ -851,42 +873,31 @@ MinkeApp.prototype = {
   _monitorNetwork: function() {
     this._networkMonitor = this._createMonitor({
       event: 'update.network.status',
-      polling: 10,
-      watch: '/etc/status/mdns-output.json',
-      cmd: 'cat /etc/status/mdns-output.json', 
-      parser: 'output = JSON.parse(input || "{}")'
+      watch: '/etc/status/forwardports.txt',
+      cmd: 'cat /etc/status/forwardports.txt', 
+      parser: 'output = input'
     });
   },
 
-  _updateNetworkStatus: function(status) {
-    const remotes = [];
-    const services = status.data;
-    for (let name in services) {
-      services[name].forEach((service) => {
-        const target = service.target.replace(/(.*).local/, '$1');
-        const localapp = applications.find(app => app._safeName() === target);
-        if (localapp && (localapp._networks.primary === this._id || localapp._networks.secondary === this._id)) {
-          // Ignore local apps connected to this network
-        }
-        else {
-          remotes.push({
-            name: name,
-            target: target,
-            port: service.port,
-            address: service.a,
-            txt: (service.txt || '').split('\n').reduce((acc, rec) => {
-              const kv = rec.split('=');
-              if (kv.length === 2) {
-                acc[kv[0]] = kv[1];
-              }
-              return acc;
-            }, {})
-          });
-        }
-      });
-    }
-    this._remoteServices = remotes;
-    this._emit('update.services', { services: this._remoteServices });
+  _updateNetworkStatus: async function(status) {
+    await Promise.all(this._netRecords.map(rec => this._mdns.removeRecord(rec)));
+    this._netRecords = [];
+    await Promise.all(status.data.split(' ').map(async (port) => {
+      port = port.split(':'); // ip:port:mdns
+      if (port[2]) {
+        const mdns = JSON.parse(Buffer.from(port[2], 'base64').toString('utf8'));
+        this._netRecords.push(await this._mdns.addRecord({
+          hostname: this._safeName(),
+          domainname: 'local',
+          ip: this._homeIP,
+          service: mdns.type,
+          port: parseInt(port[1]),
+          txt: !mdns.txt ? [] : Object.keys(mdns.txt).map((key) => {
+            return `${key}=${mdns.txt[key]}`;
+          })
+        }));
+      }
+    }));
   },
 
   _createMonitor: function(args) {  
