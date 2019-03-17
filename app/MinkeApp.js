@@ -358,7 +358,7 @@ MinkeApp.prototype = {
           if (app._networks.primary === this._id) {
             app._ports.forEach((port) => {
               if (app._privateIP) {
-                config.Env.push(`PORT_${nr}=${app._privateIP}:${port.port}:${port.mdns ? Buffer.from(JSON.stringify(port.mdns), 'utf8').toString('base64') : ''}`);
+                config.Env.push(`PORT_${nr}=${app._privateIP}:${port.port}:${port.protocol}:${port.mdns ? Buffer.from(JSON.stringify(port.mdns), 'utf8').toString('base64') : ''}`);
                 nr++;
               }
             });
@@ -883,9 +883,9 @@ MinkeApp.prototype = {
     await Promise.all(this._netRecords.map(rec => this._mdns.removeRecord(rec)));
     this._netRecords = [];
     await Promise.all(status.data.split(' ').map(async (port) => {
-      port = port.split(':'); // ip:port:mdns
-      if (port[2]) {
-        const mdns = JSON.parse(Buffer.from(port[2], 'base64').toString('utf8'));
+      port = port.split(':'); // ip:port:proto:mdns
+      if (port[3]) {
+        const mdns = JSON.parse(Buffer.from(port[3], 'base64').toString('utf8'));
         this._netRecords.push(await this._mdns.addRecord({
           hostname: this._safeName(),
           domainname: 'local',
