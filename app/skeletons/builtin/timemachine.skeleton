@@ -10,7 +10,20 @@
     {
       type: 'Environment',
       name: 'MAXSIZE',
-      description: 'Maximum space available for backups (e.g. 50G, 5T)'
+      description: 'Limit space available for backups (e.g. 50G, 5T)'
+    },
+    {
+      type: 'Header',
+      title: 'Network',
+    },
+    {
+      type: 'Text',
+      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.'
+    },
+    {
+      type: 'Network',
+      name: 'primary',
+      description: 'Select network'
     }
   ],
   properties: [

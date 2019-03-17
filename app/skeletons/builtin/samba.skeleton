@@ -5,20 +5,6 @@
   actions: [
     {
       type: `Header`,
-      title: `Create`,
-      visible: 'false'
-    },
-    {
-      type: `Text`,
-      text: `Create a list of file shares. Removing any shares from the list will not remove the data, although it will become in accessible until the share is re-created. Data is only removed when the application is uninstalled.`
-    },
-    {
-      type: `CustomShareables`,
-      name: `/shareable`,
-      description: `Create a list of file shares`
-    },
-    {
-      type: `Header`,
       title: `Applications Folders`
     },
     {
@@ -29,6 +15,19 @@
       type: `Shareables`,
       name: `/shareable`,
       description: `Select what to share. You can share using the default name or pick a name that's more meaningful`
+    },
+    {
+      type: 'Header',
+      title: 'Network',
+    },
+    {
+      type: 'Text',
+      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.'
+    },
+    {
+      type: 'Network',
+      name: 'primary',
+      description: 'Select network'
     }
   ],
   properties: [

@@ -27,6 +27,19 @@
       description: `Select the folders to share with this user`
     },
     {
+      type: 'Header',
+      title: 'Network',
+    },
+    {
+      type: 'Text',
+      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.'
+    },
+    {
+      type: 'Network',
+      name: 'primary',
+      description: 'Select network'
+    },
+    {
       type: `Header`,
       title: `Advanced`
     },
@@ -40,7 +53,8 @@
       description: `Make available on the Internet with the name <div><b>{{__GLOBALNAME}}</b></div>`,
       ports: [
         `SSH_PORT`
-      ]
+      ],
+      visible: 'property["Network#primary"] === "home"'
     }
   ],
   properties: [

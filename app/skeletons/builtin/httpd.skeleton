@@ -4,8 +4,25 @@
   image: `httpd`,
   actions: [
     {
+      type: 'Header',
+      title: 'Web pages'
+    },
+    {
       type: 'Text',
       text: 'Configure this website by copying pages to the "Website pages" shared folder. This can be found in the "File Share" application.'
+    },
+    {
+      type: 'Header',
+      title: 'Network',
+    },
+    {
+      type: 'Text',
+      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.'
+    },
+    {
+      type: 'Network',
+      name: 'primary',
+      description: 'Select network'
     }
   ],
   properties: [
@@ -31,7 +48,9 @@
       nat: false,
       web: true,
       dns: false,
-      mdns: null
+      mdns: {
+        type: `_http._tcp`
+      }
     },
     {
       type: `Network`,
