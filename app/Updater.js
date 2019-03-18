@@ -13,41 +13,51 @@ const Updater = {
 
   start: function() {
     if (!this._tick) {
+      console.log('start');
       const update = async () => {
-        this._tick = setTimeout(update, this._calcTimeToNextUpdate());
-        await this._purgeNetworks();
-        await this._pruneImages();
-        const updated = await this._updateImages();
-        let updateMinke = null;
-        await Promise.all(updated.map(async (app) => {
-          if (app._image !== Images.MINKE) {
-            await app.restart('update');
+        try {
+          console.log('running');
+          this._tick = setTimeout(update, this._calcTimeToNextUpdate());
+          await this._purgeNetworks();
+          await this._pruneImages();
+          const updated = await this._updateImages();
+          let updateMinke = null;
+          await Promise.all(updated.map(async (app) => {
+            if (app._image !== Images.MINKE) {
+              await app.restart('update');
+            }
+            else {
+              // Leave to the end
+              updateMinke = app;
+            }
+          }));
+          if (this._checkNativeUpdates()) {
+            this._getApps().find(app => app._image === Images.MINKE).restart('update-native');
           }
-          else {
-            // Leave to the end
-            updateMinke = app;
+          else if (updateMinke) {
+            updateMinke.restart('update');
           }
-        }));
-        if (this._checkNativeUpdates()) {
-          this._getApps().find(app => app._image === Images.MINKE).restart('update-native');
         }
-        else if (updateMinke) {
-          updateMinke.restart('update');
+        catch (e) {
+          console.error(e);
         }
       }
       const timer = this._calcTimeToNextUpdate();
+      console.log('new timeout', timer / 1000);
       this._tick = setTimeout(update, timer);
     }
   },
 
   stop: function() {
     if (this._tick) {
+      console.log('stop');
       clearTimeout(this._tick);
       this._tick = null;
     }
   },
 
   restart: function(config) {
+    console.log('restart updater', config);
     this._updateTimeOfDay.hour = config.hour || DEFAULT_TIME.hour;
     this._updateTimeOfDay.minute = config.minute || DEFAULT_TIME.minute;
     this.stop();
