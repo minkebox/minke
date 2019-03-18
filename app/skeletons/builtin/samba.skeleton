@@ -5,6 +5,26 @@
   actions: [
     {
       type: `Header`,
+      title: `User`
+    },
+    {
+      type: 'Text',
+      text: 'Select the username and password to access the shared files. Leave this blank if you want anyone to have access.'
+    },
+    {
+      type: `Environment`,
+      name: `SAMBA_USERNAME`,
+      description: `Select the user's login name`,
+      placeholder: 'Guest'
+    },
+    {
+      type: `Environment`,
+      name: `SAMBA_PASSWORD`,
+      description: `Select the user's password`,
+      placeholder: 'Guest'
+    },
+    {
+      type: `Header`,
       title: `Applications Folders`
     },
     {
@@ -31,6 +51,14 @@
     }
   ],
   properties: [
+    {
+      type: `Environment`,
+      name: `SAMBA_USERNAME`
+    },
+    {
+      type: `Environment`,
+      name: `SAMBA_PASSWORD`
+    },
     {
       type: `Directory`,
       name: `/etc/status`,
