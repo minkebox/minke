@@ -18,7 +18,7 @@ const Updater = {
         try {
           console.log('running');
           this._tick = setTimeout(update, this._calcTimeToNextUpdate());
-          await this._purgeNetworks();
+          await this._pruneNetworks();
           await this._pruneImages();
           const updated = await this._updateImages();
           let updateMinke = null;

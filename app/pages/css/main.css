@@ -192,6 +192,7 @@ body {
   height: 250px;
   max-height: 250px;
   overflow: hidden;
+  font-size: 12px;
 }
 
 .apps-info-container .application-status .name {
