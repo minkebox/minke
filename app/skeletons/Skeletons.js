@@ -213,7 +213,9 @@ function catalog() {
       };
     }
   });
-  return Object.values(cat);
+  const list = Object.values(cat);
+  list.sort((a, b) => a.name.localeCompare(b.name));
+  return list;
 }
 
 module.exports = {
