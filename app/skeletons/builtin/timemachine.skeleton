@@ -9,18 +9,18 @@
     },
     {
       type: 'Text',
-      text: 'Select the username and password to access the shared files. Leave this blank if you want anyone to have access.'
+      text: 'Select the username and password needed for access. Leave this blank if you want anyone to have access.'
     },
     {
       type: `Environment`,
       name: `SAMBA_USERNAME`,
-      description: `Select the user's login name`,
+      description: `User's login name`,
       placeholder: 'Guest'
     },
     {
       type: `Environment`,
       name: `SAMBA_PASSWORD`,
-      description: `Select the user's password`,
+      description: `User's password`,
       placeholder: 'Guest'
     },
     {
@@ -136,7 +136,10 @@
     {
       type: `Directory`,
       name: `/backups`,
-      style: `store`
+      style: `store`,
+      shares: [
+        { name: '/', description: 'Backups' }
+      ]
     },
     {
       type: `Network`,
