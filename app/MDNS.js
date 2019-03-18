@@ -32,6 +32,7 @@ MDNS.prototype = {
   },
 
   addRecord: async function(rec) {
+    console.log(rec);
     const idx = this._records.findIndex(r => eq(r.hostname, rec.hostname) && eq(r.service, rec.service));
     if (idx !== -1) {
       const orec = this._records.splice(idx, 1);
@@ -86,7 +87,7 @@ MDNS.prototype = {
           if (srec) {
             this._answer([
               { name: q.name, type: 'SRV', data: { priority: 0, weight: 0, port: srec.port, target: `${srec.hostname}.${srec.domainname}` }},
-              { name: q.name, type: 'TXT', data: srec.data || [] }
+              { name: q.name, type: 'TXT', data: srec.txt || [] }
             ]);
           }
           else {
