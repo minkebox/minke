@@ -1,6 +1,6 @@
 {
-  name: `Duplicati`,
-  description: `Multi-protocol, cloud based backups`,
+  name: `Backups`,
+  description: `Multi-protocol, offsite backups using Duplicati`,
   image: `linuxserver/duplicati`,
   actions: [
     {
@@ -34,7 +34,7 @@
       port: 8200,
       protocol: `TCP`,
       nat: false,
-      web: true,
+      web: `newtab`,
       dns: false,
       mdns: {
         type: `_http._tcp`
@@ -47,11 +47,55 @@
     }
   ],
   monitor: {
-    cmd: ``,
+    cmd: `curl -s -c /tmp/cj http://localhost:8200 -q -o /dev/null; echo '[['; curl http://localhost:8200/api/v1/serverstate?X-XSRF-Token=$(tail -n1 /tmp/cj | cut -f7); echo '],['; curl http://localhost:8200/api/v1/progressstate?X-XSRF-Token=$(tail -n1 /tmp/cj | cut -f7); echo '],['; curl http://localhost:8200/api/v1/backups?X-XSRF-Token=$(tail -n1 /tmp/cj | cut -f7); echo ']]'`,
     watch: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
+    polling: 60,
+    parser: `
+      const j = JSON.parse(input.replace(/﻿/g, ''));
+      output.status = j[0][0].SuggestedStatusIcon == 'Active' ? 'Running' : 'Idle';
+      output.nrbackups = j[2][0].length;
+      output.scheduled = j[0][0].ProposedSchedule.length;
+      output.next = output.scheduled ? j[2][0].find(b => b.Backup.ID == j[0][0].ProposedSchedule[0].Item1).Backup.Name : null;
+      output.active = j[0][0].ActiveTask ? j[2][0].find(b => b.Backup.ID == j[0][0].ActiveTask.Item2).Backup.Name : null;
+      output.last = output.active || j[1][0].Error ? null : j[2][0].find(b => b.Backup.ID == j[1][0].BackupID).Backup.Name;
+      output.current = output.status == 'Idle' ? 0 : j[1][0].ProcessedFileSize;
+      output.total = output.status == 'Idle' ? 0 : j[1][0].TotalFileSize;
+      if (output.active) {
+        output.graph = {
+          progress: {
+            type: 'Bar',
+            series: [ [ output.current / (output.total+1) ] ],
+            options: {
+              width: '200px',
+              height: '30px',
+              horizontalBars: true,
+              high: 1.0
+            }
+          }
+        };
+      }
+`,
+    header: `
+      <style>
+        .du-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
+        .du-b { color: grey; text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
+        .du-r { display: inline-block; font-size: 18px; color: black; }
+      </style>
+    `,
+    template: `
+      <div class="du-o">
+        <div class="du-b"><div class="du-r">{{status}}</div><div>Current Status</div></div>
+        <div class="du-b"><div class="du-r">{{nrbackups}}</div><div>Backups</div></div>
+        <div class="du-b"><div class="du-r">{{scheduled}}</div><div>Scheduled</div></div>
+        {{#if active}}
+        <div class="du-b"><div class="du-r">{{active}}</div><div>Active</div></div>
+        {{{graph.progress}}}
+        {{else if next}}
+        <div class="du-b"><div class="du-r">{{next}}</div><div>Next</div></div>
+        {{else if last}}
+        <div class="du-b"><div class="du-r">{{last}}</div><div>Last</div></div>
+        {{/if}}
+      </div>
+    `
   }
 }
