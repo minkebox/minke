@@ -32,7 +32,6 @@ MDNS.prototype = {
   },
 
   addRecord: async function(rec) {
-    console.log(rec);
     const idx = this._records.findIndex(r => eq(r.hostname, rec.hostname) && eq(r.service, rec.service));
     if (idx !== -1) {
       const orec = this._records.splice(idx, 1);
