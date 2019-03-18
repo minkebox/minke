@@ -60,6 +60,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   const graphContainer = document.createElement('div');
   const sandbox = { input: null, output: null, state: null, props: { homeIP: app._homeIP }};
   VM.createContext(sandbox);
+  //console.log(parser);
   const extractor = VM.compileFunction(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, [], { parsingContext: sandbox });
   this.run = async () => {
     if (!app._container || this._terminated) {
@@ -76,8 +77,10 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
     }
     try {
       sandbox.input = await runCmd(app, cmd);
+      //console.log(sandbox.input);
       sandbox.output = {};
       extractor();
+      //console.log(sandbox.output);
       if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
         for (let name in sandbox.output.graph) {
           const graph = sandbox.output.graph[name];
