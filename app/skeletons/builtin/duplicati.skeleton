@@ -1,0 +1,57 @@
+{
+  name: `Duplicati`,
+  description: `Multi-protocol, cloud based backups`,
+  image: `linuxserver/duplicati`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Backups`
+    },
+    {
+      type: `Text`,
+      text: `Select which applications folders you want to backup. The backup schedules are created in Duplicati itself.`
+    },
+    {
+      type: `Shareables`,
+      name: `/source`,
+      description: `Select folders`
+    }
+  ],
+  properties: [
+    {
+      type: `Directory`,
+      name: `/backups`,
+      style: `store`
+    },
+    {
+      type: `Directory`,
+      name: `/config`,
+      style: `boot`
+    },
+    {
+      type: `Port`,
+      name: `8200/tcp`,
+      port: 8200,
+      protocol: `TCP`,
+      nat: false,
+      web: true,
+      dns: false,
+      mdns: {
+        type: `_http._tcp`
+      }
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
