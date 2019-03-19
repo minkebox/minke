@@ -162,7 +162,7 @@
       
       for (let i = 0; i < lines.length && lines[i]; i++) {
         const p = lines[i].split(/\\t+/);
-        labels.push(p[1].split('.').slice(-2,1)[0].substr(0, 8));
+        labels.push(p[1].split('.').slice(-2,1)[0]);
         series.push(Math.floor(parseInt(p[0]) / 1000000));
       }
       
