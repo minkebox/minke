@@ -60,21 +60,7 @@
       output.last = output.active || j[1][0].Error ? null : j[2][0].find(b => b.Backup.ID == j[1][0].BackupID).Backup.Name;
       output.current = output.status == 'Idle' ? 0 : j[1][0].ProcessedFileSize;
       output.total = output.status == 'Idle' ? 0 : j[1][0].TotalFileSize;
-      if (output.active) {
-        output.graph = {
-          progress: {
-            type: 'Bar',
-            series: [ [ output.current / (output.total+1) ] ],
-            options: {
-              width: '200px',
-              height: '30px',
-              horizontalBars: true,
-              high: 1.0
-            }
-          }
-        };
-      }
-`,
+    `,
     header: `
       <style>
         .du-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
@@ -89,7 +75,6 @@
         <div class="du-b"><div class="du-r">{{scheduled}}</div><div>Scheduled</div></div>
         {{#if active}}
         <div class="du-b"><div class="du-r">{{active}}</div><div>Active</div></div>
-        {{{graph.progress}}}
         {{else if next}}
         <div class="du-b"><div class="du-r">{{next}}</div><div>Next</div></div>
         {{else if last}}

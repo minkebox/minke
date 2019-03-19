@@ -38,7 +38,7 @@
     {
       type: `File`,
       name: `/etc/openvpn/config.ovpn`,
-      style: 'boot',
+      style: `boot`
     },
     {
       type: `Network`,
@@ -75,33 +75,31 @@
       }
       output.graph = {
         traffic: {
-          type: 'Line',
-          series: [ state.rx, state.tx ],
+          type: 'line',
+          width: '400px',
+          data: {
+            labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63],
+            datasets: [
+              { label: 'RX', data: state.rx, borderColor: '#88cce7', backgroundColor: '#88cce7', fill: false, pointRadius: 0 },
+              { label: 'TX', data: state.tx, borderColor: '#41b376', backgroundColor: '#41b376', fill: false, pointRadius: 0 }
+            ]
+          },
           options: {
-            width: '400px',
-            axisY: {
-              showLabel: true,
-              showGrid: true
+            animation: { duration: 0 },
+            maintainAspectRatio: false,
+            title: { display: true, text: 'Bandwidth (Mb/s)' },
+            scales: {
+              xAxes: [{
+                display: false
+              }],
+              yAxes: [{
+                ticks: { beginAtZero: true }
+              }]
             }
-          }
+          } 
         }
       };
     `,
-    header: `
-      <style>
-      .vpnc-i { display: inline-block; width: 140px; vertical-align: top; padding-top: 2px; line-height: 130%; }
-      .vpnc-i span { display: inline-block; width: 15px; height: 15px; margin-right: 10px; background: #88cce7 }
-      </style>
-    `,
-    template: `
-      <div style="width:550px">
-        <div class="vpnc-i">
-          <div>Bandwidth</div>
-          <div><span></span>Rx {{rx}} Mb/s</div>
-          <div><span style="background:#278b30"></span>Tx {{tx}} Mb/s</div>
-        </div>
-        {{{graph.traffic}}}
-      </div>
-    `
+    template: `{{{graph.traffic}}}`
   }
 }

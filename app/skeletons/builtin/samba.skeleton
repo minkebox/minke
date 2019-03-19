@@ -134,24 +134,26 @@
       
       for (let i = 0; i < lines.length && lines[i]; i++) {
         const p = lines[i].split(/\\t+/);
-        labels.push(p[1].substr(-8));
+        labels.push(p[1]);
         series.push(Math.floor(parseInt(p[0]) / 1000000));
-      }
+      } 
       
       output.graph = {
         diskspace: {
-          type: 'Bar',
-          series: [ series ],
-          labels: labels,
+          width: '500px',
+          type: 'horizontalBar',
+          data: {
+            datasets: [{ data: series }],
+            labels: labels,
+          },
           options: {
-            height: '230px',
-            horizontalBars: true,
-            axisX: { showLabel: true, showGrid: true, offset: 16, onlyInteger: true },
-            axisY: { showLabel: true, showGrid: true, offset: 60 }
+            maintainAspectRatio: false,
+            legend: { display: false },
+            title: { display: true, text: 'Disk Usage (GB)' }
           }
         }
       };
     `,
-    template: `{{{graph.diskspace}}}<div style="float:right">GBytes</div>`
+    template: `{{{graph.diskspace}}}`
   }
 }

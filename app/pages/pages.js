@@ -16,17 +16,17 @@ function pages(root, wsroot) {
     ctx.type = 'text/javascript';
     ctx.cacheControl = { maxAge: CACHE_MAXAGE };
   });
+  root.get('/js/chart.js', async (ctx) => {
+    ctx.body = FS.readFileSync(`${__dirname}/../node_modules/chart.js/dist/${DEBUG ? 'Chart.js' : 'Chart.min.js'}`, { encoding: 'utf8' });
+    ctx.type = 'text/javascript';
+    ctx.cacheControl = { maxAge: CACHE_MAXAGE };
+  });
   root.get('/js/:script', async (ctx) => {
     ctx.body = FS.readFileSync(`${__dirname}/script/${ctx.params.script}`, { encoding: 'utf8' });
     ctx.type = 'text/javascript';
   });
   root.get('/css/pure.css', async (ctx) => {
     ctx.body = FS.readFileSync(`${__dirname}/../node_modules/purecss/build/pure-min.css`, { encoding: 'utf8' });
-    ctx.type = 'text/css';
-    ctx.cacheControl = { maxAge: CACHE_MAXAGE };
-  });
-  root.get('/css/chartist.css', async (ctx) => {
-    ctx.body = FS.readFileSync(`${__dirname}/../node_modules/chartist/dist/chartist.min.css`, { encoding: 'utf8' });
     ctx.type = 'text/css';
     ctx.cacheControl = { maxAge: CACHE_MAXAGE };
   });

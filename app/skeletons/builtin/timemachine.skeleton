@@ -8,42 +8,42 @@
       title: `User`
     },
     {
-      type: 'Text',
-      text: 'Select the username and password needed for access. Leave this blank if you want anyone to have access.'
+      type: `Text`,
+      text: `Select the username and password needed for access. Leave this blank if you want anyone to have access.`
     },
     {
       type: `Environment`,
       name: `SAMBA_USERNAME`,
       description: `User's login name`,
-      placeholder: 'Guest'
+      placeholder: `Guest`
     },
     {
       type: `Environment`,
       name: `SAMBA_PASSWORD`,
       description: `User's password`,
-      placeholder: 'Guest'
+      placeholder: `Guest`
     },
     {
-      type: 'Header',
-      title: 'Backup size'
+      type: `Header`,
+      title: `Backup size`
     },
     {
-      type: 'Environment',
-      name: 'MAXSIZE',
-      description: 'Limit space available for backups (e.g. 50G, 5T)'
+      type: `Environment`,
+      name: `MAXSIZE`,
+      description: `Limit space available for backups (e.g. 50G, 5T)`
     },
     {
-      type: 'Header',
-      title: 'Network',
+      type: `Header`,
+      title: `Network`
     },
     {
-      type: 'Text',
-      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.'
+      type: `Text`,
+      text: `Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.`
     },
     {
-      type: 'Network',
-      name: 'primary',
-      description: 'Select network'
+      type: `Network`,
+      name: `primary`,
+      description: `Select network`
     }
   ],
   properties: [
@@ -138,7 +138,10 @@
       name: `/backups`,
       style: `store`,
       shares: [
-        { name: '/', description: 'Backups' }
+        {
+          name: `/`,
+          description: `Backups`
+        }
       ]
     },
     {
@@ -165,14 +168,16 @@
       
       output.graph = {
         diskspace: {
-          type: 'Bar',
-          series: [ series ],
-          labels: labels,
+          width: '500px',
+          type: 'horizontalBar',
+          data: {
+            datasets: [{ data: series }], 
+            labels: labels,
+          },
           options: {
-            height: '230px',
-            horizontalBars: true,
-            axisX: { showLabel: true, showGrid: true, offset: 16, onlyInteger: true },
-            axisY: { showLabel: true, showGrid: true, offset: 60 }
+            maintainAspectRatio: false,
+            legend: { display: false },
+            title: { display: true, text: 'Disk Usage (GB)' }
           }
         }
       };

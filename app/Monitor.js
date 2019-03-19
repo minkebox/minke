@@ -1,8 +1,6 @@
 const VM = require('vm');
 const FS = require('fs');
 const Handlebars = require('handlebars');
-require('svgdom-css');
-const Chartist = require('chartist');
 
 const DEFAULT_POLLING = 60; // Default polling is 60 seconds
 const DEFAULT_PARSER = 'output=input;'
@@ -57,7 +55,6 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
     }
     dowork();
   }
-  const graphContainer = document.createElement('div');
   const sandbox = { input: null, output: null, state: null, props: { homeIP: app._homeIP }};
   VM.createContext(sandbox);
   //console.log(parser);
@@ -84,10 +81,8 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
       if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
         for (let name in sandbox.output.graph) {
           const graph = sandbox.output.graph[name];
-          if (graph.series) {
-            graph.series = JSON.parse(JSON.stringify(graph.series)); // Data came out of a different context so this "cleans" it.
-            await _generateGraph(graphContainer, graph);
-            sandbox.output.graph[name] = graphContainer.innerHTML;
+          if (graph) {
+            sandbox.output.graph[name] = _generateGraph2(graph);
           }
         }
       }
@@ -116,33 +111,19 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   }
 }
 
-async function _generateGraph(container, graph) {
-  return new Promise((resolve, reject) => {
-    try {
-      // Empty container (otherwise it just fills up with graphs)
-      while (container.firstChild) {
-        container.removeChild(container.firstChild);
-      }
-      const options = Object.assign({
-        width: '250px',
-        height: '250px',
-        axisX: { showLabel: false, showGrid: false, offset: 0 },
-        axisY: { showLabel: false, showGrid: false, offset: 0 },
-        fullWidth: true,
-        showPoint: false
-      }, graph.options);
-      const chart = new Chartist[graph.type || 'Line'](container, { series: graph.series, labels: graph.labels }, options);
-      function created() {
-        chart.off('created', created);
-        chart.detach();
-        resolve();
-      }
-      chart.on('created', created);
-    }
-    catch (e) {
-      reject(e);
-    }
-  });
+let graphId = 1;
+
+function _generateGraph2(graph) {
+  //console.log(JSON.stringify(graph, null, 2));
+  const id = `gid${graphId++}`;
+  return `
+    <div style="position: relative; width: ${graph.width || '250px'}; height: ${graph.height || '250px'}">
+      <canvas id="${id}"></canvas>
+    </div>
+    <script>
+    new Chart(document.getElementById("${id}").getContext("2d"), ${JSON.stringify(graph)});
+    </script>
+  `;
 }
 
 const _Monitor = {

@@ -13,6 +13,10 @@ function onPageShow() {
           else {
             elem.innerHTML = msg.html;
           }
+          const se = elem.getElementsByTagName('script');
+          for (let i = 0; i < se.length; i++) {
+            eval(se[i].innerHTML);
+          }
         });
         break;
       case 'html.replace':

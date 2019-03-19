@@ -219,6 +219,7 @@ body {
 }
 .inline-page iframe {
   position: fixed;
+  z-index: 1;
 }
 
 /* Move the layout over so we can fit the nav + list in on the left */
