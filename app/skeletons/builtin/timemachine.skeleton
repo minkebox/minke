@@ -148,11 +148,35 @@
     }
   ],
   monitor: {
-    cmd: ``,
-    watch: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
+    cmd: `cd /backups;du -d0 *`,
+    watch: `/backups`,
+    poll: 3600,
+    parser: `
+      const lines = input.split('\\n');
+      
+      const labels = [];
+      const series = [];
+      
+      for (let i = 0; i < lines.length && lines[i]; i++) {
+        const p = lines[i].split(/\\t+/);
+        labels.push(p[1].split('.').slice(-2,1).substr(-8));
+        series.push(Math.floor(parseInt(p[0]) / 1000000));
+      }
+      
+      output.graph = {
+        diskspace: {
+          type: 'Bar',
+          series: [ series ],
+          labels: labels,
+          options: {
+            height: '230px',
+            horizontalBars: true,
+            axisX: { showLabel: true, showGrid: true, offset: 16, onlyInteger: true },
+            axisY: { showLabel: true, showGrid: true, offset: 60 }
+          }
+        }
+      };
+    `,
+    template: `{{{graph.diskspace}}}<div style="float:right">GBytes</div>`
   }
 }

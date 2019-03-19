@@ -8,20 +8,20 @@
       title: `User`
     },
     {
-      type: 'Text',
-      text: 'Select the username and password to access the shared files. Leave this blank if you want anyone to have access.'
+      type: `Text`,
+      text: `Select the username and password to access the shared files. Leave this blank if you want anyone to have access.`
     },
     {
       type: `Environment`,
       name: `SAMBA_USERNAME`,
       description: `Select the user's login name`,
-      placeholder: 'Guest'
+      placeholder: `Guest`
     },
     {
       type: `Environment`,
       name: `SAMBA_PASSWORD`,
       description: `Select the user's password`,
-      placeholder: 'Guest'
+      placeholder: `Guest`
     },
     {
       type: `Header`,
@@ -37,17 +37,17 @@
       description: `Select what to share. You can share using the default name or pick a name that's more meaningful`
     },
     {
-      type: 'Header',
-      title: 'Network',
+      type: `Header`,
+      title: `Network`
     },
     {
-      type: 'Text',
-      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.'
+      type: `Text`,
+      text: `Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.`
     },
     {
-      type: 'Network',
-      name: 'primary',
-      description: 'Select network'
+      type: `Network`,
+      name: `primary`,
+      description: `Select network`
     }
   ],
   properties: [
@@ -62,7 +62,7 @@
     {
       type: `Directory`,
       name: `/etc/status`,
-      style: 'boot'
+      style: `boot`
     },
     {
       type: `Port`,
@@ -134,18 +134,24 @@
       
       for (let i = 0; i < lines.length && lines[i]; i++) {
         const p = lines[i].split(/\\t+/);
-        labels.push(p[1]);
-        series.push(parseInt(p[0]));
+        labels.push(p[1].substr(-8));
+        series.push(Math.floor(parseInt(p[0]) / 1000000));
       }
       
       output.graph = {
         diskspace: {
-          type: 'Pie',
-          series: series,
-          labels: labels
+          type: 'Bar',
+          series: [ series ],
+          labels: labels,
+          options: {
+            height: '230px',
+            horizontalBars: true,
+            axisX: { showLabel: true, showGrid: true, offset: 16, onlyInteger: true },
+            axisY: { showLabel: true, showGrid: true, offset: 60 }
+          }
         }
       };
     `,
-    template: `{{{graph.diskspace}}}`
+    template: `{{{graph.diskspace}}}<div style="float:right">GBytes</div>`
   }
 }
