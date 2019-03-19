@@ -42,8 +42,15 @@ MinkeApp.prototype = {
     this._shares = app.shares;
     this._customshares = app.customshares;
     this._networks = app.networks;
-    this._monitor = app.monitor;
     this._bootcount = app.bootcount;
+
+    const skel = Skeletons.loadSkeleton(this._image, false);
+    if (skel && skel.monitor) {
+      this._monitor = skel.monitor;
+    }
+    else {
+      this._monitor = {};
+    }
 
     this._setStatus('stopped');
 
@@ -66,7 +73,6 @@ MinkeApp.prototype = {
       shares: this._shares,
       customshares: this._customshares,
       networks: this._networks,
-      monitor: this._monitor,
       bootcount: this._bootcount
     }
   },
@@ -575,14 +581,7 @@ MinkeApp.prototype = {
       }
 
       if (this._monitor.cmd) {
-        this._statusMonitor = this._createMonitor({
-          event: 'update.monitor',
-          polling: this._monitor.polling,
-          cmd: this._monitor.cmd,
-          watch: this._monitor.watch,
-          parser: this._monitor.parser,
-          template: this._monitor.template
-        });
+        this._statusMonitor = this._createMonitor(Object.assign({ event: 'update.monitor' }, this._monitor));
       }
 
       this._setStatus('running');
