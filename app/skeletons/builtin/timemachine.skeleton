@@ -177,7 +177,7 @@
             maintainAspectRatio: false,
             adaptive: true,
             legend: { display: false },
-            title: { display: true, text: 'Disk Usage (GB)' }
+            title: { display: true, text: 'Backup Usage (GB)' }
           }
         }
       };
