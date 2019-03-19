@@ -183,6 +183,6 @@
       };
     `,
     minwidth: '400px',
-    template: `{{{graph.diskspace}}}<div style="float:right">GBytes</div>`
+    template: `{{{graph.diskspace}}}`
   }
 }
