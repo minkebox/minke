@@ -29,6 +29,7 @@ function genAppStatus(acc, app, networks) {
       _id: app._id,
       name: app._name,
       header: app._monitor.header,
+      minwidth: app._monitor.minwidth,
       link: app._forward && app._forward.url,
       running: app._status === 'running',
       network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {

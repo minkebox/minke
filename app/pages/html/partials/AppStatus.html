@@ -1,4 +1,4 @@
-<div class="application-status filter net-{{network}} application-status-{{_id}} {{#if link}}link{{/if}} {{#if running}}running{{/if}}" {{#if link}}onclick="openInlinePage('{{link}}')"{{/if}}>
+<div {{#if minwidth}}style="min-width:{{minwidth}}"{{/if}} class="application-status filter net-{{network}} application-status-{{_id}} {{#if link}}link{{/if}} {{#if running}}running{{/if}}" {{#if link}}onclick="openInlinePage('{{link}}')"{{/if}}>
   {{{header}}}
   <div class="status"></div>
   <div class="name">{{name}}</div>

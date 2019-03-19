@@ -136,11 +136,10 @@
         const p = lines[i].split(/\\t+/);
         labels.push(p[1]);
         series.push(Math.floor(parseInt(p[0]) / 1000000));
-      } 
+      }
       
       output.graph = {
         diskspace: {
-          width: '500px',
           type: 'horizontalBar',
           data: {
             datasets: [{ data: series }],
@@ -148,12 +147,14 @@
           },
           options: {
             maintainAspectRatio: false,
+            adaptive: true,
             legend: { display: false },
             title: { display: true, text: 'Disk Usage (GB)' }
           }
-        }
-      };
+        } 
+      }; 
     `,
+    minwidth: `400px`,
     template: `{{{graph.diskspace}}}`
   }
 }

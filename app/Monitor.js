@@ -116,8 +116,9 @@ let graphId = 1;
 function _generateGraph2(graph) {
   //console.log(JSON.stringify(graph, null, 2));
   const id = `gid${graphId++}`;
+  const width = 'width' in graph ? `width: ${graph.width};` : '';
   return `
-    <div style="position: relative; width: ${graph.width || '250px'}; height: ${graph.height || '250px'}">
+    <div style="position: relative; ${width} height: ${graph.height || '250px'}">
       <canvas id="${id}"></canvas>
     </div>
     <script>
