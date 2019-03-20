@@ -34,13 +34,6 @@
       ]
     },
     {
-      type: 'Directory',
-      name: '/usr/local/apache2/logs',
-      shares: [
-        { name: '/', description: 'Website logs' }
-      ]
-    },
-    {
       type: `Port`,
       name: `80/tcp`,
       port: 80,
