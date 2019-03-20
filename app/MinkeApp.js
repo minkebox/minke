@@ -333,7 +333,7 @@ MinkeApp.prototype = {
           // When we start a new app which is attached to a private network, we must restart the
           // private network so it can inform the peer about the new app.
           const napp = MinkeApp.getAppById(primary);
-          if (napp) {
+          if (napp && napp._image === Images.MINKE_PRIVATE_NETWORK) {
             napp._needRestart = true;
           }
           break;
