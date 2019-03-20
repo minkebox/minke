@@ -526,16 +526,29 @@ MinkeApp.prototype = {
 
         const webport = this._ports.find(port => port.web);
         if (webport) {
+          const web = webport.web;
+          if (typeof web === 'string') {
+            web = { type: web, path: '' };
+          }
+          else if (web === true) {
+            web = { type: 'redirect', path: '' };
+          }
+          else if (typeof web !== 'object') {
+            web = { type: 'none', path: '' };
+          }
           if (this._homeIP) {
-            if (webport.web === 'newtab') {
-              this._forward = HTTP.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}` });
-            }
-            else {
-              this._forward = HTTP.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}` });
+            switch (web.type) {
+              case 'newtab':
+                this._forward = HTTP.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}${web.path}` });
+                break;
+              case 'redirect':
+                this._forward = HTTP.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}${web.path}` });
+              default:
+                break;
             }
           }
           else {
-            this._forward = HTTP.createForward({ prefix: `/a/${this._id}`, IP4Address: ipAddr, port: webport.port });
+            this._forward = HTTP.createForward({ prefix: `/a/${this._id}`, IP4Address: ipAddr, port: webport.port, path: web.path });
           }
           if (this._forward.http) {
             koaApp.use(this._forward.http);
