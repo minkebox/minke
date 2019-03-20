@@ -117,7 +117,7 @@ const DNS = {
       // Note. DNS servers are checked in reverse order
       FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
         return `server=${resolve.IP4Address}#${resolve.Port}\n`;
-      })}`);
+      }).join('')}`);
     }
   },
 
