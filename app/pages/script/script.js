@@ -243,10 +243,10 @@ function closeInlinePage() {
   }
 }
 
-function openInlinePage(url, onClose) {
+function openInlinePage(url, target) {
   closeInlinePage();
-  if (url.split('#')[1] === 'newtab') {
-    window.open(url.split('#')[0], '_black');
+  if (target === '_blank') {
+    window.open(url, target);
   }
   else {
     const builder = document.createElement('div');

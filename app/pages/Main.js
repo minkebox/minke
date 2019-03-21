@@ -9,6 +9,7 @@ function genApp(app, networks) {
     status: app._status,
     ip: app._status !== 'running' ? null : app._homeIP,
     link: app._forward && app._forward.url,
+    linktarget: app._forward && app._forward.target,
     network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
       if (!net) {
         return false;
@@ -31,6 +32,7 @@ function genAppStatus(acc, app, networks) {
       header: app._monitor.header,
       minwidth: app._monitor.minwidth,
       link: app._forward && app._forward.url,
+      linktarget: app._forward && app._forward.target,
       running: app._status === 'running',
       network: !networks ? 0 : app._networks.primary === 'host' ? 0 : networks.findIndex((net) => {
         if (!net) {

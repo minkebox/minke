@@ -227,7 +227,14 @@ async function ConfigurePageHTML(ctx) {
     })
   }
   const adminMode = MinkeApp.getAdminMode();
-  ctx.body = template({ minkeConfig: minkeConfig, adminMode: adminMode, skeleton: nskeleton, properties: JSON.stringify(properties), skeletonAsText: Skeletons.toString(skeleton), link: app._forward && app._forward.url,
+  ctx.body = template({
+    minkeConfig: minkeConfig,
+    adminMode: adminMode,
+    skeleton: nskeleton,
+    properties: JSON.stringify(properties),
+    skeletonAsText: Skeletons.toString(skeleton),
+    link: app._forward && app._forward.url,
+    linktarget: app._forward && app._forward.target,
     changes: '[' + Object.keys(visibles).map((key) => {
       return `function(){const c=document.getElementById("${key}").classList;try{if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){}}`;
     }).concat(Object.keys(enabled).map((key) => {
