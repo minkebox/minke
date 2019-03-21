@@ -53,7 +53,7 @@ const UPNP = {
       signature: 'minkebox UPnP/1.1',
     });
 
-    await ssdp.advertise({
+    /* await ssdp.advertise({
       usn: 'upnp:rootdevice',
       location: {
         udp4: `http://${this._ip}/rootDesc.xml`
@@ -62,7 +62,7 @@ const UPNP = {
       shutDownServers: () => {
         return [];
       }
-    });
+    }); */
   },
 
   stop: async function() {
