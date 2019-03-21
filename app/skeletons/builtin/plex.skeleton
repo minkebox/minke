@@ -1,0 +1,135 @@
+{
+  name: `Plex`,
+  description: `Your favorite movies, TV, music, web shows, podcasts, and more, all streamed to your favorite screens`,
+  image: `linuxserver/plex`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Media Selection`
+    },
+    {
+      type: `Text`,
+      text: `Plex will automatically create two folders (<b>TV</b> and <b>Movies</b>) to store your media. You can also include other folders by adding them below.`
+    },
+    {
+      type: `Shareables`,
+      name: `/data/Shared`,
+      description: `Select folders Plex can acccess`
+    }
+  ],
+  properties: [
+    {
+      type: `Directory`,
+      name: `/config`,
+      style: `store`
+    },
+    {
+      type: `Directory`,
+      name: `/transcode`,
+      style: `store`
+    },
+    {
+      type: `Directory`,
+      name: `/data/TV`,
+      style: `store`,
+      shares: [
+        {
+          name: `/`,
+          description: `TV Shows`
+        }
+      ]
+    },
+    {
+      type: `Directory`,
+      name: `/data/Movies`,
+      style: `store`,
+      shares: [
+        {
+          name: `/`,
+          description: `Movies`
+        }
+      ]
+    },
+    {
+      type: `Environment`,
+      name: `PLEX_MEDIA_SERVER_INFO_DEVICE`,
+      defaultValue: `Docker Container (LinuxServer.io) / Minke`
+    },
+    {
+      type: `Port`,
+      name: `1900/udp`,
+      port: 1900,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `32400/tcp`,
+      port: 32400,
+      protocol: `TCP`,
+      nat: false,
+      web: {
+        type: `newtab`,
+        path: `/web`
+      },
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `32400/udp`,
+      port: 32400,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `32469/tcp`,
+      port: 32469,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `32469/udp`,
+      port: 32469,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `5353/udp`,
+      port: 5353,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
