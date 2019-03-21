@@ -355,6 +355,10 @@ MinkeApp.prototype = {
       if (this._features.vpn || this._features.dhcp) {
         config.HostConfig.CapAdd.push('NET_ADMIN');
       }
+      if (this._features.mount) {
+        config.HostConfig.CapAdd.push('SYS_ADMIN');
+        config.HostConfig.CapAdd.push('DAC_READ_SEARCH');
+      }
 
       if (this._image === Images.MINKE_PRIVATE_NETWORK) {
         let nr = 0;
