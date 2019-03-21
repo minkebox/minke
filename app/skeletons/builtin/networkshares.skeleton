@@ -1,0 +1,72 @@
+{
+  name: `Network Folders`,
+  description: `Mount SMB/CIFS shares from another machine and make them available locally.`,
+  image: `registry.gitlab.com/minkebox/networkshares`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Network Shares`
+    },
+    {
+      type: `Text`,
+      text: `Enter the network shares which should be imported. These will placed in a <b>/folders</b> directory and shareable with other applications.`
+    },
+    {
+      type: `File`,
+      name: `/mount.sh`,
+      description: `Enter share names and credentials. Leave username and password blank if no authentication is required.`,
+      style: `Table`,
+      headers: [
+        {
+          name: `Share name`
+        },
+        {
+          name: `Local name`
+        },
+        {
+          name: `Username`,
+          placeholder: `Guest`
+        },
+        {
+          name: `Password`,
+          placeholder: `Guest`
+        }
+      ],
+      pattern: `mkdir -p /folders/{{1}} ; mount -t cifs {{0}} /folders/{{1}} -o "uid=root,gid=root,iocharset=utf8,file_mode=0777,dir_mode=0777,noperm,username={{2}},password={{3}}"
+  `,
+      join: ``
+    }
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `mount`
+    },
+    {
+      type: `File`,
+      name: `/mount.sh`
+    },
+    {
+      type: `Directory`,
+      name: `/folders`,
+      shares: [
+        {
+          name: `/`
+        }
+      ]
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
