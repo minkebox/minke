@@ -530,15 +530,17 @@ MinkeApp.prototype = {
 
         const webport = this._ports.find(port => port.web);
         if (webport) {
-          const web = webport.web;
-          if (typeof web === 'string') {
-            web = { type: web, path: '' };
-          }
-          else if (web === true) {
-            web = { type: 'redirect', path: '' };
-          }
-          else if (typeof web !== 'object') {
-            web = { type: 'none', path: '' };
+          let web = webport.web;
+          if (typeof web !== 'object') {
+            if (typeof web === 'string') {
+              web = { type: web, path: '' };
+            }
+            else if (web === true) {
+              web = { type: 'redirect', path: '' };
+            }
+            else {
+              web = { type: 'none', path: '' };
+            }
           }
           if (this._homeIP) {
             switch (web.type) {
