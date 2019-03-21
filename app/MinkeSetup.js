@@ -111,7 +111,7 @@ MinkeSetup.prototype = {
     );
     DNS.setDomainName(this.getLocalDomainName());
     Network.setHomeNetwork({
-      address: this._env.DHCP ? 'dhcp' : this._env.IPADDRESS.value,
+      address: this._env.DHCP.value ? 'dhcp' : this._env.IPADDRESS.value,
       netmask: this._env.NETMASK.value,
       gateway: this._env.GATEWAY.value
     });
