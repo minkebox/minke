@@ -38,7 +38,7 @@
           {{else if (eq type "Text")}}
           <div class="content-text">{{{text}}}</div>
           {{else if (eq type "Environment")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action environment pure-control-group">
+          <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group">
             <label class="description">{{{description}}}</label>
             {{#if (eq style "Table")}}
             {{> Table}}
