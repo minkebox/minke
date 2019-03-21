@@ -297,9 +297,17 @@ function addRmTableRow(action, event) {
     saveTable(action, table);
   }
   else if (event.target.classList.contains('add')) {
+    const th = table.querySelectorAll('thead tr th');
     const ntr = document.createElement('TR');
     for (let i = 1; i < tr.childElementCount; i++) {
-      ntr.appendChild(document.createElement('TD')).setAttribute('contenteditable', 'true');
+      const td = document.createElement('TD');
+      const input = document.createElement('INPUT');
+      input.setAttribute('type', 'text');
+      if (th.item(i-1).dataset.placeholder) {
+        input.setAttribute('placeholder', th.item(i-1).dataset.placeholder);
+      }
+      td.appendChild(input);
+      ntr.appendChild(td);
     }
     const td = document.createElement('TD');
     td.classList.add('control');

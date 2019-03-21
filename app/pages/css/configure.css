@@ -120,6 +120,15 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
+.configure .actions .table input[type="text"] {
+  width: 100%;
+  border: 0;
+  box-shadow: none;
+  height: 1.2em;
+  padding: 0;
+  text-overflow: ellipsis;
+}
+
 .configure .actions .share {
   display: block;
 }

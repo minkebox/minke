@@ -2,7 +2,7 @@
   <thead>
     <tr>
       {{#each headers}}
-      <th>{{name}}</th>
+      <th data-placeholder="{{placeholder}}">{{name}}</th>
       {{/each}}
       {{#if controls}}<th class="control"><span class="add">+</span></th>{{/if}}
     </tr>
@@ -11,7 +11,9 @@
     {{#each value}}
     <tr>
       {{#each this}}
-      <td contenteditable="true">{{this}}</td>
+      <td>
+        <input type="text" value="{{this}}" placeholder="{{#with (lookup ../../headers @index)}}{{placeholder}}{{/with}}">
+      </td>
       {{/each}}
       {{#if ../controls}}<td class="control"><span class="remove">&minus;</span></td>{{/if}}
     </tr>
