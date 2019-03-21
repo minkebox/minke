@@ -45,11 +45,11 @@ const Network = {
     // address, netmask, gateway
     let data = '';
     if (config.address.toLowerCase() === 'dhcp') {
-      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nDHCP=ipv4\n`;
+      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nDHCP=ipv4\nMulticastDNS=true\n\n[DHCP]\nUseDNS=false\n`;
     }
     else {
       const netmask = new Netmask.Netmask(`${config.address}/${config.netmask}`);
-      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nAddress=${config.address}/${netmask.bitmask}\nGateway=${config.gateway}\n`;
+      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nAddress=${config.address}/${netmask.bitmask}\nGateway=${config.gateway}\nMulticastDNS=true\n\n[DHCP]\nUseDNS=false\n`;
     }
     try {
       if (this._getHomeNetworkFile() != data) {
