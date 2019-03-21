@@ -1,0 +1,75 @@
+{
+  name: `Hostnames`,
+  description: `Create simple mappings between fully qualified hostnames and IP addresses`,
+  image: `registry.gitlab.com/minkebox/dnshosts`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Hostnames`
+    },
+    {
+      type: `Text`,
+      text: `Enter fully qualified hostnames (e.g. minkebox.com) and associated IP addresses.`
+    },
+    {
+      type: `File`,
+      name: `/etc/dnshosts.d/hosts.conf`,
+      description: `Hostnames`,
+      style: `Table`,
+      headers: [
+        {
+          name: `Hostname`
+        },
+        {
+          name: `IP Address`
+        }
+      ],
+      pattern: `{{1}} {{0}}
+`,
+      join: ``
+    }
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `dns`
+    },
+    {
+      type: `File`,
+      name: `/etc/dnshosts.d/hosts.conf`
+    },
+    {
+      type: `Port`,
+      name: `53/tcp`,
+      port: 53,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `53/udp`,
+      port: 53,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: true,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
