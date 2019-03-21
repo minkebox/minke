@@ -37,6 +37,9 @@ _Filesystem.prototype = {
   _makeMount: function(bind) {
     //console.log('_makeMount', bind);
     FS.mkdirSync(bind.src, { recursive: true });
+    bind.shares.forEach((share) => {
+      FS.mkdirSync(`${bind.src}/${share.name}`, { recursive: true });
+    });
     return {
       Type: 'bind',
       Source: bind.src,
