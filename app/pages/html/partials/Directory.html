@@ -1,0 +1,26 @@
+<table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24" onchange="console.log(event);{{action}}">
+  {{#each shareables}}
+  {{#if shares}}
+  <thead>
+    <tr>
+      <th>{{app._name}}</th><th>Description</th><th class="control">Share</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each shares}}
+    <tr>
+      <td>
+        {{name}}
+      </td>
+      <td>
+        {{description}}
+      </td>
+      <td>
+        <input class="value" name="{{../../name}}" type="radio" {{#if value}}checked{{/if}} value="{{src}}">
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+  {{/if}}
+  {{/each}}
+</table>

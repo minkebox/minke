@@ -11,6 +11,7 @@ let template;
 function registerTemplates() {
   const partials = [
     'Table',
+    'Directory',
     'Shareables',
     'CustomShareables',
     'Websites',
@@ -171,6 +172,27 @@ async function ConfigurePageHTML(ctx) {
             const value = file ? file.data : '';
             return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
           }
+        }
+        case 'Directory':
+        {
+          const allShares = app.getAvailableShareables();
+          allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
+          const shareables = allShares.map((shareable) => {
+            return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
+              bind.shares.forEach((share) => {
+                const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
+                const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
+                shares.push({
+                  name: target,
+                  src: src,
+                  description: share.description,
+                  value: !!app._binds.find(bind => bind.src === src)
+                });
+              });
+              return shares;
+            }, [])};
+          });
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action);
         }
         case 'Shareables':
         {
@@ -342,6 +364,17 @@ async function ConfigurePageWS(ctx) {
       }
       return NOCHANGE;
     }},
+    {
+      p: /^Directory#(.+)$/, f: (value, match) => {
+        const target = match[1];
+        const bind = app._binds.find(bind => bind.target == target);
+        if (bind && bind.src !== value) {
+          bind.src = value;
+          return APPCHANGE;
+        }
+        return NOCHANGE
+      }
+    },
     { p: /^File#(.+)$/, f: (value, match) => {
       const filename = match[1];
       const file = app._files.find(file => file.target === filename);

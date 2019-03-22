@@ -100,6 +100,15 @@
               {{/each}}
             </select>
           </div>
+          {{else if (eq type "Directory")}}
+          <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group">
+            {{#if shareables}}
+            <label class="description">{{{description}}}</label>
+            {{> Directory}}
+            {{else}}
+            <div style="text-align: center">No applications sharing.</div>
+            {{/if}}
+          </div>
           {{else if (eq type "Shareables")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group">
             {{#if shareables}}
