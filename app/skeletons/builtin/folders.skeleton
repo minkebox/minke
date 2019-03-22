@@ -11,6 +11,13 @@
       type: `CustomShareables`,
       name: `/folders`,
       description: `Create a list of folders to store file and other data. These folders can be share with other apps.`
+    },
+    {
+      type: `Text`
+    },
+    {
+      type: `Text`,
+      text: `You can rename a share by editing it's name. However, if you remove a share from the list, the content will no longer be accessible but will <b>not</b> be erased until the applicaiton is removed.`
     }
   ],
   properties: [
