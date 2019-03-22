@@ -1176,7 +1176,7 @@ MinkeApp.startApps = async function(app, config) {
   // Start up any VPNs. We want them to claim the lowest IP on their networks.
   await Promise.all(applications.map(async (app) => {
     try {
-      if (app._willCreateNetwork()) {
+      if (app._willCreateNetwork() && app._status === 'stopped') {
         await app.start(inheritables[app._id]);
       }
     }
