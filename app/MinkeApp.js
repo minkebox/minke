@@ -1162,10 +1162,10 @@ MinkeApp.startApps = async function(app, config) {
 
   await setup.start();
 
-  // Start up any DHCP servers.
+  // Start up any Host network servers.
   await Promise.all(applications.map(async (app) => {
     try {
-      if (app._features.dhcp) {
+      if (app._networks.primary === 'host') {
         await app.start(inheritables[app._id]);
       }
     }
