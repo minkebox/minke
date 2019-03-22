@@ -1,5 +1,6 @@
 const FS = require('fs');
 const Path = require('path');
+const UUID = require('uuid/v4');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
@@ -410,7 +411,7 @@ async function ConfigurePageWS(ctx) {
         src: Filesystem.getNativePath(app._id, action.style, `/dir/${shareroot}`),
         target: Path.normalize(shareroot),
         shares: JSON.parse(value).map((row) => {
-          return { name: Path.normalize(`${row[0]}`) };
+          return { name: Path.normalize(row[0]), sname: row[1] || UUID() };
         })
       };
       if (app.updateCustomShare(bind)) {

@@ -306,6 +306,9 @@ function addRmTableRow(action, event) {
       if (th.item(i-1).dataset.placeholder) {
         input.setAttribute('placeholder', th.item(i-1).dataset.placeholder);
       }
+      if (th.item(i-1).style.display === 'none') {
+        td.style.display = 'none';
+      }
       td.appendChild(input);
       ntr.appendChild(td);
     }
