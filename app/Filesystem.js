@@ -19,7 +19,8 @@ _Filesystem.prototype = {
 
     // Remove any broken shares (in case an app was uninstalled)
     for (let i = 0; i < this._shares.length; ) {
-      if (FS.existsSync(this._shares[i].src)) {
+      const appid = this._shares[i].src.replace(/^.*apps\/([^/]+).*$/,'$1');
+      if (MinkeApp.getAppById(appid) && FS.existsSync(this._shares[i].src)) {
         i++;
       }
       else {
