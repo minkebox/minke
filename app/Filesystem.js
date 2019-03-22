@@ -1,6 +1,7 @@
 const FS = require('fs');
 const Path = require('path');
 const Disks = require('./Disks');
+let MinkeApp;
 
 process.umask(0);
 
@@ -11,6 +12,8 @@ function _Filesystem(app) {
   this._files = app._files;
   this._shares = app._shares;
   this._customshares = app._customshares;
+
+  MinkeApp = MinkeApp || require('./MinkeApp');
 }
 
 _Filesystem.prototype = {
