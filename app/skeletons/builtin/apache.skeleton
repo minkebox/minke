@@ -1,0 +1,79 @@
+{
+  name: `Website`,
+  description: `Simple, static, website based on the Apache web server`,
+  image: `registry.gitlab.com/minkebox/apache`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Web pages`
+    },
+    {
+      type: `Text`,
+      text: `Configure this website by selecting a folder containing your website pages. This can find the website logs in the "File Share" application.`
+    },
+    {
+      type: `Directory`,
+      name: `/usr/local/apache2/htdocs`,
+      description: `Website's pages`
+    },
+    {
+      type: `Header`,
+      title: `Network`
+    },
+    {
+      type: `Text`,
+      text: `Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      description: `Select network`
+    }
+  ],
+  properties: [
+    {
+      type: `Directory`,
+      name: `/usr/local/apache2/htdocs`,
+      style: `store`
+    },
+    {
+      type: `Directory`,
+      name: `/usr/local/apache2/log`,
+      style: `store`,
+      shares: [
+        {
+          name: `/`,
+          description: `Access logs`
+        }
+      ]
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
+      port: 80,
+      protocol: `TCP`,
+      nat: false,
+      web: {
+        type: `newtab`,
+        path: ``
+      },
+      dns: false,
+      mdns: {
+        type: `_http._tcp`
+      }
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
