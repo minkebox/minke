@@ -10,7 +10,7 @@
     {{#each shareables}}
     <tr>
       <td contenteditable="true">{{name}}</td>
-      <td style="display:none">{{sname}}</td>
+      <td style="display:none">{{#if sname}}{{sname}}{{else}}{{name}}{{/if}}</td>
       <td class="control"><span class="remove">&minus;</span></td>
     </tr>
     {{/each}}
