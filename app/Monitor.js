@@ -86,7 +86,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
           }
         }
       }
-      //console.log(sandbox.output);
+      console.log(sandbox);
       return ctemplate(sandbox.output);
     }
     catch (e) {
