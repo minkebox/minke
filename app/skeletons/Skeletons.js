@@ -98,6 +98,7 @@ async function imageToSkeleton(image) {
       watch: '',
       polling: 0,
       parser: '',
+      minwidth: '200px',
       header: '',
       template: ''
     }
