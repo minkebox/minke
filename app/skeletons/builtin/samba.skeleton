@@ -135,21 +135,32 @@
       for (let i = 0; i < lines.length && lines[i]; i++) {
         const p = lines[i].split(/\\t+/);
         labels.push(p[1]);
-        series.push(Math.floor(parseInt(p[0]) / 1000000));
+        series.push(parseInt(p[0]) / 1000000);
       }
       
       output.graph = {
         diskspace: {
           type: 'horizontalBar',
           data: {
-            datasets: [{ data: series }],
+            datasets: [{
+              backgroundColor: props.colors,
+              data: series
+            }],
             labels: labels,
           },
           options: {
-            maintainAspectRatio: false,
+            maintainAspectRatio: false, 
             adaptive: true,
             legend: { display: false },
-            title: { display: true, text: 'File Usage (GB)' }
+            title: { display: true, text: 'File Usage (GB)' },
+            scales: {
+              xAxes: [{
+                ticks: {
+                  precision: 2,
+                  beginAtZero: true
+                }
+              }]
+            }
           }
         } 
       }; 
