@@ -21,5 +21,6 @@ docker run --name minke -d --privileged \
   --mount type=bind,source=/minke/db,target=/minke/db,bind-propagation=rshared \
   --mount type=bind,source=${PWD}/app/skeletons/local,target=/app/skeletons/local,bind-propagation=rshared \
   --network=home --ip=${MINKE_IP} \
+  --log-driver json-file --log-opt max-size=10k --log-opt max-file=1 \
   registry.gitlab.com/minkebox/minke
 

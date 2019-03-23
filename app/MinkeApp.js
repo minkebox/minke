@@ -227,7 +227,14 @@ MinkeApp.prototype = {
         HostConfig: {
           Mounts: this._fs.getAllMounts(),
           Devices: [],
-          CapAdd: []
+          CapAdd: [],
+          LogConfig: {
+            Type: 'json-file',
+            Config: {
+              'max-file': '1',
+              'max-size': '10k'
+            }
+          }
         },
         Env: Object.keys(this._env).map(key => `${key}=${this._env[key].value}`)
       };
