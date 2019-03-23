@@ -330,14 +330,14 @@ html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
 
 /* ----- */
 .palette {
-  color: #b12427;
   color: #fd0a1a;
-  color: #fd1a91;
-  color: #fd471f;
   color: #ffd73e;
   color: #278b30;
+  color: #b12427;
   color: #808020;
+  color: #fd471f;
   color: #41b376;
+  color: #fd1a91;
   color: #88cce7;
   color: #19196b;
   color: #efad5a;
