@@ -5,6 +5,20 @@ const Handlebars = require('handlebars');
 const DEFAULT_POLLING = 60; // Default polling is 60 seconds
 const DEFAULT_PARSER = 'output=input;'
 const DEFAULT_TEMPLATE = function(data) { return data; };
+const DEFAULT_COLORS = [
+  '#fd0a1a',
+  '#ffd73e',
+  '#278b30',
+  '#b12427',
+  '#808020',
+  '#fd471f',
+  '#41b376',
+  '#fd1a91',
+  '#88cce7',
+  '#19196b',
+  '#efad5a',
+  '#d85452'
+];
 
 function debounce(func, timeout) {
   let timer = null;
@@ -55,7 +69,7 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
     }
     dowork();
   }
-  const sandbox = { input: null, output: null, state: null, props: { homeIP: app._homeIP }};
+  const sandbox = { input: null, output: null, state: null, props: { homeIP: app._homeIP, colors: DEFAULT_COLORS }};
   VM.createContext(sandbox);
   //console.log(parser);
   const extractor = VM.compileFunction(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, [], { parsingContext: sandbox });
