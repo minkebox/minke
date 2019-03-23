@@ -173,13 +173,17 @@ MinkeSetup.prototype = {
     if (DEBUG) {
       return false;
     }
-    const timezone = this._env.TIMEZONE.value;
-    const oldtimezone = FS.readFileSync('/etc/timezone', { encoding: 'utf8' });
-    const zonefile = `/usr/share/zoneinfo/${timezone}`;
-    if (oldtimezone != timezone && FS.existsSync(zonefile)) {
-      FS.copyFileSync(zonefile, '/etc/localtime');
-      FS.writeFileSync('/etc/timezone', timezone);
-      return true;
+    try {
+      const timezone = this._env.TIMEZONE.value;
+      const oldtimezone = FS.readFileSync('/etc/timezone', { encoding: 'utf8' });
+      const zonefile = `/usr/share/zoneinfo/${timezone}`;
+      if (oldtimezone != timezone && FS.existsSync(zonefile)) {
+        FS.copyFileSync(zonefile, '/etc/localtime');
+        FS.writeFileSync('/etc/timezone', timezone);
+        return true;
+      }
+    }
+    catch (_) {
     }
     return false;
   },
