@@ -180,7 +180,7 @@
             maintainAspectRatio: false,
             adaptive: true,
             legend: { display: false },
-            title: { display: true, text: 'Backup Usage (GB)' }
+            title: { display: true, text: 'Backup Usage (GB)' },
             scales: {
               xAxes: [{
                 ticks: {
