@@ -8,9 +8,22 @@
       title: `Networking`
     },
     {
+      type: 'Text',
+      text: 'Traffic from the source network, and targetting the domains listed below, will be routed to the target network.'
+    },
+    {
       type: `Network`,
       name: `primary`,
-      description: `Select network target for the proxied traffic`
+      description: `Select target network`
+    },
+    {
+      type: `Text`,
+      text: `Select source network for traffic. You probably want <b>home</b> unless this application is being used on a private network.`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      description: `Select source network`
     },
     {
       type: `Header`,
@@ -43,7 +56,9 @@
       nat: false,
       web: false,
       dns: false,
-      mdns: null
+      mdns: {
+        type: '_https._tcp'
+      }
     },
     {
       type: `Port`,
@@ -67,7 +82,9 @@
       nat: false,
       web: false,
       dns: false,
-      mdns: null
+      mdns: {
+        type: '_http._tcp'
+      }
     },
     {
       type: `Network`,
