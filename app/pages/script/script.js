@@ -544,6 +544,22 @@ Popbox.prototype = {
 
 /* Popbox */
 
+/* Default colors */
+window.mColors = [
+  '#fd0a1a',
+  '#ffd73e',
+  '#278b30',
+  '#b12427',
+  '#808020',
+  '#fd471f',
+  '#41b376',
+  '#fd1a91',
+  '#88cce7',
+  '#19196b',
+  '#efad5a',
+  '#d85452'
+];
+
 window.addEventListener('pageshow', onPageShow);
 window.addEventListener('resize', onResizePage);
 window.addEventListener('load', onResizePage);
