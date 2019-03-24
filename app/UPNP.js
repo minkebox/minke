@@ -36,7 +36,7 @@ const UPNP = {
       <UDN>uuid:${UPNP._uuid}</UDN>
       <serviceList>
       </serviceList>
-      <presentationURL>http://${UPNP._ip}/</presentationURL>
+      <presentationURL>http://${UPNP._ip}:${UPNP._port}/</presentationURL>
   </device>
 </root>`;
     });
@@ -47,6 +47,7 @@ const UPNP = {
     this._uuid = config.uuid;
     this._hostname = config.hostname;
     this._ip = config.ipaddress;
+    this._port = config.port;
 
     ssdp = SSDP({
       udn: `uuid:${this._uuid}`,
