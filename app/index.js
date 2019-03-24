@@ -11,6 +11,7 @@ const Pages = require('./pages/pages');
 const MinkeApp = require('./MinkeApp');
 const UPNP = require('./UPNP');
 
+const PORT = 41414;
 
 const App = Websockify(new Koa());
 global.docker = new Docker({socketPath: '/var/run/docker.sock'});
@@ -36,12 +37,17 @@ App.ws.use(async (ctx, next) => {
   }
 });
 
-MinkeApp.startApps(App, { inherit: process.env.RESTART_REASON === 'restart' });
+MinkeApp.startApps(App, { inherit: process.env.RESTART_REASON === 'restart', port: PORT });
+
+const Redirect = new Koa();
+Redirect.use(async ctx => {
+  ctx.redirect(`http://${ctx.request.hostname}:${PORT}${ctx.request.path}`);
+});
+Redirect.listen(80);
 
 process.on('uncaughtException', (e) => {
   console.error(e)   
 });
-
 process.on('SIGINT', async () => {
   await MinkeApp.shutdown({});
   process.exit();
