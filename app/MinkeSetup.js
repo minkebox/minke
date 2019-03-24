@@ -30,9 +30,10 @@ function MinkeSetup(savedConfig, config) {
   this._features = {};
   this._binds = [];
   this._customshares = [];
-  this._ports = [];
+  this._ports = [ { port: getEnv('PORT').value , protocol: 'TCP', mdns: { type: '_minke._tcp' } } ];
   this._networks = {
-    primary: 'host'
+    primary: getEnv('REMOTEMANAGEMENT').value || 'none',
+    secondary: 'host'
   };
   this._monitor = {};
   this._env = {
@@ -51,6 +52,7 @@ function MinkeSetup(savedConfig, config) {
   };
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
+  this._privateIP = this._homeIP;
   this._globalId = this._env.GLOBALID.value;
 }
 
@@ -86,6 +88,14 @@ MinkeSetup.prototype = {
       port: this._env.PORT.value,
       txt: []
     });
+    this._minkeMdns = await this._mdns.addRecord({
+      hostname: this._name,
+      domainname: 'local',
+      ip: this._env.IPADDRESS.value,
+      service: '_minke._tcp',
+      port: this._env.PORT.value,
+      txt: []
+    });
   },
 
   stop: async function() {
@@ -102,7 +112,16 @@ MinkeSetup.prototype = {
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
       service: '_http._tcp',
-      port: 80,
+      port: this._env.PORT.value,
+      txt: []
+    });
+    await this._mdns.removeRecord(this._minkeMdns);
+    this._minkeMdns = await this._mdns.addRecord({
+      hostname: this._name,
+      domainname: 'local',
+      ip: this._env.IPADDRESS.value,
+      service: '_minke._tcp',
+      port: this._env.PORT.value,
       txt: []
     });
     UPNP.update({ hostname: this._name });
@@ -117,6 +136,12 @@ MinkeSetup.prototype = {
       netmask: this._env.NETMASK.value,
       gateway: this._env.GATEWAY.value
     });
+    if (this._networks.primary !== 'none') {
+      const app = MinkeApp.getAppById(this._networks.primary);
+      if (app) {
+        app._needRestart = true;
+      }
+    }
     this._setTimezone();
     this._setUpdateTime();
     this.save();
@@ -139,12 +164,18 @@ MinkeSetup.prototype = {
       config[key] = this._env[key].value;
     }
     config.HOSTNAME = this._name;
+    config.REMOTEMANAGEMENT = this._networks.primary;
     config._id = this._id;
     await Database.saveConfig(config);
   },
 
   getAvailableNetworks: function() {
-    return [];
+    return MinkeApp.getApps().reduce((acc, app) => {
+      if (app._image === Images.MINKE_PRIVATE_NETWORK) {
+        acc.push({ _id: app._id, name: app._name });
+      }
+      return acc;
+    }, []);
   },
 
   _safeName: function() {

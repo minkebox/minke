@@ -94,6 +94,12 @@
       visible: `property['AdminMode'] == true`
     },
     {
+      type: 'Network',
+      name: 'primary',
+      description: 'Select an optional remote management network',
+      visible: `property['AdminMode'] == true`
+    },
+    {
       type: 'Environment',
       name: 'ADMINMODE',
       description: 'Admin Mode'
@@ -738,6 +744,28 @@
         { name: 'WET', value: 'WET' },
         { name: 'Zulu', value: 'Zulu' }
       ]
+    },
+    {
+      type: 'Port',
+      name: '41414/tcp',
+      port: 41414,
+      protocol: 'TCP',
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: {
+        type: '_minke._tcp'
+      }
+    },
+    {
+      type: 'Network',
+      name: 'primary',
+      defaultValue: 'none'
+    },
+    {
+      type: 'Network',
+      name: 'secondary',
+      defaultValue: 'home'
     }
   ],
   monitor: {

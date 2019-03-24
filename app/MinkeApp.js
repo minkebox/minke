@@ -919,6 +919,10 @@ MinkeApp.prototype = {
             return `${key}=${mdns.txt[key]}`;
           })
         }));
+        if (mdns.type === '_minke._tcp') {
+          // Remotely managed MinkeBox
+          // ...
+        }
       }
     }));
   },
