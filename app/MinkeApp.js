@@ -1123,6 +1123,7 @@ MinkeApp.startApps = async function(app, config) {
     HOSTNAME: 'Minke',
     LOCALDOMAIN: 'home',
     DHCP: MinkeApp._network.dhcp,
+    PORT: config.port || 80,
     IPADDRESS: MinkeApp._network.network.ip_address,
     GATEWAY: MinkeApp._network.network.gateway_ip,
     NETMASK: MinkeApp._network.netmask.mask,
@@ -1138,7 +1139,7 @@ MinkeApp.startApps = async function(app, config) {
   // Safe to start listening - only on the home network.
   app.listen({
     host: MinkeApp._network.network.ip_address,
-    port: 80
+    port: config.port || 80
   });
 
   // Stop or inherit apps if they're still running
