@@ -38,6 +38,7 @@ function MinkeSetup(savedConfig, config) {
   this._env = {
     LOCALDOMAIN: getEnv('LOCALDOMAIN'),
     DHCP: getEnv('DHCP'),
+    PORT: getEnv('PORT'),
     IPADDRESS: getEnv('IPADDRESS'),
     NETMASK: getEnv('NETMASK'),
     GATEWAY: getEnv('GATEWAY'),
@@ -73,7 +74,8 @@ MinkeSetup.prototype = {
     UPNP.start({
       uuid: this._globalId,
       hostname: this._name,
-      ipaddress: this._env.IPADDRESS.value
+      ipaddress: this._env.IPADDRESS.value,
+      port: this._env.PORT.value
     });
 
     this._hostMdns = await this._mdns.addRecord({
@@ -81,7 +83,7 @@ MinkeSetup.prototype = {
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
       service: '_http._tcp',
-      port: 80,
+      port: this._env.PORT.value,
       txt: []
     });
   },
