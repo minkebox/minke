@@ -30,7 +30,10 @@ function MinkeSetup(savedConfig, config) {
   this._features = {};
   this._binds = [];
   this._customshares = [];
-  this._ports = [ { port: getEnv('PORT').value , protocol: 'TCP', mdns: { type: '_minke._tcp' } } ];
+  this._ports = [
+    { port: getEnv('PORT').value, protocol: 'TCP', mdns: { type: '_minke._tcp' } },
+    { port: getEnv('PORT').value + 1, protocol: 'TCP', mdns: { type: '_ssh._tcp' } }
+  ];
   this._networks = {
     primary: getEnv('REMOTEMANAGEMENT').value || 'none',
     secondary: 'host'
@@ -96,6 +99,14 @@ MinkeSetup.prototype = {
       port: this._env.PORT.value,
       txt: []
     });
+    this._sshdMdns = await this._mdns.addRecord({
+      hostname: this._name,
+      domainname: 'local',
+      ip: this._env.IPADDRESS.value,
+      service: '_ssh._tcp',
+      port: this._env.PORT.value + 1,
+      txt: []
+    });
   },
 
   stop: async function() {
@@ -122,6 +133,15 @@ MinkeSetup.prototype = {
       ip: this._env.IPADDRESS.value,
       service: '_minke._tcp',
       port: this._env.PORT.value,
+      txt: []
+    });
+    await this._mdns.removeRecord(this._sshdMdns);
+    this._sshdMdns = await this._mdns.addRecord({
+      hostname: this._name,
+      domainname: 'local',
+      ip: this._env.IPADDRESS.value,
+      service: '_ssh._tcp',
+      port: this._env.PORT.value + 1,
       txt: []
     });
     UPNP.update({ hostname: this._name });

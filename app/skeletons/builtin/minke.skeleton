@@ -758,6 +758,18 @@
       }
     },
     {
+      type: 'Port',
+      name: '41415/tcp',
+      port: 41415,
+      protocol: 'TCP',
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: {
+        type: '_ssh._tcp'
+      }
+    },
+    {
       type: 'Network',
       name: 'primary',
       defaultValue: 'none'
