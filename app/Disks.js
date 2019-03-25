@@ -16,7 +16,8 @@ const DF = require('@sindresorhus/df');
 
 const TICK = 10 * 60 * 1000;
 const TAG = '.minke-formatted';
-const NAME = 'sdb';
+const ROOT = process.env.ROOTDISK || 'sda';
+const NAME = ROOT === 'sda' ? 'sdb' : ROOT === 'sdb' ? 'sda' : '__unknown__';
 const PART = 1;
 
 const Disks = {
@@ -38,7 +39,7 @@ const Disks = {
     this._info.boot = {
       style: 'boot',
       root: '/minke',
-      name: 'sda',
+      name: ROOT,
       part: 2,
       size: 0,
       used: 0,
