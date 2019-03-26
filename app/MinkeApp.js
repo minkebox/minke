@@ -482,7 +482,8 @@ MinkeApp.prototype = {
               Container: this._helperContainer.id
             });
           }
-          catch (_) {
+          catch (e) {
+            console.error(e);
           }
           management = null;
         }
@@ -528,7 +529,7 @@ MinkeApp.prototype = {
       }
 
       let ipAddr = this._homeIP;
-      if (!ipAddr && this._helperContainer) {
+      if (!ipAddr && this._helperContainer && management) {
         const containerInfo = await this._helperContainer.inspect();
         ipAddr = containerInfo.NetworkSettings.Networks.management.IPAddress;
       }
