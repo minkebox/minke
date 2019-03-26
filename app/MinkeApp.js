@@ -484,8 +484,8 @@ MinkeApp.prototype = {
           }
           catch (e) {
             console.error(e);
+            management = null;
           }
-          management = null;
         }
 
         // Wait while the helper configures everything.
@@ -529,9 +529,14 @@ MinkeApp.prototype = {
       }
 
       let ipAddr = this._homeIP;
-      if (!ipAddr && this._helperContainer && management) {
+      if (!ipAddr && this._helperContainer) {
         const containerInfo = await this._helperContainer.inspect();
-        ipAddr = containerInfo.NetworkSettings.Networks.management.IPAddress;
+        if (containerInfo.NetworkSettings.Networks.management) {
+          ipAddr = containerInfo.NetworkSettings.Networks.management.IPAddress;
+        }
+        else {
+          console.error('Missing management network', containerInfo.NetworkSettings.Networks);
+        }
       }
 
       if (ipAddr) {
