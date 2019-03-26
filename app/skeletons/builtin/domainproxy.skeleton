@@ -1,0 +1,97 @@
+{
+  name: `Domain Proxy`,
+  description: `Send web requests to specific domains via a proxy`,
+  image: `registry.gitlab.com/minkebox/domainproxy`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Networking`
+    },
+    {
+      type: 'Text',
+      text: 'Traffic targetting the domains listed below, will be routed to the proxy IP address.'
+    },
+    {
+      type: `Environment`,
+      name: `PROXYIP`,
+      description: `Proxy IP Address`,
+      placeholder: '0.0.0.0'
+    },
+    {
+      type: `Text`,
+      text: `Select source network for traffic. You probably want <b>home</b> unless this application is being used on a private network.`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      description: `Select source network`
+    },
+    {
+      type: `Header`,
+      title: `Proxied Domains`
+    },
+    {
+      type: `File`,
+      name: `/etc/dnsmasq.d/proxies.preconf`,
+      description: `Add the domains (which will automatically include any sub-domains) here. All traffic to these domains will be proxied via the proxy address.`,
+      style: `Table`,
+      headers: [
+        { name: `Domain name` }
+      ],
+      pattern: `{{0}}`
+    }
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `dns`
+    },
+    {
+      type: `File`,
+      style: 'boot',
+      name: `/etc/dnsmasq.d/proxies.preconf`
+    },
+    {
+      type: `Environment`,
+      name: `PROXYIP`
+    },
+    {
+      type: `Port`,
+      name: `53/tcp`,
+      port: 53,
+      protocol: 'TCP',
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `53/udp`,
+      port: 53,
+      protocol: 'UDP',
+      nat: false,
+      web: false,
+      dns: true,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `none`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
