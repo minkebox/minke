@@ -14,6 +14,7 @@ const DF = require('@sindresorhus/df');
  *                /<id>/... Application data needing large disk (store)
  */
 
+const TAG = '.minke-formatted';
 const TICK = 10 * 60 * 1000;
 const BOOT = process.env.ROOTDISK || 'sda';
 const STORE = BOOT === 'sda' ? 'sdb' : BOOT === 'sdb' ? 'sda' : '__unknown__';
@@ -36,8 +37,6 @@ const Disks = {
 
   _initDisks: async function() {
 
-    const MinkeApp = require('./MinkeApp');
-
     this._diskinfo = {};
 
     // Find disks
@@ -56,7 +55,7 @@ const Disks = {
           if (diskid === STORE) {
             info.root = '/mnt/store';
             const mounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' })
-            if (mounts.indexOf(`/dev/${diskid}${info.part} /mnt/store`) !== -1 && FS.existsSync(`/mnt/store/${MinkeApp.getGlobalID()}`)) {
+            if (mounts.indexOf(`/dev/${diskid}${info.part} /mnt/store`) !== -1 && FS.existsSync(`/mnt/store/${TAG}`)) {
               info.status = 'ready';
             }
           }
@@ -87,8 +86,6 @@ const Disks = {
   },
 
   _formatDisk: async function(id) {
-    
-    const MinkeApp = require('./MinkeApp');
 
     const info = this._diskinfo[id];
     if (!info || info.status === 'ready') {
@@ -105,7 +102,7 @@ const Disks = {
     }
   
     // Must remove the tag to reformat.
-    if (FS.existsSync(`${info.root}/${MinkeApp.getGlobalID()}`)) {
+    if (FS.existsSync(`${info.root}/${TAG}`)) {
       throw new Error('Disk already formatted');
     }
 
@@ -139,7 +136,7 @@ const Disks = {
       info.status = 'unformatted';
     }
     else {
-      FS.writeFileSync(`${info.root}/${MinkeApp.getGlobalID()}`, '');
+      FS.writeFileSync(`${info.root}/${TAG}`, '');
       info.status = 'ready';
       await this._update();
     }
