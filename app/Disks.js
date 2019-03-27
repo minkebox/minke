@@ -1,7 +1,6 @@
 const FS = require('fs');
 const ChildProcess = require('child_process');
 const DF = require('@sindresorhus/df');
-const MinkeApp = require('./MinkeApp');
 
 /*
  * Disk structure:
@@ -36,6 +35,8 @@ const Disks = {
   },
 
   _initDisks: async function() {
+
+    const MinkeApp = require('./MinkeApp');
 
     this._diskinfo = {};
 
@@ -86,6 +87,9 @@ const Disks = {
   },
 
   _formatDisk: async function(id) {
+    
+    const MinkeApp = require('./MinkeApp');
+
     const info = this._diskinfo[id];
     if (!info || info.status === 'ready') {
       throw new Error('Cannot format');
