@@ -2,6 +2,7 @@
   name: `OpenVPN`,
   description: `OpenVPN client for use with various OpenVPN servers`,
   image: `registry.gitlab.com/minkebox/openvpnclient`,
+  tags: [ 'VPN' ],
   actions: [
     {
       type: `Environment`,

@@ -33,14 +33,11 @@
         <div class="title">Minke</div>
         <button class="pure-button" onclick="openInlinePage('new/application/')">Install App</button>
         <div class="pure-menu">
-          <ul class="pure-menu-list">
-            <li class="pure-menu-heading">Networks</li>
-            <li class="pure-menu-item">
-              <a class="pure-menu-link" onclick="filter(null)"><span style="background-color:transparent"></span>All</a>
-            </li>
+          <ul class="pure-menu-list" style="padding-left:6px">
+            <li class="pure-menu-heading">Tags</li>
           </ul>
-          <ul class="pure-menu-list" id="network-insertion-point">
-            {{> Nets}}
+          <ul class="pure-menu-list" id="tag-insertion-point">
+            {{> Tags}}
           </ul>
         </div>
       </div>

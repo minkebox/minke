@@ -2,6 +2,7 @@
   name: `Plex`,
   description: `Your favorite movies, TV, music, web shows, podcasts, and more, all streamed to your favorite screens`,
   image: `linuxserver/plex`,
+  tags: [ 'Media' ],
   actions: [
     {
       type: `Header`,

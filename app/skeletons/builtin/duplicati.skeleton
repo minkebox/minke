@@ -2,6 +2,7 @@
   name: `Backups`,
   description: `Multi-protocol, offsite backups using Duplicati`,
   image: `linuxserver/duplicati`,
+  tags: [ 'Backups' ],
   actions: [
     {
       type: `Header`,

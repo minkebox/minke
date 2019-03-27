@@ -47,9 +47,11 @@ MinkeApp.prototype = {
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel && skel.monitor) {
       this._monitor = skel.monitor;
+      this._tags = (skel.tags || []).concat([ 'All' ]);
     }
     else {
       this._monitor = {};
+      this._tags = [ 'All' ];
     }
 
     this._setStatus('stopped');
@@ -203,6 +205,7 @@ MinkeApp.prototype = {
     this._customshares = [];
     this._monitor = skel.monitor;
     this._bootcount = 0;
+    this._tags = skel.tags || [];
 
     return this;
   },
@@ -1276,6 +1279,13 @@ MinkeApp.getNetworks = function() {
   return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
     return app && app._willCreateNetwork() ? { _id: app._id, name: app._name } : null;
   }));
+}
+
+MinkeApp.getTags = function() {
+  return Object.keys(MinkeApp.getApps().reduce((acc, app) => {
+    app._tags.forEach(tag => acc[tag] = true);
+    return acc;
+  }, { All: true }));
 }
 
 MinkeApp.needRestart = function() {

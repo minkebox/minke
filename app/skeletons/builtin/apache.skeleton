@@ -2,6 +2,7 @@
   name: `Website`,
   description: `Simple, static, website based on the Apache web server`,
   image: `registry.gitlab.com/minkebox/apache`,
+  tags: [ 'Web' ],
   actions: [
     {
       type: `Header`,

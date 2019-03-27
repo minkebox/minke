@@ -62,64 +62,64 @@ body {
   border-left: 12px solid transparent;
 }
 
-.app.net-0 {
+.app.tag-color-0 {
   border-left-color: #278b30;
 }
-.nav .pure-menu-link span.net-0 {
+.nav .pure-menu-link span.tag-color-0 {
   background: #278b30;
 }
-.app.net-1 {
+.app.tag-color-1 {
   border-left-color: #ffd73e;
 }
-.nav .pure-menu-link span.net-1 {
+.nav .pure-menu-link span.tag-color-1 {
   background: #ffd73e;
 }
-.app.net-2 {
+.app.tag-color-2 {
   border-left-color: #b12427;
 }
-.nav .pure-menu-link span.net-2 {
+.nav .pure-menu-link span.tag-color-2 {
   background: #b12427;
 }
-.app.net-3 {
+.app.tag-color-3 {
   border-left-color: #88cce7;
 }
-.nav .pure-menu-link span.net-3 {
+.nav .pure-menu-link span.tag-color-3 {
   background: #88cce7;
 }
-.app.net-4 {
+.app.tag-color-4 {
   border-left-color: #fd0a1a;
 }
-.nav .pure-menu-link span.net-4 {
+.nav .pure-menu-link span.tag-color-4 {
   background: #fd0a1a;
 }
-.app.net-5 {
+.app.tag-color-5 {
   border-left-color: #808020;
 }
-.nav .pure-menu-link span.net-5 {
+.nav .pure-menu-link span.tag-color-5 {
   background: #808020;
 }
-.app.net-6 {
+.app.tag-color-6 {
   border-left-color: #efad5a;
 }
-.nav .pure-menu-link span.net-6 {
+.nav .pure-menu-link span.tag-color-6 {
   background: #efad5a;
 }
-.app.net-7 {
+.app.tag-color-7 {
   border-left-color: #fd1a91;
 }
-.nav .pure-menu-link span.net-7 {
+.nav .pure-menu-link span.tag-color-7 {
   background: #fd1a91;
 }
-.app.net-8 {
+.app.tag-color-8 {
   border-left-color: #d85452;
 }
-.nav .pure-menu-link span.net-8 {
+.nav .pure-menu-link span.tag-color-8 {
   background: #d85452;
 }
-.app.net-9 {
+.app.tag-color-9 {
   border-left-color: #41b376;
 }
-.nav .pure-menu-link span.net-9 {
+.nav .pure-menu-link span.tag-color-9 {
   background: #41b376;
 }
 
@@ -265,34 +265,34 @@ body {
   padding: 10px;
 }
 
-.application-status.net-0 {
+.application-status.tag-color-0 {
   border-color: #278b30;
 }
-.application-status.net-1 {
+.application-status.tag-color-1 {
   border-color: #ffd73e;
 }
-.application-status.net-2 {
+.application-status.tag-color-2 {
   border-color: #b12427;
 }
-.application-status.net-3 {
+.application-status.tag-color-3 {
   border-color: #88cce7;
 }
-.application-status.net-4 {
+.application-status.tag-color-4 {
   border-color: #fd0a1a;
 }
-.application-status.net-5 {
+.application-status.tag-color-5 {
   border-color: #808020;
 }
-.application-status.net-6 {
+.application-status.tag-color-6 {
   border-color: #efad5a;
 }
-.application-status.net-7 {
+.application-status.tag-color-7 {
   border-color: #fd1a91;
 }
-.application-status.net-8 {
+.application-status.tag-color-8 {
   border-color: #d85452;
 }
-.application-status.net-9 {
+.application-status.tag-color-9 {
   border-color: #41b376;
 }
 

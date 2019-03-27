@@ -57,6 +57,7 @@ function MinkeSetup(savedConfig, config) {
   this._homeIP = this._env.IPADDRESS.value;
   this._privateIP = this._homeIP;
   this._globalId = this._env.GLOBALID.value;
+  this._tags = [ 'All' ];
 }
 
 MinkeSetup.prototype = {

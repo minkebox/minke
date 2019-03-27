@@ -1,0 +1,5 @@
+{{#each tags}}
+<ul class="pure-menu-list tag-{{nsp this}}">
+  <li class="pure-menu-item"><a class="pure-menu-link" onclick="filter('tag-{{nsp this}}')"><span class="tag-color-{{@index}}"></span>{{this}}</a></li>
+</ul>
+{{/each}}

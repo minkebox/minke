@@ -2,6 +2,7 @@
   name: `Simple VPN`,
   description: `Super simple VPN to connect to your home network`,
   image: `registry.gitlab.com/minkebox/openvpnserver`,
+  tags: [ 'VPN' ],
   actions: [
     {
       type: `Header`,

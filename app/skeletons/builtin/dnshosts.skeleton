@@ -2,6 +2,7 @@
   name: `Hostnames`,
   description: `Create simple mappings between fully qualified hostnames and IP addresses`,
   image: `registry.gitlab.com/minkebox/dnshosts`,
+  tags: [ 'Network Services' ],
   actions: [
     {
       type: `Header`,

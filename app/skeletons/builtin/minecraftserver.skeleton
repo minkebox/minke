@@ -2,6 +2,7 @@
   name: `Minecraft`,
   description: `Moddable Minecraft Server`,
   image: `itzg/minecraft-server`,
+  tags: [ 'Games' ],
   actions: [
     {
       type: `Text`,

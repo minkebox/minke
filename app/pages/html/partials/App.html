@@ -1,4 +1,4 @@
-<div class="app filter pure-g application-{{_id}} net-{{network}}">
+<div class="app filter pure-g application-{{_id}}{{#each tags}} tag-{{nsp this}}{{/each}} tag-color-{{tagcolor}}">
   <div class="pure-u-1-4 left" onclick="openInlinePage('configure/{{_id}}/')">
     <h5>{{status}}</h5>
     <h4>{{name}}</h4>

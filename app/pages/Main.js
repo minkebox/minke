@@ -2,7 +2,7 @@ const FS = require('fs');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 
-function genApp(app, networks) {
+function genApp(app, tags) {
   return {
     _id: app._id,
     name: app._name,
@@ -10,21 +10,12 @@ function genApp(app, networks) {
     ip: app._status !== 'running' ? null : app._homeIP,
     link: app._forward && app._forward.url,
     linktarget: app._forward && app._forward.target,
-    network: !networks ? 0 : (app._networks.primary === 'host' || app._networks.primary === 'none') ? 0 : networks.findIndex((net) => {
-      if (!net) {
-        return false;
-      }
-      else if (app._willCreateNetwork()) {
-        return net._id === app._id;
-      }
-      else {
-        return net._id === app._networks.primary;
-      }
-    })
+    tags: app._tags,
+    tagcolor: tags.indexOf(app._tags[0]),
   }
 }
 
-function genAppStatus(acc, app, networks) {
+function genAppStatus(acc, app, tags) {
   if (app._monitor.cmd) {
     acc.push({
       _id: app._id,
@@ -34,41 +25,30 @@ function genAppStatus(acc, app, networks) {
       link: app._forward && app._forward.url,
       linktarget: app._forward && app._forward.target,
       running: app._status === 'running',
-      network: !networks ? 0 : (app._networks.primary === 'host' || app._networks.primary === 'none') ? 0 : networks.findIndex((net) => {
-        if (!net) {
-          return false;
-        }
-        else if (app._willCreateNetwork()) {
-          return net._id === app._id;
-        }
-        else {
-          return net._id === app._networks.primary;
-        }
-      })
+      tags: app._tags,
+      tagcolor: tags.indexOf(app._tags[0]),
     });
   }
   return acc;
 }
 
 let mainTemplate;
-let remoteAppTemplate;
 let appTemplate;
 let appStatusTemplate;
-let netsTemplate;
+let tagsTemplate;
 function registerTemplates() {
   const partials = [
     'App',
     'AppStatus',
-    'Nets'
+    'Tags'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
   });
   mainTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Main.html`, { encoding: 'utf8' }));
-  remoteAppTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/RemoteApp.html`, { encoding: 'utf8' }));
   appTemplate = Handlebars.compile('{{> App}}');
   appStatusTemplate = Handlebars.compile('{{> AppStatus}}');
-  netsTemplate = Handlebars.compile('{{> Nets}}');
+  tagsTemplate = Handlebars.compile('{{> Tags}}');
 }
 if (!DEBUG) {
   registerTemplates();
@@ -82,9 +62,10 @@ async function MainPageHTML(ctx) {
   }
 
   const networks = MinkeApp.getNetworks();
-  const apps = MinkeApp.getApps().map(app => genApp(app, networks));
-  const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app, networks), []);
-  ctx.body = mainTemplate({ adminMode: MinkeApp.getAdminMode(), networks: networks, apps: apps, statuses: statuses });
+  const tags = MinkeApp.getTags();
+  const apps = MinkeApp.getApps().map(app => genApp(app, tags));
+  const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app, tags), []);
+  ctx.body = mainTemplate({ adminMode: MinkeApp.getAdminMode(), networks: networks, tags: tags, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
 }
 
@@ -104,29 +85,25 @@ async function MainPageWS(ctx) {
 
   let apps = MinkeApp.getApps();
 
-  function updateNetworkConfig(event) {
-    const networks = event.app.getAvailableNetworks();
-    const html = appTemplate(genApp(event.app, networks));
-    send({
-      type: 'html.replace',
-      selector: `.application-${event.app._id}`,
-      html: html
-    });
-    const appstatus = genAppStatus([], event.app, networks);
-    if (appstatus.length) {
-      send({
-        type: 'html.replace',
-        selector: `.application-status-${event.app._id}`,
-        html: appStatusTemplate(appstatus[0])
-      });
-    }
-    delete oldStatus[event.app._id];
-    delete onlines[event.app._id];
-  }
-
   function updateStatus(event) {
     if (event.status !== onlines[event.app._id]) {
-      updateNetworkConfig(event);
+      const tags = MinkeApp.getTags();
+      const html = appTemplate(genApp(event.app, tags));
+      send({
+        type: 'html.replace',
+        selector: `.application-${event.app._id}`,
+        html: html
+      });
+      const appstatus = genAppStatus([], event.app, tags);
+      if (appstatus.length) {
+        send({
+          type: 'html.replace',
+          selector: `.application-status-${event.app._id}`,
+          html: appStatusTemplate(appstatus[0])
+        });
+      }
+      delete oldStatus[event.app._id];
+      delete onlines[event.app._id];
       onlines[event.app._id] = event.status;
     }
   }
@@ -143,55 +120,19 @@ async function MainPageWS(ctx) {
     }
   }
 
-  function updateServices(status) {
-    const networks = MinkeApp.getNetworks();
-    const oldApps = remoteApps[status.app._id] || {};
-    const existApps = {};
-    const newApps = {};
-    status.services.forEach((service) => {
-      if (service.name in oldApps) {
-        existApps[service.name] = oldApps[service.name];
-      }
-      else {
-        newApps[service.name] = { netid: status.app._id, name: service.target, network: networks.findIndex(net => net && net._id === status.app._id) };
-        existApps[service.name] = newApps[service.name];
-      }
-      delete oldApps[service.name];
-    });
-    remoteApps[status.app._id] = existApps;
-
-    for (let name in oldApps) {
-      send({
-        type: 'html.remove',
-        selector: `.remote-application-${status.app._id}-${oldApps[name].name}`
-      });
-    }
-    for (let name in newApps) {
-      send({
-        type: 'html.append',
-        selector: '#app-insertion-point',
-        html: remoteAppTemplate(newApps[name])
-      });
-    }
-  }
-
   function online(app) {
     app.on('update.status', updateStatus);
     app.on('update.monitor', updateMonitor);
-    app.on('update.services', updateServices);
-    app.on('update.network.config', updateNetworkConfig);
   }
 
   function offline(app) {
     app.off('update.status', updateStatus);
     app.off('update.monitor', updateMonitor);
-    app.off('update.services', updateServices);
-    app.off('update.network.config', updateNetworkConfig);
   }
 
   function createApp(status) {
-    const networks = status.app.getAvailableNetworks();
-    const html = appTemplate(genApp(status.app, networks));
+    const tags = MinkeApp.getTags();
+    const html = appTemplate(genApp(status.app, tags));
     send({
       type: 'html.append',
       selector: `#app-insertion-point`,
@@ -199,7 +140,7 @@ async function MainPageWS(ctx) {
     });
     online(status.app);
     apps = MinkeApp.getApps();
-    const appstatus = genAppStatus([], status.app, networks);
+    const appstatus = genAppStatus([], status.app, tags);
     if (appstatus.length) {
       send({
         type: 'html.append',
@@ -207,9 +148,15 @@ async function MainPageWS(ctx) {
         html: appStatusTemplate(appstatus[0])
       });
     }
+    send({
+      type: 'html.update',
+      selector: '#tag-insertion-point',
+      html: tagsTemplate({ tags: tags })
+    });
   }
 
   function removeApp(status) {
+    const tags = MinkeApp.getTags();
     send({
       type: 'html.remove',
       selector: `.application-${status.app._id}`
@@ -218,23 +165,13 @@ async function MainPageWS(ctx) {
       type: 'html.remove',
       selector: `.application-status-${status.app._id}`
     });
-    offline(status.app);
-    apps = MinkeApp.getApps();
-  }
-
-  function updateNets(status) {
     send({
       type: 'html.update',
-      selector: '#network-insertion-point',
-      html: netsTemplate({ networks: MinkeApp.getNetworks() })
+      selector: '#tag-insertion-point',
+      html: tagsTemplate({ tags: tags })
     });
-  }
-
-  function removeNet(status) {
-    send({
-      type: 'html.remove',
-      selector: `.network-${status.network._id}`
-    });
+    offline(status.app);
+    apps = MinkeApp.getApps();
   }
 
   ctx.websocket.on('message', (msg) => {
@@ -245,8 +182,6 @@ async function MainPageWS(ctx) {
     apps.forEach(app => offline(app));
     MinkeApp.off('app.create', createApp);
     MinkeApp.off('app.remove', removeApp);
-    MinkeApp.off('net.create', updateNets);
-    MinkeApp.off('net.remove', removeNet);
   });
 
   ctx.websocket.on('error', () => {
@@ -256,8 +191,6 @@ async function MainPageWS(ctx) {
   apps.forEach(app => online(app));
   MinkeApp.on('app.create', createApp);
   MinkeApp.on('app.remove', removeApp);
-  MinkeApp.on('net.create', updateNets);
-  MinkeApp.on('net.remove', removeNet);
 }
 
 module.exports = {

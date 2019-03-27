@@ -2,6 +2,7 @@
   name: `Configure`,
   description: `Essential Minke configuration`,
   image: `registry.gitlab.com/minkebox/minke`,
+  tags: [ 'All' ],
   actions: [
     {
       type: 'Header',

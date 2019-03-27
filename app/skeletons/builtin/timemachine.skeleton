@@ -2,6 +2,7 @@
   name: `TimeMachine Backups`,
   description: `Destination for your Apple TimeMachine backups`,
   image: `registry.gitlab.com/minkebox/timemachine`,
+  tags: [ 'Backups' ],
   actions: [
     {
       type: `Header`,

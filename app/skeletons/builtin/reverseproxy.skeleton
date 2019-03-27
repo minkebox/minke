@@ -2,6 +2,7 @@
   name: `Website Proxy`,
   description: `Make your websites available to the outside world`,
   image: `registry.gitlab.com/minkebox/reverseproxy`,
+  tags: [ 'Web' ],
   actions: [
     {
       type: `Header`,

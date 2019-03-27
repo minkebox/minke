@@ -2,6 +2,7 @@
   name: `Private Network`,
   description: `Secure, private network between you and a friend`,
   image: `registry.gitlab.com/minkebox/privatenetwork`,
+  tags: [ 'Private Networks' ],
   actions: [
     {
       type: `Header`,
