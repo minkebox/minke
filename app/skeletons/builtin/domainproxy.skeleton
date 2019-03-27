@@ -1,6 +1,6 @@
 {
   name: `Domain Proxy`,
-  description: `Send web requests to specific domains via a proxy`,
+  description: `Send web requests for specific domains via a proxy`,
   image: `registry.gitlab.com/minkebox/domainproxy`,
   tags: [ 'Proxies' ],
   actions: [
