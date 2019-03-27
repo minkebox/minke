@@ -37,7 +37,7 @@ App.ws.use(async (ctx, next) => {
   }
 });
 
-MinkeApp.startApps(App, { inherit: process.env.RESTART_REASON === 'restart', port: PORT });
+MinkeApp.startApps(App, { inherit: process.env.RESTART_REASON === 'restart' || process.env.RESTART_REASON === 'update', port: PORT });
 
 const Redirect = new Koa();
 Redirect.use(async ctx => {
