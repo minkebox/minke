@@ -296,34 +296,6 @@ body {
   border-color: #41b376;
 }
 
-.main .ct-line {
-  stroke-width: 2px;
-}
-.main .ct-series-a .ct-bar, .main .ct-series-a .ct-line, .main .ct-series-a .ct-point, .main .ct-series-a .ct-slice-donut {
-  stroke: #88cce7;
-}
-.main .ct-series-b .ct-bar, .main .ct-series-b .ct-line, .main .ct-series-b .ct-point, .main .ct-series-b .ct-slice-donut {
-  stroke: #278b30;
-}
-.main .ct-series-c .ct-bar, .main .ct-series-c .ct-line, .main .ct-series-c .ct-point, .main .ct-series-c .ct-slice-donut {
-  stroke: #efad5a;
-}
-.main .ct-series-d .ct-bar, .main .ct-series-d .ct-line, .main .ct-series-d .ct-point, .main .ct-series-d .ct-slice-donut {
-  stroke: #b12427;
-}
-.main .ct-series-a .ct-slice-pie {
-  fill: #88cce7;
-}
-.main .ct-series-b .ct-slice-pie {
-  fill: #278b30;
-}
-.main .ct-series-c .ct-slice-pie {
-  fill: #efad5a;
-}
-.main .ct-series-d .ct-slice-pie {
-  fill: #b12427;
-}
-
 html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
   display: none;
 }
