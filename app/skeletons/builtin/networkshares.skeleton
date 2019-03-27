@@ -2,7 +2,7 @@
   name: `Network Folders`,
   description: `Mount SMB/CIFS shares from another machine and make them available locally.`,
   image: `registry.gitlab.com/minkebox/networkshares`,
-  tags: [ 'Shares', 'Files' ],
+  tags: [ 'Shares', 'Storage' ],
   actions: [
     {
       type: `Header`,
