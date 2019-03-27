@@ -25,7 +25,7 @@ const Disks = {
 
   _diskinfo: null,
   _timer: null,
-  _names: {},
+  _names: null,
 
   init: async function() {
     this._timer = setInterval(async () => {
@@ -38,8 +38,10 @@ const Disks = {
   _initDisks: async function() {
 
     this._diskinfo = {};
+    this._names = {};
 
     // Find disks
+    this._names.boot = BOOT;
     DISKS.forEach((diskid) => {
       if (FS.existsSync(`/sys/block/${diskid}`)) {
         const info = {
@@ -57,17 +59,13 @@ const Disks = {
             const mounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' })
             if (mounts.indexOf(`/dev/${diskid}${info.part} /mnt/store`) !== -1 && FS.existsSync(`/mnt/store/${TAG}`)) {
               info.status = 'ready';
+              this._names.store = diskid;
             }
           }
         }
         this._diskinfo[diskid] = info;
       }
     });
-
-    this._names.boot = BOOT;
-    if (this._diskinfo[STORE]) {
-      this._names.store = STORE;
-    }
   },
 
   _update: async function() {
