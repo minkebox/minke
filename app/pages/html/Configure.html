@@ -10,8 +10,10 @@
     <div class="pure-g">
       {{#with skeleton}}
       <div class="sidebar pure-u-1">
-        <div class="header">            
-          <input class="name" type="text" placeholder="{{name}}" oninput="action('Name',this.value)" value="{{value}}">
+        <div class="header"> 
+          <div class="name">
+            <input size="25" type="text" placeholder="{{name}}" oninput="action('Name',this.value)" value="{{value}}">
+          </div>
           <h2 class="description">{{{description}}}</h2>
           <nav>
             {{#if ../minkeConfig}}

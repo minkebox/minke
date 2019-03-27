@@ -49,15 +49,17 @@ body {
 }
 
 .configure .header .name {
+  width: 100%;
+  border-bottom: 2px solid rgb(176, 202, 219);
+}
+.configure .header .name input {
   background: inherit;
   font-size: 2em;
-  width: 100%;
   text-align: right;
-  padding: 2px;
-  border: 0px;
-  border-bottom: 2px solid rgb(176, 202, 219);
   outline: none;
   white-space: pre;
+  border: 0.5px dotted rgb(83, 139, 176);
+  padding: 2px;
 }
 
 .configure .section.invisible, .configure .action.invisible {
