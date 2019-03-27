@@ -1,6 +1,7 @@
 const FS = require('fs');
 const ChildProcess = require('child_process');
 const DF = require('@sindresorhus/df');
+const MinkeApp = require('./MinkeApp');
 
 /*
  * Disk structure:
@@ -15,15 +16,16 @@ const DF = require('@sindresorhus/df');
  */
 
 const TICK = 10 * 60 * 1000;
-const TAG = '.minke-formatted';
-const ROOT = process.env.ROOTDISK || 'sda';
-const NAME = ROOT === 'sda' ? 'sdb' : ROOT === 'sdb' ? 'sda' : '__unknown__';
-const PART = 1;
+const BOOT = process.env.ROOTDISK || 'sda';
+const STORE = BOOT === 'sda' ? 'sdb' : BOOT === 'sdb' ? 'sda' : '__unknown__';
+const BLOCKSIZE = 512;
+const DISKS = [ 'sda', 'sdb', 'sdc', 'sdd', 'sde' ];
 
 const Disks = {
 
-  _info: null,
+  _diskinfo: null,
   _timer: null,
+  _names: {},
 
   init: async function() {
     this._timer = setInterval(async () => {
@@ -34,47 +36,48 @@ const Disks = {
   },
 
   _initDisks: async function() {
-    this._info = {};
 
-    this._info.boot = {
-      style: 'boot',
-      root: '/minke',
-      name: ROOT,
-      part: 2,
-      size: 0,
-      used: 0,
-      status: 'ready'
-    };
+    this._diskinfo = {};
 
-    if (FS.existsSync(`/sys/block/${NAME}`)) {
-      this._info.store = {
-        style: 'store',
-        root: '/mnt/store',
-        name: NAME,
-        part: PART,
-        size: 512 * parseInt(FS.readFileSync(`/sys/block/${NAME}/size`, { encoding: 'utf8' })),
-        used: 0,
-        status: 'unformatted'
-      };
-
-      const info = this._info.store;
-      if (FS.existsSync(`/sys/block/${info.name}/${info.name}1`)) {
-        this._info.store.status = 'partitioned';
-        const mounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' });
-        if (mounts.indexOf(info.root) !== -1 && FS.existsSync(`${info.root}/${TAG}`)) {
-          this._info.store.status = 'ready';
+    // Find disks
+    DISKS.forEach((diskid) => {
+      if (FS.existsSync(`/sys/block/${diskid}`)) {
+        const info = {
+          name: diskid,
+          root: diskid === BOOT ? '/minke': null,
+          part: diskid === BOOT ? 2 : 1,
+          status: diskid === BOOT ? 'ready' : 'unformatted',
+          size: BLOCKSIZE * parseInt(FS.readFileSync(`/sys/block/${diskid}/size`, { encoding: 'utf8' })),
+          used: 0
+        };
+        if (info.status === 'unformatted' && FS.existsSync(`/sys/block/${info.name}/${info.name}${info.part}`)) {
+          info.status = 'partitioned';
+          if (diskid === STORE) {
+            info.root = '/mnt/store';
+            const mounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' })
+            if (mounts.indexOf(`/dev/${diskid}${info.part} /mnt/store`) !== -1 && FS.existsSync(`/mnt/store/${MinkeApp.getGlobalID()}`)) {
+              info.status = 'ready';
+            }
+          }
         }
+        this._diskinfo[diskid] = info;
       }
+    });
+
+    this._names.boot = BOOT;
+    if (this._diskinfo[STORE]) {
+      this._names.store = STORE;
     }
   },
 
   _update: async function() {
-    for (let style in this._info) {
-      if (this._info[style].status === 'ready') {
+    for (let id in this._diskinfo) {
+      const info = this._diskinfo[id];
+      if (info.status === 'ready') {
         try {
-          const finfo = await DF.file(this._info[style].root);
-          this._info[style].size = finfo.size;
-          this._info[style].used = finfo.used;
+          const finfo = await DF.file(this._diskinfo[id].root);
+          info.size = finfo.size;
+          info.used = finfo.used;
         }
         catch (_) {
         }
@@ -82,10 +85,10 @@ const Disks = {
     }
   },
 
-  _formatDisk: async function(style) {
-    const info = this._info[style];
-    if (style !== 'store' || !info) {
-      throw new Error('Can only format "store" disk');
+  _formatDisk: async function(id) {
+    const info = this._diskinfo[id];
+    if (!info || info.status === 'ready') {
+      throw new Error('Cannot format');
     }
   
     const disk = `/dev/${info.name}`;
@@ -98,7 +101,7 @@ const Disks = {
     }
   
     // Must remove the tag to reformat.
-    if (FS.existsSync(`${info.root}/${TAG}`)) {
+    if (FS.existsSync(`${info.root}/${MinkeApp.getGlobalID()}`)) {
       throw new Error('Disk already formatted');
     }
 
@@ -132,35 +135,39 @@ const Disks = {
       info.status = 'unformatted';
     }
     else {
-      FS.writeFileSync(`${info.root}/${TAG}`, '');
+      FS.writeFileSync(`${info.root}/${MinkeApp.getGlobalID()}`, '');
       info.status = 'ready';
       await this._update();
     }
   },
 
   getInfo: function() {
-    return this._info;
+    return {
+      names: this._names,
+      diskinfo: this._diskinfo
+    };
   },
 
   /*
-   * Get the rood directory for the storage style requested.
+   * Get the root directory for the storage id requested.
    * If no style is given, we default to 'store' (which is bigger than boot).
    * If 'store' doesn't exists, we use 'boot'.
    */
-  getRoot: function(style) {
-    const info = this._info[style || 'store'];
-    if (info && info.status === 'ready') {
-      return info.root;
+  getRoot: function(id) {
+    const did = this._names[id || 'store'];
+    if (did) {
+      const info = this._diskinfo[did];
+      if (info && info.status === 'ready') {
+        return info.root;
+      }
     }
-    else {
-      return this._info.boot.root;
-    }
+    return this._diskinfo[this._names.boot].root;
   },
 
-  format: function(style, done) {
+  format: function(done) {
     (async () => {
       try {
-        await this._formatDisk(style);
+        await this._formatDisk(this._names.store);
       }
       catch (e) {
         console.error(e);

@@ -162,8 +162,8 @@ const Filesystem = {
     return new _Filesystem(app);
   },
 
-  getNativePath: function(appid, style, path) {
-    return Path.normalize(`${Disks.getRoot(style)}/apps/${appid}/${path}`);
+  getNativePath: function(appid, id, path) {
+    return Path.normalize(`${Disks.getRoot(id)}/apps/${appid}/${path}`);
   },
 
 };

@@ -229,12 +229,12 @@ async function ConfigurePageHTML(ctx) {
           if (!minkeConfig) {
             return {};
           }
-          const diskinfo = Disks.getInfo();
+          const info = Disks.getInfo();
           return {
             type: '__Disks',
-            disks: Object.values(diskinfo).map((disk) => {
+            disks: Object.values(info.diskinfo).map((disk) => {
               return {
-                name: disk.style,
+                name: Object.keys(info.names)[Object.values(info.names).indexOf(disk.name)] || disk.name,
                 size: (disk.size / (1000 * 1000 * 1000)).toFixed(2) + 'GB',
                 percentage: disk.size === 0 ? 0 : (disk.used / disk.size * 100).toFixed(1),
                 tenth: parseInt(disk.size === 0 ? 0 : (disk.used / disk.size * 10)),
@@ -517,7 +517,7 @@ async function ConfigurePageWS(ctx) {
           break;
         case 'app.format-disk':
           if (app._image === Images.MINKE) {
-            Disks.format('store', () => {
+            Disks.format(() => {
               send({
                 type: 'page.reload'
               });
