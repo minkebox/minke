@@ -61,11 +61,10 @@ async function MainPageHTML(ctx) {
     registerTemplates();
   }
 
-  const networks = MinkeApp.getNetworks();
   const tags = MinkeApp.getTags();
   const apps = MinkeApp.getApps().map(app => genApp(app, tags));
   const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app, tags), []);
-  ctx.body = mainTemplate({ adminMode: MinkeApp.getAdminMode(), networks: networks, tags: tags, apps: apps, statuses: statuses });
+  ctx.body = mainTemplate({ adminMode: MinkeApp.getAdminMode(), tags: tags, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
 }
 
@@ -81,9 +80,6 @@ async function MainPageWS(ctx) {
 
   const oldStatus = {};
   const onlines = {};
-  const remoteApps = {};
-
-  let apps = MinkeApp.getApps();
 
   function updateStatus(event) {
     if (event.status !== onlines[event.app._id]) {
@@ -103,7 +99,6 @@ async function MainPageWS(ctx) {
         });
       }
       delete oldStatus[event.app._id];
-      delete onlines[event.app._id];
       onlines[event.app._id] = event.status;
     }
   }
@@ -139,7 +134,6 @@ async function MainPageWS(ctx) {
       html: html
     });
     online(status.app);
-    apps = MinkeApp.getApps();
     const appstatus = genAppStatus([], status.app, tags);
     if (appstatus.length) {
       send({
@@ -156,7 +150,6 @@ async function MainPageWS(ctx) {
   }
 
   function removeApp(status) {
-    const tags = MinkeApp.getTags();
     send({
       type: 'html.remove',
       selector: `.application-${status.app._id}`
@@ -168,18 +161,13 @@ async function MainPageWS(ctx) {
     send({
       type: 'html.update',
       selector: '#tag-insertion-point',
-      html: tagsTemplate({ tags: tags })
+      html: tagsTemplate({ tags: MinkeApp.getTags() })
     });
     offline(status.app);
-    apps = MinkeApp.getApps();
   }
 
-  ctx.websocket.on('message', (msg) => {
-    // ...
-  });
-
   ctx.websocket.on('close', () => {
-    apps.forEach(app => offline(app));
+    MinkeApp.getApps().forEach(app => offline(app));
     MinkeApp.off('app.create', createApp);
     MinkeApp.off('app.remove', removeApp);
   });
@@ -188,7 +176,7 @@ async function MainPageWS(ctx) {
     ctx.websocket.close();
   });
 
-  apps.forEach(app => online(app));
+  MinkeApp.getApps().forEach(app => online(app));
   MinkeApp.on('app.create', createApp);
   MinkeApp.on('app.remove', removeApp);
 }
