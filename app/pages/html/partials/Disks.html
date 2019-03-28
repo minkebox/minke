@@ -1,19 +1,17 @@
 {{#each disks}}
 <label class="pure-u-8-24">
-  {{#if (or (eq status "unformatted") (eq status "partitioned"))}}
-  <input class="pure-button format name-{{name}}" type="button" value="Format" data-popbox-target="format">
+  {{#if format}}
+  <input class="pure-button format name-{{name}}" type="button" value="Format" data-popbox-target="format" data-popbox-arg="{{name}}">
   {{/if}}
   {{name}} ({{size}})
 </label>
 <div class="meter pure-input-rounded pure-u-16-24 name-{{name}}">
   {{#if (eq status "ready")}}
   <div class="size">{{percentage}}% Used</div>
-  {{else if (eq status "partitioned")}}
-  <div class="size">Unknown data</div>
   {{else if (eq status "formatting")}}
   <div class="size">Formatting ...</div>
   {{else}}
-  <div class="size">Unformatted</div>
+  <div class="size">Unused</div>
   {{/if}}
   <div class="bar color-{{tenth}}" style="width:{{percentage}}%"></div>
 </div>
@@ -31,14 +29,17 @@
   </div>
 </div>
 <script>
+let fmtdisk = null;
+document.addEventListener('popbox_opening', (e) => {
+  fmtdisk = e.detail.arg;
+});
 document.addEventListener('popbox_closing', (e) => {
-  if (e.detail.source.classList.contains('button-format')) {
-    const disk = 'store';
-    document.querySelector(`.disks input.name-${disk}`).disabled = true;
-    document.querySelector(`.disks .name-${disk} .size`).innerText = 'Formatting ...';
-    document.querySelector(`.disks .name-${disk} .bar`).style.width = '100%';
-    document.querySelector(`.disks .name-${disk} .bar`).className = 'bar color-loading';
-    cmd('app.format-disk');
+  if (fmtdisk && e.detail.source.classList.contains('button-format')) {
+    document.querySelector(`.disks input.name-${fmtdisk}`).disabled = true;
+    document.querySelector(`.disks .name-${fmtdisk} .size`).innerText = 'Formatting ...';
+    document.querySelector(`.disks .name-${fmtdisk} .bar`).style.width = '100%';
+    document.querySelector(`.disks .name-${fmtdisk} .bar`).className = 'bar color-loading';
+    cmd('app.format-disk', fmtdisk);
   }
 });
 </script>
