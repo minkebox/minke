@@ -11,7 +11,6 @@ const Filesystem = require('./Filesystem');
 const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
-const Disks = require('./Disks');
 const Skeletons = require('./skeletons/Skeletons');
 
 let applications = [];
@@ -1093,9 +1092,6 @@ MinkeApp.startApps = async function(app, config) {
 
   koaApp = app;
 
-  // Start disks
-  await Disks.init();
-
   // Start DB
   await Database.init();
 
@@ -1145,7 +1141,8 @@ MinkeApp.startApps = async function(app, config) {
     TIMEZONE: Moment.tz.guess(),
     ADMINMODE: 'DISABLED',
     GLOBALID: UUID(),
-    UPDATETIME: '03:00'
+    UPDATETIME: '03:00',
+    DISKS: {}
   });
   applications.unshift(setup);
 
