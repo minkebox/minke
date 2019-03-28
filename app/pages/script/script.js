@@ -135,9 +135,10 @@ function publish(elem) {
   }
 }
 
-function cmd(command) {
+function cmd(command, value) {
   ws.send(JSON.stringify({
-    type: command
+    type: command,
+    value: value
   }));
 }
 
@@ -368,8 +369,9 @@ Popbox.prototype = {
           triggers[i].addEventListener('click', function(e){
              e.preventDefault();
           var popbox_id = this.getAttribute('data-popbox-target');
+          var popbox_arg = this.getAttribute('data-popbox-arg')
           if(popbox_id){
-            self.open(popbox_id);
+            self.open(popbox_id, popbox_arg);
           }
           }, false);
       }
@@ -419,9 +421,9 @@ Popbox.prototype = {
       popbox.dispatchEvent(event);
     }
   },
-  opening: function(popbox){
+  opening: function(popbox, arg){
     if(popbox){
-      var event = new CustomEvent("popbox_opening",{bubbles:true,detail:{popbox:popbox}});
+      var event = new CustomEvent("popbox_opening",{bubbles:true,detail:{popbox:popbox,arg:arg}});
       popbox.dispatchEvent(event);
     }
   },
@@ -524,11 +526,11 @@ Popbox.prototype = {
       return popbox;
     }
   },
-  open: function(popbox){
+  open: function(popbox, arg){
     var popbox_id = this.getId(popbox);
     var popbox = this.getpopbox(popbox);
     if(popbox){
-      this.opening(popbox);
+      this.opening(popbox, arg);
       popbox.style.zIndex = this.zIndex()+1;
         popbox.classList.add('opened');
         setTimeout(function () {
