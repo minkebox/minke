@@ -10,6 +10,7 @@ const UPNP = require('./UPNP');
 const MinkeApp = require('./MinkeApp');
 const Updater = require('./Updater');
 const DDNS = require('./DDNS');
+const Disks = require('./Disks');
 
 const RESTART_REASON = '/tmp/minke-restart-reason';
 
@@ -51,7 +52,8 @@ function MinkeSetup(savedConfig, config) {
     TIMEZONE: getEnv('TIMEZONE'),
     ADMINMODE: getEnv('ADMINMODE'),
     GLOBALID: getEnv('GLOBALID'),
-    UPDATETIME: getEnv('UPDATETIME')
+    UPDATETIME: getEnv('UPDATETIME'),
+    DISKS: getEnv('DISKS')
   };
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
@@ -63,6 +65,8 @@ function MinkeSetup(savedConfig, config) {
 MinkeSetup.prototype = {
 
   start: async function() {
+
+    await this._setupDisks();
 
     this._setTimezone();
     this._setUpdateTime();
@@ -179,13 +183,15 @@ MinkeSetup.prototype = {
       DNSSERVER2: null,
       ADMINMODE: null,
       GLOBALID: null,
-      UPDATETIME: null
+      UPDATETIME: null,
+      DISKS: null
     };
     for (let key in config) {
       config[key] = this._env[key].value;
     }
     config.HOSTNAME = this._name;
     config.REMOTEMANAGEMENT = this._networks.primary;
+    config.DISKS = Disks.getMappedDisks();
     config._id = this._id;
     await Database.saveConfig(config);
   },
@@ -221,6 +227,10 @@ MinkeSetup.prototype = {
 
   expand: function(txt) {
     return txt;
+  },
+
+  _setupDisks: async function() {
+    await Disks.init(this._env.DISKS.value);
   },
 
   _setTimezone: function() {

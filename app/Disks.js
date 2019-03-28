@@ -19,61 +19,83 @@ const TICK = 10 * 60 * 1000;
 const BOOT = process.env.ROOTDISK || 'sda';
 const STORE = BOOT === 'sda' ? 'sdb' : BOOT === 'sdb' ? 'sda' : '__unknown__';
 const BLOCKSIZE = 512;
-const DISKS = [ 'sda', 'sdb', 'sdc', 'sdd', 'sde' ];
+const DISKS = [ 'sda', 'sdb', 'sdc', 'sdd', 'sde', 'mmcblk0', 'mmcblk1', 'mmcblk2' ];
+const PART = 1;
+const BOOT_PATH = '/minke';
+const STORE_PATH = '/mnt/store';
 
 const Disks = {
 
-  _diskinfo: null,
+  _diskinfo: {},
   _timer: null,
-  _names: null,
 
-  init: async function() {
+  init: async function(disks) {
     this._timer = setInterval(async () => {
       await this._update();
     }, TICK);
-    await this._initDisks();
+    await this._initDisks(disks);
     await this._update();
   },
 
-  _initDisks: async function() {
+  _initDisks: async function(disks) {
 
-    this._diskinfo = {};
-    this._names = {};
+    // First time - just setup boot disk.
+    if (Object.keys(disks).length === 0) {
+      disks[BOOT] = BOOT_PATH;
+      disks[STORE] = STORE_PATH;
+    }
 
     // Find disks
-    this._names.boot = BOOT;
     DISKS.forEach((diskid) => {
       if (FS.existsSync(`/sys/block/${diskid}`)) {
-        const info = {
+        this._diskinfo[diskid] = {
           name: diskid,
-          root: diskid === BOOT ? '/minke': null,
-          part: diskid === BOOT ? 2 : 1,
-          status: diskid === BOOT ? 'ready' : 'unformatted',
           size: BLOCKSIZE * parseInt(FS.readFileSync(`/sys/block/${diskid}/size`, { encoding: 'utf8' })),
-          used: 0
+          used: 0,
+          status: 'unknown'
         };
-        if (info.status === 'unformatted' && FS.existsSync(`/sys/block/${info.name}/${info.name}${info.part}`)) {
-          info.status = 'partitioned';
-          if (diskid === STORE) {
-            info.root = '/mnt/store';
-            const mounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' })
-            if (mounts.indexOf(`/dev/${diskid}${info.part} /mnt/store`) !== -1 && FS.existsSync(`/mnt/store/${TAG}`)) {
-              info.status = 'ready';
-              this._names.store = diskid;
-            }
-          }
-        }
-        this._diskinfo[diskid] = info;
       }
     });
+
+    // Mount disks
+    for (let diskid in disks) {
+      const info = this._diskinfo[diskid];
+      if (info) {
+        info.root = disks[diskid];
+        if (info.root === BOOT_PATH) {
+          // Boot disk already mounted
+          info.status = 'ready';
+        }
+        else {
+          FS.mkdirSync(info.root, { recursive: true });
+          ChildProcess.spawnSync('mount', [ `/dev/${this._partName(info.name, PART)}`, info.root ]);
+          if (FS.existsSync(`${info.root}/${TAG}`)) {
+            info.status = 'ready';
+          }
+          else {
+            ChildProcess.spawnSync('umount', [ info.root ]);
+            info.root = null;
+          }
+        }
+      }
+    }
+  },
+
+  getMappedDisks: function() {
+    return Object.values(this._diskinfo).reduce((acc, info) => {
+      if (info.status === 'ready') {
+        acc[info.name] = info.root;
+      }
+      return acc;
+    }, {});
   },
 
   _update: async function() {
     for (let id in this._diskinfo) {
       const info = this._diskinfo[id];
-      if (info.status === 'ready') {
+      if (info.root) {
         try {
-          const finfo = await DF.file(this._diskinfo[id].root);
+          const finfo = await DF.file(info.root);
           info.size = finfo.size;
           info.used = finfo.used;
         }
@@ -83,20 +105,17 @@ const Disks = {
     }
   },
 
-  _formatDisk: async function(id) {
+  _formatDisk: async function(info) {
 
-    const info = this._diskinfo[id];
     if (!info || info.status === 'ready') {
       throw new Error('Cannot format');
     }
   
-    const disk = `/dev/${info.name}`;
-
     // If disk isn't mounted, attempt to mount it so we can check to see if we
     // already formatted it.
     const mounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' });
-    if (mounts.indexOf(disk) === -1) {
-      ChildProcess.spawnSync('mount', [ info.root ]);
+    if (mounts.indexOf(`/dev/${info.name}`) === -1) {
+      ChildProcess.spawnSync('mount', [ `/dev/${this._partName(info.name, PART)}`, info.root ]);
     }
   
     // Must remove the tag to reformat.
@@ -109,15 +128,17 @@ const Disks = {
     // Partition and format disk, then tag it.
     const cmds = [
       [ 'umount', [ info.root ]],
-      [ 'parted', [ '-s', disk, 'mklabel gpt' ]],
-      [ 'parted', [ '-s', '-a', 'opt', disk, 'mkpart store ext4 0% 100%' ]],
-      [ 'sh', [ '-c', `mknod -m 0660 ${disk}${info.part} b $(cat /sys/block/${info.name}/${info.name}${info.part}/dev | sed "s/:/ /g")` ]],
-      [ 'mkfs.ext4', [ '-F', '-O', '64bit', `${disk}${info.part}`]],
-      [ 'mount', [ info.root ]]
+      [ 'parted', [ '-s', `/dev/${info.name}`, 'mklabel gpt' ]],
+      [ 'parted', [ '-s', '-a', 'opt', `/dev/${info.name}`, 'mkpart store ext4 0% 100%' ]],
+      [ 'sh', [ '-c', `mknod -m 0660 /dev/${this._partName(info.name, PART)} b $(cat /sys/block/${info.name}/${this._partName(info.name, PART)}/dev | sed "s/:/ /g")` ]],
+      [ 'mkfs.ext4', [ '-F', '-O', '64bit', `/dev/${this._partName(info.name, PART)}`]],
+      [ 'mkdir', [ '-p', info.root ]],
+      [ 'mount', [ `/dev/${this._partName(info.name, PART)}`, info.root ]]
     ];
     for (let i = 0; i < cmds.length; i++) {
       await new Promise((resolve) => {
         const cp = ChildProcess.spawn(cmds[i][0], cmds[i][1]);
+        //console.log('cmd', cmds[i]);
         //cp.stdout.on('data', (data) => {
         //  console.log(`stdout: ${data}`);
         //});
@@ -129,7 +150,7 @@ const Disks = {
     }
 
     const nmounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' });
-    if (nmounts.indexOf(disk) === -1) {
+    if (nmounts.indexOf(`/dev/${info.name}`) === -1) {
       // Failed
       info.status = 'unformatted';
     }
@@ -140,9 +161,8 @@ const Disks = {
     }
   },
 
-  getInfo: function() {
+  getAllDisks: function() {
     return {
-      names: this._names,
       diskinfo: this._diskinfo
     };
   },
@@ -153,26 +173,45 @@ const Disks = {
    * If 'store' doesn't exists, we use 'boot'.
    */
   getRoot: function(id) {
-    const did = this._names[id || 'store'];
-    if (did) {
-      const info = this._diskinfo[did];
-      if (info && info.status === 'ready') {
-        return info.root;
-      }
+    const path = id === 'boot' ? BOOT_PATH : STORE_PATH;
+    const info = Object.values(this._diskinfo).find(info => info.root == path);
+    if (info && info.status === 'ready') {
+      return path;
     }
-    return this._diskinfo[this._names.boot].root;
+    else {
+      return BOOT_PATH;
+    }
   },
 
-  format: function(done) {
+  /*
+   * Format a disk ane make it the STORE.
+   */
+  format: function(diskid, done) {
     (async () => {
       try {
-        await this._formatDisk(this._names.store);
+        const info = this._diskinfo[diskid];
+        if (info) {
+          info.root = STORE_PATH;
+          await this._formatDisk(info);
+          if (info.status !== 'ready') {
+            info.root = null;
+          }
+        }
       }
       catch (e) {
         console.error(e);
       }
       done();
     })();
+  },
+
+  _partName: function(disk, part) {
+    if (disk.startsWith('mmcblk')) {
+      return `${disk}p${part}`;
+    }
+    else {
+      return `${disk}${part}`;
+    }
   }
 
 }
