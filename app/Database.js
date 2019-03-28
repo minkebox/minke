@@ -1,6 +1,7 @@
 const DB = require('nedb');
 const FS = require('fs');
-const Disks = require('./Disks');
+
+const DB_PATH = '/minke/db';
 
 function _wrap(fn) {
   return async function(db, ...args) {
@@ -21,7 +22,6 @@ function _wrap(fn) {
 const Database = {
   
   init: async function() {
-    const DB_PATH = `${Disks.getRoot('boot')}/db`;
     const DB_APPS = `${DB_PATH}/apps.db`;
     const DB_CONFIG = `${DB_PATH}/config.db`;
     const DB_COMPACT_SEC = 60 * 60 * 24; // Every day
