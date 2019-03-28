@@ -1142,7 +1142,7 @@ MinkeApp.startApps = async function(app, config) {
     ADMINMODE: 'DISABLED',
     GLOBALID: UUID(),
     UPDATETIME: '03:00',
-    DISKS: {}
+    DISKS: { [process.env.ROOTDISK || 'sda']: '/minke' }
   });
   applications.unshift(setup);
 

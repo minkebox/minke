@@ -16,8 +16,6 @@ const DF = require('@sindresorhus/df');
 
 const TAG = '.minke-formatted';
 const TICK = 10 * 60 * 1000;
-const BOOT = process.env.ROOTDISK || 'sda';
-const STORE = BOOT === 'sda' ? 'sdb' : BOOT === 'sdb' ? 'sda' : '__unknown__';
 const BLOCKSIZE = 512;
 const DISKS = [ 'sda', 'sdb', 'sdc', 'sdd', 'sde', 'mmcblk0', 'mmcblk1', 'mmcblk2' ];
 const PART = 1;
@@ -38,12 +36,6 @@ const Disks = {
   },
 
   _initDisks: async function(disks) {
-
-    // First time - just setup boot disk.
-    if (Object.keys(disks).length === 0) {
-      disks[BOOT] = BOOT_PATH;
-      disks[STORE] = STORE_PATH;
-    }
 
     // Find disks
     DISKS.forEach((diskid) => {
