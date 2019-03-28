@@ -169,7 +169,7 @@ MinkeSetup.prototype = {
     }
     this._setTimezone();
     this._setUpdateTime();
-    this.save();
+    await this.save();
     this.emit('update.status', { app: this, status: this._status });
     if (reason) {
       this._restart(reason);
