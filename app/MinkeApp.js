@@ -204,7 +204,7 @@ MinkeApp.prototype = {
     this._customshares = [];
     this._monitor = skel.monitor;
     this._bootcount = 0;
-    this._tags = skel.tags || [];
+    this._tags = (skel.tags || []).concat([ 'All' ]);
 
     return this;
   },
