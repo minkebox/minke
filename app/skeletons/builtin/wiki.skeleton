@@ -2,6 +2,7 @@
   name: `Wiki.js`,
   description: `A modern, lightweight and powerful wiki app`,
   image: `requarks/wiki`,
+  tags: [ 'Web' ],
   actions: [
     {
       type: `Header`,
@@ -26,13 +27,23 @@
     },
     {
       type: `File`,
-      name: `/var/wiki/config.yml`
+      name: `/var/wiki/config.yml`,
+      style: 'boot'
     },
     {
       type: 'Directory',
       name: '/var/wiki/repo',
+      style: 'store',
       shares: [
         { name: '/', description: 'Wiki.js Repo' }
+      ]
+    },
+    {
+      type: 'Directory',
+      name: '/var/wiki/logs',
+      style: 'store',
+      shares: [
+        { name: '/', description: 'Wiki.js Logs' }
       ]
     },
     {

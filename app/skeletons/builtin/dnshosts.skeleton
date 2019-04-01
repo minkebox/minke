@@ -56,7 +56,7 @@
       protocol: `UDP`,
       nat: false,
       web: false,
-      dns: true,
+      dns: { priority: 2 },
       mdns: null
     },
     {

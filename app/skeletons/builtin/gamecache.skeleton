@@ -1,7 +1,8 @@
 {
   name: `Game Cache`,
-  description: `Cache Windows and game downloads for multiple computers`,
+  description: `Cache Windows, Steam and other game downloads for multiple computers`,
   image: `steamcache/monolithic`,
+  tags: [ 'Caches' ],
   actions: [
     {
       type: `Header`,
@@ -26,34 +27,38 @@
   properties: [
     {
       type: `Directory`,
-      name: `/data/cache`
+      name: `/data/cache`,
+      style: 'store',
     },
     {
       type: `Directory`,
-      name: `/data/cachedomains`
+      name: `/data/cachedomains`,
+      style: 'store',
     },
     {
       type: `Directory`,
-      name: `/data/logs`
+      name: `/data/logs`,
+      style: 'store'
     },
     {
       type: `Directory`,
-      name: `/var/www`
+      name: `/var/www`,
+      style: 'store'
     },
     {
       type: `Environment`,
       name: `CACHE_MEM_SIZE`,
-      defaultValue: `500m`
+      defaultValue: `50m`
     },
     {
       type: `Environment`,
       name: `CACHE_DISK_SIZE`,
-      defaultValue: `1000000m`
+      defaultValue: `50000m`
     },
     {
       type: `Environment`,
       name: `CACHE_MAX_AGE`,
-      defaultValue: `3560d`
+      defaultValue: `14d`
     },
     {
       type: `Environment`,
@@ -68,7 +73,7 @@
     {
       type: `Environment`,
       name: `LOGFILE_RETENTION`,
-      defaultValue: `3560`
+      defaultValue: `14`
     },
     {
       type: `Environment`,
@@ -108,6 +113,7 @@
       nat: false,
       web: false,
       dns: {
+        priority: 7,
         delay: 60
       },
       mdns: null
@@ -136,6 +142,11 @@
           type: `Environment`,
           name: `LANCACHE_DNSDOMAIN`,
           defaultValue: `{{__DOMAINNAME}}`
+        },
+        {
+          type: 'Environment',
+          name: 'UPSTREAM_DNS',
+          defaultValue: '0.0.0.0'
         }
       ]
     },
