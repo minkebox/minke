@@ -1,0 +1,80 @@
+{
+  name: `Wiki.js`,
+  description: `A modern, lightweight and powerful wiki app`,
+  image: `requarks/wiki`,
+  actions: [
+    {
+      type: `Header`,
+      title: `Configuration`
+    },
+    {
+      type: `Environment`,
+      name: `WIKI_ADMIN_EMAIL`,
+      description: `Admin email address`
+    },
+    {
+      type: `File`,
+      name: `/var/wiki/config.yml`,
+      style: `Inline`,
+      description: `Configuration (see <b>https://docs.requarks.io/wiki/install</b> for details)`
+    }
+  ],
+  properties: [
+    {
+      type: `Environment`,
+      name: `WIKI_ADMIN_EMAIL`
+    },
+    {
+      type: `File`,
+      name: `/var/wiki/config.yml`
+    },
+    {
+      type: 'Directory',
+      name: '/var/wiki/repo',
+      shares: [
+        { name: '/', description: 'Wiki.js Repo' }
+      ]
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
+      port: 80,
+      protocol: `TCP`,
+      nat: false,
+      web: {
+        type: 'newtab',
+        path: '/'
+      },
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  secondary: [
+    {
+      image: `mongo`,
+      properties: [
+        {
+          type: 'Directory',
+          name: '/data/db',
+          shares: [
+            { name: '/', description: 'Wiki.js Mongo DB' }
+          ]
+        }
+      ]
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    minwidth: `200px`,
+    header: ``,
+    template: ``
+  }
+}
