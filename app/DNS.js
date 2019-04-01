@@ -36,12 +36,14 @@ const DNS = {
   },
 
   createForward: function(args) {
+    const options = args.options || {};
     const resolve = {
       _id: args._id,
       name: args.name,
       IP4Address: args.IP4Address,
       Port: args.port || 53,
-      delay: (args.options && args.options.delay) || 0
+      priority: options.priority || 5,
+      delay: options.delay || 0
     };
     resolvers[args._id] = resolve;
     if (resolve.delay) {
@@ -124,7 +126,9 @@ const DNS = {
   _updateResolvServers: function() {
     if (!DEBUG) {
       // Note. DNS servers are checked in reverse order
-      FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${Object.values(resolvers).map((resolve) => {
+      const dns = Object.values(resolvers);
+      dns.sort((a, b) => b.priority - a.priority);
+      FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${dns.map((resolve) => {
         return `server=${resolve.IP4Address}#${resolve.Port}\n`;
       }).join('')}`);
     }
