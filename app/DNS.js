@@ -40,11 +40,20 @@ const DNS = {
       _id: args._id,
       name: args.name,
       IP4Address: args.IP4Address,
-      Port: args.port || 53
+      Port: args.port || 53,
+      delay: (args.options && args.options.delay) || 0
     };
     resolvers[args._id] = resolve;
-    this._updateResolvServers();
-    this._reloadDNS();
+    if (resolve.delay) {
+      setTimeout(() => {
+        this._updateResolvServers();
+        this._reloadDNS();
+      }, resolve.delay * 1000);
+    }
+    else {
+      this._updateResolvServers();
+      this._reloadDNS();
+    }
     return resolve;
   },
 
