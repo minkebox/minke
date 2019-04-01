@@ -3,7 +3,7 @@ const MinkeApp = require('./MinkeApp');
 
 const _Pull = {
 
-  _pullStream: null,
+  _pullStreams: [],
 
   _downloadImage: async function(name, progress) {
     return new Promise((resolve, reject) => {
@@ -14,22 +14,28 @@ const _Pull = {
           reject(err);
         }
         else {
-          if (this._pullStream) {
-            this._pullStream.destroy();
+          this._pullStreams.push(stream);
+          const removeStream = () => {
+            const idx = this._pullStreams.indexOf(stream);
+            if (idx !== -1) {
+              this._pullStreams.splice(idx, 1);
+            }
           }
-          this._pullStream = stream;
           docker.modem.followProgress(stream, 
             (err, output) => {
               if (err) {
                 progress({ download: 0, extract: 0 });
+                removeStream();
                 reject(err);
               }
               else {
                 // Actually check it downloaded. If the stream terminated early we don't get an error.
                 docker.getImage(name).inspect().then(() => {
                   progress({ download: 100, extract: 100 });
+                  removeStream();
                   resolve();
                 }).catch((e) => {
+                  removeStream();
                   reject(e);
                 });
               }
@@ -102,7 +108,7 @@ const _Pull = {
           docker.modem.followProgress(stream, 
             (err, output) => {
               if (err) {
-                reaolve(false);
+                resolve(false);
               }
               else {
                 resolve(output[output.length - 1].status.startsWith('Status: Downloaded newer image'));
@@ -120,6 +126,9 @@ const _Pull = {
     try {
       const img = docker.getImage(image);
       info = await img.inspect();
+      if (inProgress) {
+        inProgress({ download: 100, extract: 100 });
+      }
     }
     catch (_) {
       try {
@@ -130,20 +139,22 @@ const _Pull = {
         });
       }
       catch (e) {
+        console.error(e);
         console.error(`Failed to find image: ${image}`);
         return null;
       }
       const img = docker.getImage(image);
       info = await img.inspect();
+      if (inProgress) {
+        inProgress({ download: 100, extract: 100 });
+      }
     }
     return image;
   },
 
   cancel: function() {
-    if (this._pullStream) {
-      this._pullStream.destroy();
-      this._pullStream = null;
-    }
+    this._pullStreams.forEach(stream => stream.destroy());
+    this._pullStreams = [];
   },
 
   _nameWithTag: function(name) {
