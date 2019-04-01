@@ -544,18 +544,7 @@ MinkeApp.prototype = {
 
       }
 
-      config.Env = Object.keys(this._env).map(key => `${key}=${this.expand(this._env[key].value)}`).concat(configEnv);
-      this._fullEnv = config.Env;
-    
-      if (inherit.container) {
-        this._container = inherit.container;
-      }
-      else {
-        this._container = await docker.createContainer(config);
-        await this._container.start();
-      }
-
-      let ipAddr = this._homeIP;
+      /*let ipAddr = this._homeIP;
       if (!ipAddr && this._helperContainer) {
         const containerInfo = await this._helperContainer.inspect();
         if (containerInfo.NetworkSettings.Networks.management) {
@@ -564,30 +553,9 @@ MinkeApp.prototype = {
         else {
           console.error('Missing management network', containerInfo.NetworkSettings.Networks);
         }
-      }
+      }*/
 
-      // Setup secondary containers
-      if (this._secondary.length) {
-        this._secondaryContainers = [];
-        for (let c = 0; c < this._secondary.length; c++) {
-          const secondary = this._secondary[c];
-          const sconfig = {
-            name: `${this._safeName()}__${this._id}__${c}`,
-            Image: secondary._image,
-            HostConfig: {
-              Mounts: this._fs.getAllMounts(secondary),
-              Devices: [],
-              CapAdd: [],
-              LogConfig: config.LogConfig,
-              NetworkMode: `container:${this._helperContainer.id}`
-            },
-            Env: Object.keys(secondary._env).map(key => `${key}=${this.expand(secondary._env[key].value)}`)
-          };
-          this._secondaryContainers[c] = await docker.createContainer(sconfig);
-          await this._secondaryContainers[c].start();
-        }
-      }
-
+      const ipAddr = this._homeIP || this._privateIP;
       if (ipAddr) {
 
         const webport = this._ports.find(port => port.web);
@@ -653,6 +621,43 @@ MinkeApp.prototype = {
           }
         }
 
+      }
+
+      config.Env = Object.keys(this._env).map(key => `${key}=${this.expand(this._env[key].value)}`).concat(configEnv);
+      this._fullEnv = config.Env;
+    
+      if (inherit.container) {
+        this._container = inherit.container;
+        if (inherit.secondary.length) {
+          this._secondaryContainers = inherit.secondary;
+        }
+      }
+      else {
+        this._container = await docker.createContainer(config);
+        await this._container.start();
+
+        // Setup secondary containers
+        if (this._secondary.length) {
+          this._secondaryContainers = [];
+          for (let c = 0; c < this._secondary.length; c++) {
+            const secondary = this._secondary[c];
+            const sconfig = {
+              name: `${this._safeName()}__${this._id}__${c}`,
+              Image: secondary._image,
+              HostConfig: {
+                Mounts: this._fs.getAllMounts(secondary),
+                Devices: [],
+                CapAdd: [],
+                LogConfig: config.LogConfig,
+                NetworkMode: `container:${this._helperContainer.id}`
+              },
+              Env: Object.keys(secondary._env).map(key => `${key}=${this.expand(secondary._env[key].value)}`)
+            };
+            this._secondaryContainers[c] = await docker.createContainer(sconfig);
+            await this._secondaryContainers[c].start();
+          }
+        }
+  
       }
 
       if (this._image === Images.MINKE_PRIVATE_NETWORK) {
@@ -1202,10 +1207,18 @@ MinkeApp.startApps = async function(app, config) {
     const hidx = runningNames.indexOf(`/helper-${app._safeName()}__${app._id}`);
     const inherit = {
       container: aidx === -1 ? null : docker.getContainer(running[aidx].Id),
-      helperContainer: hidx === -1 ? null : docker.getContainer(running[hidx].Id)
+      helperContainer: hidx === -1 ? null : docker.getContainer(running[hidx].Id),
+      secondary: []
     };
+    for (let s = 0; s < app._secondary.length; s++) {
+      const sidx = runningNames.indexOf(`/${app._safeName()}__${app._id}__${s}`);
+      if (sidx === -1) {
+        break;
+      }
+      inherit.secondary.push(docker.getContainer(running[sidx].Id));
+    }
     // We can only inherit under specific circumstances
-    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._networks.primary === 'host'))) {
+    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._networks.primary === 'host')) && inherit.secondary.length === app._secondary.length) {
       console.log(`Inheriting ${app._name}`);
       inheritables[app._id] = inherit;
     }
@@ -1218,6 +1231,10 @@ MinkeApp.startApps = async function(app, config) {
         console.log(`Stopping helper-${app._name}`);
         await inherit.helperContainer.remove({ force: true });
       }
+      await Promise.all(inherit.secondary.map((sec, idx) => {
+        console.log(`Stopping ${app._name} secondary ${idx}`);
+        return sec.remove({ force: true });
+      }));
     }
   }));
 
