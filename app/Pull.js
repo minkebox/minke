@@ -139,7 +139,6 @@ const _Pull = {
         });
       }
       catch (e) {
-        console.error(e);
         console.error(`Failed to find image: ${image}`);
         return null;
       }
