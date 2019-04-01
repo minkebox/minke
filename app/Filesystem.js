@@ -8,33 +8,29 @@ process.umask(0);
 
 function _Filesystem(app) {
   this._app = app;
-  this._binds = app._binds;
-  this._files = app._files;
-  this._shares = app._shares;
-  this._customshares = app._customshares;
 
   MinkeApp = MinkeApp || require('./MinkeApp');
 }
 
 _Filesystem.prototype = {
 
-  getAllMounts: function() {
+  getAllMounts: function(app) {
 
     // Remove any broken shares (in case an app was uninstalled)
-    for (let i = 0; i < this._shares.length; ) {
-      const appid = this._shares[i].src.replace(/^.*apps\/([^/]+).*$/,'$1');
-      if (MinkeApp.getAppById(appid) && FS.existsSync(this._shares[i].src)) {
+    for (let i = 0; i < app._shares.length; ) {
+      const appid = app._shares[i].src.replace(/^.*apps\/([^/]+).*$/,'$1');
+      if (MinkeApp.getAppById(appid) && FS.existsSync(app._shares[i].src)) {
         i++;
       }
       else {
-        this._shares.splice(i, 1);
+        app._shares.splice(i, 1);
       }
     }
 
-    return this._binds.map(map => this._makeMount(map)).concat(
-      this._files.map(file => this.makeFile(file)),
-      this._shares.map(share => this._makeShare(share)),
-      this._customshares.map(map => this._makeCustomShare(map))
+    return app._binds.map(map => this._makeMount(map)).concat(
+      app._files.map(file => this.makeFile(file)),
+      app._shares.map(share => this._makeShare(share)),
+      app._customshares.map(map => this._makeCustomShare(map))
     ).reduce((a, b) => a.concat(b), []);
   },
 
@@ -102,8 +98,8 @@ _Filesystem.prototype = {
   },
 
   mapFilenameToLocal: function(filename) {
-    for (let i = 0; i < this._binds.length; i++) {
-      const bind = this._binds[i];
+    for (let i = 0; i < this._app._binds.length; i++) {
+      const bind = this._app._binds[i];
       const target = this._expand(bind.target);
       if (filename.startsWith(target)) {
         return Path.normalize(`${bind.src}/${filename.substring(target.length)}`);

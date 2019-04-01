@@ -69,7 +69,10 @@ const Updater = {
     const helper = await Pull.updateImage(Images.MINKE_HELPER);
     for (let i = 0; i < apps.length; i++) {
       try {
-        const updated = await Pull.updateImage(apps[i]._image);
+        let updated = await Pull.updateImage(apps[i]._image);
+        await Promise.all(apps[i]._secondary.map(async secondary => {
+          updated |= await Pull.updateImage(secondary._image);
+        }));
         if (apps[i].isRunning() && (updated || (helper && apps[i]._helperContainer))) {
           // Image or helper was updated
           updates.push(apps[i]);

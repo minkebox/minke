@@ -48,12 +48,25 @@ async function PageWS(ctx) {
         case 'newapp.image':
         {
           (async function() {
-            const info = await Pull.loadImage(msg.value, (progress) => {
-              send({ type: 'html.update.attribute', selector: '.newapp .download', name: 'value', value: progress.download });
-              send({ type: 'html.update.attribute', selector: '.newapp .extract', name: 'value', value: progress.extract });
-            });
-            if (info) {
-              const app = await MinkeApp.create(info);
+            const images = [ msg.value ];
+            const skel = Skeletons.loadSkeleton(images[0], false);
+            if (skel && skel.secondary) {
+              skel.secondary.forEach(secondary => {
+                images.push(secondary.image);
+              });
+            }
+            const download = [];
+            const extract = [];
+            const success = await Promise.all(images.map((image, idx) => {
+              return Pull.loadImage(image, (progress) => {
+                download[idx] = progress.download / images.length;
+                extract[idx] = progress.extract / images.length;
+                send({ type: 'html.update.attribute', selector: '.newapp .download', name: 'value', value: download.reduce((acc, val) => acc + (val || 0), 0) });
+                send({ type: 'html.update.attribute', selector: '.newapp .extract', name: 'value', value: extract.reduce((acc, val) => acc + (val || 0), 0) });
+              });
+            }));
+            if (success.reduce((acc, val) => acc & !!val, true)) {
+              const app = await MinkeApp.create(images[0]);
               send({ type: 'page.redirect', url: `/configure/${app._id}/`});
             }
             else {

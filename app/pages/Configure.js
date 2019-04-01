@@ -315,30 +315,32 @@ async function ConfigurePageWS(ctx) {
     { p: /^Environment#(.+)$/, f: (value, match) => {
       const key = match[1];
       const tableValue = getTableData(app, key, value);
-      const r = app._env[key] ? app._env[key] : { value: undefined };
-      if (tableValue !== null) {
-        r.altValue = value;
-        if (r.value !== tableValue) {
-          r.value = tableValue;
-          const port = app._ports.find(p => p.target === key);
-          if (port) {
-            port.port = parseInt(r.value);
+      const nvalue = tableValue !== null ? tableValue : value;
+      let change = NOCHANGE;
+
+      function update(r) {
+        if (r) {
+          if (tableValue !== null) {
+            r.altValue = value;
           }
-          return APPCHANGE;
+          else {
+            delete r.altValue;
+          }
+          if (r.value !== nvalue) {
+            r.value = nvalue;
+            const port = app._ports.find(p => p.target === key);
+            if (port) {
+              port.port = parseInt(nvalue);
+            }
+            change = APPCHANGE;
+          }
         }
       }
-      else {
-        delete r.altValue;
-        if (r.value !== value) {
-          r.value = value;
-          const port = app._ports.find(p => p.target === key);
-          if (port) {
-            port.port = parseInt(r.value);
-          }
-          return APPCHANGE;
-        }
-      }
-      return NOCHANGE;
+
+      update(app._env[key]);
+      app._secondary.forEach(secondary => update(secondary._env[key]));
+    
+      return change;
     }},
     { p: /^NAT#(.+)$/, f: (value, match) => {
       const ports = match[1].split('#');
@@ -370,45 +372,94 @@ async function ConfigurePageWS(ctx) {
     {
       p: /^Directory#(.+)$/, f: (value, match) => {
         const target = match[1];
-        const bind = app._binds.find(bind => bind.target == target);
-        if (bind && bind.src !== value) {
-          bind.src = value;
-          return APPCHANGE;
+        let change = NOCHANGE;
+
+        function update(bind) {
+          const bind = binds.find(bind => bind.target == target);
+          if (bind && bind.src !== value) {
+            bind.src = value;
+            change = APPCHANGE;
+          }
         }
-        return NOCHANGE
+
+        update(app._binds);
+        app._secondary.forEach(secondary => update(secondary._binds));
+
+        return change;
       }
     },
     { p: /^File#(.+)$/, f: (value, match) => {
       const filename = match[1];
-      const file = app._files.find(file => file.target === filename);
-      if (file) {
-        const tableValue = getTableData(app, filename, value);
-        if (tableValue !== null) {
-          if (file.data !== tableValue) {
-            file.data = tableValue;
+      const tableValue = getTableData(app, filename, value);
+      const nvalue = tableValue !== null ? tableValue : value;
+      let change = NOCHANGE;
+
+      function update(files) {
+        const file = files.find(file => file.target == filename)
+        if (file && file.data !== nvalue) {
+          if (tableValue !== null) {
             file.altData = value;
-            if (app._fs) {
-              app._fs.makeFile(file);
+          }
+          else {
+            delete file.altData;
+          }
+          file.data = nvalue;
+          if (app._fs) {
+            app._fs.makeFile(file);
+          }
+          change = APPCHANGE;
+        }
+      }
+
+      update(app._files);
+      app._secondary.forEach(secondary => update(secondary._files));
+
+      return change;
+    }},
+    { p: /^Shareables#(.*)#(.*)#(.*)#(.*)$/, f: (value, match) => {
+      const share = {
+        src: match[2],
+        target: `${match[3]}/${value.target.replace(/\//, '.') || match[4]}`,
+        shared: value.shared
+      };
+      let changed = NOCHANGE;
+
+      function update(shares) {
+        const idx = shares.findIndex(oshare => oshare.src === share.src);
+        if (share.shared) {
+          if (idx !== -1) {
+            if (shares[idx].target !== share.target) {
+              shares[idx].target = share.target;
+              changed = SHARECHANGE;
             }
-            return APPCHANGE;
+          }
+          else {
+            shares.push({
+              src: share.src,
+              target: share.target
+            });
+            changed = SHARECHANGE;
           }
         }
         else {
-          if (file.data !== value) {
-            file.data = value;
-            delete file.altData;
-            if (app._fs) {
-              app._fs.makeFile(file);
-            }
-            return APPCHANGE;
+          if (idx !== -1) {
+            shares.splice(idx, 1);
+            changed = SHARECHANGE;
           }
         }
       }
-      return NOCHANGE;
+
+      update(app._shares);
+      app._secondary.forEach(secondary => {
+        update(secondary._shares);
+      });
+
+      return changed;
     }},
     { p: /^CustomShareables#(.+)$/, f: (value, match) => {
       const shareroot = match[1];
       const action = skeleton.actions.find(action => action.name === shareroot);
+
       const bind = {
         src: Filesystem.getNativePath(app._id, action.style, `/dir/${shareroot}`),
         target: Path.normalize(shareroot),
@@ -416,10 +467,19 @@ async function ConfigurePageWS(ctx) {
           return { name: Path.normalize(row[0]), sname: row[1] || UUID() };
         })
       };
-      if (app.updateCustomShare(bind)) {
-        return SHARECHANGE;
+      const idx = this._customshares.findIndex(oshare => oshare.target === bind.target);
+      if (bind.shares.length === 0) {
+        if (idx !== -1) {
+          this._customshares.splice(idx, 1);
+        }
       }
-      return NOCHANGE;
+      else if (idx !== -1) {
+        this._customshares[idx] = bind;
+      }
+      else {
+        this._customshares.push(bind);
+      }
+      return SHARECHANGE;
     }},
     { p: /^Skeleton$/, f: (value, match) => {
       const skel = Skeletons.parse(value);
@@ -435,9 +495,8 @@ async function ConfigurePageWS(ctx) {
   async function save() {
     try {
       let changed = 0;
-      const shares = [];
       for (let property in changes) {
-        patterns.find((pattern) => {
+        patterns.find(pattern => {
           const match = property.match(pattern.p);
           if (match) {
             changed |= pattern.f(changes[property], match);
@@ -445,24 +504,10 @@ async function ConfigurePageWS(ctx) {
           }
           return false;
         });
-        const match = property.match(/^Shareables#(.*)#(.*)#(.*)#(.*)$/);
-        if (match) {
-          shares.push({
-            src: match[2],
-            target: `${match[3]}/${changes[property].target.replace(/\//, '.') || match[4]}`,
-            shared: changes[property].shared
-          });
-        }
       }
       changes = {};
 
       const uapp = app;
-
-      if (shares.length) {
-        if (uapp.updateShares(shares)) {
-          changed |= SHARECHANGE;
-        }
-      }
       if ((changed & SKELCHANGE) !== 0) {
         uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image, false), uapp.toJSON());
         app = null;

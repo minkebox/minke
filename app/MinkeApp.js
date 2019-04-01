@@ -42,6 +42,7 @@ MinkeApp.prototype = {
     this._customshares = app.customshares;
     this._networks = app.networks;
     this._bootcount = app.bootcount;
+    this._secondary = app.secondary || [];
 
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel && skel.monitor) {
@@ -74,7 +75,8 @@ MinkeApp.prototype = {
       shares: this._shares,
       customshares: this._customshares,
       networks: this._networks,
-      bootcount: this._bootcount
+      bootcount: this._bootcount,
+      secondary: this._secondary
     }
   },
 
@@ -103,33 +105,6 @@ MinkeApp.prototype = {
 
     this._description = skel.description;
     this._args = '';
-  
-    this._env = skel.properties.reduce((r, prop) => {
-      if (prop.type === 'Environment') {
-        const found = (defs.env || {})[prop.name];
-        if (found) {
-          r[prop.name] = found;
-        }
-        else {
-          r[prop.name] = { value: 'defaultValue' in prop ? prop.defaultValue : '' };
-          if ('defaultAltValue' in prop) {
-            r[prop.name].altValue = prop.defaultAltValue;
-          }
-        }
-      }
-      return r;
-    }, {});
-    this._features = skel.properties.reduce((r, prop) => {
-      if (prop.type === 'Feature') {
-        if (defs.features && prop.name in defs.features) {
-          r[prop.name] = defs.features[prop.name];
-        }
-        else {
-          r[prop.name] = 'defaultValue' in prop ? prop.defaultValue : true;
-        }
-      }
-      return r;
-    }, {});
     this._networks = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Network') {
         if (defs.networks && prop.name in defs.networks) {
@@ -141,72 +116,120 @@ MinkeApp.prototype = {
       }
       return r;
     }, {});
-    this._ports = skel.properties.reduce((r, prop) => {
-      if (prop.type === 'Port') {
-        const port = defs.ports && defs.ports.find(port => port.target === prop.name);
-        if (port) {
-          r.push(port);
-        }
-        else {
-          r.push({
-            target: prop.name,
-            port: prop.port,
-            protocol: prop.protocol,
-            web: prop.web,
-            dns: prop.dns,
-            nat: prop.nat,
-            mdns: prop.mdns
-          });
-        }
-      }
-      return r;
-    }, []);
-    this._binds = skel.properties.reduce((r, prop) => {
-      if (prop.type === 'Directory') {
-        const target = Path.normalize(prop.name);
-        const bind = defs.binds && defs.binds.find(bind => bind.target === target);
-        if (bind) {
-          r.push(bind);
-        }
-        else {
-          r.push({
-            src: Filesystem.getNativePath(this._id, prop.style, `/dir/${target}`),
-            target: target,
-            shares: prop.shares || [],
-            description: prop.description || target
-          });
-        }
-      }
-      return r;
-    }, []);
-    this._files = skel.properties.reduce((r, prop) => {
-      if (prop.type === 'File') {
-        const target = Path.normalize(prop.name);
-        const file = defs.files && defs.files.find(file => file.target === target);
-        if (file) {
-          r.push(file);
-        }
-        else {
-          const f = {
-            src: Filesystem.getNativePath(this._id, prop.style, `/file/${prop.name.replace(/\//g, '_')}`),
-            target: target,
-            data: prop.defaultValue || ''
-          };
-          if ('defaultAltValue' in prop) {
-            f.altData = prop.defaultAltValue;
-          }
-          r.push(f);
-        }
-      }
-      return r;
-    }, []);
-    this._shares = [];
-    this._customshares = [];
+    this._parseProperties(this, '', skel.properties, defs);
+    if (skel.secondary) {
+      this._secondary = skel.secondary.map((secondary, idx) => {
+        const secondaryApp = {
+          _image: secondary.image
+        };
+        this._parseProperties(secondaryApp, `${idx}`, secondary.properties, {});
+        return secondaryApp;
+      });
+    }
+    else {
+      this._secondary = [];
+    }
     this._monitor = skel.monitor;
     this._bootcount = 0;
     this._tags = (skel.tags || []).concat([ 'All' ]);
 
     return this;
+  },
+
+  _parseProperties: function(target, ext, properties, defs) {
+    target._env = {};
+    target._features = {};
+    target._ports = [];
+    target._binds = [];
+    target._files = [];
+    target._shares = [];
+    target._customshares = [];
+    properties.forEach(prop => {
+      switch (prop.type) {
+        case 'Environment':
+        {
+          const found = (defs.env || {})[prop.name];
+          if (found) {
+            target._env[prop.name] = found;
+          }
+          else {
+            target._env[prop.name] = { value: 'defaultValue' in prop ? prop.defaultValue : '' };
+            if ('defaultAltValue' in prop) {
+              target._env[prop.name].altValue = prop.defaultAltValue;
+            }
+          }
+          break;
+        }
+        case 'Feature':
+        {
+          if (defs.features && prop.name in defs.features) {
+            target._features[prop.name] = defs.features[prop.name];
+          }
+          else {
+            target._features[prop.name] = 'defaultValue' in prop ? prop.defaultValue : true;
+          }
+          break;
+        }
+        case 'Port':
+        {
+          const port = defs.ports && defs.ports.find(port => port.target === prop.name);
+          if (port) {
+            target._ports.push(port);
+          }
+          else {
+            target._ports.push({
+              target: prop.name,
+              port: prop.port,
+              protocol: prop.protocol,
+              web: prop.web,
+              dns: prop.dns,
+              nat: prop.nat,
+              mdns: prop.mdns
+            });
+          }
+          break;
+        }
+        case 'Directory':
+        {
+          const targetname = Path.normalize(prop.name);
+          const bind = defs.binds && defs.binds.find(bind => bind.target === targetname);
+          if (bind) {
+            target._binds.push(bind);
+          }
+          else {
+            target._binds.push({
+              src: Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`),
+              target: targetname,
+              shares: prop.shares || [],
+              description: prop.description || targetname
+            });
+          }
+          break;
+        }
+        case 'File':
+        {
+          const targetname = Path.normalize(prop.name);
+          const file = defs.files && defs.files.find(file => file.target === targetname);
+          if (file) {
+            target._files.push(file);
+          }
+          else {
+            const f = {
+              src: Filesystem.getNativePath(this._id, prop.style, `/file${ext}/${prop.name.replace(/\//g, '_')}`),
+              target: targetname,
+              data: prop.defaultValue || ''
+            };
+            if ('defaultAltValue' in prop) {
+              f.altData = prop.defaultAltValue;
+            }
+            target._files.push(f);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    });
   },
 
   start: async function(inherit) {
@@ -227,7 +250,7 @@ MinkeApp.prototype = {
         Hostname: this._safeName(),
         Image: this._image,
         HostConfig: {
-          Mounts: this._fs.getAllMounts(),
+          Mounts: this._fs.getAllMounts(this),
           Devices: [],
           CapAdd: [],
           LogConfig: {
@@ -237,9 +260,10 @@ MinkeApp.prototype = {
               'max-size': '10k'
             }
           }
-        },
-        Env: Object.keys(this._env).map(key => `${key}=${this._env[key].value}`)
+        }
       };
+
+      const configEnv = [];
 
       // Create network environment
       let netid = 0;
@@ -260,17 +284,17 @@ MinkeApp.prototype = {
         case 'none':
           break;
         case 'home':
-          config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
+          configEnv.push(`__HOME_INTERFACE=eth${netid++}`);
           break;
         case 'host':
-          config.Env.push(`__HOST_INTERFACE=eth${netid++}`);
+          configEnv.push(`__HOST_INTERFACE=eth${netid++}`);
           break;
         default:
           if (primary === this._id) {
             console.error('Cannot create a VPN as primary network');
           }
           else {
-            config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+            configEnv.push(`__PRIVATE_INTERFACE=eth${netid++}`);
           }
           break;
       }
@@ -278,16 +302,16 @@ MinkeApp.prototype = {
         case 'none':
           break;
         case 'home':
-          config.Env.push(`__HOME_INTERFACE=eth${netid++}`);
+          configEnv.push(`__HOME_INTERFACE=eth${netid++}`);
           break;
         default:
-          config.Env.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+          configEnv.push(`__PRIVATE_INTERFACE=eth${netid++}`);
           break;
       }
       // Need management network if we're not connected to the home network in some way
       let management = null;
       if (!((primary === 'home' || primary === 'host') || secondary === 'home')) {
-        config.Env.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
+        configEnv.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
         management = await Network.getManagementNetwork();
       }
 
@@ -306,10 +330,10 @@ MinkeApp.prototype = {
           const homenet = await Network.getHomeNetwork();
           config.HostConfig.NetworkMode = homenet.id;
           config.MacAddress = this._primaryMacAddress();
-          config.Env.push(`__DNSSERVER=${MinkeApp._network.network.ip_address}`);
-          config.Env.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
-          config.Env.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
-          config.Env.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
+          configEnv.push(`__DNSSERVER=${MinkeApp._network.network.ip_address}`);
+          configEnv.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
+          configEnv.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
+          configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
           config.HostConfig.Dns = [ MinkeApp._network.network.ip_address ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
@@ -320,10 +344,10 @@ MinkeApp.prototype = {
           config.HostConfig.NetworkMode = `container:${MinkeApp._container.id}`;
           config.Hostname = null;
           this._homeIP = MinkeApp._network.network.ip_address;
-          config.Env.push(`__DNSSERVER=${this._homeIP}`);
-          config.Env.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
-          config.Env.push(`__HOSTIP=${this._homeIP}`);
-          config.Env.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
+          configEnv.push(`__DNSSERVER=${this._homeIP}`);
+          configEnv.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
+          configEnv.push(`__HOSTIP=${this._homeIP}`);
+          configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
           break;
         }
         default:
@@ -334,8 +358,8 @@ MinkeApp.prototype = {
           const vpn = await Network.getPrivateNetwork(primary);
           config.HostConfig.NetworkMode = vpn.id;
           const dns = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
-          config.Env.push(`__DNSSERVER=${dns}`);
-          config.Env.push(`__GATEWAY=${dns}`);
+          configEnv.push(`__DNSSERVER=${dns}`);
+          configEnv.push(`__GATEWAY=${dns}`);
           config.HostConfig.Dns = [ dns ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
@@ -349,7 +373,7 @@ MinkeApp.prototype = {
         }
       }
 
-      config.Env.push(`__GLOBALID=${MinkeApp.getGlobalID()}`);
+      configEnv.push(`__GLOBALID=${MinkeApp.getGlobalID()}`);
 
       if (this._features.vpn) {
         config.HostConfig.Devices.push({
@@ -375,16 +399,14 @@ MinkeApp.prototype = {
           if (app._networks.primary === this._id) {
             app._ports.forEach((port) => {
               if (app._privateIP) {
-                config.Env.push(`PORT_${nr}=${app._privateIP}:${port.port}:${port.protocol}:${port.mdns ? Buffer.from(JSON.stringify(port.mdns), 'utf8').toString('base64') : ''}`);
+                configEnv.push(`PORT_${nr}=${app._privateIP}:${port.port}:${port.protocol}:${port.mdns ? Buffer.from(JSON.stringify(port.mdns), 'utf8').toString('base64') : ''}`);
                 nr++;
               }
             });
           }
         });
-        config.Env.push(`PORTMAX=${nr-1}`);
+        configEnv.push(`PORTMAX=${nr-1}`);
       }
-
-      this._fullEnv = config.Env;
 
       if (primary !== 'host') {
     
@@ -401,7 +423,7 @@ MinkeApp.prototype = {
             DnsOptions: config.HostConfig.DnsOptions
           },
           MacAddress: config.MacAddress,
-          Env: [].concat(config.Env)
+          Env: Object.keys(this._env).map(key => `${key}=${this.expand(this._env[key].value)}`).concat(configEnv)
         };
 
         if (primary === 'home' || secondary === 'home') {
@@ -521,6 +543,9 @@ MinkeApp.prototype = {
         }
 
       }
+
+      config.Env = Object.keys(this._env).map(key => `${key}=${this.expand(this._env[key].value)}`).concat(configEnv);
+      this._fullEnv = config.Env;
     
       if (inherit.container) {
         this._container = inherit.container;
@@ -538,6 +563,28 @@ MinkeApp.prototype = {
         }
         else {
           console.error('Missing management network', containerInfo.NetworkSettings.Networks);
+        }
+      }
+
+      // Setup secondary containers
+      if (this._secondary.length) {
+        this._secondaryContainers = [];
+        for (let c = 0; c < this._secondary.length; c++) {
+          const secondary = this._secondary[c];
+          const sconfig = {
+            name: `${this._safeName()}__${this._id}__${c}`,
+            Image: secondary._image,
+            HostConfig: {
+              Mounts: this._fs.getAllMounts(secondary),
+              Devices: [],
+              CapAdd: [],
+              LogConfig: config.LogConfig,
+              NetworkMode: `container:${this._helperContainer.id}`
+            },
+            Env: Object.keys(secondary._env).map(key => `${key}=${this.expand(secondary._env[key].value)}`)
+          };
+          this._secondaryContainers[c] = await docker.createContainer(sconfig);
+          await this._secondaryContainers[c].start();
         }
       }
 
@@ -581,7 +628,7 @@ MinkeApp.prototype = {
 
         const dnsport = this._ports.find(port => port.dns);
         if (dnsport) {
-          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.port });
+          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.port, options: typeof dnsport.dns === 'object' ? dnsport.dns : null });
         }
 
         this._mdns = MDNS.getInstance();
@@ -693,6 +740,16 @@ MinkeApp.prototype = {
     this._privateIP = null;
 
     // Stop everything
+    if (this._secondaryContainers) {
+      await Promise.all(this._secondaryContainers.map(async c => {
+        try {
+          await c.stop();
+        }
+        catch (e) {
+          console.error(e);
+        }
+      }));
+    }
     if (this._container) {
       try {
         await this._container.stop();
@@ -744,6 +801,12 @@ MinkeApp.prototype = {
 
     // Remove everything
     const removing = [];
+    if (this._secondaryContainers) {
+      for (let c = 0; c < this._secondaryContainers.length; c++) {
+        removing.push(this._secondaryContainers[c].remove());
+      }
+      this._secondaryContainers = null;
+    }
     if (this._container) {
       removing.push(this._container.remove());
       this._container = null;
@@ -803,44 +866,6 @@ MinkeApp.prototype = {
     }
   },
 
-  updateShares: function(shares) {
-    let changed = false;
-    const nshares = shares.reduce((acc, share) => {
-      const idx = this._shares.findIndex(oshare => oshare.src === share.src);
-      if (share.shared) {
-        acc.push({
-          src: share.src,
-          target: share.target
-        });
-        if (idx === -1 || this._shares[idx].target !== share.target) {
-          changed = true;
-        }
-      }
-      else {
-        if (idx !== -1) {
-          changed = true;
-        }
-      }
-      if (idx !== -1) {
-        this._shares.splice(idx, 1);
-      }
-      return acc;
-    }, []);
-    this._shares = this._shares.concat(nshares);
-    return changed;
-  },
-
-  updateCustomShare: function(share) {
-    const idx = this._customshares.findIndex(oshare => oshare.target === share.target);
-    if (idx !== -1) {
-      this._customshares[idx] = share;
-    }
-    else {
-      this._customshares.push(share);
-    }
-    return true;
-  },
-
   getAvailableNetworks: function() {
     return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
       return (app && app._willCreateNetwork()) || (app === this && this._features.vpn) ? { _id: app._id, name: app._name } : null;
@@ -850,18 +875,22 @@ MinkeApp.prototype = {
   getAvailableShareables: function() {
     return applications.reduce((acc, app) => {
       if (app !== this) {
-        let shares = app._binds.reduce((shares, bind) => {
-          if (bind.shares && bind.shares.length) {
-            shares.push(bind);
-          }
-          return shares;
-        }, []);
-        shares = app._customshares.reduce((shares, bind) => {
-          if (bind.shares && bind.shares.length) {
-            shares.push(bind);
-          }
-          return shares;
-        }, shares);
+        const shares = [];
+        function update(src) {
+          src._binds.forEach(bind => {
+            if (bind.shares && bind.shares.length) {
+              shares.push(bind);
+            }
+          });
+          src._customshares.forEach(bind => {
+            if (bind.shares && bind.shares.length) {
+              shares.push(bind);
+            }
+          });
+        }
+        update(app);
+        app._secondary.forEach(secondary => update(secondary));
+
         if (shares.length) {
           acc.push({
             app: app,
@@ -892,7 +921,9 @@ MinkeApp.prototype = {
     if (txt && txt.indexOf('{{') !== -1) {
       const env = Object.assign({
         __APPNAME: { value: this._name },
-        __GLOBALNAME: { value: `${MinkeApp.getGlobalID()}.minkebox.net` }
+        __GLOBALNAME: { value: `${MinkeApp.getGlobalID()}.minkebox.net` },
+        __HOMEIP: { value: this._homeIP },
+        __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
       }, this._env);
       for (let key in env) {
         txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
@@ -1060,8 +1091,20 @@ MinkeApp._monitorEvents = async function() {
                 case 'die':
                 {
                   const id = event.id;
-                  const app = applications.find(app => (app._container && app._container.id === id) || 
-                    (app._helperContainer && app._helperContainer.id === id));
+                  const app = applications.find(app => {
+                    if (app._container && app._container.id === id) {
+                      return true;
+                    }
+                    else if (app._helperContainer && app._helperContainer.id === id) {
+                      return true;
+                    }
+                    else if (app._secondaryContainers && app._secondaryContainers.find(c => c.id === id)) {
+                      return true;
+                    }
+                    else {
+                      return false;
+                    }
+                  });
                   if (app && app.isRunning()) {
                     app.stop();
                   }
