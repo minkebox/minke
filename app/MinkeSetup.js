@@ -31,6 +31,7 @@ function MinkeSetup(savedConfig, config) {
   this._features = {};
   this._binds = [];
   this._customshares = [];
+  this._secondary = [];
   this._ports = [
     { port: getEnv('PORT').value, protocol: 'TCP', mdns: { type: '_minke._tcp' } },
     { port: getEnv('PORT').value + 1, protocol: 'TCP', mdns: { type: '_ssh._tcp' } }
