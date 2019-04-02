@@ -3,7 +3,7 @@
   description: `A modern, lightweight and powerful wiki app`,
   image: `requarks/wiki`,
   tags: [ 'Web' ],
-  order: 2,
+  delay: 10,
   actions: [
     {
       type: `Header`,
@@ -69,7 +69,7 @@
   secondary: [
     {
       image: `mongo`,
-      order: 1,
+      delay: 0,
       properties: [
         {
           type: 'Directory',

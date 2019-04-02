@@ -47,12 +47,12 @@ MinkeApp.prototype = {
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel && skel.monitor) {
       this._monitor = skel.monitor;
-      this._order = skel.order || 5;
+      this._delay = skel.delay || 0;
       this._tags = (skel.tags || []).concat([ 'All' ]);
     }
     else {
       this._monitor = {};
-      this._order = 5;
+      this._delay = 0;
       this._tags = [ 'All' ];
     }
 
@@ -123,7 +123,7 @@ MinkeApp.prototype = {
       this._secondary = skel.secondary.map((secondary, idx) => {
         const secondaryApp = {
           _image: secondary.image,
-          _order: secondary.order || 5
+          _delay: secondary.delay || 0
         };
         this._parseProperties(secondaryApp, `${idx}`, secondary.properties, {});
         return secondaryApp;
@@ -132,7 +132,7 @@ MinkeApp.prototype = {
     else {
       this._secondary = [];
     }
-    this._order = skel.order || 5;
+    this._delay = skel.delay || 5;
     this._monitor = skel.monitor;
     this._bootcount = 0;
     this._tags = (skel.tags || []).concat([ 'All' ]);
@@ -640,7 +640,7 @@ MinkeApp.prototype = {
         const startup = [];
 
         this._container = await docker.createContainer(config);
-        startup.push({ order: this._order, container: this._container });
+        startup.push({ delay: this._delay, container: this._container });
 
         // Setup secondary containers
         if (this._secondary.length) {
@@ -660,18 +660,26 @@ MinkeApp.prototype = {
               Env: Object.keys(secondary._env).map(key => `${key}=${this.expand(secondary._env[key].value)}`)
             };
             this._secondaryContainers[c] = await docker.createContainer(sconfig);
-            startup.push({ order: secondary._order, container: this._secondaryContainers[c] });
+            startup.push({ delay: secondary._delay, container: this._secondaryContainers[c] });
           }
         }
 
-        // Start everything up in order
-        startup.sort((a, b) => a.order - b.order);
+        // Start everything up in delay order
+        startup.sort((a, b) => a.delay - b.delay);
         for (let i = 0; i < startup.length; i++) {
+          const start = Date.now();
           try {
             await startup[i].container.start();
           }
           catch (e) {
             console.error(e);
+          }
+          if (i + 1 < startup.length) {
+            const startuptime = Date.now() - start;
+            const delaytime = (startup[i + 1].delay - startup[i].delay) * 1000;
+            if (startuptime < delaytime) {
+              await new Promise(resolve => setTimeout(resolve, delaytime - startuptime));
+            }
           }
         }
       }
