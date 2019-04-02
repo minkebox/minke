@@ -17,6 +17,7 @@ const DDNS = {
   },
 
   register: function(app) {
+    //console.log('register', app._globalId);
     const gid = app._globalId;
     if (this._gids.indexOf(gid) === -1) {
       this._gids.push(gid);
@@ -25,6 +26,7 @@ const DDNS = {
   },
 
   unregister: function(app) {
+    //console.log('unregister', app._globalId);
     const gid = app._globalId;
     const idx = this._gids.indexOf(gid);
     if (idx !== -1) {
@@ -42,6 +44,7 @@ const DDNS = {
         UPNP.getExternalIP().then((ip) => {
           if (ip && (ip !== this._lastip)) {
             this._lastip = ip;
+            //console.log(`${DDNS_URL}?host=${this._gids.join(',')}&ip=${ip}`);
             HTTPS.get(`${DDNS_URL}?host=${this._gids.join(',')}&ip=${ip}`, () => {});
           }
         });
