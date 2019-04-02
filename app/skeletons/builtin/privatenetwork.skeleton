@@ -47,6 +47,10 @@
       name: `vpn`
     },
     {
+      type: `Feature`,
+      name: `ddns`
+    },
+    {
       type: `Environment`,
       name: `MODE`,
       options: [

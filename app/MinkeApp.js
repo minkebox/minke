@@ -5,6 +5,7 @@ const Moment = require('moment-timezone');
 const UUID = require('uuid/v4');
 const HTTP = require('./HTTP');
 const DNS = require('./DNS');
+const DDNS = require('./DDNS');
 const MDNS = require('./MDNS');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
@@ -12,6 +13,8 @@ const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Skeletons = require('./skeletons/Skeletons');
+
+const GLOBALDOMAIN = '.minkebox.net';
 
 let applications = [];
 let koaApp = null;
@@ -378,7 +381,7 @@ MinkeApp.prototype = {
         }
       }
 
-      configEnv.push(`__GLOBALID=${MinkeApp.getGlobalID()}`);
+      configEnv.push(`__GLOBALID=${this._globalId}`);
 
       if (this._features.vpn) {
         config.HostConfig.Devices.push({
@@ -545,6 +548,11 @@ MinkeApp.prototype = {
 
         if (this._homeIP) {
           DNS.registerHostIP(this._safeName(), this._homeIP);
+           // If we need to be accessed remotely, register with DDNS
+          if (this._features.ddns || this._ports.find(port => port.nat)) {
+            DNS.registerHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP);
+            DDNS.register(this);
+          }
         }
 
       }
@@ -604,14 +612,13 @@ MinkeApp.prototype = {
           this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.port, options: typeof dnsport.dns === 'object' ? dnsport.dns : null });
         }
 
-        this._mdns = MDNS.getInstance();
         this._mdnsRecords = [];
         this._netRecords = [];
         if (this._ports.length) {
           if (primary === 'home' && secondary === 'none') {
             await Promise.all(this._ports.map(async (port) => {
               if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
-                this._mdnsRecords.push(await this._mdns.addRecord({
+                this._mdnsRecords.push(await MDNS.addRecord({
                   hostname: this._safeName(),
                   domainname: 'local',
                   ip: ipAddr,
@@ -736,8 +743,8 @@ MinkeApp.prototype = {
     }
 
     if (this._mdns) {
-      await Promise.all(this._mdnsRecords.map(rec => this._mdns.removeRecord(rec)));
-      await Promise.all(this._netRecords.map(rec => this._mdns.removeRecord(rec)));
+      await Promise.all(this._mdnsRecords.map(rec => MDNS.removeRecord(rec)));
+      await Promise.all(this._netRecords.map(rec => MDNS.removeRecord(rec)));
       this._mdns = null;
       this._mdnsRecords = null;
     }
@@ -765,6 +772,10 @@ MinkeApp.prototype = {
 
     if (this._homeIP) {
       DNS.unregisterHostIP(this._safeName(), this._homeIP);
+      if (this._features.ddns || this._ports.find(port => port.nat)) {
+        DNS.unregisterHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP);
+        DDNS.unregister(this);
+      }
       this._homeIP = null;
     }
     this._privateIP = null;
@@ -951,7 +962,7 @@ MinkeApp.prototype = {
     if (txt && txt.indexOf('{{') !== -1) {
       const env = Object.assign({
         __APPNAME: { value: this._name },
-        __GLOBALNAME: { value: `${MinkeApp.getGlobalID()}.minkebox.net` },
+        __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
         __HOMEIP: { value: this._homeIP },
         __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
       }, this._env);
@@ -972,13 +983,13 @@ MinkeApp.prototype = {
   },
 
   _updateNetworkStatus: async function(status) {
-    await Promise.all(this._netRecords.map(rec => this._mdns.removeRecord(rec)));
+    await Promise.all(this._netRecords.map(rec => MDNS.removeRecord(rec)));
     this._netRecords = [];
     await Promise.all(status.data.split(' ').map(async (port) => {
       port = port.split(':'); // ip:port:proto:mdns
       if (port[3]) {
         const mdns = JSON.parse(Buffer.from(port[3], 'base64').toString('utf8'));
-        this._netRecords.push(await this._mdns.addRecord({
+        this._netRecords.push(await MDNS.addRecord({
           hostname: this._safeName(),
           domainname: 'local',
           ip: this._homeIP,
@@ -1377,10 +1388,6 @@ MinkeApp.needRestart = function() {
     }
     return acc;
   }, []);
-}
-
-MinkeApp.getGlobalID = function() {
-  return setup ? setup._globalId : null;
 }
 
 module.exports = MinkeApp;

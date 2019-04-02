@@ -40,8 +40,11 @@
   properties: [
     {
       type: `Feature`,
-      name: `vpn`,
-      defaultValue: true
+      name: `vpn`
+    },
+    {
+      type: `Feature`,
+      name: `ddns`
     },
     {
       type: `Directory`,
