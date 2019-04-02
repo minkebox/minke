@@ -3,6 +3,8 @@ const UPNP = require('./UPNP');
 
 const DDNS_URL = 'https://minkebox.net/update';
 const TICK = 30 * 60 * 1000; // 30 minutes
+const RETRY = 60 * 1000; // 1 minute
+const DELAY = 10 * 1000; // 10 seconds
 
 const DDNS = {
 
@@ -42,13 +44,18 @@ const DDNS = {
       clearTimeout(this._pending);
       this._pending = setTimeout(() => {
         UPNP.getExternalIP().then((ip) => {
-          if (ip && (ip !== this._lastip)) {
+          if (!ip) {
+            setTimeout(() => {
+              this._update(true);
+            }, RETRY);
+          }
+          else if (ip !== this._lastip) {
             this._lastip = ip;
             //console.log(`${DDNS_URL}?host=${this._gids.join(',')}&ip=${ip}`);
             HTTPS.get(`${DDNS_URL}?host=${this._gids.join(',')}&ip=${ip}`, () => {});
           }
         });
-      }, 1000);
+      }, DELAY);
     }
   }
 
