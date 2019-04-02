@@ -1,6 +1,6 @@
 {
   name: `Configure`,
-  description: `Essential Minke configuration`,
+  description: `Essential MinkeBox configuration`,
   image: `registry.gitlab.com/minkebox/minke`,
   tags: [ 'All' ],
   actions: [
@@ -48,7 +48,7 @@
     },
     {
       type: 'Text',
-      text: 'Minke will act as a DNS server for your local machines and services. Select the external DNS servers to use for non-local addresses'
+      text: 'MinkeBox will act as a DNS server for your local machines and services. Select the external DNS servers to use for non-local addresses'
     },
     {
       type: 'Environment',

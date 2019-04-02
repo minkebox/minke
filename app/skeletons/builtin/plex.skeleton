@@ -54,7 +54,7 @@
     {
       type: `Environment`,
       name: `PLEX_MEDIA_SERVER_INFO_DEVICE`,
-      defaultValue: `Docker Container (LinuxServer.io) / Minke`
+      defaultValue: `Docker Container (LinuxServer.io) / MinkeBox`
     },
     {
       type: `Port`,

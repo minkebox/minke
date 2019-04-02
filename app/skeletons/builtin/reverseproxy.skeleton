@@ -22,13 +22,13 @@
     },
     {
       type: 'Text',
-      text: 'You can also published other websites which are not hosted by Minke'
+      text: 'You can also published other websites which are not hosted by MinkeBox'
     },
     {
       type: `Environment`,
       name: `OTHER_WEBSITES`,
       style: `Table`,
-      description: `Publish non-Minke websites`,
+      description: `Publish non-MinkeBox websites`,
       headers: [
         { name: 'URL' },
         { name: 'Published Name' }

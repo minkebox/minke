@@ -13,7 +13,7 @@ const MINKE_HOSTS = `${DNSMASQ_HOSTS_DIR}hosts.conf`;
 
 let dns = null;
 let domainName = 'home';
-let hostname = 'Minke';
+let hostname = 'MinkeBox';
 let primaryResolver = '';
 let secondaryResolver = '';
 const resolvers = {};
@@ -66,7 +66,7 @@ const DNS = {
   },
 
   setHostname: function(name) {
-    hostname = name || 'Minke';
+    hostname = name || 'MinkeBox';
     if (!DEBUG) {
       FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);

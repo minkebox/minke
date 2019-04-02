@@ -217,7 +217,7 @@
     {
       type: `Environment`,
       name: `SERVER_NAME`,
-      defaultValue: `Minecraft on Minke`
+      defaultValue: `Minecraft on MinkeBox`
     },
     {
       type: `Environment`,
@@ -375,7 +375,7 @@
     {
       type: `Environment`,
       name: `MOTD`,
-      defaultValue: `Welcome to Minecraft on Minke`
+      defaultValue: `Welcome to Minecraft on MinkeBox`
     },
     {
       type: `Environment`,
