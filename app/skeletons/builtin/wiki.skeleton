@@ -3,6 +3,7 @@
   description: `A modern, lightweight and powerful wiki app`,
   image: `requarks/wiki`,
   tags: [ 'Web' ],
+  order: 2,
   actions: [
     {
       type: `Header`,
@@ -40,7 +41,7 @@
     },
     {
       type: 'Directory',
-      name: '/var/wiki/logs',
+      name: '/logs',
       style: 'store',
       shares: [
         { name: '/', description: 'Wiki.js Logs' }
@@ -68,6 +69,7 @@
   secondary: [
     {
       image: `mongo`,
+      order: 1,
       properties: [
         {
           type: 'Directory',

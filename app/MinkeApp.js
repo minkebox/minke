@@ -47,10 +47,12 @@ MinkeApp.prototype = {
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel && skel.monitor) {
       this._monitor = skel.monitor;
+      this._order = skel.order || 5;
       this._tags = (skel.tags || []).concat([ 'All' ]);
     }
     else {
       this._monitor = {};
+      this._order = 5;
       this._tags = [ 'All' ];
     }
 
@@ -120,7 +122,8 @@ MinkeApp.prototype = {
     if (skel.secondary) {
       this._secondary = skel.secondary.map((secondary, idx) => {
         const secondaryApp = {
-          _image: secondary.image
+          _image: secondary.image,
+          _order: secondary.order || 5
         };
         this._parseProperties(secondaryApp, `${idx}`, secondary.properties, {});
         return secondaryApp;
@@ -129,6 +132,7 @@ MinkeApp.prototype = {
     else {
       this._secondary = [];
     }
+    this._order = skel.order || 5;
     this._monitor = skel.monitor;
     this._bootcount = 0;
     this._tags = (skel.tags || []).concat([ 'All' ]);
@@ -633,8 +637,10 @@ MinkeApp.prototype = {
         }
       }
       else {
+        const startup = [];
+
         this._container = await docker.createContainer(config);
-        await this._container.start();
+        startup.push({ order: this._order, container: this._container });
 
         // Setup secondary containers
         if (this._secondary.length) {
@@ -654,10 +660,20 @@ MinkeApp.prototype = {
               Env: Object.keys(secondary._env).map(key => `${key}=${this.expand(secondary._env[key].value)}`)
             };
             this._secondaryContainers[c] = await docker.createContainer(sconfig);
-            await this._secondaryContainers[c].start();
+            startup.push({ order: secondary._order, container: this._secondaryContainers[c] });
           }
         }
-  
+
+        // Start everything up in order
+        startup.sort((a, b) => a.order - b.order);
+        for (let i = 0; i < startup.length; i++) {
+          try {
+            await startup[i].container.start();
+          }
+          catch (e) {
+            console.error(e);
+          }
+        }
       }
 
       if (this._image === Images.MINKE_PRIVATE_NETWORK) {
