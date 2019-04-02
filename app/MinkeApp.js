@@ -221,6 +221,7 @@ MinkeApp.prototype = {
             const f = {
               src: Filesystem.getNativePath(this._id, prop.style, `/file${ext}/${prop.name.replace(/\//g, '_')}`),
               target: targetname,
+              mode: prop.mode || 0o666,
               data: prop.defaultValue || ''
             };
             if ('defaultAltValue' in prop) {
@@ -1201,7 +1202,7 @@ MinkeApp.startApps = async function(app, config) {
   // recursively (which won't work).
   const MinkeSetup = require('./MinkeSetup');
   setup = new MinkeSetup(await Database.getConfig('minke'), {
-    HOSTNAME: 'Minke',
+    HOSTNAME: 'MinkeBox',
     LOCALDOMAIN: 'home',
     DHCP: MinkeApp._network.dhcp,
     PORT: config.port || 80,

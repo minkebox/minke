@@ -53,7 +53,7 @@ _Filesystem.prototype = {
   makeFile: function(file) {
     //console.log('makeFile', file);
     FS.mkdirSync(Path.dirname(file.src), { recursive: true });
-    FS.writeFileSync(file.src, file.data);
+    FS.writeFileSync(file.src, file.data, { mode: ('mode' in file ? file.mode : 0o600) });
     return {
       Type: 'bind',
       Source: file.src,

@@ -19,6 +19,12 @@
       name: `/var/wiki/config.yml`,
       style: `Inline`,
       description: `Configuration (see <b>https://docs.requarks.io/wiki/install</b> for details)`
+    },
+    {
+      type: `File`,
+      name: `/etc/wiki/keys/git.pem`,
+      style: `Inline`,
+      description: `SSH private key to access git repo`
     }
   ],
   properties: [
@@ -30,6 +36,12 @@
       type: `File`,
       name: `/var/wiki/config.yml`,
       style: 'boot'
+    },
+    {
+      type: `File`,
+      name: `/etc/wiki/keys/git.pem`,
+      mode: 0o600,
+      style: `boot`
     },
     {
       type: 'Directory',
