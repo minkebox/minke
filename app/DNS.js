@@ -86,7 +86,12 @@ const DNS = {
   registerHostIP: async function(hostname, ip) {
     hosts[hostname] = ip;
     if (!DEBUG) {
-      FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${ip} ${hostname} ${hostname}.${domainName}\n`);
+      if (hostname.indexOf('.') === -1) {
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${ip} ${hostname} ${hostname}.${domainName}\n`);
+      }
+      else {
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${ip} ${hostname}\n`);
+      }
     }
   },
 
