@@ -152,10 +152,4 @@ MDNS.prototype = {
 
 };
 
-const _mdns = new MDNS();
-
-module.exports = {
-  getInstance: function() {
-    return _mdns;
-  }
-}
+module.exports = new MDNS();
