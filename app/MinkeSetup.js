@@ -72,10 +72,6 @@ MinkeSetup.prototype = {
     this._setTimezone();
     this._setUpdateTime();
 
-    this._mdns = MDNS.getInstance();
-    await this._mdns.start({
-      ipaddress: this._env.IPADDRESS.value
-    });
     DNS.start({
       hostname: this._name,
       domainname: this.getLocalDomainName(),
@@ -88,8 +84,11 @@ MinkeSetup.prototype = {
       ipaddress: this._env.IPADDRESS.value,
       port: this._env.PORT.value
     });
+    await MDNS.start({
+      ipaddress: this._env.IPADDRESS.value
+    });
 
-    this._hostMdns = await this._mdns.addRecord({
+    this._hostMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
@@ -97,7 +96,7 @@ MinkeSetup.prototype = {
       port: this._env.PORT.value,
       txt: []
     });
-    this._minkeMdns = await this._mdns.addRecord({
+    this._minkeMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
@@ -105,7 +104,7 @@ MinkeSetup.prototype = {
       port: this._env.PORT.value,
       txt: []
     });
-    this._sshdMdns = await this._mdns.addRecord({
+    this._sshdMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
@@ -118,13 +117,13 @@ MinkeSetup.prototype = {
   stop: async function() {
     this._status = 'shutting down';
     this.emit('update.status', { app: this, status: this._status });
-    await this._mdns.stop();
+    await MDNS.stop();
     await UPNP.stop();
   },
 
   restart: async function(reason) {
-    await this._mdns.removeRecord(this._hostMdns);
-    this._hostMdns = await this._mdns.addRecord({
+    await MDNS.removeRecord(this._hostMdns);
+    this._hostMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
@@ -132,8 +131,8 @@ MinkeSetup.prototype = {
       port: this._env.PORT.value,
       txt: []
     });
-    await this._mdns.removeRecord(this._minkeMdns);
-    this._minkeMdns = await this._mdns.addRecord({
+    await MDNS.removeRecord(this._minkeMdns);
+    this._minkeMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
@@ -141,8 +140,8 @@ MinkeSetup.prototype = {
       port: this._env.PORT.value,
       txt: []
     });
-    await this._mdns.removeRecord(this._sshdMdns);
-    this._sshdMdns = await this._mdns.addRecord({
+    await MDNS.removeRecord(this._sshdMdns);
+    this._sshdMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
