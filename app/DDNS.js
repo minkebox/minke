@@ -4,17 +4,6 @@ const UPNP = require('./UPNP');
 const DDNS_URL = 'https://minkebox.net/update';
 const TICK = 30 * 60 * 1000; // 30 minutes
 
-function Debounce(func, timeout) {
-  let timer = null;
-  return function() {
-    clearTimeout(timer);
-    timer = setTimeout(function() {
-      timer = null;
-      func.apply(null, arguments);
-    }, timeout);
-  }
-}
-
 const DDNS = {
 
   _gids: [],
