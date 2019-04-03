@@ -47,10 +47,6 @@ MinkeApp.prototype = {
     this._bootcount = app.bootcount;
     this._secondary = app.secondary || [];
 
-    if (this._image.startsWith('registry.gitlab.com/minkebox')) {
-      this._image = this._image.replace('registry.gitlab.com/minkebox', 'registry.minkebox.net/minkebox');
-    }
-
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel && skel.monitor) {
       this._monitor = skel.monitor;
