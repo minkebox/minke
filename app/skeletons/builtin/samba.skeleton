@@ -1,7 +1,7 @@
 {
   name: `File Share`,
   description: `Share your files on the network using Samba`,
-  image: `registry.gitlab.com/minkebox/samba`,
+  image: `registry.minkebox.net/minkebox/samba`,
   tags: [ 'Shares', 'Storage' ],
   actions: [
     {

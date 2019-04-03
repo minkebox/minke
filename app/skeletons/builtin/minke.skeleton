@@ -1,7 +1,7 @@
 {
   name: `Configure`,
   description: `Essential MinkeBox configuration`,
-  image: `registry.gitlab.com/minkebox/minke`,
+  image: `registry.minkebox.net/minkebox/minke`,
   tags: [ 'All' ],
   actions: [
     {

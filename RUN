@@ -5,7 +5,7 @@
 #docker network create --driver=bridge --subnet=192.168.11.0/24 --gateway=192.168.11.15 -o "com.docker.network.bridge.name=br0" --aux-address="DefaultGatewayIPv4=192.168.11.1" home
 #
 
-#docker build -t registry.gitlab.com/minkebox/minke .
+#docker build -t registry.minkebox.net/minkebox/minke .
 
 MINKE_IP=192.168.11.14
 RESTART_STATUS=/tmp/minke-restart-reason
@@ -22,5 +22,5 @@ docker run --name minke -d --privileged \
   --mount type=bind,source=${PWD}/app/skeletons/local,target=/app/skeletons/local,bind-propagation=rshared \
   --network=home --ip=${MINKE_IP} \
   --log-driver json-file --log-opt max-size=10k --log-opt max-file=1 \
-  registry.gitlab.com/minkebox/minke
+  registry.minkebox.net/minkebox/minke
 

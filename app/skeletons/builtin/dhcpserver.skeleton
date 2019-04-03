@@ -1,7 +1,7 @@
 {
   name: `DHCP`,
   description: `DHCP Server to provide IP addresses to things on the network which need them`,
-  image: `registry.gitlab.com/minkebox/dhcpserver`,
+  image: `registry.minkebox.net/minkebox/dhcpserver`,
   tags: [ 'Network Services' ],
   actions: [
     {
