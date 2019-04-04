@@ -33,7 +33,7 @@ function MinkeSetup(savedConfig, config) {
   this._customshares = [];
   this._secondary = [];
   this._ports = [
-    { port: getEnv('PORT').value, protocol: 'TCP', mdns: { type: '_minke._tcp' } },
+    { port: getEnv('PORT').value, protocol: 'TCP', mdns: { type: '_minkebox._tcp' } },
     { port: getEnv('PORT').value + 1, protocol: 'TCP', mdns: { type: '_ssh._tcp' } }
   ];
   this._networks = {
@@ -100,7 +100,7 @@ MinkeSetup.prototype = {
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
-      service: '_minke._tcp',
+      service: '_minkebox._tcp',
       port: this._env.PORT.value,
       txt: []
     });
@@ -136,7 +136,7 @@ MinkeSetup.prototype = {
       hostname: this._name,
       domainname: 'local',
       ip: this._env.IPADDRESS.value,
-      service: '_minke._tcp',
+      service: '_minkebox._tcp',
       port: this._env.PORT.value,
       txt: []
     });
