@@ -1,6 +1,7 @@
 const HTTPS = require('https');
 const UPNP = require('./UPNP');
 
+const GETIP = 'https://api.ipify.org';
 const DDNS_URL = 'https://minkebox.net/update';
 const TICK = 30 * 60 * 1000; // 30 minutes
 const RETRY = 60 * 1000; // 1 minute
@@ -43,7 +44,7 @@ const DDNS = {
       }
       clearTimeout(this._pending);
       this._pending = setTimeout(() => {
-        UPNP.getExternalIP().then((ip) => {
+        this._getExternalIP().then((ip) => {
           if (!ip) {
             setTimeout(() => {
               this._update(true);
@@ -57,6 +58,24 @@ const DDNS = {
         });
       }, DELAY);
     }
+  },
+
+  _getExternalIP: async function() {
+    return new Promise((resolve) => {
+      UPNP.getExternalIP().then((ip) => {
+        if (ip) {
+          resolve(ip);
+        }
+        else {
+          // Fallback
+          HTTPS.get(GETIP, (res) => {
+            res.on('data', (data) => {
+              resolve(data.toString('utf8'));
+            });
+          });
+        }
+      });
+    });
   }
 
 }
