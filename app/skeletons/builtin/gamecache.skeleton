@@ -146,7 +146,7 @@
         {
           type: 'Environment',
           name: 'UPSTREAM_DNS',
-          defaultValue: '1.1.1.1'
+          defaultValue: ''
         }
       ]
     },
