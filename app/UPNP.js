@@ -4,6 +4,8 @@ const HTTP = require('http');
 
 const URN_WAN= 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
+const TIMEOUT = 10 * 1000;
+const RETRY = 6;
 
 let ssdp;
 
@@ -93,13 +95,17 @@ const UPNP = {
                 const list = ptr.device.serviceList;
                 if (list && list.service && list.service.serviceType === URN_WAN) {
                   resolve(new URL(list.service.controlURL, location.origin));
+                  resolve = null;
                 }
               }
             }
           }
           ssdp.on('ssdp:search-response', search);
           ssdp.on(`discover:${URN_IGD}`, discover);
-          await ssdp.discover(URN_IGD, 10 * 1000);
+          // Retry the discover process until we succeed (or eventually fail)
+          for (let retry = 0; retry < RETRY && ssdp && resolve; retry++) {
+            await ssdp.discover(URN_IGD, TIMEOUT);
+          }
           if (ssdp) {
             ssdp.off('ssdp:search-response', search);
             ssdp.off(`discover:${URN_IGD}`, discover);
