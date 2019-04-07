@@ -52,7 +52,7 @@ const DDNS = {
           }
           else if (ip !== this._lastip) {
             this._lastip = ip;
-            //console.log(`${DDNS_URL}?host=${this._gids.join(',')}&ip=${ip}`);
+            console.log(`${DDNS_URL}?host=${this._gids.join(',')}&ip=${ip}`);
             HTTPS.get(`${DDNS_URL}?host=${this._gids.join(',')}&ip=${ip}`, () => {});
           }
         });
