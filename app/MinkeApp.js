@@ -256,7 +256,7 @@ MinkeApp.prototype = {
       const config = {
         name: `${this._safeName()}__${this._id}`,
         Hostname: this._safeName(),
-        Image: this._image,
+        Image: Images.withTag(this._image),
         HostConfig: {
           Mounts: this._fs.getAllMounts(this),
           Devices: [],
@@ -421,7 +421,7 @@ MinkeApp.prototype = {
         const helperConfig = {
           name: `helper-${this._safeName()}__${this._id}`,
           Hostname: config.Hostname,
-          Image: Images.MINKE_HELPER,
+          Image: Images.withTag(Images.MINKE_HELPER),
           HostConfig: {
             NetworkMode: config.HostConfig.NetworkMode,
             CapAdd: [ 'NET_ADMIN' ],
@@ -657,7 +657,7 @@ MinkeApp.prototype = {
             const secondary = this._secondary[c];
             const sconfig = {
               name: `${this._safeName()}__${this._id}__${c}`,
-              Image: secondary._image,
+              Image: Images.withTag(secondary._image),
               HostConfig: {
                 Mounts: this._fs.getAllMounts(secondary),
                 Devices: [],

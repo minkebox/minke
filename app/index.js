@@ -1,6 +1,6 @@
 #! /usr/bin/node
 
-global.DEBUG = !!process.env.DEBUG;
+global.DEBUG = process.env.DEBUG;
 
 const Koa = require('koa');
 const Router = require('koa-router');

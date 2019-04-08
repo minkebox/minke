@@ -1,5 +1,6 @@
 const Path = require('path');
 const MinkeApp = require('./MinkeApp');
+const Images = require('./Images');
 
 const _Pull = {
 
@@ -9,7 +10,7 @@ const _Pull = {
     return new Promise((resolve, reject) => {
       const downloading = {};
       const extracting = {};
-      docker.pull(this._nameWithTag(name), {}, (err, stream) => {
+      docker.pull(Images.withTag(name), {}, (err, stream) => {
         if (err) {
           reject(err);
         }
@@ -100,7 +101,7 @@ const _Pull = {
 
   updateImage: async function(name) {
     return new Promise((resolve) => {
-      docker.pull(this._nameWithTag(name), {}, (err, stream) => {
+      docker.pull(Images.withTag(name), {}, (err, stream) => {
         if (err) {
           resolve(false);
         }
@@ -154,15 +155,6 @@ const _Pull = {
   cancel: function() {
     this._pullStreams.forEach(stream => stream.destroy());
     this._pullStreams = [];
-  },
-
-  _nameWithTag: function(name) {
-    if (name.indexOf(':') === -1) {
-      return `${name}:latest`;
-    }
-    else {
-      return name;
-    }
   }
 
 };
