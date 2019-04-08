@@ -42,39 +42,32 @@
     },
     {
       type: `Environment`,
-      name: `HTTP_PORT`,
-      description: `Select the HTTP port for the proxy. This is usually 80.`
+      name: `LETS_ENCRYPT`,
+      style: 'Checkbox',
+      description: `Enable HTTPS support using <b>Let's&nbsp;Encrypt</b>`
     },
     {
       type: `NAT`,
       name: `WEB_NAT`,
       description: `Make websites available on the Internet`,
+      visible: `property['Environment#LETS_ENCRYPT'] == true`,
       ports: [
-        `HTTP_PORT`
+        `443/tcp`,
+        `80/tcp`
+      ]
+    },
+    {
+      type: `NAT`,
+      name: `WEB_NAT`,
+      description: `Make websites available on the Internet`,
+      visible: `property['Environment#LETS_ENCRYPT'] == false`,
+      ports: [
+        `80/tcp`
       ]
     },
     {
       type: `Text`,
       text: 'Use CNAMEs with your favorite Domain Registry to forward requests to <b>"{{__GLOBALNAME}}"</b>. This name will automatically track any change to your Home IP address.'
-    },
-    {
-      type: `Header`,
-      title: `Dynamic DNS`,
-      visible: 'false'
-    },
-    {
-      type: `Text`,
-      text: `The URL below is used to update an external Dynamic DNS service with the IP addresses for the selected websites.`
-    },
-    {
-      type: `Environment`,
-      name: `DDNS_URL`,
-      description: `DDNS URL`,
-      placeholder: `https://USER:PASS@dynupdate.no-ip.com/nic/update?hostname={{HOSTNAME}}.{{DOMAINNAME}}&myip={{IP}}`
-    },
-    {
-      type: `Text`,
-      text: `The following variables are automatically provided: {{HOSTNAME}}, {{DOMAINNAME}}, and {{IP}}`
     }
   ],
   properties: [
@@ -88,16 +81,32 @@
     },
     {
       type: `Environment`,
-      name: `DDNS_URL`
+      name: `LETS_ENCRYPT`,
+      defaultValue: false
     },
     {
-      type: `Environment`,
-      name: `HTTP_PORT`,
-      defaultValue: 80
+      type: 'Directory',
+      name: '/etc/nginx/acme.sh',
+      style: 'boot'
+    },
+    {
+      type: 'Directory',
+      name: '/etc/acme.sh/data',
+      style: 'boot'
     },
     {
       type: `Port`,
-      name: `HTTP_PORT`,
+      name: `443/tcp`,
+      port: 443,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
       port: 80,
       protocol: `TCP`,
       nat: false,
