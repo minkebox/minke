@@ -959,7 +959,7 @@ MinkeApp.prototype = {
   },
 
   expand: function(txt) {
-    if (txt && txt.indexOf('{{') !== -1) {
+    if (typeof txt ==='string' && txt.indexOf('{{') !== -1) {
       const env = Object.assign({
         __APPNAME: { value: this._name },
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
