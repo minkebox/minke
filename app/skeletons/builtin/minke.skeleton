@@ -2,6 +2,7 @@
   name: `Configure`,
   description: `Essential MinkeBox configuration`,
   image: `registry.minkebox.net/minkebox/minke`,
+  catalog: false,
   tags: [ 'All' ],
   actions: [
     {

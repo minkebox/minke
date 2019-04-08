@@ -194,7 +194,7 @@ function loadSkeleton(image, create) {
 function catalog() {
   const cat = {};
   for (let image in Builtins) {
-    if (image !== Images.MINKE) {
+    if (Builtins[image].catalog !== false) {
       cat[image] = {
         name: Builtins[image].name,
         description: Builtins[image].description,
@@ -206,7 +206,7 @@ function catalog() {
   locals.forEach((file) => {
     const str = FS.readFileSync(file, { encoding: 'utf8' });
     const skeleton = stringToSkeleton(str);
-    if (skeleton) {
+    if (skeleton && skeleton.catalog !== false) {
       cat[skeleton.image] = {
         name: skeleton.name,
         description: skeleton.description,
