@@ -1,4 +1,4 @@
-const DEFAULT_TAG = (DEBUG == 'dev' ? 'dev' : 'latest');
+const DEFAULT_TAG = (process.env.TAG ? process.env.TAG : 'latest');
 
 module.exports = {
 

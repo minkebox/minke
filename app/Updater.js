@@ -66,12 +66,12 @@ const Updater = {
   _updateImages: async function() {
     const apps = this._getApps();
     const updates = [];
-    const helper = await Pull.updateImage(Images.MINKE_HELPER);
+    const helper = await Pull.updateImage(Images.withTag(Images.MINKE_HELPER));
     for (let i = 0; i < apps.length; i++) {
       try {
-        let updated = await Pull.updateImage(apps[i]._image);
+        let updated = await Pull.updateImage(Images.withTag(apps[i]._image));
         await Promise.all(apps[i]._secondary.map(async secondary => {
-          updated |= await Pull.updateImage(secondary._image);
+          updated |= await Pull.updateImage(Images.withTag(secondary._image));
         }));
         if (apps[i].isRunning() && (updated || (helper && apps[i]._helperContainer))) {
           // Image or helper was updated

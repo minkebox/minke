@@ -2,6 +2,7 @@ const FS = require('fs');
 const Handlebars = require('./HB');
 const Pull = require('../Pull');
 const MinkeApp = require('../MinkeApp');
+const Images = require('../Images');
 const Skeletons = require('../skeletons/Skeletons');
 
 function _strhash(str) {
@@ -58,7 +59,7 @@ async function PageWS(ctx) {
             const download = [];
             const extract = [];
             const success = await Promise.all(images.map((image, idx) => {
-              return Pull.loadImage(image, (progress) => {
+              return Pull.loadImage(Images.withTag(image), (progress) => {
                 download[idx] = progress.download / images.length;
                 extract[idx] = progress.extract / images.length;
                 send({ type: 'html.update.attribute', selector: '.newapp .download', name: 'value', value: download.reduce((acc, val) => acc + (val || 0), 0) });

@@ -5,7 +5,7 @@ COPY startup.sh /startup.sh
 
 RUN apk add nodejs nodejs-npm dnsmasq tzdata openntpd e2fsprogs parted ;\
     cd /app ; npm install ;\
-    apk --no-cache del nodejs-npm ;\
+    apk del nodejs-npm ;\
     mkdir -p /etc/dnshosts.d
 
 COPY etc/ /etc
