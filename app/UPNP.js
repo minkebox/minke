@@ -4,7 +4,7 @@ const HTTP = require('http');
 
 const URN_WAN= 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
-const TIMEOUT = 10 * 1000;
+const TIMEOUT = 5 * 1000;
 const RETRY = 6;
 
 let ssdp;
@@ -118,7 +118,12 @@ const UPNP = {
       if (this._WANIPConnectionURL) {
         const IP_ADDR_REGEXP = /.*<NewExternalIPAddress>(.*)<\/NewExternalIPAddress>.*/;
         const answer = await this._sendRequest(this._WANIPConnectionURL, URN_WAN, 'GetExternalIPAddress');
-        return answer.replace(IP_ADDR_REGEXP, "$1");
+        const ip = answer.replace(IP_ADDR_REGEXP, "$1");
+        if (ip) {
+          return ip;
+        }
+        // Dont cache the WAN URL if we fail to get the external ip address
+        this._WANIPConnectionURL = null;
       }
     }
     return null;
