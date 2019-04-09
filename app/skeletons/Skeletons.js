@@ -198,6 +198,7 @@ function catalog() {
       cat[image] = {
         name: Builtins[image].name,
         description: Builtins[image].description,
+        tags: Builtins[image].tags || [],
         image: image
       };
     }
@@ -210,6 +211,7 @@ function catalog() {
       cat[skeleton.image] = {
         name: skeleton.name,
         description: skeleton.description,
+        tags: skeleton.tags || [],
         image: skeleton.image
       };
     }
