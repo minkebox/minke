@@ -548,9 +548,9 @@ MinkeApp.prototype = {
 
         if (this._homeIP) {
           DNS.registerHostIP(this._safeName(), this._homeIP);
+          DNS.registerHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP);
            // If we need to be accessed remotely, register with DDNS
           if (this._features.ddns || this._ports.find(port => port.nat)) {
-            DNS.registerHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP);
             DDNS.register(this);
           }
         }
