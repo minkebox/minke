@@ -27,6 +27,9 @@ Handlebars.registerHelper({
   },
   nsp: function(v) {
     return v.replace(/ /g, '');
+  },
+  mod: function(v1, v2) {
+    return v1 % v2;
   }
 });
 
