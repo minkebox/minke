@@ -2,6 +2,8 @@ const FS = require('fs');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 
+const NRTAGS = 10;
+
 function genApp(app, tags) {
   return {
     _id: app._id,
@@ -11,7 +13,7 @@ function genApp(app, tags) {
     link: app._forward && app._forward.url,
     linktarget: app._forward && app._forward.target,
     tags: app._tags,
-    tagcolor: tags.indexOf(app._tags[0]),
+    tagcolor: tags.indexOf(app._tags[0]) % NRTAGS,
   }
 }
 
@@ -26,7 +28,7 @@ function genAppStatus(acc, app, tags) {
       linktarget: app._forward && app._forward.target,
       running: app._status === 'running',
       tags: app._tags,
-      tagcolor: tags.indexOf(app._tags[0]),
+      tagcolor: tags.indexOf(app._tags[0]) % NRTAGS,
     });
   }
   return acc;
