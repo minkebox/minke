@@ -772,8 +772,8 @@ MinkeApp.prototype = {
 
     if (this._homeIP) {
       DNS.unregisterHostIP(this._safeName(), this._homeIP);
+      DNS.unregisterHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP);
       if (this._features.ddns || this._ports.find(port => port.nat)) {
-        DNS.unregisterHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP);
         DDNS.unregister(this);
       }
       this._homeIP = null;
