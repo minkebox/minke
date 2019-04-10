@@ -155,7 +155,16 @@ function skeletonToString(skeleton) {
 function stringToSkeleton(str) {
   let skel = null;
   try {
-    eval(`skel=${str}`)
+    eval(`skel=${str}`);
+    if (typeof skel.name !== 'string') {
+      throw new Error('Missing name');
+    }
+    if (typeof skel.image !== 'string') {
+      throw new Error('Missing image');
+    }
+    if (!Array.isArray(skel.properties)) {
+      throw new Error('Missing properties');
+    }
   }
   catch (e) {
     console.error(e);
