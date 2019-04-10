@@ -54,6 +54,9 @@ function onPageShow() {
       case 'page.redirect':
         window.location.replace(msg.url);
         break;
+      case 'skeleton.load':
+        install(msg.image);
+        break;
       default:
         break;
     }
@@ -252,6 +255,34 @@ document.addEventListener('paste', function(event) {
     event.preventDefault();
     const text = (event.originalEvent || event).clipboardData.getData('text/plain');
     document.execCommand('insertText', false, text);
+  }
+});
+
+document.addEventListener('drop', function(event) {
+  if ('skeleton' in event.target.dataset) {
+    event.stopPropagation();
+    event.preventDefault();
+    if (event.dataTransfer && event.dataTransfer && event.dataTransfer.items && event.dataTransfer.items[0]) {
+      const item = event.dataTransfer.items[0];
+      if (item.kind === 'file')
+      {
+        const reader = new FileReader();
+        reader.onload = function(e)
+        {
+          const content = e.target.result;
+          try {
+            let skel;
+            eval(`skel=${content}`);
+            if (('name' in skel) && ('image' in skel) && ('properties' in skel)) {
+              cmd('skeleton.drop', content);
+            }
+          }
+          catch (_) {
+          }
+        };
+        reader.readAsText(item.getAsFile());
+      }
+    }
   }
 });
 

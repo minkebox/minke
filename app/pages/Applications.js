@@ -80,6 +80,15 @@ async function PageWS(ctx) {
         case 'newapp.cancel':
           Pull.cancel();
           break;
+        case 'skeleton.drop':
+        {
+          const skel = Skeletons.parse(msg.value);
+          if (skel) {
+            Skeletons.saveSkeleton(skel);
+            send({ type: 'skeleton.load', image: skel.image });
+          }
+          break;
+        }
         default:
           break;
       }
