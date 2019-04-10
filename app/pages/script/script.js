@@ -203,6 +203,28 @@ function install(app) {
   }));
 }
 
+function saveSkeleton() {
+  const content = editor.getValue();
+  let name = 'app';
+  try {
+    let skel;
+    eval(`skel=${content}`);
+    name = skel.name || 'app';
+  }
+  catch (_) {
+  }
+  const a = document.createElement('a');
+  const url = URL.createObjectURL(new Blob([ content ], { type: 'text/plain' }));
+  a.href = url;
+  a.download = `${name}.skeleton`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 0);
+}
+
 document.addEventListener('drop', function(event) {
   if (event.target.getAttribute('contenteditable') === 'true' || event.target.nodeName === 'TEXTAREA') {
     event.stopPropagation();
