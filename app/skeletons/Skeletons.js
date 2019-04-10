@@ -1,7 +1,7 @@
 const FS = require('fs');
 const Path = require('path');
 const Glob = require('fast-glob');
-const Images = require('../Images');
+const VM = require('vm');
 
 const LOCALS_DIR = `${__dirname}/local`;
 const BUILTINS_DIR = `${__dirname}/builtin`;
@@ -148,14 +148,59 @@ function _toText(o, t) {
   return '';
 }
 
+
 function skeletonToString(skeleton) {
   return _toText(skeleton, 0);
 }
 
 function stringToSkeleton(str) {
-  let skel = null;
+  let skel;
   try {
-    eval(`skel=${str}`);
+    const sandbox = { skel: null, err: null };
+    // NOTE: Last time I checked, runInNewContext had a small memory leak. This is
+    // called infrequently enough that we don't expect it to be a problem here.
+    VM.runInNewContext('(function(){try{skel=' + str + '}catch(e){err=e}})()', sandbox);
+    if (sandbox.err) {
+      throw sandbox.err;
+    }
+    skel = sandbox.skel;
+    if (skel == undefined || skel === null || typeof skel !== 'object' || Array.isArray(skel)) {
+      throw new Error('Bad root');
+    }
+    // Try to keep bad properties out of the skeleton
+    function obj(o) {
+      switch (typeof o) {
+        case 'undefined':
+        case 'boolean':
+        case 'string':
+        case 'number':
+          return true;
+        case 'object':
+          if (o === null) {
+            return true;
+          }
+          if (Array.isArray(o)) {
+            for (let i = 0; i < o.length; i++) {
+              if (!obj(o[i])) {
+                return false;
+              }
+            }
+            return true;
+          }
+          for (let k in o) {
+            if (!obj(o[k])) {
+              return false;
+            }
+          }
+          return true;
+        default:
+          break;
+      }
+      return false;
+    }
+    if (!obj(skel)) {
+      throw new Error('Bad skeleton');
+    }
     if (typeof skel.name !== 'string') {
       throw new Error('Missing name');
     }
@@ -169,6 +214,7 @@ function stringToSkeleton(str) {
   catch (e) {
     console.error(e);
     console.error(str.substring(0, 200));
+    return null;
   }
   return skel;
 }
