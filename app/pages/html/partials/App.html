@@ -1,6 +1,6 @@
 <div class="app filter pure-g application-{{_id}}{{#each tags}} tag-{{nsp this}}{{/each}} tag-color-{{tagcolor}}">
   <div class="pure-u-1-4 left" onclick="openInlinePage('configure/{{_id}}/')">
-    <h5>{{status}}</h5>
+    <h5 {{#if (eq status "stopped")}}style="color:#f88"{{/if}}>{{status}}</h5>
     <h4>{{name}}</h4>
     <h6>{{#if link}}<a onclick="window.event.stopPropagation()" href="{{link}}" target="_blank">{{/if}}{{ip}}{{#if link}}</a>{{/if}}</h6>
   </div>
