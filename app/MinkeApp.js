@@ -47,6 +47,12 @@ MinkeApp.prototype = {
     this._bootcount = app.bootcount;
     this._secondary = app.secondary || [];
 
+    // FIX
+    if (!Array.isArray(this._args)) {
+      this._args = undefined;
+    }
+    // FIX
+
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel && skel.monitor) {
       this._monitor = skel.monitor;
@@ -109,7 +115,7 @@ MinkeApp.prototype = {
   updateFromSkeleton: function(skel, defs) {
 
     this._description = skel.description;
-    this._args = '';
+    this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue;
     this._networks = skel.properties.reduce((r, prop) => {
       if (prop.type === 'Network') {
         if (defs.networks && prop.name in defs.networks) {
@@ -126,6 +132,7 @@ MinkeApp.prototype = {
       this._secondary = skel.secondary.map((secondary, idx) => {
         const secondaryApp = {
           _image: secondary.image,
+          _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
           _delay: secondary.delay || 0
         };
         this._parseProperties(secondaryApp, `${idx}`, secondary.properties, {});
@@ -250,13 +257,13 @@ MinkeApp.prototype = {
 
       inherit = inherit || {};
 
-      // Build the helper
       this._fs = Filesystem.create(this);
     
       const config = {
         name: `${this._safeName()}__${this._id}`,
         Hostname: this._safeName(),
         Image: Images.withTag(this._image),
+        Cmd: this._args,
         HostConfig: {
           Mounts: this._fs.getAllMounts(this),
           Devices: [],
@@ -658,6 +665,7 @@ MinkeApp.prototype = {
             const sconfig = {
               name: `${this._safeName()}__${this._id}__${c}`,
               Image: Images.withTag(secondary._image),
+              Cmd: secondary._args,
               HostConfig: {
                 Mounts: this._fs.getAllMounts(secondary),
                 Devices: [],
