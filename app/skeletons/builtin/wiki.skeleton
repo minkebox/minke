@@ -2,7 +2,7 @@
   name: `Wiki.js`,
   description: `A modern, lightweight and powerful wiki app`,
   image: `requarks/wiki`,
-  tags: [ 'Web' ],
+  tags: [ 'Web', 'Wiki' ],
   delay: 10,
   actions: [
     {
