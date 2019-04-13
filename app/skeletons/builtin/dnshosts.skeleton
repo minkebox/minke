@@ -2,7 +2,7 @@
   name: `Hostnames`,
   description: `Create simple mappings between fully qualified hostnames and IP addresses`,
   image: `registry.minkebox.net/minkebox/dnshosts`,
-  tags: [ 'Network Services' ],
+  tags: [ 'Networks' ],
   actions: [
     {
       type: `Header`,
