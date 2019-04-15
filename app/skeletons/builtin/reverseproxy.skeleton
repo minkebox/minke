@@ -22,7 +22,7 @@
     },
     {
       type: 'Text',
-      text: 'You can also published other websites which are not hosted by MinkeBox'
+      text: 'You can published other websites which are not hosted by MinkeBox'
     },
     {
       type: `Environment`,
@@ -31,6 +31,26 @@
       description: `Publish non-MinkeBox websites`,
       headers: [
         { name: 'URL' },
+        { name: 'Published Name' }
+      ],
+      pattern: `{{0}}#{{1}}`,
+      join: ` `
+    },
+    {
+      type: 'Header',
+      title: 'Redirects'
+    },
+    {
+      type: 'Text',
+      text: 'You can redirect websites to different urls'
+    },
+    {
+      type: `Environment`,
+      name: `REDIRECT_WEBSITES`,
+      style: `Table`,
+      description: `Redirect websites`,
+      headers: [
+        { name: 'Redirect URL' },
         { name: 'Published Name' }
       ],
       pattern: `{{0}}#{{1}}`,
@@ -78,6 +98,10 @@
     {
       type: `Environment`,
       name: `OTHER_WEBSITES`
+    },
+    {
+      type: `Environment`,
+      name: `REDIRECT_WEBSITES`
     },
     {
       type: `Environment`,
