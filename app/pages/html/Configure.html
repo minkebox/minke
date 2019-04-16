@@ -129,6 +129,10 @@
           <div class="action disks pure-control-group">
             {{> Disks}}
           </div>
+          {{else if (eq type "__BackupAndRestore")}}
+          <div class="action disks pure-control-group">
+            {{> BackupAndRestore}}
+          </div>
           {{/if}}
           {{else}}
           <div class="content-header">Nothing to configure</div>

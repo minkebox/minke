@@ -172,7 +172,7 @@ MinkeSetup.prototype = {
     await this.save();
     this.emit('update.status', { app: this, status: this._status });
     if (reason) {
-      this._restart(reason);
+      this.systemRestart(reason);
     }
   },
 
@@ -198,7 +198,7 @@ MinkeSetup.prototype = {
 
   getAvailableNetworks: function() {
     return MinkeApp.getApps().reduce((acc, app) => {
-      if (app._image === Images.MINKE_PRIVATE_NETWORK) {
+      if (app._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
         acc.push({ _id: app._id, name: app._name });
       }
       return acc;
@@ -267,13 +267,17 @@ MinkeSetup.prototype = {
     }
   },
 
-  _restart: async function(reason) {
+  systemRestart: async function(reason) {
     FS.writeFileSync(RESTART_REASON, reason);
     switch (reason) {
       case 'restart':
       case 'update':
       case 'update-native':
         await MinkeApp.shutdown({ inherit: true });
+        process.exit();
+        break;
+
+      case 'restore':
         process.exit();
         break;
 

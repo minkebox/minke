@@ -34,6 +34,11 @@ const Database = {
     Database._config.persistence.setAutocompactionInterval(DB_COMPACT_SEC * 1000);
   },
 
+  reset: async function() {
+    await this._remove(Database._config, {}, { multi: true });
+    await this._remove(Database._apps, {}, { multi: true });
+  },
+
   getConfig: async function(id) {
     return await this._findOne(Database._config, { _id: id });
   },
@@ -60,9 +65,7 @@ const Database = {
 
   _find: _wrap(DB.prototype.find),
   _findOne: _wrap(DB.prototype.findOne),
-  _insert: _wrap(DB.prototype.insert),
   _update: _wrap(DB.prototype.update),
-  _ensureIndex: _wrap(DB.prototype.ensureIndex),
   _remove: _wrap(DB.prototype.remove)
 };
 

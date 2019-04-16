@@ -6,7 +6,8 @@ const CACHE_MAXAGE = 24 * 60 * 60; // 24 hours
 const Pages = {
   '/':                require('./Main'),
   '/new/application': require('./Applications'),
-  '/configure/:id':   require('./Configure')
+  '/configure/:id':   require('./Configure'),
+  '/minkebox.config': require('../Backup')
 };
 
 function pages(root, wsroot) {

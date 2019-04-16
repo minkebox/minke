@@ -105,6 +105,17 @@
       type: 'Environment',
       name: 'ADMINMODE',
       description: 'Admin Mode'
+    },
+    {
+      type: 'Header',
+      title: 'Backup and Restore'
+    },
+    {
+      type: 'Text',
+      text: 'You can backup and restore the MinkeBox configuration. Restoring a configuration will erase the current configuration. Backing up a configuration will not necessarily backup app specific data.'
+    },
+    {
+      type: '__BackupAndRestore'
     }
   ],
   properties: [

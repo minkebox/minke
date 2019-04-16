@@ -381,7 +381,7 @@ MinkeApp.prototype = {
           // When we start a new app which is attached to a private network, we must restart the
           // private network so it can inform the peer about the new app.
           const napp = MinkeApp.getAppById(primary);
-          if (napp && napp._image === Images.MINKE_PRIVATE_NETWORK) {
+          if (napp && napp._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
             napp._needRestart = true;
           }
           break;
@@ -408,7 +408,7 @@ MinkeApp.prototype = {
         config.HostConfig.CapAdd.push('DAC_READ_SEARCH');
       }
 
-      if (this._image === Images.MINKE_PRIVATE_NETWORK) {
+      if (this._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
         let nr = 0;
         applications.forEach((app) => {
           if (app._networks.primary === this._id) {
@@ -700,7 +700,7 @@ MinkeApp.prototype = {
         }
       }
 
-      if (this._image === Images.MINKE_PRIVATE_NETWORK) {
+      if (this._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
         this._monitorNetwork();
         this._remoteServices = [];
         this.on('update.network.status', this._updateNetworkStatus);

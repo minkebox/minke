@@ -7,6 +7,7 @@ const Images = require('../Images');
 const Skeletons = require('../skeletons/Skeletons');
 const Filesystem = require('../Filesystem');
 const Disks = require('../Disks');
+const Backup = require('../Backup');
 
 let template;
 function registerTemplates() {
@@ -16,7 +17,8 @@ function registerTemplates() {
     'Shareables',
     'CustomShareables',
     'Websites',
-    'Disks'
+    'Disks',
+    'BackupAndRestore'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -569,6 +571,11 @@ async function ConfigurePageWS(ctx) {
                 type: 'page.reload'
               });
             });
+          }
+          break;
+        case 'app.restore-all':
+          if (app._image === Images.MINKE) {
+            Backup.restore(msg.value);
           }
           break;
         default:
