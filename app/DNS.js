@@ -48,6 +48,7 @@ const DNS = {
     resolvers[args._id] = resolve;
     if (resolve.delay) {
       setTimeout(() => {
+        resolve.delay = 0;
         this._updateResolvServers();
         this._reloadDNS();
       }, resolve.delay * 1000);
@@ -134,7 +135,7 @@ const DNS = {
       const dns = Object.values(resolvers);
       dns.sort((a, b) => b.priority - a.priority);
       FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${dns.map((resolve) => {
-        return `server=${resolve.IP4Address}#${resolve.Port}\n`;
+        return resolve.delay === 0 ? `server=${resolve.IP4Address}#${resolve.Port}\n` : '';
       }).join('')}`);
     }
   },
