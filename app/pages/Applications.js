@@ -5,6 +5,8 @@ const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
 const Skeletons = require('../skeletons/Skeletons');
 
+const NRTAGS = 20;
+
 function _strhash(str) {
   let hash = 5381;
   const bytes = Buffer.from(str, 'utf8');
@@ -26,7 +28,7 @@ async function PageHTML(ctx) {
   const catalog = Skeletons.catalog();
   ctx.body = template({ adminMode: MinkeApp.getAdminMode(), skeletons: catalog.map(skel => Object.assign({ 
     pre: skel.name.substr(0, 2),
-    color: _strhash(skel.name.toLowerCase()) % 10
+    color: _strhash(skel.name.toLowerCase()) % NRTAGS
   }, skel)) });
   ctx.type = 'text/html';
 }

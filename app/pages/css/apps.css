@@ -199,6 +199,36 @@ html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
 .bgcolor-9 {
   background-color: #d85452;
 }
+.bgcolor-10 {
+  background-color: #6b6bc9;
+}
+.bgcolor-11 {
+  background-color: #fd471f;
+}
+.bgcolor-12 {
+  background-color: #4dbde9;
+}
+.bgcolor-13 {
+  background-color: #c9ab32;
+}
+.bgcolor-14 {
+  background-color: #36c742;
+}
+.bgcolor-15 {
+  background-color: #8c668d;
+}
+.bgcolor-16 {
+  background-color: #fc743e;
+}
+.bgcolor-17 {
+  background-color: #a124b1;
+}
+.bgcolor-18 {
+  background-color: #ffefaf;
+}
+.bgcolor-19 {
+  background-color: #06f34d;
+}
 
 .popbox .popbox_container {
   max-width: 420px;

@@ -122,6 +122,66 @@ body {
 .nav .pure-menu-link span.tag-color-9 {
   background: #41b376;
 }
+.app.tag-color-10 {
+  border-left-color: #6b6bc9;
+}
+.nav .pure-menu-link span.tag-color-10 {
+  background: #6b6bc9;
+}
+.app.tag-color-11 {
+  border-left-color: #fd471f;
+}
+.nav .pure-menu-link span.tag-color-11 {
+background: #fd471f;
+}
+.app.tag-color-12 {
+  border-left-color: #4dbde9;
+}
+.nav .pure-menu-link span.tag-color-12 {
+  background: #4dbde9;
+}
+.app.tag-color-13 {
+  border-left-color: #c9ab32;
+}
+.nav .pure-menu-link span.tag-color-13 {
+  background: #c9ab32;
+}
+.app.tag-color-14 {
+  border-left-color: #36c742;
+}
+.nav .pure-menu-link span.tag-color-14 {
+  background: #36c742;
+}
+.app.tag-color-15 {
+  border-left-color: #8c668d;
+}
+.nav .pure-menu-link span.tag-color-15 {
+  background: #8c668d;
+}
+.app.tag-color-16 {
+  border-left-color: #fc743e;
+}
+.nav .pure-menu-link span.tag-color-16 {
+  background: #fc743e;
+}
+.app.tag-color-17 {
+  border-left-color: #a124b1;
+}
+.nav .pure-menu-link span.tag-color-17 {
+  background: #a124b1;
+}
+.app.tag-color-18 {
+  border-left-color: #ffefaf;
+}
+.nav .pure-menu-link span.tag-color-18 {
+  background: #ffefaf;
+}
+.app.tag-color-19 {
+  border-left-color: #06f34d;
+}
+.nav .pure-menu-link span.tag-color-19 {
+  background: #06f34d;
+}
 
 .app .left {
   display: flex;
@@ -295,23 +355,62 @@ body {
 .application-status.tag-color-9 {
   border-color: #41b376;
 }
+.application-status.tag-color-10 {
+  color: #6b6bc9;
+}
+.application-status.tag-color-11 {
+  color: #fd471f;
+}
+.application-status.tag-color-12 {
+  color: #4dbde9;
+}
+.application-status.tag-color-13 {
+  color: #c9ab32;
+}
+.application-status.tag-color-14 {
+  color: #36c742;
+}
+.application-status.tag-color-15 {
+  color: #8c668d;
+}
+.application-status.tag-color-16 {
+  color: #fc743e;
+}
+.application-status.tag-color-17 {
+  color: #a124b1;
+}
+.application-status.tag-color-18 {
+  color: #ffefaf;
+}
+.application-status.tag-color-19 {
+  color: #06f34d;
+}
 
 html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
   display: none;
 }
 
 /* ----- */
+
 .palette {
-  color: #fd0a1a;
-  color: #ffd73e;
   color: #278b30;
+  color: #ffd73e;
   color: #b12427;
-  color: #808020;
-  color: #fd471f;
-  color: #41b376;
-  color: #fd1a91;
   color: #88cce7;
-  color: #19196b;
+  color: #fd0a1a;
+  color: #808020;
   color: #efad5a;
+  color: #fd1a91;
   color: #d85452;
+  color: #41b376;
+  color: #6b6bc9;
+  color: #fd471f;
+  color: #4dbde9;
+  color: #c9ab32;
+  color: #36c742;
+  color: #8c668d;
+  color: #fc743e;
+  color: #a124b1;
+  color: #ffefaf;
+  color: #06f34d;
 }

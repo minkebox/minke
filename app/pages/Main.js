@@ -2,7 +2,7 @@ const FS = require('fs');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 
-const NRTAGS = 10;
+const NRTAGS = 20;
 
 function genApp(app, tags) {
   return {
