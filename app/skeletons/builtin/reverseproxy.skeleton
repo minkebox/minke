@@ -92,6 +92,10 @@
   ],
   properties: [
     {
+      type: `Feature`,
+      name: `ddns`
+    },
+    {
       type: `Environment`,
       name: `WEBSITES`
     },
