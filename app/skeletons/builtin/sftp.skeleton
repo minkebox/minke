@@ -102,6 +102,7 @@
       port: 22,
       protocol: `TCP`,
       nat: false,
+      vpn: true,
       web: false,
       dns: false,
       mdns: {

@@ -98,6 +98,7 @@
       port: 137,
       protocol: `UDP`,
       nat: false,
+      vpn: true,
       web: false,
       dns: false,
       mdns: null
@@ -108,6 +109,7 @@
       port: 138,
       protocol: `UDP`,
       nat: false,
+      vpn: true,
       web: false,
       dns: false,
       mdns: null
@@ -118,6 +120,7 @@
       port: 139,
       protocol: `TCP`,
       nat: false,
+      vpn: true,
       web: false,
       dns: false,
       mdns: null
@@ -128,6 +131,7 @@
       port: 445,
       protocol: `TCP`,
       nat: false,
+      vpn: true,
       web: false,
       dns: false,
       mdns: {
