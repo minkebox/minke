@@ -702,7 +702,6 @@ MinkeApp.prototype = {
 
       if (this._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
         this._monitorNetwork();
-        this._remoteServices = [];
         this.on('update.network.status', this._updateNetworkStatus);
       }
 
@@ -744,7 +743,6 @@ MinkeApp.prototype = {
         this._networkMonitor.shutdown();
         this._networkMonitor = null;
         this.off('update.network.status', this._updateNetworkStatus);
-        this._remoteServices = null;
       }
     }
     catch (_) {
