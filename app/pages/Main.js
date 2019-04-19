@@ -33,6 +33,10 @@ function genAppStatus(acc, app, tags) {
       running: app._status === 'running',
       tags: app._tags,
       tagcolor: tags.indexOf(app._tags[0]) % NRTAGS,
+      networks: [
+        app._networks.primary === 'host' ? 'home' : app._networks.primary,
+        app._networks.secondary === 'host' ? 'home' : app._networks.secondary
+      ]
     });
   }
   return acc;
