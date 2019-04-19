@@ -14,6 +14,10 @@ function genApp(app, tags) {
     linktarget: app._forward && app._forward.target,
     tags: app._tags,
     tagcolor: tags.indexOf(app._tags[0]) % NRTAGS,
+    networks: [
+      app._networks.primary === 'host' ? 'home' : app._networks.primary,
+      app._networks.secondary === 'host' ? 'home' : app._networks.secondary
+    ]
   }
 }
 
@@ -42,7 +46,8 @@ function registerTemplates() {
   const partials = [
     'App',
     'AppStatus',
-    'Tags'
+    'Tags',
+    'Networks'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
@@ -51,6 +56,7 @@ function registerTemplates() {
   appTemplate = Handlebars.compile('{{> App}}');
   appStatusTemplate = Handlebars.compile('{{> AppStatus}}');
   tagsTemplate = Handlebars.compile('{{> Tags}}');
+  networksTemplate = Handlebars.compile('{{> Networks}}');
 }
 if (!DEBUG) {
   registerTemplates();
@@ -64,9 +70,10 @@ async function MainPageHTML(ctx) {
   }
 
   const tags = MinkeApp.getTags();
+  const networks = MinkeApp.getNetworks();
   const apps = MinkeApp.getApps().map(app => genApp(app, tags));
   const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app, tags), []);
-  ctx.body = mainTemplate({ adminMode: MinkeApp.getAdminMode(), tags: tags, apps: apps, statuses: statuses });
+  ctx.body = mainTemplate({ adminMode: MinkeApp.getAdminMode(), tags: tags, networks: networks, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
 }
 
@@ -168,10 +175,20 @@ async function MainPageWS(ctx) {
     offline(status.app);
   }
 
+  function updateNetworks() {
+    const networks = MinkeApp.getNetworks();
+    send({
+      type: 'html.update',
+      selector: '#network-insertion-point',
+      html: networksTemplate({ networks: networks })
+    });
+  }
+
   ctx.websocket.on('close', () => {
     MinkeApp.getApps().forEach(app => offline(app));
     MinkeApp.off('app.create', createApp);
     MinkeApp.off('app.remove', removeApp);
+    MinkeApp.off('net.create', updateNetworks);
   });
 
   ctx.websocket.on('error', () => {
@@ -181,6 +198,7 @@ async function MainPageWS(ctx) {
   MinkeApp.getApps().forEach(app => online(app));
   MinkeApp.on('app.create', createApp);
   MinkeApp.on('app.remove', removeApp);
+  MinkeApp.on('net.create', updateNetworks);
 }
 
 module.exports = {

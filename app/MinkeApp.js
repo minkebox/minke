@@ -894,7 +894,7 @@ MinkeApp.prototype = {
       applications.splice(idx, 1);
       const nidx = networkApps.indexOf(this);
       if (nidx !== -1) {
-        networkApps[nidx] = null;
+        networkApps.splice(nidx, 1);
       }
     }
     if (this.isRunning()) {
@@ -1351,13 +1351,7 @@ MinkeApp.create = async function(image) {
   const app = new MinkeApp().createFromSkeleton(await Skeletons.loadSkeleton(image, true));
   applications.push(app);
   if (app._features.vpn) {
-    const idx = networkApps.indexOf(null);
-    if (idx !== -1) {
-      networkApps[idx] = app;
-    }
-    else {
-      networkApps.push(app);
-    }
+    networkApps.push(app);
     MinkeApp.emit('net.create', { app: app });
   }
   await app.save();
@@ -1375,9 +1369,12 @@ MinkeApp.getAppById = function(id) {
 }
 
 MinkeApp.getNetworks = function() {
-  return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
-    return app && app._willCreateNetwork() ? { _id: app._id, name: app._name } : null;
-  }));
+  return [ { _id: 'home', name: 'home' } ].concat(networkApps.reduce((acc, app) => {
+    if (app && app._willCreateNetwork()) {
+      acc.push({ _id: app._id, name: app._name });
+    }
+    return acc;
+  }, []));
 }
 
 MinkeApp.getTags = function() {
