@@ -16,6 +16,8 @@ const Skeletons = require('./skeletons/Skeletons');
 
 const GLOBALDOMAIN = '.minkebox.net';
 
+const CRASH_TIMEOUT = (2 * 60 * 1000); // 2 minutes
+
 let applications = [];
 let koaApp = null;
 let networkApps = [];
@@ -46,12 +48,6 @@ MinkeApp.prototype = {
     this._networks = app.networks;
     this._bootcount = app.bootcount;
     this._secondary = app.secondary || [];
-
-    // FIX
-    if (!Array.isArray(this._args)) {
-      this._args = undefined;
-    }
-    // FIX
 
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel && skel.monitor) {
@@ -709,6 +705,8 @@ MinkeApp.prototype = {
         this._statusMonitor = this._createMonitor(Object.assign({ event: 'update.monitor' }, this._monitor));
       }
 
+      this._startTime = Date.now();
+
       this._setStatus('running');
 
       if (this._features.vpn) {
@@ -1153,7 +1151,13 @@ MinkeApp._monitorEvents = async function() {
                     }
                   });
                   if (app && app.isRunning()) {
-                    app.stop();
+                    // If the app is running we stop it (so we stop all the pieces). We will auto-restart
+                    // as long as it has been running longer than CRASH_TIMEOUT.
+                    app.stop().then(() => {
+                      if (Date.now() - app._startTime > CRASH_TIMEOUT) {
+                        app.start();
+                      }
+                    });
                   }
                   break;
                 }
