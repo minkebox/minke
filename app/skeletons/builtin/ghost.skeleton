@@ -3,8 +3,8 @@
   description: `Blogging using the Ghost publishing platform`,
   image: `ghost:alpine`,
   tags: [
-    `Web`,
-    `Blog`
+    `Blog`,
+    `Web`
   ],
   actions: [
     {

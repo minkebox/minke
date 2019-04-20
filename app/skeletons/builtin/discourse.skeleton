@@ -3,8 +3,8 @@
   description: `A 100% open source discussion platform built for the next decade of the Internet`,
   image: `bitnami/discourse`,
   tags: [
-    `Web`,
-    `Forum`
+    `Forum`,
+    `Web`
   ],
   actions: [
     {
