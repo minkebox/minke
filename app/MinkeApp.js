@@ -49,6 +49,12 @@ MinkeApp.prototype = {
     this._bootcount = app.bootcount;
     this._secondary = app.secondary || [];
 
+    // FIX
+    if (!Array.isArray(this._args)) {
+      this._args = undefined;
+    }
+    // FIX
+
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel && skel.monitor) {
       this._monitor = skel.monitor;
