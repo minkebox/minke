@@ -67,13 +67,16 @@ const DDNS = {
           resolve(ip);
         }
         else {
+          resolve(null);
+        }
+        /*else {
           // Fallback
           HTTPS.get(GETIP, (res) => {
             res.on('data', (data) => {
               resolve(data.toString('utf8'));
             });
           });
-        }
+        }*/
       });
     });
   }
