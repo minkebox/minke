@@ -106,7 +106,7 @@ MinkeApp.prototype = {
     this._name = name;
     this._image = skel.image,
     this._globalId = UUID();
-  
+
     this.updateFromSkeleton(skel, {});
 
     this._setStatus('stopped');
@@ -260,7 +260,7 @@ MinkeApp.prototype = {
       inherit = inherit || {};
 
       this._fs = Filesystem.create(this);
-    
+
       const config = {
         name: `${this._safeName()}__${this._id}`,
         Hostname: this._safeName(),
@@ -426,7 +426,7 @@ MinkeApp.prototype = {
       }
 
       if (primary !== 'host') {
-    
+
         const helperConfig = {
           name: `helper-${this._safeName()}__${this._id}`,
           Hostname: config.Hostname,
@@ -615,6 +615,10 @@ MinkeApp.prototype = {
             koaApp.ws.use(this._forward.ws);
           }
         }
+        else {
+          this._forward = HTTP.createRedirect({ prefix: `/a/${this._id}`, url: `http://${MinkeApp._network.network.ip_address}/configure/${this._id}` });
+          koaApp.use(this._forward.http);
+        }
 
         const dnsport = this._ports.find(port => port.dns);
         if (dnsport) {
@@ -646,7 +650,7 @@ MinkeApp.prototype = {
 
       config.Env = Object.keys(this._env).map(key => `${key}=${this.expand(this._env[key].value)}`).concat(configEnv);
       this._fullEnv = config.Env;
-    
+
       if (inherit.container) {
         this._container = inherit.container;
         if (inherit.secondary.length) {
@@ -733,7 +737,7 @@ MinkeApp.prototype = {
   stop: async function() {
 
     this._setStatus('stopping');
-  
+
     try {
       if (this._statusMonitor) {
         this._statusMonitor.shutdown();
@@ -908,7 +912,7 @@ MinkeApp.prototype = {
     // Create a new filesystem so we can uninstall. If the app wasn't running when we
     // uninstall then there was no file system available to use for this operation.
     Filesystem.create(this).uninstall();
-  
+
     await Database.removeApp(this._id);
 
     MinkeApp.emit('app.remove', { app: this });
@@ -987,7 +991,7 @@ MinkeApp.prototype = {
     this._networkMonitor = this._createMonitor({
       event: 'update.network.status',
       watch: '/etc/status/forwardports.txt',
-      cmd: 'cat /etc/status/forwardports.txt', 
+      cmd: 'cat /etc/status/forwardports.txt',
       parser: 'output = input'
     });
   },
@@ -1017,7 +1021,7 @@ MinkeApp.prototype = {
     }));
   },
 
-  _createMonitor: function(args) {  
+  _createMonitor: function(args) {
     const monitor = Monitor.create({
       app: this,
       cmd: args.cmd,
@@ -1076,7 +1080,7 @@ MinkeApp.prototype = {
   _setupUpdateListeners: function() {
 
     this._updateNetworkStatus = this._updateNetworkStatus.bind(this);
-  
+
     this._eventState = {};
 
     this.on('newListener', async (event, listener) => {
