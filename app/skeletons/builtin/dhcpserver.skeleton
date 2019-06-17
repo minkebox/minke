@@ -48,7 +48,17 @@
       pattern: `{{1}},{{2}},{{0}}
 `,
       join: ``
-    }
+    },
+    {
+      type: `Header`,
+      title: `Advanced`,
+      visible: `property['AdminMode'] == true`
+    },
+    {
+      type: `Environment`,
+      name: `ALT_DNS`,
+      description: `Override default DNS server`
+    },
   ],
   properties: [
     {
@@ -117,7 +127,11 @@
       type: `Network`,
       name: `primary`,
       defaultValue: `host`
-    }
+    },
+    {
+      type: `Environment`,
+      name: `ALT_DNS`
+    },
   ],
   monitor: {
     cmd: `wc -l /etc/dnsmasq-hosts.d/user-defined-hosts.conf ; cat /etc/dnsmasq.d/dhcp-ranges.conf ; cat /etc/dnsmasq-state.d/leases`,
