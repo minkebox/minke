@@ -130,7 +130,8 @@
     },
     {
       type: `Environment`,
-      name: `ALT_DNS`
+      name: `ALT_DNS`,
+      defaultValue: ``
     },
   ],
   monitor: {
