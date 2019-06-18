@@ -559,7 +559,7 @@ MinkeApp.prototype = {
           DNS.registerHostIP(this._safeName(), this._homeIP);
           DNS.registerHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP);
            // If we need to be accessed remotely, register with DDNS
-          if (this._features.ddns || this._ports.find(port => port.nat)) {
+          if (this._features.ddns || this._ddns || this._ports.find(port => port.nat)) {
             DDNS.register(this);
           }
         }
@@ -787,7 +787,7 @@ MinkeApp.prototype = {
     if (this._homeIP) {
       DNS.unregisterHostIP(this._safeName(), this._homeIP);
       DNS.unregisterHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP);
-      if (this._features.ddns || this._ports.find(port => port.nat)) {
+      if (this._features.ddns || this._ddns || this._ports.find(port => port.nat)) {
         DDNS.unregister(this);
       }
       this._homeIP = null;
