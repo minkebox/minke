@@ -14,7 +14,6 @@ const UPNP = {
   _uuid: '',
   _hostname: '',
   _ip: '0.0.0.0',
-  _WANIPConnectionURL: null,
 
   register: function(root) {
     root.get('/rootDesc.xml', async (ctx) => {
@@ -45,7 +44,7 @@ const UPNP = {
   },
 
   start: async function(config) {
-  
+
     this._uuid = config.uuid;
     this._hostname = config.hostname;
     this._ip = config.ipaddress;
@@ -80,50 +79,47 @@ const UPNP = {
   },
 
   getExternalIP: async function() {
-    if (ssdp) {
-      if (!this._WANIPConnectionURL) {
-        this._WANIPConnectionURL = await new Promise(async (resolve) => {
-          let location = null;
-          const search = (res) => {
-            if (res.ST === URN_IGD) {
-              location = new URL(res.LOCATION);
-            }
-          }
-          const discover = async (service) => {
-            if (location) {
-              for (let ptr = service.details; ptr && ptr.device; ptr = ptr.device.deviceList) {
-                const list = ptr.device.serviceList;
-                if (list && list.service && list.service.serviceType === URN_WAN) {
-                  resolve(new URL(list.service.controlURL, location.origin));
-                  resolve = null;
-                }
-              }
-            }
-          }
-          ssdp.on('ssdp:search-response', search);
-          ssdp.on(`discover:${URN_IGD}`, discover);
-          // Retry the discover process until we succeed (or eventually fail)
-          for (let retry = 0; retry < RETRY && ssdp && resolve; retry++) {
-            await ssdp.discover(URN_IGD, TIMEOUT);
-          }
-          if (ssdp) {
-            ssdp.off('ssdp:search-response', search);
-            ssdp.off(`discover:${URN_IGD}`, discover);
-          }
-          if (resolve) {
-            resolve(null);
-          }
-        });
-      }
-      if (this._WANIPConnectionURL) {
-        const IP_ADDR_REGEXP = /.*<NewExternalIPAddress>(.*)<\/NewExternalIPAddress>.*/;
-        const answer = await this._sendRequest(this._WANIPConnectionURL, URN_WAN, 'GetExternalIPAddress');
-        const ip = answer.replace(IP_ADDR_REGEXP, "$1");
-        if (ip) {
-          return ip;
+    if (!ssdp) {
+      return null;
+    }
+    const WANIPConnectionURL = await new Promise(async (resolve) => {
+      let location = null;
+      const search = (res) => {
+        if (res.ST === URN_IGD) {
+          location = new URL(res.LOCATION);
         }
-        // Dont cache the WAN URL if we fail to get the external ip address
-        this._WANIPConnectionURL = null;
+      }
+      const discover = async (service) => {
+        if (location) {
+          for (let ptr = service.details; ptr && ptr.device; ptr = ptr.device.deviceList) {
+            const list = ptr.device.serviceList;
+            if (list && list.service && list.service.serviceType === URN_WAN) {
+              resolve(new URL(list.service.controlURL, location.origin));
+              resolve = null;
+            }
+          }
+        }
+      }
+      ssdp.on('ssdp:search-response', search);
+      ssdp.on(`discover:${URN_IGD}`, discover);
+      // Retry the discover process until we succeed (or eventually fail)
+      for (let retry = 0; retry < RETRY && ssdp && resolve; retry++) {
+        await ssdp.discover(URN_IGD, TIMEOUT);
+      }
+      if (ssdp) {
+        ssdp.off('ssdp:search-response', search);
+        ssdp.off(`discover:${URN_IGD}`, discover);
+      }
+      if (resolve) {
+        resolve(null);
+      }
+    });
+    if (WANIPConnectionURL) {
+      const IP_ADDR_REGEXP = /.*<NewExternalIPAddress>(.*)<\/NewExternalIPAddress>.*/;
+      const answer = await this._sendRequest(WANIPConnectionURL, URN_WAN, 'GetExternalIPAddress');
+      const ip = answer.replace(IP_ADDR_REGEXP, "$1");
+      if (ip) {
+        return ip;
       }
     }
     return null;
