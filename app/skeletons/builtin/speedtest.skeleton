@@ -23,6 +23,12 @@
     },
     {
       type: `Environment`,
+      description: `Autorun SpeedTest. If this is unchecked, SpeedTest will only be run when you restart`,
+      style: 'Checkbox',
+      name: `CRONJOB_RUN`
+    },
+    {
+      type: `Environment`,
       description: `Comma seperated list of minutes in the hour to run the test. (e.g. 0,30 runs the test on the hour and half hour)`,
       name: `CRONJOB_ITERATION`
     },
@@ -30,7 +36,8 @@
       type: `Network`,
       name: `primary`,
       description: `Select which network to test (you probably want the default)`
-    }
+    },
+
   ],
   properties: [
     {
@@ -66,6 +73,11 @@
       type: `Environment`,
       name: `CRONJOB_ITERATION`,
       defaultValue: 0
+    },
+    {
+      type: `Environment`,
+      name: `CRONJOB_RUN`,
+      defaultValue: true
     },
     {
       type: `Directory`,
