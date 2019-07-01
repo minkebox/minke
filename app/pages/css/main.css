@@ -356,34 +356,34 @@ background: #fd471f;
   border-color: #41b376;
 }
 .application-status.tag-color-10 {
-  color: #6b6bc9;
+  border-color: #6b6bc9;
 }
 .application-status.tag-color-11 {
-  color: #fd471f;
+  border-color: #fd471f;
 }
 .application-status.tag-color-12 {
-  color: #4dbde9;
+  border-color: #4dbde9;
 }
 .application-status.tag-color-13 {
-  color: #c9ab32;
+  border-color: #c9ab32;
 }
 .application-status.tag-color-14 {
-  color: #36c742;
+  border-color: #36c742;
 }
 .application-status.tag-color-15 {
-  color: #8c668d;
+  border-color: #8c668d;
 }
 .application-status.tag-color-16 {
-  color: #fc743e;
+  border-color: #fc743e;
 }
 .application-status.tag-color-17 {
-  color: #a124b1;
+  border-color: #a124b1;
 }
 .application-status.tag-color-18 {
-  color: #ffefaf;
+  border-color: #ffefaf;
 }
 .application-status.tag-color-19 {
-  color: #06f34d;
+  border-color: #06f34d;
 }
 
 html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
