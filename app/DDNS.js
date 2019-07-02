@@ -49,6 +49,7 @@ const DDNS = {
       if (force) {
         this._lastip = null;
       }
+      console.log('DDNS._update', this._gids.join(','));
       clearTimeout(this._pending);
       this._pending = setTimeout(() => {
         this._getExternalIP().then((ip) => {
@@ -69,7 +70,9 @@ const DDNS = {
 
   _getExternalIP: async function() {
     return new Promise((resolve) => {
+      console.log('_getExternalIP');
       UPNP.getExternalIP().then((ip) => {
+        console.log('_gotExternaIP', ip);
         if (ip) {
           resolve(ip);
         }
