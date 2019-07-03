@@ -1,10 +1,11 @@
 const SSDP = require('@achingbrain/ssdp');
+const SSDPcache = require('@achingbrain/ssdp/lib/cache');
 const URL = require('url').URL;
 const HTTP = require('http');
 
 const URN_WAN= 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
-const TIMEOUT = 5 * 1000;
+const TIMEOUT = 1 * 1000;
 const RETRY = 6;
 
 let ssdp;
@@ -55,6 +56,8 @@ const UPNP = {
       signature: 'minkebox UPnP/1.1',
     });
 
+    this._clearCache();
+
     await ssdp.advertise({
       usn: 'upnp:rootdevice',
       location: {
@@ -74,6 +77,18 @@ const UPNP = {
     }
   },
 
+  restart: async function() {
+    if (ssdp) {
+      await this.stop();
+      await this.start({
+        uuid: this._uuid,
+        hostname: this._hostname,
+        ipaddress: this._ip,
+        port: this._port
+      });
+    }
+  },
+
   update: function(config) {
     this._hostname = config.hostname;
   },
@@ -82,38 +97,45 @@ const UPNP = {
     if (!ssdp) {
       return null;
     }
-    const WANIPConnectionURL = await new Promise(async (resolve) => {
-      let location = null;
-      const search = (res) => {
-        if (res.ST === URN_IGD) {
-          location = new URL(res.LOCATION);
-        }
+
+    let location = null;
+
+    function extractLocation(res) {
+      if (res.ST === URN_IGD) {
+        location = new URL(res.LOCATION);
       }
-      const discover = async (service) => {
-        if (location) {
-          for (let ptr = service.details; ptr && ptr.device; ptr = ptr.device.deviceList) {
-            const list = ptr.device.serviceList;
-            if (list && list.service && list.service.serviceType === URN_WAN) {
-              resolve(new URL(list.service.controlURL, location.origin));
-              resolve = null;
-            }
+    }
+
+    function extractWANIPConnectionURL(service) {
+      if (location) {
+        for (let ptr = service.details; ptr && ptr.device; ptr = ptr.device.deviceList) {
+          const list = ptr.device.serviceList;
+          if (list && list.service && list.service.serviceType === URN_WAN) {
+            return new URL(list.service.controlURL, location.origin);
           }
         }
       }
-      ssdp.on('ssdp:search-response', search);
-      ssdp.on(`discover:${URN_IGD}`, discover);
-      // Retry the discover process until we succeed (or eventually fail)
-      for (let retry = 0; retry < RETRY && ssdp && resolve; retry++) {
-        await ssdp.discover(URN_IGD, TIMEOUT);
-      }
-      if (ssdp) {
-        ssdp.off('ssdp:search-response', search);
-        ssdp.off(`discover:${URN_IGD}`, discover);
-      }
-      if (resolve) {
-        resolve(null);
-      }
-    });
+      return null;
+    }
+
+    ssdp.on('ssdp:search-response', extractLocation);
+
+    this._clearCache();
+
+    let WANIPConnectionURL = null;
+    for (let retry = 1; retry < RETRY && ssdp && !WANIPConnectionURL; retry++) {
+      const services = await ssdp.discover(URN_IGD, TIMEOUT * retry);
+      services.forEach((service) => {
+        if (!WANIPConnectionURL) {
+          WANIPConnectionURL = extractWANIPConnectionURL(service);
+        }
+      });
+    }
+
+    if (ssdp) {
+      ssdp.off('ssdp:search-response', extractLocation);
+    }
+
     if (WANIPConnectionURL) {
       const IP_ADDR_REGEXP = /.*<NewExternalIPAddress>(.*)<\/NewExternalIPAddress>.*/;
       const answer = await this._sendRequest(WANIPConnectionURL, URN_WAN, 'GetExternalIPAddress');
@@ -122,7 +144,14 @@ const UPNP = {
         return ip;
       }
     }
+    this.restart();
     return null;
+  },
+
+  _clearCache: function() {
+    for (let key in SSDPcache) {
+      delete SSDPcache[key];
+    }
   },
 
   _sendRequest: async function(url, service, action, args) {
