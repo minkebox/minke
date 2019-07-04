@@ -1,5 +1,5 @@
 {
-  name: `ntopNG`,
+  name: `ntopng`,
   description: `High-Speed Web-based Traffic Analysis and Flow Collection`,
   image: `registry.minkebox.net/minkebox/ntopng`,
   actions: [
@@ -13,7 +13,7 @@
       type: `Arguments`,
       defaultValue: [
         `--interface`,
-        `eth0`,
+        `br0`,
         `--disable-autologout`,
         `--disable-login`,
         `1`,
@@ -21,7 +21,7 @@
         `1`,
         `--community`,
         `--local-networks`,
-        `192.168.0.0/16`
+        `10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`
       ]
     },
     {
@@ -40,7 +40,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      defaultValue: `host`
     }
   ],
   monitor: {
