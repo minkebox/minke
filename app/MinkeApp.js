@@ -618,10 +618,6 @@ MinkeApp.prototype = {
             koaApp.ws.use(this._forward.ws);
           }
         }
-        //else {
-        //  this._forward = HTTP.createRedirect({ prefix: `/a/${this._id}`, url: `http://${MinkeApp._network.network.ip_address}/configure/${this._id}` });
-        //  koaApp.use(this._forward.http);
-        //}
 
         const dnsport = this._ports.find(port => port.dns);
         if (dnsport) {
