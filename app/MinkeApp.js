@@ -409,6 +409,9 @@ MinkeApp.prototype = {
         config.HostConfig.CapAdd.push('SYS_ADMIN');
         config.HostConfig.CapAdd.push('DAC_READ_SEARCH');
       }
+      if (this._features.privileged) {
+        config.HostConfig.Privileged = true;
+      }
 
       if (this._features.vpn) {
         let nr = 0;
