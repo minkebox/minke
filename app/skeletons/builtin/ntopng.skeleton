@@ -1,0 +1,55 @@
+{
+  name: `ntopNG`,
+  description: `High-Speed Web-based Traffic Analysis and Flow Collection`,
+  image: `registry.minkebox.net/minkebox/ntopng`,
+  actions: [
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `privileged`
+    },
+    {
+      type: `Arguments`,
+      defaultValue: [
+        `--interface`,
+        `eth0`,
+        `--disable-autologout`,
+        `--disable-login`,
+        `1`,
+        `--dns-mode`,
+        `1`,
+        `--community`,
+        `--local-networks`,
+        `192.168.0.0/16`
+      ]
+    },
+    {
+      type: `Port`,
+      name: `3000/tcp`,
+      port: 3000,
+      protocol: `TCP`,
+      nat: false,
+      web: {
+        type: `newtab`,
+        path: `/`
+      },
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    minwidth: `200px`,
+    header: ``,
+    template: ``
+  }
+}
