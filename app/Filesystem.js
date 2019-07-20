@@ -1,5 +1,6 @@
 const FS = require('fs');
 const Path = require('path');
+const ChildProcess = require('child_process');
 const Disks = require('./Disks');
 let MinkeApp;
 
@@ -110,30 +111,8 @@ _Filesystem.prototype = {
 
   uninstall: function() {
     const rmAll = (path) => {
-      if (FS.existsSync(path)) {
-        FS.readdirSync(path).forEach((file) => {
-          const curPath = path + '/' + file;
-          if (FS.lstatSync(curPath).isDirectory()) {
-            rmAll(curPath);
-          }
-          else {
-            //console.log(`unlink ${curPath}`);
-            try {
-              FS.unlinkSync(curPath);
-            }
-            catch (e) {
-              console.error(e);
-            }
-          }
-        });
-        //console.log(`rmdir ${path}`);
-        try {
-          FS.rmdirSync(path);
-        }
-        catch (e) {
-          console.error(e);
-        }
-      }
+      // Removing file trees can take a while, so we do them in an async external process
+      ChildProcess.spawn('/bin/rm', [ '-rf', path ], { cwd: '/tmp', stdio: 'ignore', detached: true });
     };
     rmAll(Filesystem.getNativePath(this._app._id, 'boot', ''));
     rmAll(Filesystem.getNativePath(this._app._id, 'store', ''));
