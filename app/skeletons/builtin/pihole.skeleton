@@ -1,0 +1,175 @@
+{
+  name: `PiHole`,
+  description: `Network-wide Ad Blocking`,
+  image: `pihole/pihole`,
+  tags: [
+    `Networking`
+  ],
+  actions: [
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `dns`
+    },
+    {
+      type: `Directory`,
+      name: `/etc/pihole`,
+      style: `boot`
+    },
+    {
+      type: `Directory`,
+      name: `/etc/dnsmasq.d`,
+      style: `boot`
+    },
+    {
+      type: `Environment`,
+      name: `S6OVERLAY_RELEASE`,
+      defaultValue: `https://github.com/just-containers/s6-overlay/releases/download/v1.21.7.0/s6-overlay-amd64.tar.gz`
+    },
+    {
+      type: `Environment`,
+      name: `PIHOLE_INSTALL`,
+      defaultValue: `/root/ph_install.sh`
+    },
+    {
+      type: `Environment`,
+      name: `PHP_ENV_CONFIG`,
+      defaultValue: `/etc/lighttpd/conf-enabled/15-fastcgi-php.conf`
+    },
+    {
+      type: `Environment`,
+      name: `PHP_ERROR_LOG`,
+      defaultValue: `/var/log/lighttpd/error.log`
+    },
+    {
+      type: `Environment`,
+      name: `IPv6`,
+      defaultValue: `False`
+    },
+    {
+      type: `Environment`,
+      name: `WEBPASSWORD`,
+      defaultValue: ``
+    },
+    {
+      type: `Environment`,
+      name: `DNS1`,
+      defaultValue: `127.0.0.1`
+    },
+    {
+      type: `Environment`,
+      name: `DNS2`,
+      defaultValue: `no`
+    },
+    {
+      type: `Environment`,
+      name: `S6_LOGGING`,
+      defaultValue: `0`
+    },
+    {
+      type: `Environment`,
+      name: `S6_KEEP_ENV`,
+      defaultValue: `1`
+    },
+    {
+      type: `Environment`,
+      name: `S6_BEHAVIOUR_IF_STAGE2_FAILS`,
+      defaultValue: `2`
+    },
+    {
+      type: `Environment`,
+      name: `FTL_CMD`,
+      defaultValue: `no-daemon`
+    },
+    {
+      type: `Environment`,
+      name: `DNSMASQ_USER`,
+      defaultValue: `root`
+    },
+    {
+      type: `Environment`,
+      name: `VERSION`,
+      defaultValue: `v4.3.1`
+    },
+    {
+      type: `Environment`,
+      name: `ARCH`,
+      defaultValue: `amd64`
+    },
+    {
+      type: `Port`,
+      name: `443/tcp`,
+      port: 443,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `53/tcp`,
+      port: 53,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `53/udp`,
+      port: 53,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: {
+        priority: 7
+      },
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
+      port: 80,
+      protocol: `TCP`,
+      nat: false,
+      web: {
+        type: `newtab`,
+        path: `/admin`
+      },
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: `pihole -c --json`,
+    watch: ``,
+    polling: 60,
+    parser: `
+      output = JSON.parse(input);
+      output.ads_percentage_today = output.ads_percentage_today.toFixed(1)
+    `,
+    minwidth: `200px`,
+    header: `
+      <style>
+        .ph-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
+        .ph-b { color: grey; text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
+        .ph-r { display: inline-block; font-size: 18px; color: black; }
+      </style>
+    `,
+    template: `
+      <div class="ph-o">
+        <div class="ph-b"><div class="ph-r">{{ads_blocked_today}}</div><div>Blocked Today</div></div>
+        <div class="ph-b"><div class="ph-r">{{ads_percentage_today}}%</div><div>Percentage Blocked</div></div>
+        <div class="ph-b"><div class="ph-r">{{domains_being_blocked}}</div><div>Domains Being Blocked</div></div>
+      </div>
+    `
+  }
+}
