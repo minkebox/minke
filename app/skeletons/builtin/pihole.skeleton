@@ -1,9 +1,9 @@
 {
-  name: `PiHole`,
+  name: `Pi Hole`,
   description: `Network-wide Ad Blocking`,
   image: `pihole/pihole`,
   tags: [
-    `Networking`
+    `AdBlocker`, `Networking`
   ],
   actions: [
   ],
@@ -24,26 +24,6 @@
     },
     {
       type: `Environment`,
-      name: `S6OVERLAY_RELEASE`,
-      defaultValue: `https://github.com/just-containers/s6-overlay/releases/download/v1.21.7.0/s6-overlay-amd64.tar.gz`
-    },
-    {
-      type: `Environment`,
-      name: `PIHOLE_INSTALL`,
-      defaultValue: `/root/ph_install.sh`
-    },
-    {
-      type: `Environment`,
-      name: `PHP_ENV_CONFIG`,
-      defaultValue: `/etc/lighttpd/conf-enabled/15-fastcgi-php.conf`
-    },
-    {
-      type: `Environment`,
-      name: `PHP_ERROR_LOG`,
-      defaultValue: `/var/log/lighttpd/error.log`
-    },
-    {
-      type: `Environment`,
       name: `IPv6`,
       defaultValue: `False`
     },
@@ -61,41 +41,6 @@
       type: `Environment`,
       name: `DNS2`,
       defaultValue: `no`
-    },
-    {
-      type: `Environment`,
-      name: `S6_LOGGING`,
-      defaultValue: `0`
-    },
-    {
-      type: `Environment`,
-      name: `S6_KEEP_ENV`,
-      defaultValue: `1`
-    },
-    {
-      type: `Environment`,
-      name: `S6_BEHAVIOUR_IF_STAGE2_FAILS`,
-      defaultValue: `2`
-    },
-    {
-      type: `Environment`,
-      name: `FTL_CMD`,
-      defaultValue: `no-daemon`
-    },
-    {
-      type: `Environment`,
-      name: `DNSMASQ_USER`,
-      defaultValue: `root`
-    },
-    {
-      type: `Environment`,
-      name: `VERSION`,
-      defaultValue: `v4.3.1`
-    },
-    {
-      type: `Environment`,
-      name: `ARCH`,
-      defaultValue: `amd64`
     },
     {
       type: `Port`,
@@ -154,6 +99,8 @@
     polling: 60,
     parser: `
       output = JSON.parse(input);
+      output.ads_blocked_today = output.ads_blocked_today.toLocaleString();
+      output.domains_being_blocked = output.domains_being_blocked.toLocaleString();
       output.ads_percentage_today = output.ads_percentage_today.toFixed(1)
     `,
     minwidth: `200px`,
@@ -161,7 +108,7 @@
       <style>
         .ph-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
         .ph-b { color: grey; text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
-        .ph-r { display: inline-block; font-size: 18px; color: black; }
+        .ph-r { display: inline-block; font-size: 24px; color: black; }
       </style>
     `,
     template: `
