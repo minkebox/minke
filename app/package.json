@@ -7,7 +7,7 @@
     "dns-packet": "^5.2.0",
     "dockerode": "^2.5.7",
     "fast-glob": "^2.2.6",
-    "handlebars": "^4.1.0",
+    "handlebars": "^4.1.2",
     "koa": "^2.6.2",
     "koa-cache-control": "^2.0.0",
     "koa-router": "^7.4.0",
