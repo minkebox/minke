@@ -94,8 +94,8 @@
       output = {
         time: new Date(parseInt(v[0])).toLocaleTimeString(),
         ping: parseFloat(v[1]),
-        down: parseFloat(v[2]).toFixed(1),
-        up: parseFloat(v[3]).toFixed(1)
+        down: parseFloat(parseFloat(v[2]).toFixed(1)).toLocaleString(),
+        up: parseFloat(parseFloat(v[3]).toFixed(1)).toLocaleString()
       };
     `,
     header: `
