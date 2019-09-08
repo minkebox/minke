@@ -25,7 +25,7 @@ async function findImageInternalSkeleton(image) {
   });
   try {
     const tarstream = await container.getArchive({
-      path: `/minke/skeleton`,
+      path: `/minkebox/skeleton`,
     });
     const extract = Tar.extract();
     return new Promise(resolve => {
