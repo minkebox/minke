@@ -2,6 +2,7 @@ const FS = require('fs');
 const Path = require('path');
 const Glob = require('fast-glob');
 const VM = require('vm');
+const Tar = require('tar-stream');
 
 const LOCALS_DIR = `${__dirname}/local`;
 const BUILTINS_DIR = `${__dirname}/builtin`;
@@ -17,6 +18,49 @@ FS.readdirSync(BUILTINS_DIR).forEach((file) => {
     }
   }
 });
+
+async function findImageInternalSkeleton(image) {
+  const container = await docker.createContainer({
+    Image: image
+  });
+  try {
+    const tarstream = await container.getArchive({
+      path: `/minke/skeleton`,
+    });
+    const extract = Tar.extract();
+    return new Promise(resolve => {
+      let content = '';
+      extract.on('entry', (header, stream, next) => {
+        if (header.name === 'skeleton') {
+          stream.on('data', data => {
+            content += data.toString();
+          });
+        }
+        stream.on('end', () => {
+          next();
+        });
+        stream.resume();
+      });
+      extract.on('finish', () => {
+        if (content) {
+          try {
+            return resolve(JSON.parse(content));
+          }
+          catch (_) {
+          }
+        }
+        return resolve(null);
+      });
+      tarstream.pipe(extract);
+    });
+  }
+  catch (_) {
+    return null;
+  }
+  finally {
+    container.remove({ force: true });
+  }
+}
 
 async function imageToSkeleton(image) {
   const info = await docker.getImage(image).inspect();
@@ -235,10 +279,19 @@ function loadSkeleton(image, create) {
   else {
     skeleton = Builtins[image];
     if (!skeleton && create) {
-      return imageToSkeleton(image).then((skel) => {
-        saveSkeleton(skel);
-        return skel;
-      }).catch (() => {
+      return findImageInternalSkeleton(image).then((skel) => {
+        if (skel) {
+          saveSkeleton(skel);
+          return skel;
+        }
+        else {
+          return imageToSkeleton(image).then((skel) => {
+            saveSkeleton(skel);
+            return skel;
+          });
+        }
+      }).catch (e => {
+        console.log(e);
         return null;
       });
     }
