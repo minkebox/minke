@@ -43,13 +43,11 @@ async function findImageInternalSkeleton(image) {
       });
       extract.on('finish', () => {
         if (content) {
-          try {
-            return resolve(JSON.parse(content));
-          }
-          catch (_) {
-          }
+          resolve(stringToSkeleton(content));
         }
-        return resolve(null);
+        else {
+          resolve(null);
+        }
       });
       tarstream.pipe(extract);
     });
@@ -290,7 +288,7 @@ function loadSkeleton(image, create) {
             return skel;
           });
         }
-      }).catch (e => {
+      }).catch ((e) => {
         console.log(e);
         return null;
       });

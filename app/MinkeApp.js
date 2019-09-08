@@ -978,6 +978,7 @@ MinkeApp.prototype = {
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
         __HOMEIP: { value: this._homeIP },
         __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
+        __MACADDRESS: { value: MinkeApp._primaryMacAddress() }
       }, this._env);
       for (let key in env) {
         txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
