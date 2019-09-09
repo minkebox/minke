@@ -3,7 +3,7 @@
   description: `Network-wide Ad Blocking`,
   image: `pihole/pihole`,
   tags: [
-    `AdBlocker`, `Networking`
+    `Ad Blocking`, `Networking`
   ],
   actions: [
   ],
