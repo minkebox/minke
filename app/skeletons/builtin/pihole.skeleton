@@ -113,7 +113,7 @@
     `,
     template: `
       <div class="ph-o">
-        <div class="ph-b"><div class="ph-r">{{ads_blocked_today}}</div><div>Blocked Today</div></div>
+        <div class="ph-b"><div class="ph-r">{{ads_blocked_today}}</div><div>Blocked in last 24 hours</div></div>
         <div class="ph-b"><div class="ph-r">{{ads_percentage_today}}%</div><div>Percentage Blocked</div></div>
         <div class="ph-b"><div class="ph-r">{{domains_being_blocked}}</div><div>Domains Being Blocked</div></div>
       </div>
