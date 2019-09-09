@@ -600,10 +600,10 @@ MinkeApp.prototype = {
           if (this._homeIP) {
             switch (web.type) {
               case 'newtab':
-                this._forward = HTTP.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}${web.path}` });
+                this._forward = HTTP.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path}` });
                 break;
               case 'redirect':
-                this._forward = HTTP.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${ipAddr}:${webport.port}${web.path}` });
+                this._forward = HTTP.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path}` });
               default:
                 break;
             }
