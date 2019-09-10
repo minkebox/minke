@@ -245,7 +245,14 @@
     {
       type: `Environment`,
       name: `SERVER_PORT`,
-      defaultValue: 25565
+      defaultValue: 25565,
+      update: [
+        {
+          type: `Port`,
+          name: `SERVER_PORT`,
+          path: `port`
+        }
+      ]
     },
     {
       type: `Environment`,

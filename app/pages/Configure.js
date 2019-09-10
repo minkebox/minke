@@ -330,10 +330,28 @@ async function ConfigurePageWS(ctx) {
           }
           if (r.value !== nvalue) {
             r.value = nvalue;
-            const port = app._ports.find(p => p.target === key);
-            if (port) {
-              port.port = parseInt(nvalue);
-            }
+            (r.update || []).forEach((update) => {
+              const path = update.path.split('.');
+              let obj = null;
+              switch (update.type) {
+                case 'Port':
+                  obj = app._ports.find(p => p.target === update.name);
+                  break;
+                default:
+                  break;
+              }
+              while (obj && path.length > 1) {
+                obj = obj[path.shift()];
+              }
+              if (obj) {
+                if (typeof obj[path[0]] === 'number') {
+                  obj[path[0]] = parseFloat(nvalue);
+                }
+                else {
+                  obj[path[0]] = nvalue;
+                }
+              }
+            });
             change = APPCHANGE;
           }
         }
@@ -341,7 +359,7 @@ async function ConfigurePageWS(ctx) {
 
       update(app._env[key]);
       app._secondary.forEach(secondary => update(secondary._env[key]));
-    
+
       return change;
     }},
     { p: /^NAT#(.+)$/, f: (value, match) => {

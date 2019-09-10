@@ -174,6 +174,9 @@ MinkeApp.prototype = {
               target._env[prop.name].altValue = prop.defaultAltValue;
             }
           }
+          if ('update' in prop) {
+            target._env[prop.name].update = prop.update;
+          }
           break;
         }
         case 'Feature':
@@ -569,17 +572,6 @@ MinkeApp.prototype = {
 
       }
 
-      /*let ipAddr = this._homeIP;
-      if (!ipAddr && this._helperContainer) {
-        const containerInfo = await this._helperContainer.inspect();
-        if (containerInfo.NetworkSettings.Networks.management) {
-          ipAddr = containerInfo.NetworkSettings.Networks.management.IPAddress;
-        }
-        else {
-          console.error('Missing management network', containerInfo.NetworkSettings.Networks);
-        }
-      }*/
-
       const ipAddr = this._homeIP || this._privateIP;
       if (ipAddr) {
 
@@ -604,6 +596,10 @@ MinkeApp.prototype = {
                 break;
               case 'redirect':
                 this._forward = HTTP.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path}` });
+                break;
+              case 'url':
+                this._forward = HTTP.createNewTab({ prefix: `/a/${this._id}`, url: web.url });
+                break;
               default:
                 break;
             }

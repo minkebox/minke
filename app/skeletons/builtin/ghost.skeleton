@@ -20,7 +20,14 @@
   properties: [
     {
       type: `Environment`,
-      name: `url`
+      name: `url`,
+      update: [
+        {
+          type: 'Port',
+          name: '2368/tcp',
+          path: 'web.url'
+        }
+      ]
     },
     {
       type: `Directory`,
@@ -40,8 +47,8 @@
       protocol: `TCP`,
       nat: false,
       web: {
-        type: `newtab`,
-        path: `/`
+        type: `url`,
+        url: `about:blank`
       },
       dns: false,
       mdns: null
