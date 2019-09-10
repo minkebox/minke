@@ -194,7 +194,6 @@ MinkeApp.prototype = {
           const port = defs.ports && defs.ports.find(port => port.target === prop.name);
           if (port) {
             target._ports.push(port);
-            port.web = prop.web;
           }
           else {
             target._ports.push({
