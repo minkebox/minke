@@ -26,7 +26,7 @@ async function PageHTML(ctx) {
   const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Applications.html`, { encoding: 'utf8' }));
 
   const catalog = Skeletons.catalog();
-  ctx.body = template({ adminMode: MinkeApp.getAdminMode(), skeletons: catalog.map(skel => Object.assign({ 
+  ctx.body = template({ adminMode: MinkeApp.getAdminMode(), skeletons: catalog.map(skel => Object.assign({
     pre: skel.name.substr(0, 2),
     color: _strhash(skel.name.toLowerCase()) % NRTAGS
   }, skel)) });
@@ -86,7 +86,7 @@ async function PageWS(ctx) {
         {
           const skel = Skeletons.parse(msg.value);
           if (skel) {
-            Skeletons.saveSkeleton(skel);
+            Skeletons.saveLocalSkeleton(skel);
             send({ type: 'skeleton.load', image: skel.image });
           }
           break;

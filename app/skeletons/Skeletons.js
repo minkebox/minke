@@ -6,6 +6,7 @@ const Tar = require('tar-stream');
 
 const LOCALS_DIR = `${__dirname}/local`;
 const BUILTINS_DIR = `${__dirname}/builtin`;
+const INTERNAL_DIR = `${__dirname}/internal`;
 
 const Builtins = {};
 
@@ -261,40 +262,56 @@ function stringToSkeleton(str) {
   return skel;
 }
 
-function saveSkeleton(skeleton) {
+function saveLocalSkeleton(skeleton) {
   const path = `${LOCALS_DIR}/${skeleton.image}.skeleton`;
   FS.mkdirSync(Path.dirname(path), { recursive: true });
   FS.writeFileSync(path, skeletonToString(skeleton));
 }
 
+function saveInternalSkeleton(skeleton) {
+  const path = `${INTERNAL_DIR}/${skeleton.image}.skeleton`;
+  FS.mkdirSync(Path.dirname(path), { recursive: true });
+  FS.writeFileSync(path, skeletonToString(skeleton));
+}
+
 function loadSkeleton(image, create) {
-  let skeleton = null;
-  const path = `${LOCALS_DIR}/${image}.skeleton`;
-  if (FS.existsSync(path)) {
-    const str = FS.readFileSync(path, { encoding: 'utf8' });
-    skeleton = stringToSkeleton(str);
+  const lpath = `${LOCALS_DIR}/${image}.skeleton`;
+  if (FS.existsSync(lpath)) {
+    return stringToSkeleton(FS.readFileSync(lpath, { encoding: 'utf8' }));
   }
-  else {
-    skeleton = Builtins[image];
-    if (!skeleton && create) {
-      return findImageInternalSkeleton(image).then((skel) => {
-        if (skel) {
-          saveSkeleton(skel);
-          return skel;
-        }
-        else {
-          return imageToSkeleton(image).then((skel) => {
-            saveSkeleton(skel);
-            return skel;
-          });
-        }
-      }).catch ((e) => {
-        console.log(e);
-        return null;
+  const ipath = `${INTERNAL_DIR}/${image}.skeleton`;
+  if (FS.existsSync(ipath)) {
+    return stringToSkeleton(FS.readFileSync(ipath, { encoding: 'utf8' }));
+  }
+  if (image in Builtins) {
+    return Builtins[image];
+  }
+  if (!create) {
+    return null;
+  }
+  return findImageInternalSkeleton(image).then((skel) => {
+    if (skel) {
+      saveInternalSkeleton(skel);
+      return skel;
+    }
+    else {
+      return imageToSkeleton(image).then((skel) => {
+        saveLocalSkeleton(skel);
+        return skel;
       });
     }
+  }).catch ((e) => {
+    console.log(e);
+    return null;
+  });
+}
+
+async function updateInternalSkeleton(image) {
+  const skel = await findImageInternalSkeleton(image);
+  if (skel) {
+    await saveInternalSkeleton(skel);
   }
-  return skeleton;
+  return skel;
 }
 
 function catalog() {
@@ -309,7 +326,10 @@ function catalog() {
       };
     }
   }
-  const locals = Glob.sync([ `${LOCALS_DIR}/*.skeleton`, `${LOCALS_DIR}/*/*.skeleton`, `${LOCALS_DIR}/*/*/*.skeleton`, `${LOCALS_DIR}/*/*/*/*.skeleton` ]);
+  const locals = Glob.sync([
+    `${LOCALS_DIR}/*.skeleton`, `${LOCALS_DIR}/*/*.skeleton`, `${LOCALS_DIR}/*/*/*.skeleton`,
+    `${INTERNAL_DIR}/*.skeleton`, `${INTERNAL_DIR}/*/*.skeleton`, `${INTERNAL_DIR}/*/*/*.skeleton`
+  ]);
   locals.forEach((file) => {
     const str = FS.readFileSync(file, { encoding: 'utf8' });
     const skeleton = stringToSkeleton(str);
@@ -329,8 +349,9 @@ function catalog() {
 
 module.exports = {
   imageToSkeleton: imageToSkeleton,
-  saveSkeleton: saveSkeleton,
+  saveLocalSkeleton: saveLocalSkeleton,
   loadSkeleton: loadSkeleton,
+  updateInternalSkeleton: updateInternalSkeleton,
   toString: skeletonToString,
   parse: stringToSkeleton,
   catalog: catalog

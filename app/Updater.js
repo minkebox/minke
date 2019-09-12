@@ -1,6 +1,7 @@
 const FS = require('fs');
 const Images = require('./Images');
 const Pull = require('./Pull');
+const Skeletons = require('./skeletons/Skeletons');
 
 const TRACER_OUTPUT = '/tmp/tracer.out';
 const DEFAULT_TIME = { hour: 3, minute: 0 }; // 3am
@@ -22,6 +23,7 @@ const Updater = {
           let updateMinke = null;
           await Promise.all(updated.map(async (app) => {
             if (app._image !== Images.MINKE) {
+              await Skeletons.updateInternal(app._image);
               await app.restart('update');
             }
             else {

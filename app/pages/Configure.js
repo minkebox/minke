@@ -504,7 +504,7 @@ async function ConfigurePageWS(ctx) {
     { p: /^Skeleton$/, f: (value, match) => {
       const skel = Skeletons.parse(value);
       if (skel) {
-        Skeletons.saveSkeleton(skel);
+        Skeletons.saveLocalSkeleton(skel);
         return SKELCHANGE;
       }
       return NOCHANGE;
