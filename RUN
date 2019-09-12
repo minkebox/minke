@@ -19,7 +19,7 @@ docker run --name minke -d --privileged \
   -v /var/run/docker.sock:/var/run/docker.sock \
   --mount type=bind,source=/minke/apps,target=/minke/apps,bind-propagation=rshared \
   --mount type=bind,source=/minke/db,target=/minke/db,bind-propagation=rshared \
-  --mount type=bind,source=${PWD}/app/skeletons/local,target=/app/skeletons/local,bind-propagation=rshared \
+  --mount type=bind,source=${PWD}/app/skeletons,target=/app/skeletons,bind-propagation=rshared \
   --network=home --ip=${MINKE_IP} \
   --log-driver json-file --log-opt max-size=10k --log-opt max-file=1 \
   registry.minkebox.net/minkebox/minke
