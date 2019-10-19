@@ -189,7 +189,7 @@ async function ConfigurePageHTML(ctx) {
                   name: target,
                   src: src,
                   description: share.description,
-                  value: !!app._binds.find(bind => bind.src === src)
+                  value: !!app._binds.find(abind => abind.src === src)
                 });
               });
               return shares;
