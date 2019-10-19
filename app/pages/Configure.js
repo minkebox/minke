@@ -394,7 +394,7 @@ async function ConfigurePageWS(ctx) {
         const target = match[1];
         let change = NOCHANGE;
 
-        function update(bind) {
+        function update(binds) {
           const bind = binds.find(bind => bind.target == target);
           if (bind && bind.src !== value) {
             bind.src = value;
