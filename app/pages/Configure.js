@@ -487,17 +487,17 @@ async function ConfigurePageWS(ctx) {
           return { name: Path.normalize(row[0]), sname: row[1] || UUID() };
         })
       };
-      const idx = this._customshares.findIndex(oshare => oshare.target === bind.target);
+      const idx = app._customshares.findIndex(oshare => oshare.target === bind.target);
       if (bind.shares.length === 0) {
         if (idx !== -1) {
-          this._customshares.splice(idx, 1);
+          app._customshares.splice(idx, 1);
         }
       }
       else if (idx !== -1) {
-        this._customshares[idx] = bind;
+        app._customshares[idx] = bind;
       }
       else {
-        this._customshares.push(bind);
+        app._customshares.push(bind);
       }
       return SHARECHANGE;
     }},
