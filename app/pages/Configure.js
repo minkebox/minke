@@ -184,7 +184,7 @@ async function ConfigurePageHTML(ctx) {
             return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
               bind.shares.forEach((share) => {
                 const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
-                const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
+                const src = Path.normalize(`${bind.src}/${share.sname}/`).slice(0, -1);
                 shares.push({
                   name: target,
                   src: src,
