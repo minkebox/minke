@@ -23,7 +23,7 @@ const Updater = {
           let updateMinke = null;
           await Promise.all(updated.map(async (app) => {
             if (app._image !== Images.MINKE) {
-              await Skeletons.updateInternal(app._image);
+              await Skeletons.updateInternalSkeleton(app._image);
               await app.restart('update');
             }
             else {
