@@ -149,7 +149,7 @@
       port: 80,
       protocol: `TCP`,
       nat: false,
-      web: true,
+      web: false,
       dns: false,
       mdns: null
     },
