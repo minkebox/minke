@@ -10,6 +10,7 @@ const Disks = require('../Disks');
 const Backup = require('../Backup');
 
 let template;
+let downloadTemplate;
 function registerTemplates() {
   const partials = [
     'Table',
@@ -18,12 +19,14 @@ function registerTemplates() {
     'CustomShareables',
     'Websites',
     'Disks',
-    'BackupAndRestore'
+    'BackupAndRestore',
+    'Download'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }));
   });
   template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Configure.html`, { encoding: 'utf8' }));
+  downloadTemplate = Handlebars.compile('{{> Download}}');
 }
 if (!DEBUG) {
   registerTemplates();
@@ -596,6 +599,25 @@ async function ConfigurePageWS(ctx) {
             Backup.restore(msg.value);
           }
           break;
+        case 'app.update-download':
+        {
+          const path = msg.value;
+          const file = app._files.find(file => file.target === path);
+          if (file && app._fs) {
+            app._fs.readFile(file);
+          }
+          const value = file ? file.data : '';
+          send({
+            type: 'html.update',
+            selector: `#${path.replace(/[./]/g, '\\$&')}`,
+            html: downloadTemplate({
+              name: path,
+              value: value,
+              filename: Path.basename(path)
+            })
+          });
+          break;
+        }
         default:
           break;
       }
