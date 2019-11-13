@@ -409,7 +409,7 @@ function Popbox(config){
     }
   }
   this.bindEvents();
-}    
+}
 
 Popbox.prototype = {
   bindEvents: function (){
@@ -497,7 +497,7 @@ Popbox.prototype = {
     if(last){
       var current = null;
       if(this.currently_opened.length){
-        current = this.currently_opened[this.currently_opened.length-1];      
+        current = this.currently_opened[this.currently_opened.length-1];
       }
       return current;
     }else{
@@ -541,8 +541,8 @@ Popbox.prototype = {
         this.close(popboxes[i]);
       }
       this.currently_opened = [];
-    this.select('html').classList.remove('popbox_locked');  
-    this.select('html').removeAttribute('popbox');  
+    this.select('html').classList.remove('popbox_locked');
+    this.select('html').removeAttribute('popbox');
 
   },
   close: function(popbox,source){
@@ -554,12 +554,12 @@ Popbox.prototype = {
       popbox.classList.remove('visible');
       popbox.style.zIndex = -999;
       if(this.currently_opened.length == 0){
-        this.select('html').classList.remove('popbox_locked');          
+        this.select('html').classList.remove('popbox_locked');
       }
       if(this.current(true)){
-        this.select('html').setAttribute('popbox',this.current(true));  
+        this.select('html').setAttribute('popbox',this.current(true));
       }else{
-        this.select('html').removeAttribute('popbox');  
+        this.select('html').removeAttribute('popbox');
       }
       this.closed(popbox,source);
     }
@@ -590,7 +590,7 @@ Popbox.prototype = {
           popbox.classList.add('visible');
         });
         this.select('html').classList.add('popbox_locked');
-        this.select('html').setAttribute('popbox',popbox_id);  
+        this.select('html').setAttribute('popbox',popbox_id);
       this.add(popbox_id);
       this.opened(popbox);
     }
