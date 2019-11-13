@@ -1,11 +1,8 @@
 <span id="{{name}}">
 {{#if value}}
-  <a class="pure-button pure-button-primary">Download</a>
+  <a class="pure-button pure-button-primary" download="{{filename}}">Download</a>
   <script>
-    const a = document.getElementById("{{name}}").firstElementChild;
-    const url = URL.createObjectURL(new Blob([ `{{{value}}}` ], { type: 'text/plain' }));
-    a.href = url;
-    a.download = "{{filename}}";
+    document.getElementById("{{name}}").firstElementChild.href = URL.createObjectURL(new Blob([ `{{{value}}}` ], { type: 'text/plain' }));;
   </script>
 {{else}}
   <input class="pure-button pure-button-active" type="button" disabled value="Download">
