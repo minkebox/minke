@@ -12,7 +12,15 @@
     <tr>
       {{#each this}}
       <td>
-        <input type="text" value="{{this}}" {{#with (lookup ../../headers @index)}}{{#if placeholder}}placeholder="{{placeholder}}"{{/if}} {{#if validate}}pattern="^{{validate}}$"{{/if}}{{/with}}>
+        <input value="{{this}}" {{#if value}}checked{{/if}}
+        {{#with (lookup ../../headers @index)}}
+        {{#if (eq type "checkbox")}}
+        type="checkbox"
+        {{else}}
+        type="text" {{#if placeholder}}placeholder="{{placeholder}}"{{/if}} {{#if validate}}pattern="^{{validate}}$"{{/if}}
+        {{/if}}
+        {{/with}}
+        >
       </td>
       {{/each}}
       {{#if ../controls}}<td class="control"><span class="remove">&minus;</span></td>{{/if}}
