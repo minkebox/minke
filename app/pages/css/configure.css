@@ -135,6 +135,10 @@ body {
   text-overflow: ellipsis;
 }
 
+.configure .actions .table table input[type="text"]:invalid {
+  background-color: #ffadad;
+}
+
 .configure .actions .share {
   display: block;
 }

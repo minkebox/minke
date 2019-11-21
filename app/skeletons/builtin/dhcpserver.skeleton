@@ -18,9 +18,9 @@
       description: `Address Ranges`,
       style: `Table`,
       headers: [
-        { name: `Start IP` },
-        { name: `End IP` },
-        { name: `Time to live` }
+        { name: `Start IP`, validate: `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)` },
+        { name: `End IP`, validate: `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)` },
+        { name: `Time to live`, validate: `\d+` }
       ],
       pattern: `dhcp-range={{0}},{{1}},{{2}}
 `,
@@ -42,8 +42,8 @@
       style: `Table`,
       headers: [
         { name: `Hostname` },
-        { name: `MAC Address` },
-        { name: `IP Address` }
+        { name: `MAC Address`, validate: `([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})` },
+        { name: `IP Address`, validate: `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)` }
       ],
       pattern: `{{1}},{{2}},{{0}}
 `,

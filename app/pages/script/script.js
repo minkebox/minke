@@ -381,7 +381,9 @@ function saveTable(action, table) {
       if (!td.classList.contains('control') && !('ignore' in td.dataset)) {
         const ipt = td.querySelector('input');
         if (ipt) {
-          row.push(ipt.type === 'checkbox' ? ipt.checked : ipt.value);
+          if (ipt.validity.valid) {
+            row.push(ipt.type === 'checkbox' ? ipt.checked : ipt.value);
+          }
         }
         else {
           row.push(td.innerText);
