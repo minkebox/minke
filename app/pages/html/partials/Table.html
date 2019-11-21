@@ -12,7 +12,7 @@
     <tr>
       {{#each this}}
       <td>
-        <input value="{{this}}" {{#if value}}checked{{/if}}
+        <input value="{{this}}" {{#if this}}checked{{/if}}
         {{#with (lookup ../../headers @index)}}
         {{#if (eq type "checkbox")}}
         type="checkbox"
