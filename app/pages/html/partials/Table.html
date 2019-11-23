@@ -2,7 +2,7 @@
   <thead>
     <tr>
       {{#each headers}}
-      <th data-placeholder="{{placeholder}}">{{name}}</th>
+      <th {{#if placeholder}}data-placeholder="{{placeholder}}"{{/if}} {{#if type}}data-type="{{type}}"{{/if}} {{#if validate}}data-pattern="{{validate}}"{{/if}}>{{name}}</th>
       {{/each}}
       {{#if controls}}<th class="control"><span class="add">+</span></th>{{/if}}
     </tr>

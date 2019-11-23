@@ -356,9 +356,17 @@ function addRmTableRow(action, event) {
     for (let i = 1; i < tr.childElementCount; i++) {
       const td = document.createElement('TD');
       const input = document.createElement('INPUT');
-      input.setAttribute('type', 'text');
-      if (th.item(i-1).dataset.placeholder) {
-        input.setAttribute('placeholder', th.item(i-1).dataset.placeholder);
+      if (th.item(i-1).dataset.type === 'checkbox') {
+        input.setAttribute('type', 'checkbox');
+      }
+      else {
+        input.setAttribute('type', 'text');
+        if (th.item(i-1).dataset.placeholder) {
+          input.setAttribute('placeholder', th.item(i-1).dataset.placeholder);
+        }
+        if (th.item(i-1).dataset.pattern) {
+          input.setAttribute('pattern', th.item(i-1).dataset.pattern);
+        }
       }
       if (th.item(i-1).style.display === 'none') {
         td.style.display = 'none';
