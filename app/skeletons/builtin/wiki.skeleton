@@ -1,7 +1,7 @@
 {
   name: `Wiki.js`,
   description: `A modern, lightweight and powerful wiki app`,
-  image: `requarks/wiki`,
+  image: `requarks/wiki:2`,
   tags: [
     'Wiki',
     'Web'
@@ -10,62 +10,55 @@
   actions: [
     {
       type: `Header`,
-      title: `Configuration`
-    },
-    {
-      type: `Environment`,
-      name: `WIKI_ADMIN_EMAIL`,
-      description: `Admin email address`
-    },
-    {
-      type: `File`,
-      name: `/var/wiki/config.yml`,
-      style: `Inline`,
-      description: `Configuration (see <b>https://docs.requarks.io/wiki/install</b> for details)`
-    },
-    {
-      type: `File`,
-      name: `/etc/wiki/keys/git.pem`,
-      style: `Inline`,
-      description: `SSH private key to access git repo`
+      title: `Nothing to configuration`
     }
   ],
   properties: [
     {
       type: `Environment`,
-      name: `WIKI_ADMIN_EMAIL`
+      name: `DB_TYPE`,
+      defaultValue: `postgres`
     },
     {
-      type: `File`,
-      name: `/var/wiki/config.yml`,
-      style: 'boot'
+      type: `Environment`,
+      name: `DB_HOST`,
+      defaultValue: `localhost`
     },
     {
-      type: `File`,
-      name: `/etc/wiki/keys/git.pem`,
-      mode: 0o600,
-      style: `boot`
+      type: `Environment`,
+      name: `DB_PORT`,
+      defaultValue: 5432
+    },
+    {
+      type: `Environment`,
+      name: `DB_USER`,
+      defaultValue: `wikijs`
+    },
+    {
+      type: `Environment`,
+      name: `DB_PASS`,
+      defaultValue: `wikijsrocks`
+    },
+    {
+      type: `Environment`,
+      name: `DB_NAME`,
+      defaultValue: `wiki`
     },
     {
       type: 'Directory',
-      name: '/var/wiki/repo',
+      name: '/wiki/data',
       style: 'store',
       shares: [
-        { name: '/', description: 'Wiki.js Repo' }
-      ]
-    },
-    {
-      type: 'Directory',
-      name: '/logs',
-      style: 'store',
-      shares: [
-        { name: '/', description: 'Wiki.js Logs' }
+        { name: 'repo', description: 'Wiki.js Repo' },
+        { name: 'cache', description: 'Wiki.js Cache' },
+        { name: 'uploads', description: 'Wiki.js Uploads' },
+        { name: 'secure', description: 'Wiki.js Secure' }
       ]
     },
     {
       type: `Port`,
-      name: `80/tcp`,
-      port: 80,
+      name: `3000/tcp`,
+      port: 3000,
       protocol: `TCP`,
       nat: false,
       web: {
@@ -83,14 +76,29 @@
   ],
   secondary: [
     {
-      image: `mongo`,
+      image: `postgres:11-alpine`,
       delay: 0,
       properties: [
         {
+          type: `Environment`,
+          name: `POSTGRES_DB`,
+          defaultValue: `wiki`
+        },
+        {
+          type: `Environment`,
+          name: `POSTGRES_USER`,
+          defaultValue: `wikijs`
+        },
+        {
+          type: `Environment`,
+          name: `POSTGRES_PASSWORD`,
+          defaultValue: `wikijsrocks`
+        },
+        {
           type: 'Directory',
-          name: '/data/db',
+          name: '/var/lib/postgresql/data',
           shares: [
-            { name: '/', description: 'Wiki.js Mongo DB' }
+            { name: '/', description: 'Wiki.js Postgres DB' }
           ]
         }
       ]
