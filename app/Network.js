@@ -3,8 +3,8 @@ const Net = require('network');
 const Netmask = require('netmask');
 const Barrier = require('./utils/Barrier');
 
-const LIB = (DEBUG ? '/tmp/' : '/lib/');
-const NETWORK_FILE = `${LIB}systemd/network/bridge.network`;
+const ETC = (DEBUG ? '/tmp/' : '/etc/');
+const NETWORK_FILE = `${ETC}systemd/network/bridge.network`;
 const HOME_NETWORK_NAME = 'home';
 const MANAGEMENT_NETWORK_NAME = 'management';
 const BRIDGE_NETWORK = 'br0';
