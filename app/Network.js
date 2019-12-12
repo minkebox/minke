@@ -4,7 +4,7 @@ const Netmask = require('netmask');
 const Barrier = require('./utils/Barrier');
 
 const LIB = (DEBUG ? '/tmp/' : '/lib/');
-const NETWORK_FILE = `${LIB}systemd/network/bridge.network`;
+const NETWORK_FILE = `${LIB}systemd/network/70-bridge.network`;
 const HOME_NETWORK_NAME = 'home';
 const MANAGEMENT_NETWORK_NAME = 'management';
 const BRIDGE_NETWORK = 'br0';
