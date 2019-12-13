@@ -1,0 +1,110 @@
+{
+  name: `AlexaBridge`,
+  description: `Virtual switches shared between Alexa and HomeKit using HomeBridge`,
+  image: `registry.minkebox.net/minkebox/homebridge_alexabridge`,
+  tags: [ 'HomeKit' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure HomeKit`
+    },
+    {
+      type: `Environment`,
+      description: `Pin used to add this device to your network using the Home app`,
+      name: `BRIDGE_PIN`
+    },
+    {
+      type: `Header`,
+      title: `Configure Alexa`
+    },
+    {
+      type: `Text`,
+      text: `Create an account here https://www.homebridge.ca/ and enter the username and password below`
+    },
+    {
+      type: `Environment`,
+      description: `Username`,
+      name: `USERNAME`
+    },
+    {
+      type: `Environment`,
+      description: `Password`,
+      name: `PASSWORD`
+    },
+    {
+      type: `Header`,
+      title: `Configure Switches`
+    },
+    {
+      type: `Text`,
+      text: `Create switches you are sharing between Alexa and HomeKit`
+    },
+    {
+      type: `File`,
+      name: `/app/switches.conf`,
+      description: `Switches`,
+      style: `Table`,
+      headers: [
+        { name: `Name` },
+        { name: `Toggle`, type: `checkbox` },
+        { name: `Reverse`, type: `checkbox` },
+        { name: `Timeout`, validate: `\\d+` }
+      ],
+      pattern: `{ "accessory": "DummySwitch", "name": "{{0}}", "stateful": {{1}}, "reverse": {{2}}, "time": {{3}} }
+`,
+      join: `,`
+    }
+  ],
+  properties: [
+    {
+      type: `Port`,
+      name: `51826/tcp`,
+      port: 51826,
+      protocol: 'TCP',
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
+    {
+      type: `File`,
+      name: `/app/switches.conf`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_USERNAME`,
+      defaultValue: `{{__MACADDRESS}}`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_PIN`,
+      defaultValue: `111-11-111`
+    },
+    {
+      type: `Environment`,
+      name: `USERNAME`,
+    },
+    {
+      type: `Environment`,
+      name: `PASSWORD`,
+    },
+    {
+      type: `Directory`,
+      name: `/app/homebridge`,
+      style: 'store'
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}

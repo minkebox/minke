@@ -1,0 +1,65 @@
+{
+  name: `Kasa TP-Link`,
+  description: `Add Kasa TP-Link bulbs and plugs to your HomeKit network using HomeBridge`,
+  image: `registry.minkebox.net/minkebox/homebridge_tplink`,
+  tags: [ 'HomeKit' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure HomeKit`
+    },
+    {
+      type: `Environment`,
+      description: `Pin used to add this device to your network using the Home app`,
+      name: `BRIDGE_PIN`
+    },
+    {
+      type: `Header`,
+      title: `Configure Kasa TP-Link`
+    },
+    {
+      type: `Text`,
+      text: `The Kasa TP-Link devices on your HomeKit network will be found automatically.`
+    }
+  ],
+  properties: [
+    {
+      type: `Port`,
+      name: `51826/tcp`,
+      port: 51826,
+      protocol: 'TCP',
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_USERNAME`,
+      defaultValue: `{{__MACADDRESS}}`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_PIN`,
+      defaultValue: `111-11-111`
+    },
+    {
+      type: `Directory`,
+      name: `/app/homebridge`,
+      style: 'store'
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
