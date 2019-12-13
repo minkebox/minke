@@ -83,7 +83,7 @@ body {
   padding: 10px;
   border: 1px solid #999;
   border-radius: 5px;
-  background-color: #fcfcfc;
+  background-color: #f8f8f8;
   overflow: hidden;
 }
 .skel .inner:hover {
@@ -95,13 +95,18 @@ body {
   height: 80px;
   width: 80px;
   font-size: 200%;
-  padding: 5px;
   border-radius: 5px;
-  border: 5px solid rgba(0,0,0,0.2);
+  border: 5px solid transparent;
   text-transform: lowercase;
 }
 .skel .icon::first-letter {
   text-transform: uppercase;
+}
+.skel .icon-inner {
+  height: 100%;
+  padding: 5px;
+  border-radius: 3px;
+  background-color: #fcfcfc;
 }
 .skel .info {
   display: inline-block;
@@ -118,7 +123,7 @@ body {
   padding-bottom: 0.1em;
 }
 .skel .description {
-  
+
 }
 
 .download-button {
@@ -228,6 +233,67 @@ html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
 }
 .bgcolor-19 {
   background-color: #06f34d;
+}
+
+.fgcolor-0 {
+  color: #b12427;
+}
+.fgcolor-1 {
+  color: #efad5a;
+}
+.fgcolor-2 {
+  color: #fd1a91;
+}
+.fgcolor-3 {
+  color: #fd471f;
+}
+.fgcolor-4 {
+  color: #ffd73e;
+}
+.fgcolor-5 {
+  color: #278b30;
+}
+.fgcolor-6 {
+  color: #808020;
+}
+.fgcolor-7 {
+  color: #41b376;
+}
+.fgcolor-8 {
+  color: #88cce7;
+}
+.fgcolor-9 {
+  color: #d85452;
+}
+.fgcolor-10 {
+  color: #6b6bc9;
+}
+.fgcolor-11 {
+  color: #fd471f;
+}
+.fgcolor-12 {
+  color: #4dbde9;
+}
+.fgcolor-13 {
+  color: #c9ab32;
+}
+.fgcolor-14 {
+  color: #36c742;
+}
+.fgcolor-15 {
+  color: #8c668d;
+}
+.fgcolor-16 {
+  color: #fc743e;
+}
+.fgcolor-17 {
+  color: #a124b1;
+}
+.fgcolor-18 {
+  color: #ffefaf;
+}
+.fgcolor-19 {
+  color: #06f34d;
 }
 
 .popbox .popbox_container {

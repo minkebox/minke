@@ -28,7 +28,7 @@ async function PageHTML(ctx) {
   const catalog = Skeletons.catalog();
   ctx.body = template({ adminMode: MinkeApp.getAdminMode(), skeletons: catalog.map(skel => Object.assign({
     pre: skel.name.substr(0, 2),
-    color: _strhash(skel.name.toLowerCase()) % NRTAGS
+    color: _strhash((skel.tags && skel.tags.length && skel.tags[0] || 'all').toLowerCase()) % NRTAGS
   }, skel)) });
   ctx.type = 'text/html';
 }

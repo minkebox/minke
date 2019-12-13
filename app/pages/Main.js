@@ -4,7 +4,24 @@ const MinkeApp = require('../MinkeApp');
 
 const NRTAGS = 20;
 
-function genApp(app, tags) {
+function _strhash(str) {
+  let hash = 5381;
+  const bytes = Buffer.from(str, 'utf8');
+  for (let i = 0; i < bytes.length; i++) {
+    hash = (hash << 5) - hash + bytes[i];
+  }
+  return hash & 0x7fffffff;
+}
+
+function tagColor(tag) {
+  return _strhash(tag.toLowerCase()) % NRTAGS
+}
+
+function tagsToMap(tags) {
+  return tags.map(tag => { return { name: tag, color: tagColor(tag) } });
+}
+
+function genApp(app) {
   return {
     _id: app._id,
     name: app._name,
@@ -13,7 +30,7 @@ function genApp(app, tags) {
     link: app._forward && app._forward.url,
     linktarget: app._forward && app._forward.target,
     tags: app._tags,
-    tagcolor: tags.indexOf(app._tags[0]) % NRTAGS,
+    tagcolor: tagColor(app._tags[0]),
     networks: [
       app._networks.primary === 'host' ? 'home' : app._networks.primary,
       app._networks.secondary === 'host' ? 'home' : app._networks.secondary
@@ -21,7 +38,7 @@ function genApp(app, tags) {
   }
 }
 
-function genAppStatus(acc, app, tags) {
+function genAppStatus(acc, app) {
   if (app._monitor.cmd) {
     acc.push({
       _id: app._id,
@@ -32,7 +49,7 @@ function genAppStatus(acc, app, tags) {
       linktarget: app._forward && app._forward.target,
       running: app._status === 'running',
       tags: app._tags,
-      tagcolor: tags.indexOf(app._tags[0]) % NRTAGS,
+      tagcolor: tagColor(app._tags[0]),
       networks: [
         app._networks.primary === 'host' ? 'home' : app._networks.primary,
         app._networks.secondary === 'host' ? 'home' : app._networks.secondary
@@ -75,9 +92,9 @@ async function MainPageHTML(ctx) {
 
   const tags = MinkeApp.getTags();
   const networks = MinkeApp.getNetworks();
-  const apps = MinkeApp.getApps().map(app => genApp(app, tags));
-  const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app, tags), []);
-  ctx.body = mainTemplate({ adminMode: MinkeApp.getAdminMode(), tags: tags, networks: networks, apps: apps, statuses: statuses });
+  const apps = MinkeApp.getApps().map(app => genApp(app));
+  const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app), []);
+  ctx.body = mainTemplate({ adminMode: MinkeApp.getAdminMode(), tags: tagsToMap(tags), networks: networks, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
 }
 
@@ -103,7 +120,7 @@ async function MainPageWS(ctx) {
         selector: `.application-${event.app._id}`,
         html: html
       });
-      const appstatus = genAppStatus([], event.app, tags);
+      const appstatus = genAppStatus([], event.app);
       if (appstatus.length) {
         send({
           type: 'html.replace',
@@ -140,14 +157,14 @@ async function MainPageWS(ctx) {
 
   function createApp(status) {
     const tags = MinkeApp.getTags();
-    const html = appTemplate(genApp(status.app, tags));
+    const html = appTemplate(genApp(status.app));
     send({
       type: 'html.append',
       selector: `#app-insertion-point`,
       html: html
     });
     online(status.app);
-    const appstatus = genAppStatus([], status.app, tags);
+    const appstatus = genAppStatus([], status.app);
     if (appstatus.length) {
       send({
         type: 'html.append',
@@ -158,7 +175,7 @@ async function MainPageWS(ctx) {
     send({
       type: 'html.update',
       selector: '#tag-insertion-point',
-      html: tagsTemplate({ tags: tags })
+      html: tagsTemplate({ tags: tagsToMap(tags) })
     });
   }
 
@@ -174,7 +191,7 @@ async function MainPageWS(ctx) {
     send({
       type: 'html.update',
       selector: '#tag-insertion-point',
-      html: tagsTemplate({ tags: MinkeApp.getTags() })
+      html: tagsTemplate({ tags: tagsToMap(MinkeApp.getTags()) })
     });
     offline(status.app);
   }
