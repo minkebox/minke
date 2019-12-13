@@ -1,0 +1,101 @@
+{
+  name: `HomeBridge`,
+  description: `Add HomeKit devices using HomeBridge`,
+  image: `registry.minkebox.net/minkebox/homebridge`,
+  tags: [ 'HomeKit' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure HomeKit`
+    },
+    {
+      type: `Environment`,
+      description: `Pin used to add this device to your network using the Home app`,
+      name: `BRIDGE_PIN`
+    },
+    {
+      type: `Header`,
+      title: `Configure HomeBridge`
+    },
+    {
+      type: `Text`
+      text: `Setup HomeBridge by providing the plugins to load, and the associated JSON to configure them`
+    },
+    {
+      type: `Environment`,
+      name: `PACKAGES`,
+      description: `Plugins`
+    },
+    {
+      type: `File`,
+      name: `/app/accessories-config.json`,
+      style: `Inline`,
+      description: `Accessories`
+    },
+    {
+      type: `File`,
+      name: `/app/platforms-config.json`,
+      style: `Inline`,
+      description: `Platforms`
+    }
+  ],
+  properties: [
+    {
+      type: `Port`,
+      name: `51826/tcp`,
+      port: 51826,
+      protocol: 'TCP',
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_USERNAME`,
+      defaultValue: `{{__MACADDRESS}}`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_PIN`,
+      defaultValue: `111-11-111`
+    },
+    {
+      type: `Environment`,
+      name: `PACKAGES`
+    },
+    {
+      type: `File`,
+      name: `/app/accessories-config.json`,
+      style: 'boot',
+      defaultValue: `[
+]`
+      ]
+    },
+    {
+      type: `File`,
+      name: `/app/platforms-config.json`,
+      style: 'boot'
+      defaultValue: `[
+]`
+    },
+    {
+      type: `Directory`,
+      name: `/app/homebridge`,
+      style: 'boot'
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
