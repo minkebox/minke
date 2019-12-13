@@ -75,7 +75,6 @@
       style: 'boot',
       defaultValue: `[
 ]`
-      ]
     },
     {
       type: `File`,
