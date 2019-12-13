@@ -2,7 +2,9 @@
   name: `HomeBridge`,
   description: `Add HomeKit devices using HomeBridge`,
   image: `registry.minkebox.net/minkebox/homebridge`,
-  tags: [ 'HomeKit' ],
+  tags: [
+    `HomeKit`
+  ],
   actions: [
     {
       type: `Header`,
@@ -16,10 +18,6 @@
     {
       type: `Header`,
       title: `Configure HomeBridge`
-    },
-    {
-      type: `Text`
-      text: `Setup HomeBridge by providing the plugins to load, and the associated JSON to configure them`
     },
     {
       type: `Environment`,
@@ -44,7 +42,7 @@
       type: `Port`,
       name: `51826/tcp`,
       port: 51826,
-      protocol: 'TCP',
+      protocol: `TCP`,
       nat: false,
       web: false,
       dns: false,
@@ -72,21 +70,21 @@
     {
       type: `File`,
       name: `/app/accessories-config.json`,
-      style: 'boot',
+      style: `boot`,
       defaultValue: `[
 ]`
     },
     {
       type: `File`,
       name: `/app/platforms-config.json`,
-      style: 'boot'
+      style: `boot`,
       defaultValue: `[
 ]`
     },
     {
       type: `Directory`,
       name: `/app/homebridge`,
-      style: 'boot'
+      style: `boot`
     }
   ],
   monitor: {
