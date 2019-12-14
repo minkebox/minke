@@ -11,12 +11,12 @@ const INTERNAL_DIR = `${__dirname}/internal`;
 const Builtins = {};
 
 function selectImage(skeleton) {
-  if (skeleton.images) {
+  if (skeleton.images && (process.arch in skeleton.images)) {
     skeleton.image = skeleton.images[process.arch];
   }
   if (skeleton.secondary) {
     skeleton.secondary.forEach(second => {
-      if (second.images) {
+      if (second.images && (process.arch in second.images)) {
         second.image = second.images[process.arch];
       }
     });
