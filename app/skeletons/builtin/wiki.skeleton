@@ -1,7 +1,10 @@
 {
   name: `Wiki.js`,
   description: `A modern, lightweight and powerful wiki app`,
-  image: `requarks/wiki:2`,
+  images: {
+    x64: `requarks/wiki:2`,
+    arm64: `requarks/wiki:2.0-arm`
+  },
   tags: [
     'Wiki',
     'Web'

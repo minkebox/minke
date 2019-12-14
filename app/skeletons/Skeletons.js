@@ -10,6 +10,19 @@ const INTERNAL_DIR = `${__dirname}/internal`;
 
 const Builtins = {};
 
+function selectImage(skeleton) {
+  if (skeleton.images) {
+    skeleton.image = skeleton.images[process.arch];
+  }
+  if (skeleton.secondary) {
+    skeleton.secondary.forEach(second => {
+      if (second.images) {
+        second.image = second.images[process.arch];
+      }
+    });
+  }
+}
+
 FS.readdirSync(BUILTINS_DIR).forEach((file) => {
   if (Path.extname(file) === '.skeleton') {
     const str = FS.readFileSync(`${BUILTINS_DIR}/${file}`, { encoding: 'utf8' });
@@ -247,6 +260,7 @@ function stringToSkeleton(str) {
     if (typeof skel.name !== 'string') {
       throw new Error('Missing name');
     }
+    selectImage(skel);
     if (typeof skel.image !== 'string') {
       throw new Error('Missing image');
     }
