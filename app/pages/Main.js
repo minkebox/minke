@@ -113,8 +113,7 @@ async function MainPageWS(ctx) {
 
   function updateStatus(event) {
     if (event.status !== onlines[event.app._id]) {
-      const tags = MinkeApp.getTags();
-      const html = appTemplate(genApp(event.app, tags));
+      const html = appTemplate(genApp(event.app));
       send({
         type: 'html.replace',
         selector: `.application-${event.app._id}`,

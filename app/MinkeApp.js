@@ -1388,10 +1388,16 @@ MinkeApp.getNetworks = function() {
 }
 
 MinkeApp.getTags = function() {
-  return Object.keys(MinkeApp.getApps().reduce((acc, app) => {
-    app._tags.forEach(tag => acc[tag] = true);
-    return acc;
-  }, { All: true }));
+  const tags = [];
+  MinkeApp.getApps().forEach(app => {
+    app._tags.forEach(tag => {
+      if (tag !== 'All' && tags.indexOf(tag) === -1) {
+        tags.push(tag);
+      }
+    });
+  });
+  tags.sort((a, b) => a.localeCompare(b));
+  return [ 'All' ].concat(tags);
 }
 
 MinkeApp.needRestart = function() {
