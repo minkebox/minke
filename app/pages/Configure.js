@@ -24,10 +24,10 @@ function registerTemplates() {
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, Handlebars.compile(
-      FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' })), { preventIndent: true });
+      FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }), { preventIndent: true }));
   });
-  template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Configure.html`, { encoding: 'utf8' }));
-  downloadTemplate = Handlebars.compile('{{> Download}}');
+  template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Configure.html`, { encoding: 'utf8' }), { preventIndent: true });
+  downloadTemplate = Handlebars.compile('{{> Download}}', { preventIndent: true });
 }
 if (!DEBUG) {
   registerTemplates();

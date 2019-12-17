@@ -2,7 +2,9 @@
 {{#if value}}
   <a class="pure-button pure-button-primary" download="{{filename}}">Download</a>
   <script>
-    document.getElementById("{{name}}").firstElementChild.href = URL.createObjectURL(new Blob([ `{{{value}}}` ], { type: 'text/plain' }));;
+    document.getElementById("{{name}}").firstElementChild.href = URL.createObjectURL(new Blob([
+`{{{value}}}`
+], { type: 'text/plain' }));
   </script>
 {{else}}
   <input class="pure-button pure-button-active" type="button" disabled value="Download">
