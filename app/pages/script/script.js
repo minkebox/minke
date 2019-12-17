@@ -23,7 +23,12 @@ function onPageShow() {
         document.querySelectorAll(msg.selector).forEach(function(elem) {
           const builder = document.createElement('div');
           builder.innerHTML = msg.html;
-          elem.parentNode.replaceChild(builder.firstElementChild, elem);
+          const nelem = builder.firstElementChild;
+          elem.parentNode.replaceChild(nelem, elem);
+          const se = nelem.getElementsByTagName('script');
+          for (let i = 0; i < se.length; i++) {
+            eval(se[i].innerHTML);
+          }
         });
         break;
       case 'html.update.attribute':

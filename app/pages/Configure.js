@@ -609,7 +609,7 @@ async function ConfigurePageWS(ctx) {
           }
           const value = file ? file.data : '';
           send({
-            type: 'html.update',
+            type: 'html.replace',
             selector: `#${path.replace(/[./]/g, '\\$&')}`,
             html: downloadTemplate({
               name: path,
