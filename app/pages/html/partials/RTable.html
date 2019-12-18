@@ -1,0 +1,20 @@
+<table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24">
+  <thead>
+    <tr>
+      {{#each headers}}
+      <th>{{name}}</th>
+      {{/each}}
+    </tr>
+  </thead>
+  <tbody>
+    {{#each value}}
+    <tr>
+      {{#each this}}
+      <td>
+        {{this}}
+      </td>
+      {{/each}}
+    </tr>
+    {{/each}}
+  </tbody>
+</table>

@@ -14,6 +14,7 @@ let downloadTemplate;
 function registerTemplates() {
   const partials = [
     'Table',
+    'RTable',
     'Directory',
     'Shareables',
     'CustomShareables',
@@ -171,6 +172,18 @@ async function ConfigurePageHTML(ctx) {
               }
             }
             return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
+          }
+          else if (action.style === 'RTable') {
+            if (file && app._fs) {
+              app._fs.readFile(file);
+            }
+            let value = [];
+            try {
+              value = JSON.parse(file.data)
+            }
+            catch (_) {
+            }
+            return Object.assign({ value: value }, action);
           }
           else {
             if (file && app._fs) {

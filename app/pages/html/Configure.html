@@ -10,7 +10,7 @@
     <div class="pure-g">
       {{#with skeleton}}
       <div class="sidebar pure-u-1">
-        <div class="header"> 
+        <div class="header">
           <div class="name">
             <input size="25" type="text" placeholder="{{name}}" oninput="action('Name',this.value)" value="{{value}}">
           </div>
@@ -74,6 +74,8 @@
             <textarea class="can-disable value pure-input-rounded pure-u-16-24" spellcheck="false" oninput="{{action}}">{{value}}</textarea>
             {{else if (eq style "Table")}}
             {{> Table}}
+            {{else if (eq style "RTable")}}
+            {{> RTable}}
             {{/if}}
           </div>
           {{else if (eq type "NAT")}}

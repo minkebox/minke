@@ -20,7 +20,7 @@
       headers: [
         { name: `Start IP`, validate: `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)` },
         { name: `End IP`, validate: `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)` },
-        { name: `Time to live`, validate: `\d+` }
+        { name: `Time to live` }
       ],
       pattern: `dhcp-range={{0}},{{1}},{{2}}
 `,
@@ -48,6 +48,20 @@
       pattern: `{{1}},{{2}},{{0}}
 `,
       join: ``
+    },
+    {
+      type: `Header`,
+      title: `Leased Addresses`
+    },
+    {
+      type: `File`,
+      name: `/etc/dnsmasq-state.d/hosts`,
+      description: `Leases`,
+      style: `RTable`,
+      headers: [
+        { name: `Hostname` },
+        { name: `IP Address` }
+      ]
     },
     {
       type: `Header`,
@@ -114,6 +128,11 @@
     {
       type: `File`,
       name: `/etc/dnsmasq-hosts.d/user-defined-hosts.conf`,
+      style: 'boot'
+    },
+    {
+      type: `File`,
+      name: `/etc/dnsmasq-state.d/hosts`,
       style: 'boot'
     },
     {
