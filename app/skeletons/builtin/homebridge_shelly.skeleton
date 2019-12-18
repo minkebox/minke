@@ -1,6 +1,6 @@
 {
   name: `Shelly`,
-  description: `Add Shelly devices your HomeKit network using HomeBridge`,
+  description: `Add Shelly devices to your HomeKit network using HomeBridge`,
   image: `registry.minkebox.net/minkebox/homebridge_shelly`,
   tags: [ 'HomeKit' ],
   actions: [
