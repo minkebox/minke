@@ -59,8 +59,8 @@
       description: `Leases`,
       style: `RTable`,
       headers: [
-        { name: `Hostname` },
-        { name: `IP Address` }
+        { name: `IP Address` },
+        { name: `Hostname` }
       ]
     },
     {
