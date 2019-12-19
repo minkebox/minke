@@ -51,12 +51,16 @@
     },
     {
       type: `Header`,
-      title: `Leased Addresses`
+      title: `Issued Addresses`
+    },
+    {
+      type: `Text`,
+      text: `IP addresses issued and current active.`
     },
     {
       type: `File`,
       name: `/etc/dnsmasq-state.d/hosts`,
-      description: `Leases`,
+      description: `Addresses`,
       style: `RTable`,
       headers: [
         { name: `IP Address` },
