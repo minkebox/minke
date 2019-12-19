@@ -1,7 +1,7 @@
 {
-  name: `Game Cache`,
-  description: `Cache Windows, Steam and other game downloads for multiple computers`,
-  image: `steamcache/monolithic`,
+  name: `LAN Cache`,
+  description: `Cache Windows, iOS, Steam and other downloads for multiple computers`,
+  image: `lancachenet/monolithic`,
   tags: [ 'Caches' ],
   actions: [
     {
@@ -22,6 +22,11 @@
       type: `Environment`,
       name: `CACHE_MAX_AGE`,
       description: `Maximum cache age`
+    },
+    {
+      type: `Environment`,
+      name: `CACHE_DOMAINS_REPO`,
+      description: `Git repo list of domains to cache`
     }
   ],
   properties: [
@@ -62,8 +67,8 @@
     },
     {
       type: `Environment`,
-      name: `UPSTREAM_DNS`,
-      defaultValue: `1.1.1.1 1.0.0.1`
+      name: `CACHE_DOMAINS_REPO`,
+      defaultValue: `https://github.com/aanon4/cache-domains.git`
     },
     {
       type: `Environment`,
@@ -79,11 +84,6 @@
       type: `Environment`,
       name: `NGINX_WORKER_PROCESSES`,
       defaultValue: `auto`
-    },
-    {
-      type: `Environment`,
-      name: `CACHE_DOMAIN_REPO`,
-      defaultValue: `https://github.com/uklans/cache-domains.git`
     },
     {
       type: `Port`,
@@ -126,7 +126,7 @@
   ],
   secondary: [
     {
-      image: `steamcache/steamcache-dns`,
+      image: `lancachenet/lancache-dns`,
       properties: [
         {
           type: `Environment`,
@@ -146,12 +146,17 @@
         {
           type: 'Environment',
           name: 'UPSTREAM_DNS',
-          defaultValue: ''
+          defaultValue: '0.0.0.0'
+        },
+        {
+          type: `Environment`,
+          name: `CACHE_DOMAINS_REPO`,
+          defaultValue: `https://github.com/aanon4/cache-domains.git`
         }
       ]
     },
     {
-      image: `steamcache/sniproxy`,
+      image: `lancachenet/sniproxy`,
       properties: [
       ]
     }
