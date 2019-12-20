@@ -55,7 +55,7 @@
     },
     {
       type: `Text`,
-      text: `IP addresses issued and current active.`
+      text: `IP addresses issued and currently active.`
     },
     {
       type: `File`,
