@@ -1,7 +1,9 @@
 {
   name: `Minecraft`,
   description: `Moddable Minecraft Server`,
-  image: `itzg/minecraft-server`,
+  images: {
+    x64: `itzg/minecraft-server`
+  },
   tags: [ 'Games' ],
   actions: [
     {

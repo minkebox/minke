@@ -1,7 +1,9 @@
 {
   name: `LAN Cache`,
   description: `Cache Windows, iOS, Steam and other downloads for multiple computers`,
-  image: `lancachenet/monolithic`,
+  images: {
+    x64: `lancachenet/monolithic`
+  },
   tags: [ 'Caches' ],
   actions: [
     {
@@ -126,7 +128,9 @@
   ],
   secondary: [
     {
-      image: `lancachenet/lancache-dns`,
+      images: {
+        x64: `lancachenet/lancache-dns`
+      },
       properties: [
         {
           type: `Environment`,
@@ -156,7 +160,9 @@
       ]
     },
     {
-      image: `lancachenet/sniproxy`,
+      images: {
+        x64: `lancachenet/sniproxy`
+      },
       properties: [
       ]
     }

@@ -1,7 +1,9 @@
 {
   name: `Discourse`,
   description: `A 100% open source discussion platform built for the next decade of the Internet`,
-  image: `bitnami/discourse`,
+  images: {
+    x64: `bitnami/discourse`
+  },
   tags: [
     `Forum`,
     `Web`
@@ -232,7 +234,9 @@
   ],
   secondary: [
     {
-      image: `bitnami/postgresql`,
+      images: {
+        x64: `bitnami/postgresql`
+      }
       properties: [
         {
           type: `Directory`,
@@ -242,7 +246,9 @@
       ]
     },
     {
-      image: `bitnami/redis`,
+      images: {
+        x64: `bitnami/redis`
+      },
       properties: [
         {
           type: `Environment`,
@@ -257,7 +263,9 @@
       ]
     },
     {
-      image: `bitnami/discourse`,
+      images: {
+        x64: `bitnami/discourse`
+      },
       properties: [
         {
           type: `Arguments`,

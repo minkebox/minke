@@ -1,7 +1,9 @@
 {
   name: `Blog`,
   description: `Blogging using the Ghost publishing platform`,
-  image: `ghost:alpine`,
+  images: {
+    x64: `ghost:alpine`
+  },
   tags: [
     `Blog`,
     `Web`
