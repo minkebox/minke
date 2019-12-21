@@ -1134,11 +1134,7 @@ MinkeApp._monitorEvents = async function() {
           switch (event.Type) {
             case 'container':
               switch (event.Action) {
-                case 'create':
-                case 'start':
-                case 'stop':
-                case 'destroy':
-                  break;
+                case 'health_status: unhealthy':
                 case 'die':
                 {
                   const id = event.id;
@@ -1167,6 +1163,10 @@ MinkeApp._monitorEvents = async function() {
                   }
                   break;
                 }
+                case 'create':
+                case 'start':
+                case 'stop':
+                case 'destroy':
                 default:
                   break;
               }
