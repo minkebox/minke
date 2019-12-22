@@ -397,9 +397,11 @@ MinkeApp.prototype = {
         case 'home':
           break;
         default:
-          const vpn = await Network.getPrivateNetwork(secondary);
-          const ip = vpn.info.IPAM.Config[0].Gateway.replace(/\.\d$/,'.2');
-          configEnv.push(`__PRIVATE_INTERFACE_IP=${ip}`);
+          if (this._willCreateNetwork()) {
+            const vpn = await Network.getPrivateNetwork(secondary);
+            const ip = vpn.info.IPAM.Config[0].Gateway.replace(/\.\d$/,'.2');
+            configEnv.push(`__PRIVATE_INTERFACE_IP=${ip}`);
+          }
           break;
       }
 
