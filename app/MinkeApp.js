@@ -377,7 +377,7 @@ MinkeApp.prototype = {
           // should be the creator (e.g. VPN client/server) for this network.
           const vpn = await Network.getPrivateNetwork(primary);
           config.HostConfig.NetworkMode = vpn.id;
-          const dns = vpn.info.IPAM.Config[0].Gateway.replace(/.\d$/,'.2');
+          const dns = vpn.info.IPAM.Config[0].Gateway.replace(/\.\d$/,'.2');
           configEnv.push(`__DNSSERVER=${dns}`);
           configEnv.push(`__GATEWAY=${dns}`);
           config.HostConfig.Dns = [ dns ];
@@ -391,6 +391,16 @@ MinkeApp.prototype = {
           }
           break;
         }
+      }
+      switch (secondary) {
+        case 'none':
+        case 'home':
+          break;
+        default:
+          const vpn = await Network.getPrivateNetwork(secondary);
+          const ip = vpn.info.IPAM.Config[0].Gateway.replace(/\.\d$/,'.2');
+          configEnv.push(`__PRIVATE_INTERFACE_IP=${ip}`);
+          break;
       }
 
       configEnv.push(`__GLOBALID=${this._globalId}`);
