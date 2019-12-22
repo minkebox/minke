@@ -22,13 +22,21 @@ const Updater = {
           const updated = await this._updateImages();
           let updateMinke = null;
           await Promise.all(updated.map(async (app) => {
-            if (app._image !== Images.MINKE) {
+            if (app._willCreateNetwork()) {
               await Skeletons.updateInternalSkeleton(app._image);
               await app.restart('update');
             }
-            else {
-              // Leave to the end
-              updateMinke = app;
+          }));
+          await Promise.all(updated.map(async (app) => {
+            if (!app._willCreateNetwork()) {
+              if (app._image !== Images.MINKE) {
+                await Skeletons.updateInternalSkeleton(app._image);
+                await app.restart('update');
+              }
+              else {
+                // Leave to the end
+                updateMinke = app;
+              }
             }
           }));
           if (this._checkNativeUpdates()) {
