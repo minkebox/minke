@@ -236,7 +236,7 @@
     {
       images: {
         x64: `bitnami/postgresql`
-      }
+      },
       properties: [
         {
           type: `Directory`,
