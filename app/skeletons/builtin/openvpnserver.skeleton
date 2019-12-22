@@ -83,8 +83,8 @@
         }
         state.rx.shift();
         state.tx.shift();
-        state.rx.push((rxtx[0] - state.last[0]) * 8 / (1000000 * 5));
-        state.tx.push((rxtx[1] - state.last[1]) * 8 / (1000000 * 5));
+        state.rx.push((rxtx[0] - state.last[0]) * 8 / 1000000);
+        state.tx.push((rxtx[1] - state.last[1]) * 8 / 1000000);
         output.rx = state.rx.slice(-1)[0].toFixed(1);
         output.tx = state.tx.slice(-1)[0].toFixed(1);
         state.last = rxtx;
