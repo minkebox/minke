@@ -211,6 +211,17 @@ function install(app) {
   }));
 }
 
+let charts = {};
+function addChart(id, chart) {
+  charts[id] = chart;
+  for (let oid in charts) {
+    if (!document.getElementById(oid)) {
+      charts[oid].destroy();
+      delete charts[oid];
+    }
+  }
+}
+
 function saveSkeleton() {
   const content = editor.getValue();
   let name = 'app';

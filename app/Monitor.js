@@ -136,7 +136,7 @@ function _generateGraph2(graph) {
       <canvas id="${id}"></canvas>
     </div>
     <script>
-    new Chart(document.getElementById("${id}").getContext("2d"), ${JSON.stringify(graph)});
+    window.addChart("${id}", new Chart(document.getElementById("${id}").getContext("2d"), ${JSON.stringify(graph)}));
     </script>
   `;
 }
