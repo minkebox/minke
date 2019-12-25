@@ -77,19 +77,41 @@ const Updater = {
     const apps = this._getApps();
     const updates = [];
     const helper = await Pull.updateImage(Images.withTag(Images.MINKE_HELPER));
+    // Build a set of updated images and whether we've updated them or not
+    const images = {};
     for (let i = 0; i < apps.length; i++) {
       try {
-        let updated = await Pull.updateImage(Images.withTag(apps[i]._image));
-        await Promise.all(apps[i]._secondary.map(async secondary => {
-          updated |= await Pull.updateImage(Images.withTag(secondary._image));
-        }));
-        if (apps[i].isRunning() && (updated || (helper && apps[i]._helperContainer))) {
-          // Image or helper was updated
-          updates.push(apps[i]);
+        const pimage = Images.withTag(apps[i]._image);
+        if (!(pimage in images)) {
+          images[pimage] = await Pull.updateImage(pimage);
         }
+        await Promise.all(apps[i]._secondary.map(async secondary => {
+          const simage = Images.withTag(secondary._image);
+          if (!(simage in images)) {
+            images[simage] = await Pull.updateImage(simage);
+          }
+        }));
       }
       catch (e) {
         console.error(e);
+      }
+    }
+    for (let i = 0; i < apps.length; i++) {
+      if (apps[i].isRunning()) {
+        if (helper && apps[i]._helperContainer) {
+          // Helper updated
+          updates.push(apps[i]);
+        }
+        else if (images[Images.withTag(apps[i]._image)]) {
+          // Image updated
+          updates.push(apps[i]);
+        }
+        else if (apps[i]._secondary.reduce((r, secondary) => {
+          return r || images[Images.withTag(secondary._image)];
+        }, false)) {
+          // Secondary updated
+          updates.push(apps[i]);
+        }
       }
     }
     return updates;
