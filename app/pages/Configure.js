@@ -316,6 +316,11 @@ async function ConfigurePageWS(ctx) {
         for (let i = 0; i < row.length; i++) {
           line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), row[i]);
         }
+        if (line.indexOf('{{') !== -1) {
+          for (let key in app._env) {
+            line = line.replace(new RegExp('\\{\\{' + key + '\\}\\}', 'g'), app._env[key].value);
+          }
+        }
         value.push(line);
       });
       return value.join('join' in action ? action.join : '\n');
