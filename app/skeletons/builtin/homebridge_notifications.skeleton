@@ -1,0 +1,95 @@
+{
+  name: `Notifications`,
+  description: `Add buttons which, when pressed, will send Notifications via IFTTT using HomeBridge`,
+  image: `registry.minkebox.net/minkebox/homebridge_notifications`,
+  tags: [ 'HomeKit' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure HomeKit`
+    },
+    {
+      type: `Environment`,
+      description: `Pin used to add this device to your network using the Home app`,
+      name: `BRIDGE_PIN`
+    },
+    {
+      type: `Header`,
+      title: `Configure IFTTT Notifications`
+    },
+    {
+      type: `Text`,
+      text: `Notifications uses the IFTTT Webhook and Notification services.`
+    },
+    {
+      type: `Environment`,
+      description: `IFTTT Webhook key`,
+      name: `IFTTT_KEY`
+    },
+    {
+      type: `Text`,
+      text: `Create a set of switch names and associated notification messages`
+    },
+    {
+      type: `File`,
+      name: `/app/accessories.conf`,
+      description: `Notifications`,
+      style: `Table`,
+      headers: [
+        { name: `Name` },
+        { name: `Message` }
+      ],
+      pattern: `{ "accessory": "HTTP-SWITCH", "name": "{{0}}", "switchType": "stateless", "timeout": 1000, "onUrl": "https://maker.ifttt.com/trigger/homebridge_notifications/with/key/{{IFTTT_KEY}}?value1={{1}}" }`,
+      join: `,`
+    }
+
+  ],
+  properties: [
+    {
+      type: `Port`,
+      name: `51826/tcp`,
+      port: 51826,
+      protocol: 'TCP',
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_USERNAME`,
+      defaultValue: `{{__MACADDRESS}}`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_PIN`,
+      defaultValue: `111-11-111`
+    },
+    {
+      type: `Environment`,
+      name: `IFTTT_KEY`
+    },
+    {
+      type: `File`,
+      name: `/app/accessories.conf`
+    },
+    {
+      type: `Directory`,
+      name: `/app/homebridge`,
+      style: 'store'
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    watch: ``,
+    polling: 0,
+    parser: ``,
+    header: ``,
+    template: ``
+  }
+}
