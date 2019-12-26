@@ -21,6 +21,9 @@ function selectImage(skeleton) {
       }
     });
   }
+  return (skeleton.secondary || []).reduce((r, second) => {
+    return r && second.image;
+  }, skeleton.image);
 }
 
 FS.readdirSync(BUILTINS_DIR).forEach((file) => {
@@ -260,12 +263,15 @@ function stringToSkeleton(str) {
     if (typeof skel.name !== 'string') {
       throw new Error('Missing name');
     }
-    selectImage(skel);
-    if (typeof skel.image !== 'string') {
-      throw new Error('Missing image');
-    }
     if (!Array.isArray(skel.properties)) {
       throw new Error('Missing properties');
+    }
+    if (!selectImage(skel)) {
+      // No image for this architecture
+      skel = null;
+    }
+    else if (typeof skel.image !== 'string') {
+      throw new Error('Missing image');
     }
   }
   catch (e) {
