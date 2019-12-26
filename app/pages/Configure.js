@@ -310,11 +310,17 @@ async function ConfigurePageWS(ctx) {
     const action = skeleton.actions.find(action => action.name === name);
     if (action && (action.style === 'Table' || action.style === 'Websites')) {
       const table = JSON.parse(value);
+      const headers = action.headers || [];
       value = [];
       table.forEach((row) => {
         let line = action.pattern || '{{0}}';
         for (let i = 0; i < row.length; i++) {
-          line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), row[i]);
+          const header = headers[i] || {};
+          let rowval = row[i];
+          if (header.encoding === 'url') {
+            rowval = encodeURIComponent(rowval);
+          }
+          line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), rowval);
         }
         if (line.indexOf('{{') !== -1) {
           for (let key in app._env) {
