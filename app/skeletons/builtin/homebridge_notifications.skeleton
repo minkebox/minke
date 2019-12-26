@@ -15,15 +15,15 @@
     },
     {
       type: `Header`,
-      title: `Configure IFTTT Notifications`
+      title: `Configure iOS/Android Notifications`
     },
     {
       type: `Text`,
-      text: `Notifications uses an IFTTT applet which you should connect to your account: <b>https://ifttt.com/applets/108075226d</b>`
+      text: `Notifications uses an <a href="https://ifttt.com/applets/108075226d">IFTTT applet</a> which you should connect to your account`
     },
     {
       type: `Environment`,
-      description: `IFTTT Webhook key`,
+      description: `IFTTT WebHook key`,
       name: `IFTTT_KEY`
     },
     {
@@ -32,17 +32,45 @@
     },
     {
       type: `File`,
-      name: `/app/accessories.conf`,
+      name: `/app/accessories1.conf`,
       description: `Notifications`,
       style: `Table`,
       headers: [
         { name: `Name` },
-        { name: `Message` }
+        { name: `Message`, encoding: `url` }
       ],
       pattern: `{ "accessory": "HTTP-SWITCH", "name": "{{0}}", "switchType": "stateless", "timeout": 1000, "onUrl": "https://maker.ifttt.com/trigger/homebridge_notifications/with/key/{{IFTTT_KEY}}?value1={{1}}" }`,
       join: `,`
+    },
+    {
+      type: `Header`,
+      title: `Configure Alexa Notifications`
+    },
+    {
+      type: `Text`,
+      text: `Notifications use the <a href="https://www.amazon.com/Thomptronics-Notify-Me/dp/B07BB2FYFS">Alexa Skill: Notify Me</a> which you should install in the Alexa app`
+    },
+    {
+      type: `Environment`,
+      description: `Notify Me key`,
+      name: `NOTIFYME_KEY`
+    },
+    {
+      type: `Text`,
+      text: `Create a set of switch names and associated notification messages`
+    },
+    {
+      type: `File`,
+      name: `/app/accessories2.conf`,
+      description: `Alexa Notifications`,
+      style: `Table`,
+      headers: [
+        { name: `Name` },
+        { name: `Message`, encoding: `url` }
+      ],
+      pattern: `{ "accessory": "HTTP-SWITCH", "name": "{{0}}", "switchType": "stateless", "timeout": 1000, "onUrl": "https://api.notifymyecho.com/v1/NotifyMe?accessCode={{NOTIFYME_KEY}}\\&notification={{1}}" }`,
+      join: `,`
     }
-
   ],
   properties: [
     {
@@ -75,8 +103,16 @@
       name: `IFTTT_KEY`
     },
     {
+      type: `Environment`,
+      name: `NOTIFYME_KEY`
+    },
+    {
       type: `File`,
-      name: `/app/accessories.conf`
+      name: `/app/accessories1.conf`
+    },
+    {
+      type: `File`,
+      name: `/app/accessories2.conf`
     },
     {
       type: `Directory`,
