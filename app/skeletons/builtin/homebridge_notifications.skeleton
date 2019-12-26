@@ -1,6 +1,6 @@
 {
   name: `Notifications`,
-  description: `Add buttons which, when pressed, will send Notifications via IFTTT using HomeBridge`,
+  description: `Add HomeKit buttons which, when pressed, will send Notifications`,
   image: `registry.minkebox.net/minkebox/homebridge_notifications`,
   tags: [ 'HomeKit' ],
   actions: [
