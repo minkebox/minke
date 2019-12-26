@@ -19,7 +19,7 @@
     },
     {
       type: `Text`,
-      text: `Notifications uses the IFTTT Webhook and Notification services.`
+      text: `Notifications uses an IFTTT applet which you should connect to your account: <b>https://ifttt.com/applets/108075226d</b>`
     },
     {
       type: `Environment`,
