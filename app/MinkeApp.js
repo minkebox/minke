@@ -328,22 +328,10 @@ MinkeApp.prototype = {
           configEnv.push(`__PRIVATE_INTERFACE=eth${netid++}`);
           break;
       }
-      // Need management network if we're not connected to the home network in some way
-      let management = null;
-      if (!((primary === 'home' || primary === 'host') || secondary === 'home')) {
-        configEnv.push(`__MANAGEMENT_INTERFACE=eth${netid++}`);
-        management = await Network.getManagementNetwork();
-      }
 
       switch (primary) {
         case 'none':
-          if (management) {
-            config.HostConfig.NetworkMode = management.id;
-            management = null;
-          }
-          else {
-            config.HostConfig.NetworkMode = 'none';
-          }
+          config.HostConfig.NetworkMode = 'none';
           break;
         case 'home':
         {
@@ -532,18 +520,6 @@ MinkeApp.prototype = {
               }
               break;
             }
-          }
-        }
-
-        if (management) {
-          try {
-            await management.connect({
-              Container: this._helperContainer.id
-            });
-          }
-          catch (e) {
-            console.error(e);
-            management = null;
           }
         }
 

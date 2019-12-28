@@ -6,7 +6,6 @@ const Barrier = require('./utils/Barrier');
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const NETWORK_FILE = `${ETC}systemd/network/bridge.network`;
 const HOME_NETWORK_NAME = 'home';
-const MANAGEMENT_NETWORK_NAME = 'management';
 const BRIDGE_NETWORK = 'br0';
 
 const networks = {};
@@ -93,14 +92,6 @@ const Network = {
   getBridgeNetwork: Barrier(async function() {
     return await this._getNetwork({
       Name: 'bridge'
-    });
-  }),
-
-  getManagementNetwork: Barrier(async function() {
-    return await this._getNetwork({
-      Name: MANAGEMENT_NETWORK_NAME,
-      CheckDuplicate: true,
-      Driver: 'bridge'
     });
   }),
 
