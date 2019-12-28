@@ -19,7 +19,7 @@
     },
     {
       type: `Text`,
-      text: `To bridge your Nest devices onto the HomeKit network, you need to provides various pieces of security information. Instructions for gettings these can be found at https://www.npmjs.com/package/homebridge-nest#using-a-google-account.`
+      text: `To bridge your Nest devices onto the HomeKit network, you need to provides various pieces of security information. Instructions for gettings these can be found at <a target="_blank" href="https://www.npmjs.com/package/homebridge-nest#using-a-google-account">here</a>.`
     },
     {
       type: `Environment`,
