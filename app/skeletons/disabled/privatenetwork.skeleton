@@ -93,7 +93,6 @@
   ],
   monitor: {
     cmd: `ifconfig tun0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/"`,
-    watch: ``,
     polling: 5,
     parser: `
       const rxtx = input.split(' ');
@@ -136,7 +135,7 @@
                 ticks: { beginAtZero: true }
               }]
             }
-          } 
+          }
         }
       };
     `,

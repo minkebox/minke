@@ -537,7 +537,6 @@
   ],
   monitor: {
     cmd: `mcstatus localhost status`,
-    watch: ``,
     polling: 60,
     parser: `
       const lines = input.split('\\n');

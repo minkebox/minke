@@ -95,7 +95,6 @@
   ],
   monitor: {
     cmd: `pihole -c --json`,
-    watch: ``,
     polling: 60,
     parser: `
       output = JSON.parse(input);

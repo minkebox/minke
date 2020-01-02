@@ -154,7 +154,6 @@ async function imageToSkeleton(image) {
 
     monitor: {
       cmd: '',
-      watch: '',
       polling: 0,
       parser: '',
       minwidth: '200px',

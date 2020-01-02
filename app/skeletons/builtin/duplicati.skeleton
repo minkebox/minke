@@ -49,7 +49,6 @@
   ],
   monitor: {
     cmd: `curl -s -c /tmp/cj http://localhost:8200 -q -o /dev/null; echo '[['; curl http://localhost:8200/api/v1/serverstate?X-XSRF-Token=$(tail -n1 /tmp/cj | cut -f7); echo '],['; curl http://localhost:8200/api/v1/progressstate?X-XSRF-Token=$(tail -n1 /tmp/cj | cut -f7); echo '],['; curl http://localhost:8200/api/v1/backups?X-XSRF-Token=$(tail -n1 /tmp/cj | cut -f7); echo ']]'`,
-    watch: ``,
     polling: 60,
     parser: `
       const j = JSON.parse(input.replace(/﻿/g, ''));

@@ -159,7 +159,6 @@
   ],
   monitor: {
     cmd: `wc -l /etc/dnsmasq-hosts.d/user-defined-hosts.conf ; cat /etc/dnsmasq.d/dhcp-ranges.conf ; cat /etc/dnsmasq-state.d/leases`,
-    watch: `/etc/dnsmasq-state.d/leases`,
     polling: 600,
     parser: `
       const now = Math.floor(Date.now() / 1000);

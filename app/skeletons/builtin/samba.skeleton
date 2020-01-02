@@ -145,7 +145,6 @@
   ],
   monitor: {
     cmd: `cd /shareable;du -d0 *`,
-    watch: `/shareable`,
     poll: 3600,
     parser: `
       const lines = input.split('\\n');

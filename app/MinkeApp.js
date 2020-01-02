@@ -974,7 +974,6 @@ MinkeApp.prototype = {
   _monitorNetwork: function() {
     this._networkMonitor = this._createMonitor({
       event: 'update.network.status',
-      watch: '/etc/status/forwardports.txt',
       polling: 60,
       cmd: 'cat /etc/status/forwardports.txt',
       parser: 'output = input'
@@ -1012,7 +1011,6 @@ MinkeApp.prototype = {
       cmd: args.cmd,
       parser: args.parser,
       template: args.template,
-      watch: args.watch,
       polling: args.polling,
       callback: async (data) => {
         this._emit(args.event, { data: await data });

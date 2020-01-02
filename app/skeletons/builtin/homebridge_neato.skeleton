@@ -70,7 +70,6 @@
   ],
   monitor: {
     cmd: ``,
-    watch: ``,
     polling: 0,
     parser: ``,
     header: ``,

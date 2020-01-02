@@ -87,8 +87,7 @@
   ],
   monitor: {
     cmd: `tail -1 /var/www/html/data/result.csv`,
-    watch: `/var/www/html/data/result.csv`,
-    polling: 10,
+    polling: 60,
     parser: `
       const v = input.split(',');
       output = {
