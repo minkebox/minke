@@ -222,6 +222,12 @@ function addChart(id, chart) {
   }
 }
 
+function monitor(id, timeout) {
+  setTimeout(() => {
+    cmd('app.monitor', id);
+  }, timeout);
+}
+
 function saveSkeleton() {
   const content = editor.getValue();
   let name = 'app';

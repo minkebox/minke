@@ -204,6 +204,26 @@ async function MainPageWS(ctx) {
     });
   }
 
+  ctx.websocket.on('message', (msg) => {
+    try {
+      msg = JSON.parse(msg);
+      switch (msg.type) {
+        case 'app.monitor':
+        {
+          const app = MinkeApp.getAppById(msg.value);
+          if (app && app._statusMonitor) {
+            app._statusMonitor.poll();
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+    catch (_) {
+    }
+  });
+
   ctx.websocket.on('close', () => {
     MinkeApp.getApps().forEach(app => offline(app));
     MinkeApp.off('app.create', createApp);

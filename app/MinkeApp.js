@@ -975,6 +975,7 @@ MinkeApp.prototype = {
     this._networkMonitor = this._createMonitor({
       event: 'update.network.status',
       watch: '/etc/status/forwardports.txt',
+      polling: 60,
       cmd: 'cat /etc/status/forwardports.txt',
       parser: 'output = input'
     });

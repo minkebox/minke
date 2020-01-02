@@ -57,18 +57,20 @@ async function runCmd(app, cmd) {
 
 function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
   const ctemplate = template ? Handlebars.compile(template) : DEFAULT_TEMPLATE;
-  this.watcher = null;
-  this.clock = null;
-  const dowork = debounce(async () => {
-    callback(await this.run());
-  }, 10);
-  const listener = async (event) => {
-    if (event === 'rename') {
-      this.watcher.close();
-      this.watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
-    }
-    dowork();
-  }
+  //this.watcher = null;
+  //this.clock = null;
+  //const dowork = debounce(async () => {
+  //  if (callback && !this._terminated) {
+  //    callback(await this.run());
+  //  }
+  //}, 10);
+  //const listener = async (event) => {
+  //  if (event === 'rename') {
+  //    this.watcher.close();
+  //    this.watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
+  //  }
+  //  dowork();
+  //}
   const sandbox = { input: null, output: null, state: null, props: { homeIP: app._homeIP, colors: DEFAULT_COLORS }};
   VM.createContext(sandbox);
   //console.log(parser);
@@ -78,14 +80,14 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
       this.stop();
       return '';
     }
-    if (callback) {
-      if (!this.watcher && watch) {
-        this.watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
-      }
-      if (!this.clock && (!watch || polling !== 0)) {
-        this.clock = setInterval(listener, (polling || DEFAULT_POLLING) * 1000);
-      }
-    }
+    //if (callback) {
+    //  if (!this.watcher && watch) {
+    //    this.watcher = FS.watch(watch, { persistent: false, recursive: false }, listener);
+    //  }
+    //  if (!this.clock && (!watch || polling !== 0)) {
+    //    this.clock = setInterval(listener, (polling || DEFAULT_POLLING) * 1000);
+    //  }
+    //}
     try {
       sandbox.input = await runCmd(app, cmd);
       //console.log(sandbox.input);
@@ -101,7 +103,12 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
         }
       }
       //console.log(sandbox);
-      return ctemplate(sandbox.output);
+      return `
+        ${ctemplate(sandbox.output)}
+        <script>
+        window.monitor('${app._id}',${(polling || DEFAULT_POLLING) * 1000});
+        </script>
+      `;
     }
     catch (e) {
       console.error(e);
@@ -109,20 +116,27 @@ function WatchCmd(app, cmd, parser, template, watch, polling, callback) {
     }
   }
   this.stop = () => {
-    if (this.watcher) {
-      this.watcher.close();
-      this.watcher = null;
-    }
-    if (this.clock) {
-      clearInterval(this.clock);
-      this.clock = null;
-    }
+    //if (this.watcher) {
+    //  this.watcher.close();
+    //  this.watcher = null;
+    //}
+    //if (this.clock) {
+    //  clearInterval(this.clock);
+    //  this.clock = null;
+    //}
     sandbox.state = null;
   }
   this.shutdown = () => {
     this._terminated = true;
     this.stop();
   }
+  this.poll = async () => {
+    if (!this._terminated) {
+      callback(await this.run());
+    }
+  }
+  // Kick off
+  this.poll();
 }
 
 let graphId = 1;
@@ -145,12 +159,12 @@ const _Monitor = {
 
   create: function(args) {
     let lwatch = null;
-    if (args.watch) {
-      lwatch = args.app._fs.mapFilenameToLocal(args.watch);
-      if (lwatch && !FS.existsSync(lwatch)) {
-        FS.closeSync(FS.openSync(lwatch, 'w'));
-      }
-    }
+    //if (args.watch) {
+    //  lwatch = args.app._fs.mapFilenameToLocal(args.watch);
+    //  if (lwatch && !FS.existsSync(lwatch)) {
+    //    FS.closeSync(FS.openSync(lwatch, 'w'));
+    //  }
+    //}
     return new WatchCmd(args.app, args.cmd, args.parser, args.template, lwatch, args.polling, args.callback);
   }
 
