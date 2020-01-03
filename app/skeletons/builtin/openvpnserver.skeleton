@@ -73,20 +73,23 @@
     parser: `
       const rxtx = input.split(' ');
       if (rxtx.length == 2) {
-        if (!this.state) {
+        const now = Date.now() / 1000;
+        if (!state) {
           state = {
             rx: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
             tx: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
-            last: rxtx
+            last: rxtx,
+            then: now - 1
           };
         }
         state.rx.shift();
         state.tx.shift();
-        state.rx.push((rxtx[0] - state.last[0]) * 8 / 1000000);
-        state.tx.push((rxtx[1] - state.last[1]) * 8 / 1000000);
+        state.rx.push((rxtx[0] - state.last[0]) * 8 / 1000000 / (now - state.then));
+        state.tx.push((rxtx[1] - state.last[1]) * 8 / 1000000 / (now - state.then));
         output.rx = state.rx.slice(-1)[0].toFixed(1);
         output.tx = state.tx.slice(-1)[0].toFixed(1);
         state.last = rxtx;
+        state.then = now;
       }
       output.graph = {
         traffic: {
