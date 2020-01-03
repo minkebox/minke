@@ -54,54 +54,39 @@ async function runCmd(app, cmd) {
   });
 }
 
-function WatchCmd(app, cmd, parser, template, polling, callback) {
+function WatchCmd(app, cmd, parser, template, polling) {
   const ctemplate = template ? Handlebars.compile(template) : DEFAULT_TEMPLATE;
   const sandbox = { input: null, output: null, state: null, props: { homeIP: app._homeIP, colors: DEFAULT_COLORS }};
   VM.createContext(sandbox);
   const extractor = VM.compileFunction(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, [], { parsingContext: sandbox });
-  this.run = async () => {
-    if (!app._container || this._terminated) {
-      this.stop();
-      return '';
-    }
-    try {
-      sandbox.input = await runCmd(app, cmd);
-      sandbox.output = {};
-      extractor();
-      if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
-        for (let name in sandbox.output.graph) {
-          const graph = sandbox.output.graph[name];
-          if (graph) {
-            sandbox.output.graph[name] = _generateGraph2(graph);
+  this.update = async () => {
+    let html = '';
+    if (app._container) {
+      try {
+        sandbox.input = await runCmd(app, cmd);
+        sandbox.output = {};
+        extractor();
+        if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
+          for (let name in sandbox.output.graph) {
+            const graph = sandbox.output.graph[name];
+            if (graph) {
+              sandbox.output.graph[name] = _generateGraph2(graph);
+            }
           }
         }
+        html = ctemplate(sandbox.output);
       }
-      return `
-        ${ctemplate(sandbox.output)}
-        <script>
-        window.monitor('${app._id}',${(polling || DEFAULT_POLLING) * 1000});
-        </script>
-      `;
+      catch (e) {
+        console.error(e);
+      }
     }
-    catch (e) {
-      console.error(e);
-      return '';
-    }
+    return `
+      ${html}
+      <script>
+      window.monitor('${app._id}',${(polling || DEFAULT_POLLING) * 1000});
+      </script>
+    `;
   }
-  this.stop = () => {
-    sandbox.state = null;
-  }
-  this.shutdown = () => {
-    this._terminated = true;
-    this.stop();
-  }
-  this.poll = async () => {
-    if (!this._terminated) {
-      callback(await this.run());
-    }
-  }
-  // Kick off
-  this.poll();
 }
 
 let graphId = 1;
@@ -122,7 +107,7 @@ function _generateGraph2(graph) {
 const _Monitor = {
 
   create: function(args) {
-    return new WatchCmd(args.app, args.cmd, args.parser, args.template, args.polling, args.callback);
+    return new WatchCmd(args.app, args.cmd, args.parser, args.template, args.polling);
   }
 
 };

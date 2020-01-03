@@ -695,7 +695,7 @@ MinkeApp.prototype = {
       }
 
       if (this._monitor.cmd) {
-        this._statusMonitor = this._createMonitor(Object.assign({ event: 'update.monitor' }, this._monitor));
+        this._statusMonitor = this._createMonitor(this._monitor);
       }
 
       this._startTime = Date.now();
@@ -723,7 +723,6 @@ MinkeApp.prototype = {
 
     try {
       if (this._statusMonitor) {
-        this._statusMonitor.shutdown();
         this._statusMonitor = null;
       }
     }
@@ -731,7 +730,6 @@ MinkeApp.prototype = {
     }
     try {
       if (this._networkMonitor) {
-        this._networkMonitor.shutdown();
         this._networkMonitor = null;
         this.off('update.network.status', this._updateNetworkStatus);
       }
@@ -975,8 +973,7 @@ MinkeApp.prototype = {
     this._networkMonitor = this._createMonitor({
       event: 'update.network.status',
       polling: 60,
-      cmd: 'cat /etc/status/forwardports.txt',
-      parser: 'output = input'
+      cmd: 'cat /etc/status/forwardports.txt'
     });
   },
 
@@ -1006,32 +1003,13 @@ MinkeApp.prototype = {
   },
 
   _createMonitor: function(args) {
-    const monitor = Monitor.create({
+    return Monitor.create({
       app: this,
       cmd: args.cmd,
       parser: args.parser,
       template: args.template,
-      polling: args.polling,
-      callback: async (data) => {
-        this._emit(args.event, { data: await data });
-      }
-    });
-
-    this._eventState[args.event] = {
-      data: '',
-      start: async () => {
-        this._emit(args.event, { data: await monitor.run() });
-      },
-      stop: async () => {
-        await monitor.stop();
-      }
-    };
-
-    if (this.listenerCount(args.event) > 0) {
-      this._eventState[args.event].start();
-    }
-
-    return monitor;
+      polling: args.polling
+    });;
   },
 
   _setStatus: function(status) {

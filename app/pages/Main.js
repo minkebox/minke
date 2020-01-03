@@ -108,7 +108,6 @@ async function MainPageWS(ctx) {
     }
   }
 
-  const oldStatus = {};
   const onlines = {};
 
   function updateStatus(event) {
@@ -127,18 +126,17 @@ async function MainPageWS(ctx) {
           html: appStatusTemplate(appstatus[0])
         });
       }
-      delete oldStatus[event.app._id];
+      updateMonitor(event.app);
       onlines[event.app._id] = event.status;
     }
   }
 
-  function updateMonitor(event) {
-    const html = event.data;
-    if (html !== oldStatus[event.app._id]) {
-      oldStatus[event.app._id] = html;
+  async function updateMonitor(app) {
+    if (app._statusMonitor) {
+      const html = await app._statusMonitor.update();
       send({
         type: 'html.update',
-        selector: `.application-status-${event.app._id} .status`,
+        selector: `.application-status-${app._id} .status`,
         html: html
       });
     }
@@ -146,12 +144,10 @@ async function MainPageWS(ctx) {
 
   function online(app) {
     app.on('update.status', updateStatus);
-    app.on('update.monitor', updateMonitor);
   }
 
   function offline(app) {
     app.off('update.status', updateStatus);
-    app.off('update.monitor', updateMonitor);
   }
 
   function createApp(status) {
@@ -211,8 +207,8 @@ async function MainPageWS(ctx) {
         case 'app.monitor':
         {
           const app = MinkeApp.getAppById(msg.value);
-          if (app && app._statusMonitor) {
-            app._statusMonitor.poll();
+          if (app) {
+            updateMonitor(app);
           }
           break;
         }
