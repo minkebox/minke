@@ -1,4 +1,5 @@
 let ws = { send: () => {} };
+let pendingQ = null;
 
 function onPageShow() {
   ws = new WebSocket(`ws://${location.host}${location.pathname}ws`);
@@ -90,6 +91,23 @@ function onPageShow() {
         }
       }
       setTimeout(reload, TIMEOUT);
+    }
+  });
+
+  document.addEventListener("visibilitychange", (event) => {
+    if (document.visibilityState !== 'visible') {
+      if (!pendingQ) {
+        pendingQ = [];
+      }
+    }
+    else {
+      if (pendingQ) {
+        const p = pendingQ;
+        pendingQ = null;
+        p.forEach((f) => {
+          f();
+        });
+      }
     }
   });
 }
@@ -224,7 +242,14 @@ function addChart(id, chart) {
 
 function monitor(id, timeout) {
   setTimeout(() => {
-    cmd('app.monitor', id);
+    if (!pendingQ) {
+      cmd('app.monitor', id);
+    }
+    else {
+      pendingQ.push(() => {
+        cmd('app.monitor', id);
+      });
+    }
   }, timeout);
 }
 
