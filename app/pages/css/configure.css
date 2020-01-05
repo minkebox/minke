@@ -86,6 +86,11 @@ body {
   line-height: 1.4em;
   padding-bottom: 1em;
 }
+.configure .content-text a {
+  font-weight: 600;
+  color: #7878ff;
+  text-decoration: none;
+}
 .configure .actions label {
   width: 30% !important;
 }
