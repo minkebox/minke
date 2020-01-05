@@ -40,7 +40,7 @@ const DNS = {
       secureResolver = null;
     }
     else {
-      primaryResolver = `server=127.0.0.1#5453`;
+      primaryResolver = `server=127.0.0.1#5453\n`;
       secondaryResolver = '';
       const fallback = resolver1 ? resolver1 : resolver2 ? resolver2 : DEFAULT_FALLBACK_RESOLVER;
       secureResolver = [
@@ -195,7 +195,7 @@ const DNS = {
       dns.sort((a, b) => b.priority - a.priority);
       FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${dns.map((resolve) => {
         return resolve.delay === 0 ? `server=${resolve.IP4Address}#${resolve.Port}\n` : '';
-      }).join('')}\n`);
+      }).join('')}`);
     }
   },
 
