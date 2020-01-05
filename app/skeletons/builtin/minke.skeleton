@@ -72,7 +72,7 @@
     {
       type: 'Environment',
       name: 'DNSSECURE',
-      description: 'sdns:// Stamp'
+      description: 'sdns:// URL'
     },
     {
       type: 'Header',
