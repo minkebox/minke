@@ -67,7 +67,7 @@
     },
     {
       type: 'Text',
-      text: 'Optional <a href="https://dnscrypt.info">DNSCrypt</a> support is provided for more secure DNS queries.'
+      text: 'If set, encrypted DNS using <a target="_blank" href="https://dnscrypt.info">DNSCrypt</a> provides secure and authenitcated DNS queries'
     },
     {
       type: 'Environment',
