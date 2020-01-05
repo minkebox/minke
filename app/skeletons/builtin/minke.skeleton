@@ -67,7 +67,7 @@
     },
     {
       type: 'Text',
-      text: 'If set, encrypted DNS using <a target="_blank" href="https://dnscrypt.info">DNSCrypt</a> provides secure and authenitcated DNS queries'
+      text: 'If set, encrypted DNS using <a target="_blank" href="https://dnscrypt.info">DNSCrypt</a> provides secure and authenticated DNS queries. This will be used for non-local addresses in preference to non-secure DNS'
     },
     {
       type: 'Environment',
