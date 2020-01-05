@@ -3,19 +3,24 @@ const FS = require('fs');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
+const DNSCRYPT = '/usr/bin/dnscrypt-proxy';
 const HOSTNAME = '/bin/hostname';
 const DNSMASQ_CONFIG = `${ETC}dnsmasq.conf`;
+const DNSCRYPT_CONFIG = `${ETC}dnscrypt-proxy.toml`;
 const DNSMASQ_RESOLV = `${ETC}dnsmasq-servers.conf`;
 const HOSTNAME_FILE = `${ETC}hostname`;
 const LOCAL_RESOLV = `${ETC}resolv.conf`;
 const DNSMASQ_HOSTS_DIR = (DEBUG ? '/tmp/' : `${ETC}dnshosts.d/`);
 const MINKE_HOSTS = `${DNSMASQ_HOSTS_DIR}hosts.conf`;
+const DEFAULT_FALLBACK_RESOLVER = '1.1.1.1';
 
 let dns = null;
+let dnsc = null;
 let domainName = 'home';
 let hostname = 'MinkeBox';
 let primaryResolver = '';
 let secondaryResolver = '';
+let secureResolver = null;
 const resolvers = {};
 const cacheSize = 1024;
 const hosts = {};
@@ -25,14 +30,36 @@ const DNS = {
   start: function(config) {
     this.setHostname(config.hostname);
     this.setDomainName(config.domainname);
-    this.setDefaultResolver(config.resolvers[0], config.resolvers[1]);
+    this.setDefaultResolver(config.resolvers[0], config.resolvers[1], config.secure);
   },
 
-  setDefaultResolver: function(resolver1, resolver2) {
-    primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
-    secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
+  setDefaultResolver: function(resolver1, resolver2, secureDNS) {
+    if (!secureDNS) {
+      primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
+      secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
+      secureResolver = null;
+    }
+    else {
+      primaryResolver = `server=127.0.0.1#5453`;
+      secondaryResolver = '';
+      const fallback = resolver1 ? resolver1 : resolver2 ? resolver2 : DEFAULT_FALLBACK_RESOLVER;
+      secureResolver = [
+        `listen_addresses = ['127.0.0.1:5453']`,
+        `netprobe_address = '${fallback}:53'`,
+        `fallback_resolver = '${fallback}:53'`,
+        `server_names = ['forward']`,
+        `[static.'forward']`,
+        `stamp = '${secureDNS}'`
+      ];
+    }
     this._updateResolvServers();
+    this._updateSecureConfig();
     this._reloadDNS();
+    this._restartDNSC();
+  },
+
+  setSecureDNS: function(secure) {
+    secureDns = secure;
   },
 
   createForward: function(args) {
@@ -123,6 +150,38 @@ const DNS = {
     }
   },
 
+  _updateSecureConfig: function() {
+    if (secureResolver) {
+      FS.writeFileSync(DNSCRYPT_CONFIG, `${[
+        `max_clients = 250`,
+        `ipv4_servers = true`,
+        `ipv6_servers = false`,
+        `dnscrypt_servers = true`,
+        `doh_servers = true`,
+        `require_nolog = true`,
+        `require_nofilter = true`,
+        `force_tcp = false`,
+        `timeout = 5000`,
+        `keepalive = 30`,
+        `cert_refresh_delay = 240`,
+        `ignore_system_dns = true`,
+        `log_files_max_size = 10`,
+        `log_files_max_age = 7`,
+        `log_files_max_backups = 1`,
+        `block_ipv6 = true`,
+        `#block_unqualified = true`,
+        `#reject_ttl = 600`,
+        `cache = true`,
+        `cache_size = 1024`,
+        `cache_min_ttl = 2400`,
+        `cache_max_ttl = 86400`,
+        `cache_neg_min_ttl = 60`,
+        `cache_neg_max_ttl = 600`,
+        `netprobe_timeout = 60`
+      ].concat(secureResolver).join('\n')}\n`);
+    }
+  },
+
   _updateLocalResolv: function() {
     if (!DEBUG) {
       FS.writeFileSync(LOCAL_RESOLV, `domain ${domainName}\nsearch ${domainName}. local.\nnameserver 127.0.0.1\n`);
@@ -136,7 +195,7 @@ const DNS = {
       dns.sort((a, b) => b.priority - a.priority);
       FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${dns.map((resolve) => {
         return resolve.delay === 0 ? `server=${resolve.IP4Address}#${resolve.Port}\n` : '';
-      }).join('')}`);
+      }).join('')}\n`);
     }
   },
 
@@ -154,12 +213,14 @@ const DNS = {
     }
   },
 
-  _restartDNS: function() {
-    if (dns) {
-      dns.kill();
-      dns = ChildProcess.spawn(DNSMASQ, [ '-k' ]);
+  _restartDNSC: function() {
+    if (dnsc) {
+      dnsc.kill();
     }
-  },
+    if (secureResolver && !DEBUG) {
+      dnsc = ChildProcess.spawn(DNSCRYPT, [ '-config', DNSCRYPT_CONFIG ]);
+    }
+  }
 
 }
 

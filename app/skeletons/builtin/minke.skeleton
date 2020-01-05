@@ -63,6 +63,19 @@
     },
     {
       type: 'Header',
+      title: 'Encrypted DNS'
+    },
+    {
+      type: 'Text',
+      text: 'Optional <a href="https://dnscrypt.info">DNSCrypt</a> support is provided for more secure DNS queries.'
+    },
+    {
+      type: 'Environment',
+      name: 'DNSSECURE',
+      description: 'sdns:// Stamp'
+    },
+    {
+      type: 'Header',
       title: 'Disks'
     },
     {
@@ -146,6 +159,10 @@
     {
       type: 'Environment',
       name: 'DNSSERVER2'
+    },
+    {
+      type: 'Environment',
+      name: 'DNSSECURE'
     },
     {
       type: 'Environment',

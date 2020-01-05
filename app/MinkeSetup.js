@@ -50,6 +50,7 @@ function MinkeSetup(savedConfig, config) {
     GATEWAY: getEnv('GATEWAY'),
     DNSSERVER1: getEnv('DNSSERVER1'),
     DNSSERVER2 : getEnv('DNSSERVER2'),
+    DNSSECURE : getEnv('DNSSECURE'),
     TIMEZONE: getEnv('TIMEZONE'),
     ADMINMODE: getEnv('ADMINMODE'),
     GLOBALID: getEnv('GLOBALID'),
@@ -76,6 +77,7 @@ MinkeSetup.prototype = {
       hostname: this._name,
       domainname: this.getLocalDomainName(),
       resolvers: [ this._env.DNSSERVER1.value, this._env.DNSSERVER2.value ],
+      secure: this._env.DNSSECURE.value
     });
     DDNS.start(this);
     UPNP.start({
@@ -153,7 +155,8 @@ MinkeSetup.prototype = {
     DNS.setHostname(this._name);
     DNS.setDefaultResolver(
       this._env.DNSSERVER1.value,
-      this._env.DNSSERVER2.value
+      this._env.DNSSERVER2.value,
+      this._env.DNSSECURE.value
     );
     DNS.setDomainName(this.getLocalDomainName());
     Network.setHomeNetwork({
@@ -181,6 +184,7 @@ MinkeSetup.prototype = {
       LOCALDOMAIN: null,
       DNSSERVER1: null,
       DNSSERVER2: null,
+      DNSSECURE: null,
       ADMINMODE: null,
       GLOBALID: null,
       UPDATETIME: null,
