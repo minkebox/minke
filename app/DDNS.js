@@ -62,8 +62,8 @@ const DDNS = {
                 ip4only.push(key);
               }
               else {
-                console.log(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${app._homeIPv6}`);
-                HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${app._homeIPv6}`, () => {});
+                console.log(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${app._homeIPv6.canonicalForm()}`);
+                HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${app._homeIPv6.canonicalForm()}`, () => {});
               }
             });
             if (ip4only.length) {
