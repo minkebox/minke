@@ -346,6 +346,7 @@ MinkeApp.prototype = {
           config.HostConfig.Dns = [ MinkeApp._network.network.ip_address ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
+          config.HostConfig.Sysctls["net.ipv6.conf.all.disable_ipv6"] = "0";
           break;
         }
         case 'host':
@@ -395,8 +396,6 @@ MinkeApp.prototype = {
       }
 
       configEnv.push(`__GLOBALID=${this._globalId}`);
-
-      config.HostConfig.Sysctls["net.ipv6.conf.all.disable_ipv6"] = "0";
 
       if (this._features.vpn) {
         config.HostConfig.Devices.push({
