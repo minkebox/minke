@@ -279,7 +279,8 @@ MinkeApp.prototype = {
               'max-file': '1',
               'max-size': '10k'
             }
-          }
+          },
+          Sysctls: {}
         }
       };
 
@@ -395,15 +396,15 @@ MinkeApp.prototype = {
 
       configEnv.push(`__GLOBALID=${this._globalId}`);
 
+      config.HostConfig.Sysctls["net.ipv6.conf.all.disable_ipv6"] = "0";
+
       if (this._features.vpn) {
         config.HostConfig.Devices.push({
           PathOnHost: '/dev/net/tun',
           PathInContainer: '/dev/net/tun',
           CgroupPermissions: 'rwm'
         });
-        config.HostConfig.Sysctls = {
-          "net.ipv4.ip_forward": "1"
-        };
+        config.HostConfig.Sysctls["net.ipv4.ip_forward"] = "1";
       }
       if (this._features.vpn || this._features.dhcp) {
         config.HostConfig.CapAdd.push('NET_ADMIN');
