@@ -11,7 +11,7 @@ const FORCE_TICKS = 48; // 1 day
 
 const DDNS = {
 
-  _gids: [],
+  _gids: {},
   _lastip: null,
   _pending: null,
 
@@ -29,27 +29,22 @@ const DDNS = {
   register: function(app) {
     //console.log('register', app._globalId);
     const gid = app._globalId;
-    if (this._gids.indexOf(gid) === -1) {
-      this._gids.push(gid);
+    if (!(gid in this._gids)) {
+      this._gids[gid] = app;
       this._update(true);
     }
   },
 
   unregister: function(app) {
     //console.log('unregister', app._globalId);
-    const gid = app._globalId;
-    const idx = this._gids.indexOf(gid);
-    if (idx !== -1) {
-      this._gids.splice(idx, 1);
-    }
+    delete this._gids[app._globalId];
   },
 
   _update: function(force) {
-    if (this._gids.length) {
+    if (Object.keys(this._gids).length) { // Dont store keys - may change after we've got the IP address
       if (force) {
         this._lastip = null;
       }
-      //console.log('DDNS._update', this._gids.join(','));
       clearTimeout(this._pending);
       this._pending = setTimeout(() => {
         this._getExternalIP().then((ip) => {
@@ -60,8 +55,21 @@ const DDNS = {
           }
           else if (ip !== this._lastip) {
             this._lastip = ip;
-            //console.log(`${DDNS_URL}?host=${this._gids.join(',')}&ip=${ip}`);
-            HTTPS.get(`${DDNS_URL}?host=${this._gids.join(',')}&ip=${ip}`, () => {});
+            const ip4only = [];
+            Object.keys(this._gids).forEach(key => {
+              const app = this._gids[key];
+              if (!app._homeIPv6) {
+                ip4only.push(key);
+              }
+              else {
+                console.log(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${app._homeIPv6}`);
+                HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${app._homeIPv6}`, () => {});
+              }
+            });
+            if (ip4only.length) {
+              console.log(`${DDNS_URL}?host=${ip4only.join(',')}&ip=${ip}`);
+              HTTPS.get(`${DDNS_URL}?host=${ip4only.join(',')}&ip=${ip}`, () => {});
+            }
           }
         });
       }, DELAY);

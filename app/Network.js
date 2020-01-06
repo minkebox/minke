@@ -1,6 +1,8 @@
 const FS = require('fs');
+const OS = require('os');
 const Net = require('network');
 const Netmask = require('netmask');
+const Address6 = require('ip-address').Address6;
 const Barrier = require('./utils/Barrier');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
@@ -27,6 +29,52 @@ const Network = {
         }
       })
     });
+  },
+
+  getSLAACAddress: function() {
+    const iface = OS.networkInterfaces()[BRIDGE_NETWORK];
+    if (iface) {
+      for (let i = 0; i < iface.length; i++) {
+        if (iface[i].family === 'IPv6') {
+          const a = new Address6(iface[i].address);
+          if (a.getScope() === 'Global') {
+            const mac = iface[i].mac.split(':').map(hex => parseInt(hex, 16));
+            const slaac = a.toUnsignedByteArray();
+            slaac[15] = mac[5];
+            slaac[14] = mac[4];
+            slaac[13] = mac[3];
+            slaac[12] = 0xfe;
+            slaac[11] = 0xff;
+            slaac[10] = mac[2];
+            slaac[9]  = mac[1];
+            slaac[8]  = mac[0] ^ 0x02;
+            const aslaac = Address6.fromUnsignedByteArray(slaac);
+            if (a.canonicalForm() == aslaac.canonicalForm()) {
+              return a;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  },
+
+  generateSLAACAddress: function(macAddress) {
+    const hslaac = this.getSLAACAddress();
+    if (hslaac) {
+      const mac = macAddress.split(':').map(hex => parseInt(hex, 16));
+      const slaac = hslaac.toUnsignedByteArray();
+      slaac[15] = mac[5];
+      slaac[14] = mac[4];
+      slaac[13] = mac[3];
+      slaac[12] = 0xfe;
+      slaac[11] = 0xff;
+      slaac[10] = mac[2];
+      slaac[9]  = mac[1];
+      slaac[8]  = mac[0] ^ 0x02;
+      return Address6.fromUnsignedByteArray(slaac);
+    }
+    return null;
   },
 
   getPrivateNetwork: Barrier(async function(networkId) {

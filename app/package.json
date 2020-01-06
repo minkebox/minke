@@ -8,6 +8,7 @@
     "dockerode": "^2.5.8",
     "fast-glob": "^2.2.7",
     "handlebars": "^4.5.3",
+    "ip-address": "^6.2.0",
     "koa": "^2.11.0",
     "koa-cache-control": "^2.0.0",
     "koa-router": "^7.4.0",
