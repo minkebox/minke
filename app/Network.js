@@ -74,6 +74,7 @@ const Network = {
     return await this._getNetwork({
       Name: HOME_NETWORK_NAME,
       Driver: 'bridge',
+      EnableIPv6: true,
       IPAM: {
         Config: [{
           Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
