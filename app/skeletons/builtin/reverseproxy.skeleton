@@ -87,7 +87,15 @@
     },
     {
       type: `Text`,
-      text: 'Use CNAMEs with your favorite Domain Registry to forward requests to <b>"{{__GLOBALNAME}}"</b>. This name will automatically track any change to your Home IP address.'
+      text: 'If Internet access is enabled, use CNAMEs with your favorite Domain Registry to forward requests to <b>"{{__GLOBALNAME}}"</b>. This name will automatically track any change to your Home IP address.'
+    },
+    {
+      type: `Text`,
+      text: ``
+    },
+    {
+      type: `Text`,
+      text: `UPnP is used to forward traffic from your router to this application. If your router does not support UPnP then you may need to forward traffic by hand to the IPv4 address {{__HOMEIP}} and the IPv6 address {{__HOMEIP6}}`
     }
   ],
   properties: [
