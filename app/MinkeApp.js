@@ -964,16 +964,18 @@ MinkeApp.prototype = {
   },
 
   getSLAACAddress: function() {
-    return Network.generateSLAACAddress(this._primaryMacAddress());
+    const slaac = Network.generateSLAACAddress(this._primaryMacAddress());
+    return slaac ? slaac.canonicalForm() : null;
   },
 
   expand: function(txt) {
     if (typeof txt ==='string' && txt.indexOf('{{') !== -1) {
+      const ip6 = this.getSLAACAddress();
       const env = Object.assign({
         __APPNAME: { value: this._name },
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
-        __HOMEIP: { value: this._homeIP },
-        __HOMEIP6: { value: this.getSLAACAddress() ? this.getSLAACAddress().canonicalForm() : '<none>' },
+        __HOMEIP: { value: this._homeIP ? this._homeIP : '<none>' },
+        __HOMEIP6: { value: ip6 ? ip6 : '<none>' },
         __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
         __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() }
       }, this._env);
