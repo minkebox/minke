@@ -55,22 +55,18 @@ const DDNS = {
           }
           else if (ip !== this._lastip) {
             this._lastip = ip;
-            const ip4only = [];
             Object.keys(this._gids).forEach(key => {
               const app = this._gids[key];
               const ip6 = app.getNATIP6() ? app.getSLAACAddress() : null;
               if (!ip6) {
-                ip4only.push(key);
+                console.log(`${DDNS_URL}?host=${key}&ip=${ip}`);
+                HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}`, () => {});
               }
               else {
                 console.log(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${ip6.canonicalForm()}`);
                 HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${ip6.canonicalForm()}`, () => {});
               }
             });
-            if (ip4only.length) {
-              console.log(`${DDNS_URL}?host=${ip4only.join(',')}&ip=${ip}`);
-              HTTPS.get(`${DDNS_URL}?host=${ip4only.join(',')}&ip=${ip}`, () => {});
-            }
           }
         });
       }, DELAY);
