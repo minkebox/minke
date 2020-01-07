@@ -59,11 +59,11 @@ const DDNS = {
               const app = this._gids[key];
               const ip6 = app.getNATIP6() ? app.getSLAACAddress() : null;
               if (!ip6) {
-                console.log(`${DDNS_URL}?host=${key}&ip=${ip}`);
+                //console.log(`${DDNS_URL}?host=${key}&ip=${ip}`);
                 HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}`, () => {});
               }
               else {
-                console.log(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${ip6.canonicalForm()}`);
+                //console.log(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${ip6.canonicalForm()}`);
                 HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${ip6.canonicalForm()}`, () => {});
               }
             });
