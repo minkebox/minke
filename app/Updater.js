@@ -62,8 +62,8 @@ const Updater = {
   },
 
   restart: function(config) {
-    this._updateTimeOfDay.hour = config.hour || DEFAULT_TIME.hour;
-    this._updateTimeOfDay.minute = config.minute || DEFAULT_TIME.minute;
+    this._updateTimeOfDay.hour = typeof config.hour === 'number' ? config.hour : DEFAULT_TIME.hour;
+    this._updateTimeOfDay.minute = typeof config.minute === 'number' ? config.minute : DEFAULT_TIME.minute;
     this.stop();
     this.start();
   },
