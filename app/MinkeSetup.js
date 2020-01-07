@@ -48,6 +48,8 @@ function MinkeSetup(savedConfig, config) {
     IPADDRESS: getEnv('IPADDRESS'),
     NETMASK: getEnv('NETMASK'),
     GATEWAY: getEnv('GATEWAY'),
+    IP6: getEnv('IP6'),
+    NATIP6: getEnv('NATIP6'),
     DNSSERVER1: getEnv('DNSSERVER1'),
     DNSSERVER2 : getEnv('DNSSERVER2'),
     DNSSECURE : getEnv('DNSSECURE'),
@@ -182,6 +184,8 @@ MinkeSetup.prototype = {
   save: async function() {
     const config = {
       LOCALDOMAIN: null,
+      IP6: null,
+      NATIP6: null,
       DNSSERVER1: null,
       DNSSERVER2: null,
       DNSSECURE: null,
@@ -223,6 +227,19 @@ MinkeSetup.prototype = {
 
   getLocalDomainName: function() {
     return this._env.LOCALDOMAIN.value;
+  },
+
+  getIP6: function() {
+    if (!Network.getSLAACAddress()) {
+      return false;
+    }
+    else {
+      return !!this._env.IP6.value;
+    }
+  },
+
+  getNATIP6: function() {
+    return this.getIP6() && !!this._env.NATIP6.value;
   },
 
   isRunning: function() {

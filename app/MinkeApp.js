@@ -346,7 +346,9 @@ MinkeApp.prototype = {
           config.HostConfig.Dns = [ MinkeApp._network.network.ip_address ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
-          config.HostConfig.Sysctls["net.ipv6.conf.all.disable_ipv6"] = "0";
+          if (this.getIP6()) {
+            config.HostConfig.Sysctls["net.ipv6.conf.all.disable_ipv6"] = "0";
+          }
           break;
         }
         case 'host':
@@ -953,6 +955,14 @@ MinkeApp.prototype = {
     }, []);
   },
 
+  getIP6: function() {
+    return setup ? setup.getIP6() : false;
+  },
+
+  getNATIP6: function() {
+    return setup ? setup.getNATIP6() : false;
+  },
+
   getSLAACAddress: function() {
     return Network.generateSLAACAddress(this._primaryMacAddress());
   },
@@ -1206,6 +1216,8 @@ MinkeApp.startApps = async function(app, config) {
     IPADDRESS: MinkeApp._network.network.ip_address,
     GATEWAY: MinkeApp._network.network.gateway_ip,
     NETMASK: MinkeApp._network.netmask.mask,
+    IP6: false,
+    NATIP6: false,
     DNSSERVER1: '1.1.1.1',
     DNSSERVER2: '1.0.0.1',
     DNSSECURE: '',

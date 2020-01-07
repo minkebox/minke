@@ -58,7 +58,7 @@ const DDNS = {
             const ip4only = [];
             Object.keys(this._gids).forEach(key => {
               const app = this._gids[key];
-              const ip6 = app.getSLAACAddress();
+              const ip6 = app.getNATIP6() ? app.getSLAACAddress() : null;
               if (!ip6) {
                 ip4only.push(key);
               }

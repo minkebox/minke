@@ -45,6 +45,34 @@
     },
     {
       type: 'Header',
+      title: 'IPv6'
+    },
+    {
+      type: 'Text',
+      text: 'IPv6 application support. Changes will not take effect until you reboot.'
+    },
+    {
+      type: 'Environment',
+      name: 'IP6',
+      style: 'Checkbox',
+      description: 'IPv6 enabled'
+    },
+    {
+      type: 'Text',
+      text: ''
+    },
+    {
+      type: 'Text',
+      text: 'MinkeBox can publish your services globally using its own DDNS. By default this is only IPv4 but can include IPv6 if the network supports it'
+    },
+    {
+      type: 'Environment',
+      name: 'NATIP6',
+      style: 'Checkbox',
+      description: 'Publish IPv6 addresses globally'
+    },
+    {
+      type: 'Header',
       title: 'DNS'
     },
     {
@@ -151,6 +179,14 @@
     {
       type: 'Environment',
       name: 'DHCP'
+    },
+    {
+      type: 'Environment',
+      name: 'IP6'
+    },
+    {
+      type: 'Environment',
+      name: 'NATIP6'
     },
     {
       type: 'Environment',
