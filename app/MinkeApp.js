@@ -354,7 +354,6 @@ MinkeApp.prototype = {
           config.HostConfig.NetworkMode = `container:${MinkeApp._container.id}`;
           config.Hostname = null;
           this._homeIP = MinkeApp._network.network.ip_address;
-          this._homeIPv6 = Network.getSLAACAddress();
           configEnv.push(`__DNSSERVER=${this._homeIP}`);
           configEnv.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
           configEnv.push(`__HOSTIP=${this._homeIP}`);
@@ -537,7 +536,6 @@ MinkeApp.prototype = {
               let idx = data.indexOf('MINKE:HOME:IP ');
               if (idx !== -1) {
                 this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
-                this._homeIPv6 = Network.generateSLAACAddress(this._primaryMacAddress());
               }
               idx = data.indexOf('MINKE:PRIVATE:IP ');
               if (idx !== -1) {
@@ -774,7 +772,6 @@ MinkeApp.prototype = {
         DDNS.unregister(this);
       }
       this._homeIP = null;
-      this._homeIPv6 = null;
     }
     this._privateIP = null;
 
@@ -954,6 +951,10 @@ MinkeApp.prototype = {
       }
       return acc;
     }, []);
+  },
+
+  getSLAACAddress: function() {
+    return Network.generateSLAACAddress(app._primaryMacAddress());
   },
 
   expand: function(txt) {

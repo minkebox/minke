@@ -58,12 +58,13 @@ const DDNS = {
             const ip4only = [];
             Object.keys(this._gids).forEach(key => {
               const app = this._gids[key];
-              if (!app._homeIPv6) {
+              const ip6 = app.getSLAACAddress();
+              if (!ip6) {
                 ip4only.push(key);
               }
               else {
-                console.log(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${app._homeIPv6.canonicalForm()}`);
-                HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${app._homeIPv6.canonicalForm()}`, () => {});
+                console.log(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${ip6.canonicalForm()}`);
+                HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${ip6.canonicalForm()}`, () => {});
               }
             });
             if (ip4only.length) {
