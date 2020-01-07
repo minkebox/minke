@@ -453,6 +453,10 @@ MinkeApp.prototype = {
 
         if (primary === 'home' || secondary === 'home') {
           helperConfig.Env.push('ENABLE_DHCP=1');
+          const ip6 = this.getSLAACAddress();
+          if (ip6) {
+            helperConfig.Env.push(`IP6=${ip6}`);
+          }
         }
 
         this._ddns = false;
