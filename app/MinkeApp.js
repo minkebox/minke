@@ -963,6 +963,7 @@ MinkeApp.prototype = {
         __APPNAME: { value: this._name },
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
         __HOMEIP: { value: this._homeIP },
+        __HOMEIP6: { value: this.getSLAACAddress() },
         __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
         __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() }
       }, this._env);
