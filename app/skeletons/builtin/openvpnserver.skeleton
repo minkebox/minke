@@ -35,6 +35,13 @@
       description: `Download the configuration file`,
       name: `/etc/config.ovpn`,
       style: `Download`
+    },
+    {
+      type: `Text`,
+      text: ''
+    },
+    {
+      type: `UPnP`
     }
   ],
   properties: [

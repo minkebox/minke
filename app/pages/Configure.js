@@ -264,6 +264,14 @@ async function ConfigurePageHTML(ctx) {
             })
           };
         }
+        case 'UPnP':
+        {
+          const ip6 = app._homeIP && app.getNATIP6() ? app.getSLAACAddress() : null;
+          return {
+            type: `Text`,
+            text: `UPnP is used to forward traffic from your router to this application. If your router does not support UPnP then you need to forward traffic manually${app._homeIP ? ' to IPv4 address <b>' + app._homeIP + '</b>' : ''}${ip6 ? ' and IPv6 address <b>' + ip6 + '</b>' : ''}`
+          };
+        }
         case 'Argument':
         default:
           return action;
