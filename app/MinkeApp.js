@@ -954,7 +954,7 @@ MinkeApp.prototype = {
   },
 
   getSLAACAddress: function() {
-    return Network.generateSLAACAddress(app._primaryMacAddress());
+    return Network.generateSLAACAddress(this._primaryMacAddress());
   },
 
   expand: function(txt) {
