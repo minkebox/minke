@@ -2,8 +2,7 @@ const HTTPS = require('https');
 const UPNP = require('./UPNP');
 const Network = require('./Network');
 
-const ENABLE_FALLBACK = false;
-const GETIP = 'https://api.ipify.org';
+const FALLBACK_GETIP = 'https://api.ipify.org';
 const DDNS_URL = 'https://minkebox.net/update';
 const TICK = 30 * 60 * 1000; // 30 minutes
 const RETRY = 60 * 1000; // 1 minute
@@ -82,14 +81,15 @@ const DDNS = {
     return new Promise((resolve) => {
       //console.log('_getExternalIP');
       UPNP.getExternalIP().then((ip) => {
-        //console.log('_gotExternaIP', ip);
+        console.log('_gotExternaIP', ip);
         if (ip) {
           resolve(ip);
         }
-        else if (ENABLE_FALLBACK) {
+        else if (FALLBACK_GETIP) {
           // Fallback
-          HTTPS.get(GETIP, (res) => {
+          HTTPS.get(FALLBACK_GETIP, (res) => {
             res.on('data', (data) => {
+              console.log('_gotExternaIP', data.toString('utf8'));
               resolve(data.toString('utf8'));
             });
           });
