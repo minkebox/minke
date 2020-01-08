@@ -34,6 +34,15 @@ const DNS = {
     this.setDefaultResolver(config.resolvers[0], config.resolvers[1], config.secure[0], config.secure[1]);
   },
 
+  stop: async function() {
+    if (dns) {
+      dns.kill();
+    }
+    if (dnsc) {
+      dnsc.kill();
+    }
+  },
+
   setDefaultResolver: function(resolver1, resolver2, secureDNS1, secureDNS2) {
     if (!secureDNS1 && !secureDNS2) {
       primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';

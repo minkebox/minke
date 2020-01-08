@@ -124,6 +124,7 @@ MinkeSetup.prototype = {
     this.emit('update.status', { app: this, status: this._status });
     await MDNS.stop();
     await UPNP.stop();
+    await DNS.stop();
   },
 
   restart: async function(reason) {
