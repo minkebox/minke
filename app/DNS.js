@@ -1,5 +1,6 @@
 const ChildProcess = require('child_process');
 const FS = require('fs');
+const Network = require('./Network');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
@@ -172,7 +173,7 @@ const DNS = {
       FS.writeFileSync(DNSCRYPT_CONFIG, `${[
         `max_clients = 250`,
         `ipv4_servers = true`,
-        `ipv6_servers = false`,
+        `ipv6_servers = ${!!Network.getSLAACAddress()}`,
         `dnscrypt_servers = true`,
         `doh_servers = true`,
         `require_nolog = true`,
