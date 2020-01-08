@@ -30,11 +30,11 @@ const DNS = {
   start: function(config) {
     this.setHostname(config.hostname);
     this.setDomainName(config.domainname);
-    this.setDefaultResolver(config.resolvers[0], config.resolvers[1], config.secure);
+    this.setDefaultResolver(config.resolvers[0], config.resolvers[1], config.secure[0], config.secure[1]);
   },
 
-  setDefaultResolver: function(resolver1, resolver2, secureDNS) {
-    if (!secureDNS) {
+  setDefaultResolver: function(resolver1, resolver2, secureDNS1, secureDNS2) {
+    if (!secureDNS1 && !secureDNS2) {
       primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
       secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
       secureResolver = null;
@@ -46,11 +46,28 @@ const DNS = {
       secureResolver = [
         `listen_addresses = ['127.0.0.1:5453']`,
         `netprobe_address = '${fallback}:53'`,
-        `fallback_resolver = '${fallback}:53'`,
-        `server_names = ['forward']`,
-        `[static.'forward']`,
-        `stamp = '${secureDNS}'`
+        `fallback_resolver = '${fallback}:53'`
       ];
+      if (!secureDNS1) {
+        secureDNS1 = secureDNS2;
+        secureDNS2 = null;
+      }
+      if (secureDNS2) {
+        secureResolver = secureResolver.concat([
+          `server_names = ['primary','secondary']`,
+          `[static.'primary']`,
+          `stamp = '${secureDNS1}'`,
+          `[static.'secondary']`,
+          `stamp = '${secureDNS2}'`
+        ]);
+      }
+      else {
+        secureResolver = secureResolver.concat([
+          `server_names = ['primary']`,
+          `[static.'primary']`,
+          `stamp = '${secureDNS1}'`
+        ]);
+      }
     }
     this._updateResolvServers();
     this._updateSecureConfig();

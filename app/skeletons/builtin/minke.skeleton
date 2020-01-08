@@ -99,8 +99,13 @@
     },
     {
       type: 'Environment',
-      name: 'DNSSECURE',
-      description: 'sdns:// URL'
+      name: 'DNSSECURE1',
+      description: 'Primary sdns:// URL'
+    },
+    {
+      type: 'Environment',
+      name: 'DNSSECURE2',
+      description: 'Secondary sdns:// URL'
     },
     {
       type: 'Header',
@@ -198,7 +203,11 @@
     },
     {
       type: 'Environment',
-      name: 'DNSSECURE'
+      name: 'DNSSECURE1'
+    },
+    {
+      type: 'Environment',
+      name: 'DNSSECURE2'
     },
     {
       type: 'Environment',

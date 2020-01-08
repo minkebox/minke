@@ -51,8 +51,9 @@ function MinkeSetup(savedConfig, config) {
     IP6: getEnv('IP6'),
     NATIP6: getEnv('NATIP6'),
     DNSSERVER1: getEnv('DNSSERVER1'),
-    DNSSERVER2 : getEnv('DNSSERVER2'),
-    DNSSECURE : getEnv('DNSSECURE'),
+    DNSSERVER2: getEnv('DNSSERVER2'),
+    DNSSECURE1: getEnv('DNSSECURE1'),
+    DNSSECURE2: getEnv('DNSSECURE2'),
     TIMEZONE: getEnv('TIMEZONE'),
     ADMINMODE: getEnv('ADMINMODE'),
     GLOBALID: getEnv('GLOBALID'),
@@ -79,7 +80,7 @@ MinkeSetup.prototype = {
       hostname: this._name,
       domainname: this.getLocalDomainName(),
       resolvers: [ this._env.DNSSERVER1.value, this._env.DNSSERVER2.value ],
-      secure: this._env.DNSSECURE.value
+      secure: [ this._env.DNSSECURE1.value, this._env.DNSSECURE2.value ]
     });
     DDNS.start(this);
     UPNP.start({
@@ -158,7 +159,8 @@ MinkeSetup.prototype = {
     DNS.setDefaultResolver(
       this._env.DNSSERVER1.value,
       this._env.DNSSERVER2.value,
-      this._env.DNSSECURE.value
+      this._env.DNSSECURE1.value,
+      this._env.DNSSECURE2.value
     );
     DNS.setDomainName(this.getLocalDomainName());
     Network.setHomeNetwork({
@@ -188,7 +190,8 @@ MinkeSetup.prototype = {
       NATIP6: null,
       DNSSERVER1: null,
       DNSSERVER2: null,
-      DNSSECURE: null,
+      DNSSECURE1: null,
+      DNSSECURE2: null,
       ADMINMODE: null,
       GLOBALID: null,
       UPDATETIME: null,
