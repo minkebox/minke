@@ -968,8 +968,7 @@ MinkeApp.prototype = {
   },
 
   getSLAACAddress: function() {
-    const slaac = Network.generateSLAACAddress(this._primaryMacAddress());
-    return slaac ? slaac.canonicalForm() : null;
+    return Network.generateSLAACAddress(this._primaryMacAddress());
   },
 
   expand: function(txt) {

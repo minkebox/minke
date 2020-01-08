@@ -1,5 +1,6 @@
 const HTTPS = require('https');
 const UPNP = require('./UPNP');
+const Network = require('./Network');
 
 const ENABLE_FALLBACK = false;
 const GETIP = 'https://api.ipify.org';
@@ -13,6 +14,7 @@ const DDNS = {
 
   _gids: {},
   _lastip: null,
+  _lastip6: null,
   _pending: null,
 
   start: function() {
@@ -44,17 +46,20 @@ const DDNS = {
     if (Object.keys(this._gids).length) { // Dont store keys - may change after we've got the IP address
       if (force) {
         this._lastip = null;
+        this._lastip6 = null;
       }
       clearTimeout(this._pending);
       this._pending = setTimeout(() => {
+        const ip6 = Network.getSLAACAddress();
         this._getExternalIP().then((ip) => {
           if (!ip) {
             setTimeout(() => {
               this._update(true);
             }, RETRY);
           }
-          else if (ip !== this._lastip) {
+          else if (ip !== this._lastip || ip6 !== this._lastip6) {
             this._lastip = ip;
+            this._lastip6 = ip6;
             Object.keys(this._gids).forEach(key => {
               const app = this._gids[key];
               const ip6 = app.getNATIP6() ? app.getSLAACAddress() : null;

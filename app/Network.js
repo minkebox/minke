@@ -31,7 +31,7 @@ const Network = {
     });
   },
 
-  getSLAACAddress: function() {
+  _getHostSLAACAddress: function() {
     const iface = OS.networkInterfaces()[BRIDGE_NETWORK];
     if (iface) {
       for (let i = 0; i < iface.length; i++) {
@@ -59,8 +59,18 @@ const Network = {
     return null;
   },
 
+  getSLAACAddress: function() {
+    const hslaac = this._getHostSLAACAddress();
+    if (hslaac) {
+      return hslaac.canonicalForm();
+    }
+    else {
+      return null;
+    }
+  },
+
   generateSLAACAddress: function(macAddress) {
-    const hslaac = this.getSLAACAddress();
+    const hslaac = this._getHostSLAACAddress();
     if (hslaac) {
       const mac = macAddress.split(':').map(hex => parseInt(hex, 16));
       const slaac = hslaac.toUnsignedByteArray();
@@ -72,7 +82,7 @@ const Network = {
       slaac[10] = mac[2];
       slaac[9]  = mac[1];
       slaac[8]  = mac[0] ^ 0x02;
-      return Address6.fromUnsignedByteArray(slaac);
+      return Address6.fromUnsignedByteArray(slaac).canonicalForm();
     }
     return null;
   },
