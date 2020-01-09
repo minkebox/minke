@@ -79,6 +79,7 @@ MinkeSetup.prototype = {
     DNS.start({
       hostname: this._name,
       domainname: this.getLocalDomainName(),
+      ip: this._env.IPADDRESS.value,
       resolvers: [ this._env.DNSSERVER1.value, this._env.DNSSERVER2.value ],
       secure: [ this._env.DNSSECURE1.value, this._env.DNSSECURE2.value ]
     });
@@ -251,6 +252,14 @@ MinkeSetup.prototype = {
   },
 
   expand: function(txt) {
+    if (typeof txt ==='string' && txt.indexOf('{{') !== -1) {
+      const env = Object.assign({
+        __DOH: { value: DNS.getSDNS() || '<none>' }
+      }, this._env);
+      for (let key in env) {
+        txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
+      }
+    }
     return txt;
   },
 

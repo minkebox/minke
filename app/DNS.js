@@ -1,5 +1,6 @@
 const ChildProcess = require('child_process');
 const FS = require('fs');
+const Config = require('./Config');
 const Network = require('./Network');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
@@ -13,8 +14,13 @@ const HOSTNAME_FILE = `${ETC}hostname`;
 const LOCAL_RESOLV = `${ETC}resolv.conf`;
 const DNSMASQ_HOSTS_DIR = (DEBUG ? '/tmp/' : `${ETC}dnshosts.d/`);
 const MINKE_HOSTS = `${DNSMASQ_HOSTS_DIR}hosts.conf`;
-const DEFAULT_FALLBACK_RESOLVER = '1.1.1.1';
+const DEFAULT_FALLBACK_RESOLVER = Config.DEFAULT_FALLBACK_RESOLVER;
+const DOH_SERVER_NAME = Config.DOH_SERVER_NAME;
+const DOH_SERVER_PORT = 41416;
+const DOH_SERVER_PATH = '/dns-query';
+const DOH_CERT = 'doh-minkebox-net.pem';
 
+let hostIP = null;
 let dns = null;
 let dnsc = null;
 let domainName = 'home';
@@ -22,6 +28,7 @@ let hostname = 'MinkeBox';
 let primaryResolver = '';
 let secondaryResolver = '';
 let secureResolver = null;
+let dohServer = false;
 const resolvers = {};
 const cacheSize = 1024;
 const hosts = {};
@@ -29,7 +36,7 @@ const hosts = {};
 const DNS = {
 
   start: function(config) {
-    this.setHostname(config.hostname);
+    this.setHostname(config.hostname, config.ip);
     this.setDomainName(config.domainname);
     this.setDefaultResolver(config.resolvers[0], config.resolvers[1], config.secure[0], config.secure[1]);
   },
@@ -43,13 +50,16 @@ const DNS = {
     }
   },
 
-  setDefaultResolver: function(resolver1, resolver2, secureDNS1, secureDNS2) {
+  setDefaultResolver: function(resolver1, resolver2, secureDNS1, secureDNS2, doh) {
     if (!secureDNS1 && !secureDNS2) {
       primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
       secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
       secureResolver = null;
+      dohServer = false;
+      this.unregisterHostIP(DOH_SERVER_NAME);
     }
     else {
+      dohServer = true;
       primaryResolver = `server=127.0.0.1#5453\n`;
       secondaryResolver = '';
       const fallback = resolver1 ? resolver1 : resolver2 ? resolver2 : DEFAULT_FALLBACK_RESOLVER;
@@ -78,15 +88,12 @@ const DNS = {
           `stamp = '${secureDNS1}'`
         ]);
       }
+      this.registerHostIP(DOH_SERVER_NAME, hostIP);
     }
     this._updateResolvServers();
     this._updateSecureConfig();
     this._reloadDNS();
     this._restartDNSC();
-  },
-
-  setSecureDNS: function(secure) {
-    secureDns = secure;
   },
 
   createForward: function(args) {
@@ -120,12 +127,13 @@ const DNS = {
     this._reloadDNS();
   },
 
-  setHostname: function(name) {
+  setHostname: function(name, ip) {
     hostname = name || 'MinkeBox';
     if (!DEBUG) {
       FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
+    hostIP = ip;
   },
 
   setDomainName: function(domain) {
@@ -150,15 +158,32 @@ const DNS = {
     }
   },
 
-  unregisterHostIP: async function(hostname, ip) {
+  unregisterHostIP: async function(hostname) {
     delete hosts[hostname];
     if (!DEBUG) {
       try {
         FS.unlinkSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`);
       }
       catch (e) {
-        console.error(e);
+        //console.error(e);
       }
+    }
+  },
+
+  getSDNS: function() {
+    if (dohServer) {
+      const buffer = [
+        0x02,
+        [ 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ],
+        [ DOH_SERVER_PORT.length, Array.from(Buffer.from(`${hostIP}:${DOH_SERVER_PORT}`)) ],
+        0x00,
+        [ `${DOH_SERVER_NAME}:${DOH_SERVER_PORT}`.length, Array.from(Buffer.from(`${DOH_SERVER_NAME}:${DOH_SERVER_PORT}`)) ],
+        [ DOH_SERVER_PATH.length, Array.from(Buffer.from(DOH_SERVER_PATH)) ],
+      ];
+      return `sdns://${Buffer.from(buffer.flat(Infinity)).toString('base64').replace(/=/g,'')}`;
+    }
+    else {
+      return null;
     }
   },
 
@@ -179,7 +204,8 @@ const DNS = {
 
   _updateSecureConfig: function() {
     if (secureResolver) {
-      FS.writeFileSync(DNSCRYPT_CONFIG, `${[
+      // Basics
+      let config = [
         `max_clients = 250`,
         `ipv4_servers = true`,
         `ipv6_servers = ${!!Network.getSLAACAddress()}`,
@@ -205,7 +231,20 @@ const DNS = {
         `cache_neg_min_ttl = 60`,
         `cache_neg_max_ttl = 600`,
         `netprobe_timeout = 60`
-      ].concat(secureResolver).join('\n')}\n`);
+      ]
+      // Secure resolvers
+      config = config.concat(secureResolver);
+      // Server
+      if (dohServer) {
+        config = config.concat([
+          `[local_doh]`,
+          `listen_addresses = [':${DOH_SERVER_PORT}']`,
+          `path = "${DOH_SERVER_PATH}"`,
+          `cert_file = "/app/certs/${DOH_CERT}"`,
+          `cert_key_file = "/app/certs/${DOH_CERT}"`
+        ]);
+      }
+      FS.writeFileSync(DNSCRYPT_CONFIG, `${config.join('\n')}\n`);
     }
   },
 

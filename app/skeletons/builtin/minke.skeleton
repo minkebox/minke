@@ -108,6 +108,17 @@
       description: 'Secondary sdns:// URL'
     },
     {
+      type: 'Text',
+      text: ''
+    },
+    { type: 'Text',
+      text: 'MinkeBox will act as a DNS-over-HTTPS server. Configure with either <b>https://doh.minkebox.net:41416/dns-query</b> or the following'
+    },
+    {
+      type: 'Text',
+      text: '&nbsp;&nbsp;&nbsp;&nbsp;<b>{{__DOH}}</b>'
+    },
+    {
       type: 'Header',
       title: 'Disks'
     },
@@ -208,6 +219,10 @@
     {
       type: 'Environment',
       name: 'DNSSECURE2'
+    },
+    {
+      type: 'Environment',
+      name: 'DOH'
     },
     {
       type: 'Environment',
