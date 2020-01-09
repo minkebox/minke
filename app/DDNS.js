@@ -1,9 +1,10 @@
 const HTTPS = require('https');
+const Config = require('./Config');
 const UPNP = require('./UPNP');
 const Network = require('./Network');
 
 const FALLBACK_GETIP = 'https://api.ipify.org';
-const DDNS_URL = 'https://minkebox.net/update';
+const DDNS_URL = `${Config.DDNS_UPDATE}`;
 const TICK = 30 * 60 * 1000; // 30 minutes
 const RETRY = 60 * 1000; // 1 minute
 const DELAY = 10 * 1000; // 10 seconds

@@ -3,6 +3,7 @@ const Util = require('util');
 const Path = require('path');
 const Moment = require('moment-timezone');
 const UUID = require('uuid/v4');
+const Config = require('./Config');
 const HTTP = require('./HTTP');
 const DNS = require('./DNS');
 const DDNS = require('./DDNS');
@@ -14,7 +15,7 @@ const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Skeletons = require('./skeletons/Skeletons');
 
-const GLOBALDOMAIN = '.minkebox.net';
+const GLOBALDOMAIN = Config.GLOBALDOMAIN;
 
 const CRASH_TIMEOUT = (2 * 60 * 1000); // 2 minutes
 

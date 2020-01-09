@@ -1,14 +1,14 @@
-const DEFAULT_TAG = (process.env.TAG ? process.env.TAG : 'latest');
+const Config = require('./Config');
 
 module.exports = {
 
-  MINKE: 'registry.minkebox.net/minkebox/minke',
-  MINKE_HELPER: 'registry.minkebox.net/minkebox/minke-helper',
-  MINKE_PRIVATE_NETWORK: 'registry.minkebox.net/minkebox/privatenetwork',
+  MINKE: `${Config.REGISTRY_HOST}/minkebox/minke`,
+  MINKE_HELPER: `${Config.REGISTRY_HOST}/minkebox/minke-helper`,
+  MINKE_PRIVATE_NETWORK: `${Config.REGISTRY_HOST}/minkebox/privatenetwork`,
 
   withTag: function (name) {
     if (name.indexOf(':') === -1) {
-      return `${name}:${DEFAULT_TAG}`;
+      return `${name}:${Config.REGISTRY_DEFAULT_TAG}`;
     }
     else {
       return name;
