@@ -773,8 +773,8 @@ MinkeApp.prototype = {
     }
 
     if (this._homeIP) {
-      DNS.unregisterHostIP(this._safeName(), this._homeIP);
-      DNS.unregisterHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP);
+      DNS.unregisterHostIP(this._safeName());
+      DNS.unregisterHostIP(`${this._globalId}${GLOBALDOMAIN}`);
       if (this._features.ddns || this._ddns || this._ports.find(port => port.nat)) {
         DDNS.unregister(this);
       }
@@ -974,12 +974,11 @@ MinkeApp.prototype = {
 
   expand: function(txt) {
     if (typeof txt ==='string' && txt.indexOf('{{') !== -1) {
-      const ip6 = this.getSLAACAddress();
       const env = Object.assign({
         __APPNAME: { value: this._name },
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
-        __HOMEIP: { value: this._homeIP ? this._homeIP : '<none>' },
-        __HOMEIP6: { value: ip6 ? ip6 : '<none>' },
+        __HOMEIP: { value: this._homeIP || '<none>' },
+        __HOMEIP6: { value: this.getSLAACAddress() || '<none>' },
         __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
         __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() }
       }, this._env);
