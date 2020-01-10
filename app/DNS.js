@@ -151,7 +151,7 @@ const DNS = {
     this._updateLocalResolv();
     if (!DEBUG) {
       for (let hostname in hosts) {
-        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${hosts[hostname].ip} ${hostname} ${hostname}.${domainName}\n` + (hosts[hostname].ip6 ? `${hosts[hostname].ip6} ${hostname}.${domainName}\n` : ''));
+        this.registerHostIP(hostname, hosts[hostname].ip, hosts[hostname].ip6);
       }
     }
   },
