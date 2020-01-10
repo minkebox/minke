@@ -95,28 +95,24 @@
     },
     {
       type: 'Text',
-      text: 'If set, encrypted DNS using <a target="_blank" href="https://dnscrypt.info">DNSCrypt</a> provides secure and authenticated DNS queries. This will be used for non-local addresses in preference to non-secure DNS'
+      text: 'If set, encrypted DNS using <a target="_blank" href="https://dnscrypt.info/public-servers">DNSCrypt</a> provides secure and authenticated DNS queries. This will be used for non-local addresses in preference to non-secure DNS'
     },
     {
       type: 'Environment',
       name: 'DNSSECURE1',
-      description: 'Primary sdns:// URL'
+      description: 'Primary (name or sdns:// url)'
     },
     {
       type: 'Environment',
       name: 'DNSSECURE2',
-      description: 'Secondary sdns:// URL'
+      description: 'Secondary (name or sdns:// url)'
     },
     {
       type: 'Text',
       text: ''
     },
     { type: 'Text',
-      text: 'MinkeBox will act as a DNS-over-HTTPS server. Configure with either <b>https://doh.minkebox.net:41416/dns-query</b> or the following'
-    },
-    {
-      type: 'Text',
-      text: '&nbsp;&nbsp;&nbsp;&nbsp;<b>{{__DOH}}</b>'
+      text: 'MinkeBox will act as a DNS-over-HTTPS server. Configure clients with either <b>https://doh.minkebox.net:41416/dns-query</b> or <b>{{__DOH}}</b>'
     },
     {
       type: 'Header',

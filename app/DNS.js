@@ -1,5 +1,6 @@
 const ChildProcess = require('child_process');
 const FS = require('fs');
+const debounce = require('debounce');
 const Config = require('./Config');
 const Network = require('./Network');
 
@@ -9,11 +10,11 @@ const DNSCRYPT = '/usr/bin/dnscrypt-proxy';
 const HOSTNAME = '/bin/hostname';
 const DNSMASQ_CONFIG = `${ETC}dnsmasq.conf`;
 const DNSCRYPT_CONFIG = `${ETC}dnscrypt-proxy.toml`;
+const DNSCRYPT_CLOAKING = `${ETC}cloaking-rules.txt`;
 const DNSMASQ_RESOLV = `${ETC}dnsmasq-servers.conf`;
 const HOSTNAME_FILE = `${ETC}hostname`;
 const LOCAL_RESOLV = `${ETC}resolv.conf`;
 const DNSMASQ_HOSTS_DIR = (DEBUG ? '/tmp/' : `${ETC}dnshosts.d/`);
-const MINKE_HOSTS = `${DNSMASQ_HOSTS_DIR}hosts.conf`;
 const DEFAULT_FALLBACK_RESOLVER = Config.DEFAULT_FALLBACK_RESOLVER;
 const DOH_SERVER_NAME = Config.DOH_SERVER_NAME;
 const DOH_SERVER_PORT = 41416;
@@ -72,23 +73,32 @@ const DNS = {
         secureDNS1 = secureDNS2;
         secureDNS2 = null;
       }
-      if (secureDNS2) {
+
+      const servers = [];
+      if (secureDNS1.indexOf('sdns://') === 0) {
+        servers.push('_primary');
         secureResolver = secureResolver.concat([
-          `server_names = ['primary','secondary']`,
-          `[static.'primary']`,
+          `[static.'_primary']`,
           `stamp = '${secureDNS1}'`,
-          `[static.'secondary']`,
-          `stamp = '${secureDNS2}'`
         ]);
       }
       else {
-        secureResolver = secureResolver.concat([
-          `server_names = ['primary']`,
-          `[static.'primary']`,
-          `stamp = '${secureDNS1}'`
-        ]);
+        servers.push(secureDNS1);
       }
-      this.registerHostIP(DOH_SERVER_NAME, hostIP);
+      if (secureDNS2) {
+        if (secureDNS2.indexOf('sdns://') === 0) {
+          servers.push('_secondary');
+          secureResolver = secureResolver.concat([
+            `[static.'_secondary']`,
+            `stamp = '${secureDNS2}'`,
+          ]);
+        }
+        else {
+          servers.push(secureDNS2);
+        }
+      }
+      secureResolver = [ `server_names = ${JSON.stringify(servers)}` ].concat(secureResolver);
+      this.registerHostIP(DOH_SERVER_NAME, hostIP, Network.getSLAACAddress());
     }
     this._updateResolvServers();
     this._updateSecureConfig();
@@ -141,24 +151,29 @@ const DNS = {
     this._updateLocalResolv();
     if (!DEBUG) {
       for (let hostname in hosts) {
-        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${hosts[hostname]} ${hostname} ${hostname}.${domainName}\n`);
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${hosts[hostname].ip} ${hostname} ${hostname}.${domainName}\n` + (hosts[hostname].ip6 ? `${hosts[hostname].ip6} ${hostname}.${domainName}\n` : ''));
       }
     }
   },
 
-  registerHostIP: async function(hostname, ip) {
-    hosts[hostname] = ip;
+  registerHostIP: function(hostname, ip, ip6) {
+    hosts[hostname] = { ip: ip, ip6: ip6 };
     if (!DEBUG) {
       if (hostname.indexOf('.') === -1) {
-        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${ip} ${hostname} ${hostname}.${domainName}\n`);
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`,
+          `${ip} ${hostname}.${domainName}\n` + (ip6 ? `${ip6} ${hostname}.${domainName}\n` : '')
+        );
       }
       else {
-        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`, `${ip} ${hostname}\n`);
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`,
+          `${ip} ${hostname}\n` + (ip6 ? `${ip6} ${hostname}\n` : '')
+        );
       }
     }
+    this._updateDNSCryptCloaks();
   },
 
-  unregisterHostIP: async function(hostname) {
+  unregisterHostIP: function(hostname) {
     delete hosts[hostname];
     if (!DEBUG) {
       try {
@@ -168,6 +183,7 @@ const DNS = {
         //console.error(e);
       }
     }
+    this._updateDNSCryptCloaks();
   },
 
   getSDNS: function() {
@@ -211,15 +227,18 @@ const DNS = {
         `ipv6_servers = ${!!Network.getSLAACAddress()}`,
         `dnscrypt_servers = true`,
         `doh_servers = true`,
+        `require_dnssec = false`,
         `require_nolog = false`,
         `require_nofilter = false`,
         `force_tcp = false`,
         `timeout = 5000`,
         `keepalive = 30`,
         `cert_refresh_delay = 240`,
+        `blocked_query_response = 'refused'`,
         `ignore_system_dns = true`,
-        `log_files_max_size = 10`,
-        `log_files_max_age = 7`,
+        `use_syslog = false`,
+        `log_files_max_size = 1`,
+        `log_files_max_age = 1`,
         `log_files_max_backups = 1`,
         `block_ipv6 = ${!Network.getSLAACAddress()}`,
         `#block_unqualified = true`,
@@ -230,8 +249,10 @@ const DNS = {
         `cache_max_ttl = 86400`,
         `cache_neg_min_ttl = 60`,
         `cache_neg_max_ttl = 600`,
-        `netprobe_timeout = 60`
-      ]
+        `netprobe_timeout = 60`,
+        `cloak_ttl = 600`,
+        `cloaking_rules = '${DNSCRYPT_CLOAKING}'`
+      ];
       // Secure resolvers
       config = config.concat(secureResolver);
       // Server
@@ -244,9 +265,39 @@ const DNS = {
           `cert_key_file = "/app/certs/${DOH_CERT}"`
         ]);
       }
+      config = config.concat([
+        `[sources]`,
+        `[sources.'public-resolvers']`,
+        `urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v2/public-resolvers.md', 'https://download.dnscrypt.info/resolvers-list/v2/public-resolvers.md']`,
+        `cache_file = '/var/cache/dnscrypt-proxy/public-resolvers.md'`,
+        `minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'`,
+        `prefix = ''`
+      ]);
       FS.writeFileSync(DNSCRYPT_CONFIG, `${config.join('\n')}\n`);
     }
   },
+
+  _updateDNSCryptCloaks: debounce(function() {
+    if (secureResolver) {
+      const cloaks = [];
+      for (let hostname in hosts) {
+        if (hostname.indexOf('.') !== -1) {
+          cloaks.push(`=${hostname} ${hosts[hostname].ip}`);
+          if (hosts[hostname].ip6) {
+            cloaks.push(`=${hostname} ${hosts[hostname].ip6}`);
+          }
+        }
+        else {
+          cloaks.push(`=${hostname}.${domainName} ${hosts[hostname].ip}`);
+          if (hosts[hostname].ip6) {
+            cloaks.push(`=${hostname}.${domainName} ${hosts[hostname].ip6}`);
+          }
+        }
+      }
+      FS.writeFileSync(DNSCRYPT_CLOAKING, `${cloaks.join('\n')}\n`);
+      DNS._restartDNSC();
+    }
+  }, 100),
 
   _updateLocalResolv: function() {
     if (!DEBUG) {
@@ -262,14 +313,6 @@ const DNS = {
       FS.writeFileSync(DNSMASQ_RESOLV, `${secondaryResolver}${primaryResolver}${dns.map((resolve) => {
         return resolve.delay === 0 ? `server=${resolve.IP4Address}#${resolve.Port}\n` : '';
       }).join('')}`);
-    }
-  },
-
-  _updateHosts: function() {
-    if (!DEBUG) {
-      FS.writeFileSync(MINKE_HOSTS, Object.keys(hosts).map((host) => {
-        return `${hosts[host]} ${host} ${host}.${domainName}\n`
-      }).join(''));
     }
   },
 
