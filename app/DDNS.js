@@ -82,7 +82,7 @@ const DDNS = {
     return new Promise((resolve) => {
       //console.log('_getExternalIP');
       UPNP.getExternalIP().then((ip) => {
-        console.log('_gotExternaIP', ip);
+        //console.log('_gotExternaIP', ip);
         if (ip) {
           resolve(ip);
         }
@@ -90,7 +90,7 @@ const DDNS = {
           // Fallback
           HTTPS.get(FALLBACK_GETIP, (res) => {
             res.on('data', (data) => {
-              console.log('_gotExternaIP', data.toString('utf8'));
+              console.log('_gotExternaIP fallback', data.toString('utf8'));
               resolve(data.toString('utf8'));
             });
           });
