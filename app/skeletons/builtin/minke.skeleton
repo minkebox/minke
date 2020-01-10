@@ -77,7 +77,7 @@
     },
     {
       type: 'Text',
-      text: 'MinkeBox will act as a DNS server for your local machines and services. Select the external DNS servers to use for non-local addresses'
+      text: 'MinkeBox will act as a DNS server for your local machines and services. Select the external DNS servers to use for non-local addresses.'
     },
     {
       type: 'Environment',
@@ -91,11 +91,11 @@
     },
     {
       type: 'Header',
-      title: 'Encrypted DNS'
+      title: 'Secure DNS'
     },
     {
       type: 'Text',
-      text: 'If set, encrypted DNS using <a target="_blank" href="https://dnscrypt.info/public-servers">DNSCrypt</a> provides secure and authenticated DNS queries. This will be used for non-local addresses in preference to non-secure DNS'
+      text: 'Secure DNS, using <a target="_blank" href="https://dnscrypt.info/public-servers">DNSCrypt</a>, provides secure and authenticated DNS queries. This will not be used for local addresses.'
     },
     {
       type: 'Environment',
