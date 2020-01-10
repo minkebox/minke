@@ -10,7 +10,6 @@ const DNSCRYPT = '/usr/bin/dnscrypt-proxy';
 const HOSTNAME = '/bin/hostname';
 const DNSMASQ_CONFIG = `${ETC}dnsmasq.conf`;
 const DNSCRYPT_CONFIG = `${ETC}dnscrypt-proxy.toml`;
-const DNSCRYPT_CLOAKING = `${ETC}cloaking-rules.txt`;
 const DNSMASQ_RESOLV = `${ETC}dnsmasq-servers.conf`;
 const HOSTNAME_FILE = `${ETC}hostname`;
 const LOCAL_RESOLV = `${ETC}resolv.conf`;
@@ -170,7 +169,6 @@ const DNS = {
         );
       }
     }
-    this._updateDNSCryptCloaks();
   },
 
   unregisterHostIP: function(hostname) {
@@ -183,7 +181,6 @@ const DNS = {
         //console.error(e);
       }
     }
-    this._updateDNSCryptCloaks();
   },
 
   getSDNS: function() {
@@ -215,11 +212,11 @@ const DNS = {
 
   _updateSecureConfig: function() {
     if (secureResolver) {
-      // Basics
       let config = [
         `max_clients = 250`,
         `ipv4_servers = true`,
         `ipv6_servers = ${!!Network.getSLAACAddress()}`,
+        `block_ipv6 = ${!Network.getSLAACAddress()}`,
         `dnscrypt_servers = true`,
         `doh_servers = true`,
         `require_dnssec = false`,
@@ -235,7 +232,6 @@ const DNS = {
         `log_files_max_size = 1`,
         `log_files_max_age = 1`,
         `log_files_max_backups = 1`,
-        `block_ipv6 = ${!Network.getSLAACAddress()}`,
         `#block_unqualified = true`,
         `#reject_ttl = 600`,
         `cache = true`,
@@ -244,23 +240,8 @@ const DNS = {
         `cache_max_ttl = 86400`,
         `cache_neg_min_ttl = 60`,
         `cache_neg_max_ttl = 600`,
-        `netprobe_timeout = 60`,
-        `cloak_ttl = 600`,
-        `cloaking_rules = '${DNSCRYPT_CLOAKING}'`
-      ];
-      // Secure resolvers
-      config = config.concat(secureResolver);
-      // Server
-      if (dohServer) {
-        config = config.concat([
-          `[local_doh]`,
-          `listen_addresses = [':${DOH_SERVER_PORT}']`,
-          `path = "${DOH_SERVER_PATH}"`,
-          `cert_file = "/app/certs/${DOH_CERT}"`,
-          `cert_key_file = "/app/certs/${DOH_CERT}"`
-        ]);
-      }
-      config = config.concat([
+        `netprobe_timeout = 60`
+      ].concat(secureResolver, [
         `[sources]`,
         `[sources.'public-resolvers']`,
         `urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v2/public-resolvers.md', 'https://download.dnscrypt.info/resolvers-list/v2/public-resolvers.md']`,
@@ -271,28 +252,6 @@ const DNS = {
       FS.writeFileSync(DNSCRYPT_CONFIG, `${config.join('\n')}\n`);
     }
   },
-
-  _updateDNSCryptCloaks: debounce(function() {
-    if (secureResolver) {
-      const cloaks = [];
-      for (let hostname in hosts) {
-        if (hostname.indexOf('.') !== -1) {
-          cloaks.push(`=${hostname} ${hosts[hostname].ip}`);
-          if (hosts[hostname].ip6) {
-            cloaks.push(`=${hostname} ${hosts[hostname].ip6}`);
-          }
-        }
-        else {
-          cloaks.push(`=${hostname}.${domainName} ${hosts[hostname].ip}`);
-          if (hosts[hostname].ip6) {
-            cloaks.push(`=${hostname}.${domainName} ${hosts[hostname].ip6}`);
-          }
-        }
-      }
-      FS.writeFileSync(DNSCRYPT_CLOAKING, `${cloaks.join('\n')}\n`);
-      DNS._restartDNSC();
-    }
-  }, 100),
 
   _updateLocalResolv: function() {
     if (!DEBUG) {
