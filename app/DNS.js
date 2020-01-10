@@ -51,7 +51,7 @@ const DNS = {
     }
   },
 
-  setDefaultResolver: function(resolver1, resolver2, secureDNS1, secureDNS2, doh) {
+  setDefaultResolver: function(resolver1, resolver2, secureDNS1, secureDNS2) {
     if (!secureDNS1 && !secureDNS2) {
       primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
       secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
@@ -98,7 +98,6 @@ const DNS = {
         }
       }
       secureResolver = [ `server_names = ${JSON.stringify(servers)}` ].concat(secureResolver);
-      this.registerHostIP(DOH_SERVER_NAME, hostIP, Network.getSLAACAddress());
     }
     this._updateResolvServers();
     this._updateSecureConfig();
@@ -144,6 +143,7 @@ const DNS = {
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
     hostIP = ip;
+    this.registerHostIP(DOH_SERVER_NAME, ip, Network.getSLAACAddress());
   },
 
   setDomainName: function(domain) {
