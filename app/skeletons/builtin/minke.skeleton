@@ -107,13 +107,15 @@
       name: 'DNSSECURE2',
       description: 'Secondary (name or sdns:// url)'
     },
+/*
     {
       type: 'Text',
       text: ''
     },
     { type: 'Text',
-      text: 'MinkeBox will act as a DNS-over-HTTPS server. Configure clients with <b>http://doh.minkebox.net</b>'
+      text: 'MinkeBox will act as a DNS-over-HTTPS server. Configure clients with <b>https://doh.minkebox.net</b>'
     },
+*/
     {
       type: 'Header',
       title: 'Disks'

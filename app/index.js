@@ -42,13 +42,7 @@ MinkeApp.startApps(App, { inherit: process.env.RESTART_REASON === 'restart' || p
 
 const Redirect = new Koa();
 Redirect.use(async ctx => {
-  if (ctx.request.header['content-type'] === 'application/dns-message') {
-    ctx.redirect(`https://${Config.DOH_SERVER_NAME}:${Config.DOH_SERVER_PORT}${Config.DOH_SERVER_PATH}`);
-    ctx.response.status = 307;
-  }
-  else {
-    ctx.redirect(`http://${ctx.request.hostname}:${PORT}${ctx.request.path}`);
-  }
+  ctx.redirect(`http://${ctx.request.hostname}:${PORT}${ctx.request.path}`);
 });
 Redirect.listen(80);
 
