@@ -21,6 +21,12 @@ body {
   font-size: 150%;
   padding-top: 20px;
 }
+.main .nav .subtitle {
+  text-align: center;
+  color: #fff;
+  font-size: 100%;
+  padding-top: 20px;
+}
 .main .nav button {
   background: transparent;
   border: 2px solid rgb(176, 202, 219);
