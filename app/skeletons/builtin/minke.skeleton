@@ -112,7 +112,7 @@
       text: ''
     },
     { type: 'Text',
-      text: 'MinkeBox will act as a DNS-over-HTTPS server. Configure clients with either <b>https://doh.minkebox.net:41416/dns-query</b> or <b>{{__DOH}}</b>'
+      text: 'MinkeBox will act as a DNS-over-HTTPS server. Configure clients with either <b>http://doh.minkebox.net</b>'
     },
     {
       type: 'Header',

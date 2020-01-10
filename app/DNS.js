@@ -17,8 +17,8 @@ const LOCAL_RESOLV = `${ETC}resolv.conf`;
 const DNSMASQ_HOSTS_DIR = (DEBUG ? '/tmp/' : `${ETC}dnshosts.d/`);
 const DEFAULT_FALLBACK_RESOLVER = Config.DEFAULT_FALLBACK_RESOLVER;
 const DOH_SERVER_NAME = Config.DOH_SERVER_NAME;
-const DOH_SERVER_PORT = 41416;
-const DOH_SERVER_PATH = '/dns-query';
+const DOH_SERVER_PORT = Config.DOH_SERVER_PORT;
+const DOH_SERVER_PATH = Config.DOH_SERVER_PATH;
 const DOH_CERT = 'doh-minkebox-net.pem';
 
 let hostIP = null;
@@ -187,20 +187,15 @@ const DNS = {
   },
 
   getSDNS: function() {
-    if (dohServer) {
-      const buffer = [
-        0x02,
-        [ 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ],
-        [ DOH_SERVER_PORT.length, Array.from(Buffer.from(`${hostIP}:${DOH_SERVER_PORT}`)) ],
-        0x00,
-        [ `${DOH_SERVER_NAME}:${DOH_SERVER_PORT}`.length, Array.from(Buffer.from(`${DOH_SERVER_NAME}:${DOH_SERVER_PORT}`)) ],
-        [ DOH_SERVER_PATH.length, Array.from(Buffer.from(DOH_SERVER_PATH)) ],
-      ];
-      return `sdns://${Buffer.from(buffer.flat(Infinity)).toString('base64').replace(/=/g,'')}`;
-    }
-    else {
-      return null;
-    }
+    const buffer = [
+      0x02,
+      [ 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ],
+      [ DOH_SERVER_PORT.length, Array.from(Buffer.from(`${hostIP}:${DOH_SERVER_PORT}`)) ],
+      0x00,
+      [ `${DOH_SERVER_NAME}:${DOH_SERVER_PORT}`.length, Array.from(Buffer.from(`${DOH_SERVER_NAME}:${DOH_SERVER_PORT}`)) ],
+      [ DOH_SERVER_PATH.length, Array.from(Buffer.from(DOH_SERVER_PATH)) ],
+    ];
+    return `sdns://${Buffer.from(buffer.flat(Infinity)).toString('base64').replace(/=/g,'')}`;
   },
 
   _updateConfig: function() {
