@@ -41,17 +41,25 @@
     },
     {
       type: `File`,
-      name: `/app/switches.conf`,
-      description: `Switches`,
+      name: `/app/switches1.conf`,
+      description: `Toggle Switches`,
+      style: `Table`,
+      headers: [
+        { name: `Name` }
+      ],
+      pattern: `{ "accessory": "DummySwitch", "name": "{{0}}", "stateful": true, "reverse": false, "time": 0 }`,
+      join: `,`
+    },
+    {
+      type: `File`,
+      name: `/app/switches2.conf`,
+      description: `Push Switches`,
       style: `Table`,
       headers: [
         { name: `Name` },
-        { name: `Toggle`, type: `checkbox` },
-        { name: `Reverse`, type: `checkbox` },
         { name: `Timeout`, validate: `\\d+` }
       ],
-      pattern: `{ "accessory": "DummySwitch", "name": "{{0}}", "stateful": {{1}}, "reverse": {{2}}, "time": {{3}} }
-`,
+      pattern: `{ "accessory": "DelaySwitch", "name": "{{0}}", "delay": {{1}}, "disableSensor": true }`,
       join: `,`
     }
   ],
@@ -73,7 +81,11 @@
     },
     {
       type: `File`,
-      name: `/app/switches.conf`
+      name: `/app/switches1.conf`
+    },
+    {
+      type: `File`,
+      name: `/app/switches2.conf`
     },
     {
       type: `Environment`,
