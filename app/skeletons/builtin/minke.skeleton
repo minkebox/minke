@@ -11,7 +11,7 @@
     },
     {
       type: 'Text',
-      text: 'Set the IP address, netmask, gateway and the local domain name for this device. Set the hostname by changing the name at the top/right'
+      text: 'Set the IP address, netmask, gateway and the local domain name for this device. Set the hostname by changing the name at the top/right.'
     },
     {
       type: 'Text',
@@ -63,7 +63,7 @@
     },
     {
       type: 'Text',
-      text: 'MinkeBox can publish your services globally using its own DDNS. By default this is only IPv4 but can include IPv6 if the network supports it'
+      text: 'MinkeBox can publish your services globally using its own DDNS. By default this is only IPv4 but can include IPv6 if the network supports it.'
     },
     {
       type: 'Environment',
@@ -106,6 +106,14 @@
       type: 'Environment',
       name: 'DNSSECURE2',
       description: 'Secondary (name or sdns:// url)'
+    },
+    {
+      type: 'Text',
+      text: ''
+    },
+    {
+      type: 'Text',
+      text: 'DNS-over-HTTPS is supported. Configure using the url <b>https://doh.minkebox.net/</b>.'
     },
     {
       type: 'Header',
