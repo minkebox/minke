@@ -8,6 +8,6 @@ module.exports = {
   DEFAULT_FALLBACK_RESOLVER: '1.1.1.1',
   DOH_SERVER_NAME: 'doh.minkebox.net',
   DOH_SERVER_PORT: 443,
-  DOH_SERVER_PATH: '/dns-query',
+  DOH_SERVER_PATH: '/',
   DOH_SERVER_CERT: 'doh-minkebox-net.pem'
 };
