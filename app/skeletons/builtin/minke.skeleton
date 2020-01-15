@@ -112,10 +112,6 @@
       text: ''
     },
     {
-      type: 'Text',
-      text: 'DNS-over-HTTPS is supported. Configure using the url <b>https://doh.minkebox.net/</b>.'
-    },
-    {
       type: 'Header',
       title: 'Disks'
     },

@@ -49,7 +49,7 @@ Redirect.use(async ctx => {
 Redirect.listen(80);
 
 // DNS-over-HTTPS server
-DOHServer();
+//DOHServer();
 
 process.on('uncaughtException', (e) => {
   console.error(e)
