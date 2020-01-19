@@ -6,9 +6,13 @@ const Address6 = require('ip-address').Address6;
 const Barrier = require('./utils/Barrier');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
-const NETWORK_FILE = `${ETC}systemd/network/bridge.network`;
+const BRIDGE_NETWORK_FILE = `${ETC}systemd/network/bridge.network`;
+const WLAN_NETWORK_FILE = `${ETC}systemd/network/wlan.network`;
+const WPA_SUPPLICANT_FILE = `${ETC}wpa_supplicant.conf`;
 const HOME_NETWORK_NAME = 'home';
 const BRIDGE_NETWORK = 'br0';
+const WLAN_NETWORK = 'wlan0';
+const DUMMY_BRIDGE_IP = '10.241.55.45';
 
 const networks = {};
 
@@ -16,17 +20,38 @@ const Network = {
 
   getActiveInterface: async function() {
     return new Promise((resolve, reject) => {
-      Net.get_active_interface((err, nic) => {
+      Net.get_interfaces_list((err, list) => {
         if (err) {
-          reject(err);
+          return reject(err);
         }
-        else {
-          resolve({
-            network: nic,
-            netmask: new Netmask.Netmask(`${nic.ip_address}/${nic.netmask}`),
-            dhcp: DEBUG ? false : this._getHomeNetworkFile().indexOf('DHCP=') != -1
-          });
+        let net = '';
+        let iface = null;
+        try {
+          iface = list.find(item => item.name === WLAN_NETWORK);
+          if (iface) {
+            net = FS.readFileSync(WLAN_NETWORK_FILE, { encoding: 'utf8' });
+          }
+          else {
+            iface = list.find(item => item.name === BRIDGE_NETWORK);
+            if (iface) {
+              net = FS.readFileSync(BRIDGE_NETWORK_FILE, { encoding: 'utf8' });
+            }
+            if (DEBUG && !iface) {
+              iface = list.find(item => item.name === 'eth0');
+              net = FS.readFileSync(BRIDGE_NETWORK_FILE, { encoding: 'utf8' });
+            }
+          }
         }
+        catch (_) {
+        }
+        if (!iface) {
+          return reject('No active interface');
+        }
+        resolve({
+          network: iface,
+          netmask: new Netmask.Netmask(`${iface.ip_address}/${iface.netmask}`),
+          dhcp: net.indexOf('DHCP=') != -1
+        });
       })
     });
   },
@@ -99,23 +124,52 @@ const Network = {
     if (DEBUG) {
       return false;
     }
-    // address, netmask, gateway
     let data = '';
-    if (config.address.toLowerCase() === 'dhcp') {
-      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nDHCP=ipv4\nMulticastDNS=true\n\n[DHCP]\nUseDNS=false\n`;
-    }
-    else {
-      const netmask = new Netmask.Netmask(`${config.address}/${config.netmask}`);
-      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nAddress=${config.address}/${netmask.bitmask}\nGateway=${config.gateway}\nMulticastDNS=true\n\n[DHCP]\nUseDNS=false\n`;
-    }
-    try {
-      if (this._getHomeNetworkFile() != data) {
-        FS.writeFileSync(NETWORK_FILE, data);
-        return true;
+    if (config.enable) {
+      // address, netmask, gateway
+      if (config.address.toLowerCase() === 'dhcp') {
+        data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nDHCP=ipv4\n\n[DHCP]\nUseDNS=false\n`;
       }
       else {
-        return false;
+        const netmask = new Netmask.Netmask(`${config.address}/${config.netmask}`);
+        data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nAddress=${config.address}/${netmask.bitmask}\nGateway=${config.gateway}\n\n[DHCP]\nUseDNS=false\n`;
       }
+    }
+    else {
+      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nAddress=${DUMMY_BRIDGE_IP}/8\n`;
+    }
+    try {
+      FS.writeFileSync(BRIDGE_NETWORK_FILE, data);
+      return true;
+    }
+    catch (_) {
+      return false;
+    }
+  },
+
+  setWifiNetwork: function(config) {
+    if (DEBUG) {
+      return false;
+    }
+    let wpa = '';
+    let net = '';
+    if (config.enable) {
+      wpa = `ctrl_interface=/var/run/wpa_supplicant\nctrl_interface_group=0\nupdate_config=1\nnetwork={\n  ssid="${config.network})"\n  psk="${config.password}"\n}`;
+      if (config.address.toLowerCase() === 'dhcp') {
+        net =`[Match]\nName=${WLAN_NETWORK}\n\n[Network]\nDHCP=ipv4\n\n[DHCP]\nUseDNS=false\n`;
+      }
+      else {
+        const netmask = new Netmask.Netmask(`${config.address}/${config.netmask}`);
+        net =`[Match]\nName=${WLAN_NETWORK}\n\n[Network]\nAddress=${config.address}/${netmask.bitmask}\nGateway=${config.gateway}\n\n[DHCP]\nUseDNS=false\n`;
+      }
+    }
+    else {
+      net =`[Match]\nName=${WLAN_NETWORK}\n`;
+    }
+    try {
+      FS.writeFileSync(WLAN_NETWORK_FILE, net);
+      FS.writeFileSync(WPA_SUPPLICANT_FILE, wpa);
+      return true;
     }
     catch (_) {
       return false;
@@ -132,7 +186,6 @@ const Network = {
     return await this._getNetwork({
       Name: HOME_NETWORK_NAME,
       Driver: 'bridge',
-      // EnableIPv6: true, - NOT YET
       IPAM: {
         Config: [{
           Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
@@ -176,7 +229,7 @@ const Network = {
 
   _getHomeNetworkFile: function() {
     try {
-      return FS.readFileSync(NETWORK_FILE, { encoding: 'utf8' });
+      return FS.readFileSync(BRIDGE_NETWORK_FILE, { encoding: 'utf8' });
     }
     catch (_) {
       return '';

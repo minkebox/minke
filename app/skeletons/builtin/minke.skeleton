@@ -45,6 +45,30 @@
     },
     {
       type: 'Header',
+      title: 'Wifi (experimental)'
+    },
+    {
+      type: 'Text',
+      text: 'Connect to your Wifi network instead of your wired network.'
+    },
+    {
+      type: 'Environment',
+      name: 'WIFIENABLED',
+      style: 'Checkbox',
+      description: 'Use Wifi network'
+    },
+    {
+      type: 'Environment',
+      name: 'WIFINAME',
+      description: 'Network name'
+    },
+    {
+      type: 'Environment',
+      name: 'WIFIPASSWORD',
+      description: 'Wifi password'
+    },
+    {
+      type: 'Header',
       title: 'IPv6'
     },
     {
@@ -188,6 +212,18 @@
     {
       type: 'Environment',
       name: 'DHCP'
+    },
+    {
+      type: 'Environment',
+      name: 'WIFIENABLED'
+    },
+    {
+      type: 'Environment',
+      name: 'WIFINAME'
+    },
+    {
+      type: 'Environment',
+      name: 'WIFIPASSWORD'
     },
     {
       type: 'Environment',

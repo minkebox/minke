@@ -50,6 +50,9 @@ function MinkeSetup(savedConfig, config) {
     GATEWAY: getEnv('GATEWAY'),
     IP6: getEnv('IP6'),
     NATIP6: getEnv('NATIP6'),
+    WIFIENABLED: getEnv('WIFIENABLED'),
+    WIFINAME: getEnv('WIFINAME'),
+    WIFIPASSWORD: getEnv('WIFIPASSWORD'),
     DNSSERVER1: getEnv('DNSSERVER1'),
     DNSSERVER2: getEnv('DNSSERVER2'),
     DNSSECURE1: getEnv('DNSSECURE1'),
@@ -166,6 +169,15 @@ MinkeSetup.prototype = {
     );
     DNS.setDomainName(this.getLocalDomainName());
     Network.setHomeNetwork({
+      enable: !this._env.WIFIENABLED.value,
+      address: this._env.DHCP.value ? 'dhcp' : this._env.IPADDRESS.value,
+      netmask: this._env.NETMASK.value,
+      gateway: this._env.GATEWAY.value
+    });
+    Network.setWiFiNetwork({
+      enable: this._env.WIFIENABLED.value,
+      name: this._env.WIFINAME.value,
+      password: this._env.WIFIPASSWORD.value,
       address: this._env.DHCP.value ? 'dhcp' : this._env.IPADDRESS.value,
       netmask: this._env.NETMASK.value,
       gateway: this._env.GATEWAY.value
@@ -190,6 +202,9 @@ MinkeSetup.prototype = {
       LOCALDOMAIN: null,
       IP6: null,
       NATIP6: null,
+      WIFIENABLED: null,
+      WIFINAME: null,
+      WIFIPASSWORD: null,
       DNSSERVER1: null,
       DNSSERVER2: null,
       DNSSECURE1: null,
