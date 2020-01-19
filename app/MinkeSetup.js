@@ -176,7 +176,7 @@ MinkeSetup.prototype = {
     });
     Network.setWiFiNetwork({
       enable: this._env.WIFIENABLED.value,
-      name: this._env.WIFINAME.value,
+      network: this._env.WIFINAME.value,
       password: this._env.WIFIPASSWORD.value,
       address: this._env.DHCP.value ? 'dhcp' : this._env.IPADDRESS.value,
       netmask: this._env.NETMASK.value,

@@ -154,7 +154,7 @@ const Network = {
     let wpa = '';
     let net = '';
     if (config.enable) {
-      wpa = `ctrl_interface=/var/run/wpa_supplicant\nctrl_interface_group=0\nupdate_config=1\nnetwork={\n  ssid="${config.network})"\n  psk="${config.password}"\n}`;
+      wpa = `ctrl_interface=/var/run/wpa_supplicant\nctrl_interface_group=0\nupdate_config=1\nnetwork={\n  ssid="${config.network}"\n  psk="${config.password}"\n}\n`;
       if (config.address.toLowerCase() === 'dhcp') {
         net =`[Match]\nName=${WLAN_NETWORK}\n\n[Network]\nDHCP=ipv4\n\n[DHCP]\nUseDNS=false\n`;
       }
