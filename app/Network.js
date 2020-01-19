@@ -12,7 +12,6 @@ const WPA_SUPPLICANT_FILE = `${ETC}wpa_supplicant.conf`;
 const HOME_NETWORK_NAME = 'home';
 const BRIDGE_NETWORK = 'br0';
 const WLAN_NETWORK = 'wlan0';
-const DUMMY_BRIDGE_IP = '10.241.55.45';
 
 const networks = {};
 
@@ -136,7 +135,7 @@ const Network = {
       }
     }
     else {
-      data =`[Match]\nName=${BRIDGE_NETWORK}\n\n[Network]\nAddress=${DUMMY_BRIDGE_IP}/8\n`;
+      data =`[Match]\nName=${BRIDGE_NETWORK}\n`;
     }
     try {
       FS.writeFileSync(BRIDGE_NETWORK_FILE, data);
