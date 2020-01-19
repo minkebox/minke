@@ -147,7 +147,7 @@ const Network = {
     }
   },
 
-  setWifiNetwork: function(config) {
+  setWiFiNetwork: function(config) {
     if (DEBUG) {
       return false;
     }
