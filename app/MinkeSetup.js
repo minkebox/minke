@@ -174,6 +174,9 @@ MinkeSetup.prototype = {
       netmask: this._env.NETMASK.value,
       gateway: this._env.GATEWAY.value
     });
+    Network.setWiredNetwork({
+      enable: !this._env.WIFIENABLED.value,
+    });
     Network.setWiFiNetwork({
       enable: this._env.WIFIENABLED.value,
       network: this._env.WIFINAME.value,

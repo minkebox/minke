@@ -7,10 +7,12 @@ const Barrier = require('./utils/Barrier');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const BRIDGE_NETWORK_FILE = `${ETC}systemd/network/bridge.network`;
+const WIRED_NETWORK_FILE = `${ETC}systemd/network/wired.network`;
 const WLAN_NETWORK_FILE = `${ETC}systemd/network/wlan.network`;
 const WPA_SUPPLICANT_FILE = `${ETC}wpa_supplicant.conf`;
 const HOME_NETWORK_NAME = 'home';
 const BRIDGE_NETWORK = 'br0';
+const WIRED_NETWORKS = 'en* eth*';
 const WLAN_NETWORK = 'wlan0';
 
 const networks = {};
@@ -168,6 +170,26 @@ const Network = {
     try {
       FS.writeFileSync(WLAN_NETWORK_FILE, net);
       FS.writeFileSync(WPA_SUPPLICANT_FILE, wpa);
+      return true;
+    }
+    catch (_) {
+      return false;
+    }
+  },
+
+  setWiredNetwork: function(config) {
+    if (DEBUG) {
+      return false;
+    }
+    let net = '';
+    if (config.enable) {
+      net =`[Match]\nName=${WIRED_NETWORKS}\n\n[Network]\nBridge=${BRIDGE_NETWORK}\n`;
+    }
+    else {
+      net =`[Match]\nName=${WIRED_NETWORKS}\n`;
+    }
+    try {
+      FS.writeFileSync(WIRED_NETWORK_FILE, net);
       return true;
     }
     catch (_) {
