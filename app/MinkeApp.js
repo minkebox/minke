@@ -347,7 +347,7 @@ MinkeApp.prototype = {
           configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
           const wan = await UPNP.getWANLocationURL();
           if (wan) {
-            configEnv.push(`__UPNPURL=${wan.origin}`);
+            configEnv.push(`__UPNPURL=${wan.origin}/`);
           }
           config.HostConfig.Dns = [ MinkeApp._network.network.ip_address ];
           config.HostConfig.DnsSearch = [ 'local.' ];
