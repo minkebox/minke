@@ -15,6 +15,7 @@ const UPNP = {
   _uuid: '',
   _hostname: '',
   _ip: '0.0.0.0',
+  _WANIPConnectionURL: null,
 
   register: function(root) {
     root.get('/rootDesc.xml', async (ctx) => {
@@ -57,6 +58,7 @@ const UPNP = {
     });
 
     this._clearCache();
+    this._WANIPConnectionURL = null;
 
     await ssdp.advertise({
       usn: 'upnp:rootdevice',
@@ -68,9 +70,17 @@ const UPNP = {
         return [];
       }
     });
+
+    this._wanRefresh = setInterval(() => {
+      this._WANIPConnectionURL = null;
+    }, 60 * 1000);
   },
 
   stop: async function() {
+    if (this._wanRefresh) {
+      clearInterval(this._wanRefresh);
+      this._wanRefresh = null;
+    }
     if (ssdp) {
       await ssdp.stop();
       ssdp = null;
@@ -93,49 +103,54 @@ const UPNP = {
     this._hostname = config.hostname;
   },
 
-  getExternalIP: async function() {
-    if (!ssdp) {
-      return null;
-    }
-
-    let location = null;
-
-    function extractLocation(res) {
-      if (res.ST === URN_IGD) {
-        location = new URL(res.LOCATION);
+  getWANLocationURL: async function() {
+    if (!this._WANIPConnectionURL) {
+      if (!ssdp) {
+        return null;
       }
-    }
 
-    function extractWANIPConnectionURL(service) {
-      if (location) {
-        for (let ptr = service.details; ptr && ptr.device; ptr = ptr.device.deviceList) {
-          const list = ptr.device.serviceList;
-          if (list && list.service && list.service.serviceType === URN_WAN) {
-            return new URL(list.service.controlURL, location.origin);
+      let location = null;
+
+      function extractLocation(res) {
+        if (res.ST === URN_IGD) {
+          location = new URL(res.LOCATION);
+        }
+      }
+
+      function extractWANIPConnectionURL(service) {
+        if (location) {
+          for (let ptr = service.details; ptr && ptr.device; ptr = ptr.device.deviceList) {
+            const list = ptr.device.serviceList;
+            if (list && list.service && list.service.serviceType === URN_WAN) {
+              return new URL(list.service.controlURL, location.origin);
+            }
           }
         }
+        return null;
       }
-      return null;
+
+      ssdp.on('ssdp:search-response', extractLocation);
+
+      this._clearCache();
+
+      for (let retry = 1; retry < RETRY && ssdp && !this._WANIPConnectionURL; retry++) {
+        const services = await ssdp.discover(URN_IGD, TIMEOUT * retry);
+        services.forEach((service) => {
+          if (!this._WANIPConnectionURL) {
+            this._WANIPConnectionURL = extractWANIPConnectionURL(service);
+          }
+        });
+      }
+
+      if (ssdp) {
+        ssdp.off('ssdp:search-response', extractLocation);
+      }
     }
+    return this._WANIPConnectionURL;
+  },
 
-    ssdp.on('ssdp:search-response', extractLocation);
-
-    this._clearCache();
-
-    let WANIPConnectionURL = null;
-    for (let retry = 1; retry < RETRY && ssdp && !WANIPConnectionURL; retry++) {
-      const services = await ssdp.discover(URN_IGD, TIMEOUT * retry);
-      services.forEach((service) => {
-        if (!WANIPConnectionURL) {
-          WANIPConnectionURL = extractWANIPConnectionURL(service);
-        }
-      });
-    }
-
-    if (ssdp) {
-      ssdp.off('ssdp:search-response', extractLocation);
-    }
-
+  getExternalIP: async function() {
+    const WANIPConnectionURL = await this.getWANLocationURL();
     if (WANIPConnectionURL) {
       const IP_ADDR_REGEXP = /.*<NewExternalIPAddress>(.*)<\/NewExternalIPAddress>.*/;
       const answer = await this._sendRequest(WANIPConnectionURL, URN_WAN, 'GetExternalIPAddress');

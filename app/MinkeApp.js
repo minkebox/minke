@@ -8,6 +8,7 @@ const HTTP = require('./HTTP');
 const DNS = require('./DNS');
 const DDNS = require('./DDNS');
 const MDNS = require('./MDNS');
+const UPNP = require('./UPNP');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
@@ -344,6 +345,10 @@ MinkeApp.prototype = {
           configEnv.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
           configEnv.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
           configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
+          const wan = await UPNP.getWANLocationURL();
+          if (wan) {
+            configEnv.push(`__UPNPURL=${wan.origin}`);
+          }
           config.HostConfig.Dns = [ MinkeApp._network.network.ip_address ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
