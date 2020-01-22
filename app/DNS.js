@@ -19,7 +19,6 @@ const DOH_SERVER_NAME = Config.DOH_SERVER_NAME;
 const DOH_SERVER_PORT = Config.DOH_SERVER_PORT;
 const DOH_SERVER_PATH = Config.DOH_SERVER_PATH;
 
-let hostIP = null;
 let dns = null;
 let dnsc = null;
 let domainName = 'home';
@@ -154,7 +153,6 @@ const DNS = {
       FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
-    hostIP = ip;
     this.registerHostIP(DOH_SERVER_NAME, ip, Network.getSLAACAddress());
   },
 
