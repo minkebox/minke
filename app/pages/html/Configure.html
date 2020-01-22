@@ -17,12 +17,14 @@
           <h2 class="description">{{{description}}}</h2>
           <nav>
             {{#if ../minkeConfig}}
+            {{#if ../help}}<a class="pure-button" onclick="toggleHelp()">Help</a>{{/if}}
             <a class="pure-button admin-only" data-popbox-target="restart">Restart</a>
             <a class="pure-button" data-popbox-target="reboot">Reboot</a>
             <a class="pure-button" data-popbox-target="halt">Power Off</a>
             {{else}}
             {{#if ../link}}<a class="pure-button" href="{{../link}}" target="_blank">Open App</a>{{/if}}
             <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
+            {{#if ../help}}<a class="pure-button" onclick="toggleHelp()">Help</a>{{/if}}
             <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
             <a class="pure-button" data-popbox-target="delete">Delete</a>
             {{/if}}
@@ -39,6 +41,8 @@
           <div class="content-header">{{title}}</div>
           {{else if (eq type "Text")}}
           <div class="content-text">{{{text}}}</div>
+          {{else if (eq type "Help")}}
+          <div class="help-text"><div class="help-text-content">{{{text}}}</div></div>
           {{else if (eq type "Environment")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group">
             <label class="description">{{{description}}}</label>

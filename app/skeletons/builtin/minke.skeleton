@@ -10,6 +10,11 @@
       title: 'Name and Address'
     },
     {
+      type: 'Help',
+      text: `By default, MinkeBox acquires its IP address from your network's DHCP server. However, because many services provided by MinkeBox require your client's DNS to be configured to use it, it probably make sense
+to change this to a fixed IP address. Any change to the network configuration requires a reboot for it to take effect.`
+    },
+    {
       type: 'Text',
       text: 'Set the IP address, netmask, gateway and the local domain name for this device. Set the hostname by changing the name at the top/right.'
     },
@@ -49,6 +54,13 @@
       visible: 'property.WifiAvailable'
     },
     {
+      type: 'Help',
+      text: `While it is recommended that MinkeBox uses an ethernet connection (it is faster and more reliable), you can switch to using WiFi if your host computer supports it.
+  Switching to Wifi should be done with care, because it you mis-type the network name or password, there is currently no way to reset this. Switching to Wifi won't take effect until you reboot.
+  <br/>WiFi support is experimental, and applications are limited in the use of UPnP and automatic NAT traveral due to the way multiple IP addresses are hosted using a
+  single Wifi client.`
+    },
+    {
       type: 'Text',
       text: 'Connect to your Wifi network instead of your wired network.'
     },
@@ -67,10 +79,6 @@
       type: 'Environment',
       name: 'WIFIPASSWORD',
       description: 'Wifi password'
-    },
-    {
-      type: 'Text',
-      text: '<br/><b>Wifi support is experimental and some features many not work, or work reliably.</b>'
     },
     {
       type: 'Header',

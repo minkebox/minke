@@ -63,6 +63,7 @@ async function ConfigurePageHTML(ctx) {
     FirstUse: app._bootcount == 0,
     WifiAvailable: minkeConfig ? (await Network.wifiAvailable()) : false
   };
+  let help = false;
   const nskeleton = {
     name: skeleton.name,
     value: app._name,
@@ -86,6 +87,11 @@ async function ConfigurePageHTML(ctx) {
         }
         case 'Text':
         {
+          return Object.assign({}, action, { text: expand(action.text) });
+        }
+        case 'Help':
+        {
+          help = true;
           return Object.assign({}, action, { text: expand(action.text) });
         }
         case 'Environment':
@@ -289,6 +295,7 @@ async function ConfigurePageHTML(ctx) {
     skeletonAsText: Skeletons.toString(skeleton),
     link: app._forward && app._forward.url,
     linktarget: app._forward && app._forward.target,
+    help: help,
     changes: '[' + Object.keys(visibles).map((key) => {
       return `function(){const c=document.getElementById("${key}").classList;try{if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){}}`;
     }).concat(Object.keys(enabled).map((key) => {

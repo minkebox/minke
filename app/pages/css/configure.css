@@ -91,6 +91,21 @@ body {
   color: #7878ff;
   text-decoration: none;
 }
+.configure .help-text {
+  height: auto;
+  overflow: hidden;
+}
+.configure .help-text-content {
+  color: #777;
+  line-height: 1.4em;
+  padding: 1em;
+  margin-bottom: 1em;
+  border-radius: 8px;
+  background-color: #dbeef5;
+}
+html:not(.help-available) .help-text {
+  height: 0px;
+}
 .configure .actions label {
   width: 30% !important;
 }

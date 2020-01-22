@@ -240,6 +240,10 @@ function addChart(id, chart) {
   }
 }
 
+function toggleHelp() {
+  document.head.parentElement.classList.toggle('help-available');
+}
+
 function monitor(id, timeout) {
   setTimeout(() => {
     if (!pendingQ) {
