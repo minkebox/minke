@@ -1,6 +1,6 @@
 const ChildProcess = require('child_process');
 const FS = require('fs');
-const debounce = require('debounce');
+const URL = require('url');
 const Config = require('./Config');
 const Network = require('./Network');
 
@@ -81,6 +81,13 @@ const DNS = {
           `stamp = '${secureDNS1}'`,
         ]);
       }
+      else if (secureDNS1.indexOf('https://') === 0) {
+        servers.push('_primary');
+        secureResolver = secureResolver.concat([
+          `[static.'_primary']`,
+          `stamp = '${this.encodeSDNS(secureDNS1)}'`,
+        ]);
+      }
       else {
         servers.push(secureDNS1);
       }
@@ -90,6 +97,13 @@ const DNS = {
           secureResolver = secureResolver.concat([
             `[static.'_secondary']`,
             `stamp = '${secureDNS2}'`,
+          ]);
+        }
+        else if (secureDNS2.indexOf('https://') === 0) {
+          servers.push('_secondary');
+          secureResolver = secureResolver.concat([
+            `[static.'_secondary']`,
+            `stamp = '${this.encodeSDNS(secureDNS2)}'`,
           ]);
         }
         else {
@@ -184,13 +198,19 @@ const DNS = {
   },
 
   getSDNS: function() {
+    return this.encodeSDNS(`https://${DOH_SERVER_NAME}:${DOH_SERVER_PORT}/${DOH_SERVER_PATH}`);
+  },
+
+  encodeSDNS: function(urlstring) {
+    const url = new URL.URL(urlstring);
+    const addr = url.port ? `:${url.port}` : '';
     const buffer = [
       0x02,
       [ 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ],
-      [ DOH_SERVER_PORT.length, Array.from(Buffer.from(`${hostIP}:${DOH_SERVER_PORT}`)) ],
+      [ addr.length, Array.from(Buffer.from(addr)) ],
       0x00,
-      [ `${DOH_SERVER_NAME}:${DOH_SERVER_PORT}`.length, Array.from(Buffer.from(`${DOH_SERVER_NAME}:${DOH_SERVER_PORT}`)) ],
-      [ DOH_SERVER_PATH.length, Array.from(Buffer.from(DOH_SERVER_PATH)) ],
+      [ url.hostname.length, Array.from(Buffer.from(url.hostname)) ],
+      [ url.pathname.length, Array.from(Buffer.from(url.pathname)) ],
     ];
     return `sdns://${Buffer.from(buffer.flat(Infinity)).toString('base64').replace(/=/g,'')}`;
   },

@@ -132,17 +132,22 @@ to change this to a fixed IP address. Any change to the network configuration re
     },
     {
       type: 'Text',
-      text: 'Secure DNS, using <a target="_blank" href="https://dnscrypt.info/public-servers">DNSCrypt</a>, provides secure and authenticated DNS queries. This will not be used for local addresses.'
+      text: 'Secure DNS provides secure and authenticated DNS queries for non local addresses.'
+    },
+    {
+      type: 'Help',
+      text: `Secure DNS uses the <a target="_blank" href="https://dnscrypt.info/public-servers">DNSCrypt</a> to secure remote address lookups.
+  The primary and secondary servers can be configured using either a DNSCrypt name, a DNS-over-HTTPS https://... style url, or a SDNS sdns://... hash.`
     },
     {
       type: 'Environment',
       name: 'DNSSECURE1',
-      description: 'Primary (name or sdns:// url)'
+      description: 'Primary'
     },
     {
       type: 'Environment',
       name: 'DNSSECURE2',
-      description: 'Secondary (name or sdns:// url)'
+      description: 'Secondary'
     },
     {
       type: 'Text',
