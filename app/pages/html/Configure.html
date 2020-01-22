@@ -25,7 +25,7 @@
             {{#if ../link}}<a class="pure-button" href="{{../link}}" target="_blank">Open App</a>{{/if}}
             <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
             {{#if ../help}}<a class="pure-button" onclick="toggleHelp()">Help</a>{{/if}}
-            <a class="pure-button" onclick="cmd('app.restart')">Restart</a>
+            <a class="pure-button" onclick="cmd('app.restart');this.innerText='Restart'">{{#if ../firstUse}}Start{{else}}Restart{{/if}}</a>
             <a class="pure-button" data-popbox-target="delete">Delete</a>
             {{/if}}
           </nav>
