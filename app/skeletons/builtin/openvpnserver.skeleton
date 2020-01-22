@@ -20,20 +20,33 @@
     },
     {
       type: `Header`,
-      title: `Client Configuration`
+      title: `Client Configurations`
+    },
+    {
+      type: `Help`,
+      text: `Simple VPN actually creates two VPN servers, one using "tap" networking and the other using "tun". The "tap" configuration can be used by desktops, while the "tun"
+configuration can be used by mobiles and desktops. The "tap" configutation makes it appear as if your device is physically connected to your home network and is the preferred options.
+Unfortunately iOS and Android don't support this, and so "tun" networking is also provided. With this configuration, you can access anything on your network, but your machine is hidden
+behind this VPN server and is not directly connected. Most of the time this won't matter, but if you're using applications which rely on broadcast or multicast services, they might not work correctly.`
     },
     {
       type: `Text`,
-      text: `The VPN will generate a client configuration file which anyone can use to connect to your network. It can be used by any number of people or machines, and requires no password. Guard it well!.`
+      text: `The VPN will generate client configuration files which anyone can use to connect to your network. They can be used by any number of people or machines, and require no passwords. Guard them well!.`
     },
     {
       type: `Text`,
-      text: `This can take a while to generate and the download button will be blue once it is available.`
+      text: `These can take a while to generate. The download buttons will become blue once they are available.`
     },
     {
       type: `File`,
-      description: `Download the configuration file`,
+      description: `Windows, OSX and Linux configuration file`,
       name: `/etc/config.ovpn`,
+      style: `Download`
+    },
+    {
+      type: `File`,
+      description: `iOS and Android configuration file`,
+      name: `/etc/config-alt.ovpn`,
       style: `Download`
     },
     {
@@ -64,6 +77,11 @@
       style: `boot`
     },
     {
+      type: `File`,
+      name: `/etc/config-alt.ovpn`,
+      style: `boot`
+    },
+    {
       type: `Network`,
       name: `primary`,
       defaultValue: `home`
@@ -75,7 +93,7 @@
     }
   ],
   monitor: {
-    cmd: `ifconfig tap0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/"`,
+    cmd: `ifconfig eth0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/"`,
     polling: 1,
     parser: `
       const rxtx = input.split(' ');
