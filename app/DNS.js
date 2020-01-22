@@ -18,7 +18,6 @@ const DEFAULT_FALLBACK_RESOLVER = Config.DEFAULT_FALLBACK_RESOLVER;
 const DOH_SERVER_NAME = Config.DOH_SERVER_NAME;
 const DOH_SERVER_PORT = Config.DOH_SERVER_PORT;
 const DOH_SERVER_PATH = Config.DOH_SERVER_PATH;
-const DOH_CERT = 'doh-minkebox-net.pem';
 
 let hostIP = null;
 let dns = null;
