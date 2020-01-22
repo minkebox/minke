@@ -98,6 +98,7 @@ body {
   border-radius: 5px;
   border: 5px solid transparent;
   text-transform: lowercase;
+  box-shadow: 1px 1px 5px #999;
 }
 .skel .icon::first-letter {
   text-transform: uppercase;
