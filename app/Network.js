@@ -29,7 +29,7 @@ const Network = {
         let iface = null;
         try {
           iface = list.find(item => item.name === WLAN_NETWORK);
-          if (iface) {
+          if (iface && iface.ip_address) {
             net = FS.readFileSync(WLAN_NETWORK_FILE, { encoding: 'utf8' });
           }
           else {
@@ -229,7 +229,14 @@ const Network = {
   }),
 
   wifiAvailable: async function() {
-    return (await this.getActiveInterface()).network.name === WLAN_NETWORK;
+    return new Promise((resolve, reject) => {
+      Net.get_interfaces_list((err, list) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(!!list.find(item => item.type === 'Wireless'));
+      });
+    });
   },
 
   _getNetwork: async function(config) {
