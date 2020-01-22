@@ -45,7 +45,8 @@
     },
     {
       type: 'Header',
-      title: 'Wifi (experimental)'
+      title: 'Wifi',
+      visible: 'property.WifiAvailable'
     },
     {
       type: 'Text',
@@ -66,6 +67,10 @@
       type: 'Environment',
       name: 'WIFIPASSWORD',
       description: 'Wifi password'
+    },
+    {
+      type: 'Text',
+      text: '<br/><b>Wifi support is experimental and some features many not work, or work reliably.</b>'
     },
     {
       type: 'Header',

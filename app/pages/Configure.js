@@ -6,6 +6,7 @@ const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
 const Skeletons = require('../skeletons/Skeletons');
 const Filesystem = require('../Filesystem');
+const Network = require('../Network');
 const Disks = require('../Disks');
 const Backup = require('../Backup');
 
@@ -48,6 +49,7 @@ async function ConfigurePageHTML(ctx) {
   if (!skeleton) {
     console.error(`Failed to load skeleton: ${app._image}`);
   }
+  const minkeConfig = app._image == Images.MINKE;
 
   function expand(text) {
     return app.expand(text);
@@ -58,9 +60,9 @@ async function ConfigurePageHTML(ctx) {
   const enabled = {};
   const properties = {
     AdminMode: MinkeApp.getAdminMode(),
-    FirstUse: app._bootcount == 0
+    FirstUse: app._bootcount == 0,
+    WifiAvailable: minkeConfig ? (await Network.wifiAvailable()) : false
   };
-  const minkeConfig = app._image == Images.MINKE;
   const nskeleton = {
     name: skeleton.name,
     value: app._name,

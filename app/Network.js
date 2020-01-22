@@ -228,6 +228,10 @@ const Network = {
     });
   }),
 
+  wifiAvailable: async function() {
+    return (await this.getActiveInterface()).network.name === WLAN_NETWORK;
+  },
+
   _getNetwork: async function(config) {
     let net = networks[config.Name];
     if (!net) {
