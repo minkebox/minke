@@ -16,6 +16,7 @@ const WIRED_NETWORKS = 'en* eth*';
 const WLAN_NETWORK = 'wlan0';
 
 const networks = {};
+let wifiAvailable = null;
 
 const Network = {
 
@@ -229,12 +230,16 @@ const Network = {
   }),
 
   wifiAvailable: async function() {
+    if (wifiAvailable !== null) {
+      return wifiAvailable;
+    }
     return new Promise((resolve, reject) => {
       Net.get_interfaces_list((err, list) => {
         if (err) {
           return reject(err);
         }
-        return resolve(!!list.find(item => item.type === 'Wireless'));
+        wifiAvailable = !!list.find(item => item.type === 'Wireless');
+        return resolve(wifiAvailable);
       });
     });
   },
