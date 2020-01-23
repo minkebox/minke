@@ -218,7 +218,8 @@ const Network = {
         }]
       },
       Options: {
-        'com.docker.network.bridge.name': BRIDGE_NETWORK
+        'com.docker.network.bridge.name': BRIDGE_NETWORK,
+        'com.docker.network.bridge.enable_ip_masquerade': 'false'
       }
     });
   }),

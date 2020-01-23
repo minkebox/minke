@@ -2,7 +2,7 @@
 #
 # Network setup assumed already created a bridge on the host
 #
-#docker network create --driver=bridge --subnet=192.168.51.0/24 --gateway=192.168.51.15 -o "com.docker.network.bridge.name=br0" --aux-address="DefaultGatewayIPv4=192.168.51.1" home
+#docker network create --driver=bridge --subnet=192.168.51.0/24 --gateway=192.168.51.15 -o "com.docker.network.bridge.name=br0" -o "com.docker.network.bridge.enable_ip_masquerade=false" --aux-address="DefaultGatewayIPv4=192.168.51.1" home
 #
 
 #docker build --network host -t registry.minkebox.net/minkebox/minke .
