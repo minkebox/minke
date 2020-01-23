@@ -19,6 +19,7 @@ const Skeletons = require('./skeletons/Skeletons');
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
 
 const CRASH_TIMEOUT = (2 * 60 * 1000); // 2 minutes
+const HELPER_STARTUP_TIMEOUT = (10 * 1000) // 10 seconds
 
 let applications = [];
 let koaApp = null;
@@ -541,25 +542,37 @@ MinkeApp.prototype = {
           stdout: true,
           stderr: false
         });
-        await new Promise((resolve) => {
-          docker.modem.demuxStream(log, {
-            write: (data) => {
-              data = data.toString('utf8');
-              let idx = data.indexOf('MINKE:HOME:IP ');
-              if (idx !== -1) {
-                this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
+        try {
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              log.destroy();
+              reject();
+            }, HELPER_STARTUP_TIMEOUT);
+            docker.modem.demuxStream(log, {
+              write: (data) => {
+                data = data.toString('utf8');
+                let idx = data.indexOf('MINKE:HOME:IP ');
+                if (idx !== -1) {
+                  this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
+                }
+                idx = data.indexOf('MINKE:PRIVATE:IP ');
+                if (idx !== -1) {
+                  this._privateIP = data.replace(/.*MINKE:PRIVATE:IP (.*)\n.*/, '$1');
+                }
+                if (data.indexOf('MINKE:UP') !== -1) {
+                  log.destroy();
+                  clearTimeout(timeout);
+                  resolve();
+                }
               }
-              idx = data.indexOf('MINKE:PRIVATE:IP ');
-              if (idx !== -1) {
-                this._privateIP = data.replace(/.*MINKE:PRIVATE:IP (.*)\n.*/, '$1');
-              }
-              if (data.indexOf('MINKE:UP') !== -1) {
-                log.destroy();
-                resolve();
-              }
-            }
-          }, null);
-        });
+            }, null);
+          });
+        }
+        catch (_) {
+          // Helper failed to startup cleanly - abort
+          this.stop();
+          return this;
+        }
 
         if (this._homeIP) {
           const homeip6 = this.getSLAACAddress();
