@@ -84,6 +84,7 @@ async function imageToSkeleton(image) {
     name: 'MyApp',
     description: '',
     image: image,
+    tags: [ 'App' ],
 
     actions: [
     ],
