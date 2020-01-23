@@ -39,15 +39,26 @@ behind this VPN server and is not directly connected. Most of the time this won'
     },
     {
       type: `File`,
-      description: `Windows, OSX and Linux configuration file`,
+      description: `Windows, Mac and Linux configuration file`,
       name: `/etc/config.ovpn`,
       style: `Download`
     },
     {
       type: `File`,
-      description: `iOS and Android configuration file`,
+      description: `iPhone and Android configuration file`,
       name: `/etc/config-alt.ovpn`,
       style: `Download`
+    },
+    {
+      type: `Help`,
+      text: `Compatible VPN clients
+<ul>
+<li><a href="https://www.sparklabs.com/viscosity/">Viscosity</a> (Win, Mac)</li>
+<li><a href="https://tunnelblick.net/">Tunnelblick<a> (Mac)</li>
+<li><a href="https://openvpn.net/client-connect-vpn-for-windows/">OpenVPN Connect</a> (Win)</li>
+<li><a href="https://apps.apple.com/us/app/openvpn-connect/id590379981">OpenVPN Connect</a> (iPhone)</li>
+<li><a href="https://play.google.com/store/apps/details?id=net.openvpn.openvpn">OpenVPN Connect</a> (Android)</li>
+</ul>`
     },
     {
       type: `Text`,

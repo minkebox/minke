@@ -86,7 +86,7 @@ body {
   line-height: 1.4em;
   padding-bottom: 1em;
 }
-.configure .content-text a {
+.configure .content-text a, .configure .help-text-content a {
   font-weight: 600;
   color: #7878ff;
   text-decoration: none;
