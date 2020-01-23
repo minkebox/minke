@@ -3,6 +3,7 @@ const OS = require('os');
 const Net = require('network');
 const Netmask = require('netmask');
 const Address6 = require('ip-address').Address6;
+const DetectRpi = require('detect-rpi');;
 const Barrier = require('./utils/Barrier');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
@@ -231,18 +232,10 @@ const Network = {
   }),
 
   wifiAvailable: async function() {
-    if (wifiAvailable !== null) {
-      return wifiAvailable;
+    if (wifiAvailable === null) {
+      wifiAvailable = DetectRpi();
     }
-    return new Promise((resolve, reject) => {
-      Net.get_interfaces_list((err, list) => {
-        if (err) {
-          return reject(err);
-        }
-        wifiAvailable = !!list.find(item => item.type === 'Wireless');
-        return resolve(wifiAvailable);
-      });
-    });
+    return wifiAvailable;
   },
 
   _getNetwork: async function(config) {
