@@ -1199,6 +1199,9 @@ MinkeApp.startApps = async function(app, config) {
   // Startup home network early (in background)
   Network.getHomeNetwork();
 
+  // See if we have wifi (in background)
+  Network.wifiAvailable();
+
   // Monitor docker events
   MinkeApp._monitorEvents();
 
