@@ -16,6 +16,7 @@ const HOME_NETWORK_NAME = 'home';
 const BRIDGE_NETWORK = 'br0';
 const WIRED_NETWORKS = 'en* eth*';
 const WLAN_NETWORK = 'wlan0';
+const WIRED_NETWORK_FALLBACK = "192.168.1.200/24";
 
 const networks = {};
 let wifiAvailable = null;
@@ -189,7 +190,7 @@ const Network = {
       net =`[Match]\nName=${WIRED_NETWORKS}\n\n[Network]\nBridge=${BRIDGE_NETWORK}\n`;
     }
     else {
-      net =`[Match]\nName=${WIRED_NETWORKS}\n`;
+      net =`[Match]\nName=${WIRED_NETWORKS}\n\n[Network]\nAddress=${WIRED_NETWORK_FALLBACK}\n`;
     }
     try {
       FS.writeFileSync(WIRED_NETWORK_FILE, net);
