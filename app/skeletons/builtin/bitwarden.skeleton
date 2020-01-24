@@ -1,0 +1,90 @@
+{
+  name: `Bitwarden`,
+  description: `Bitwarden password manager`,
+  image: `bitwardenrs/server`,
+  tags: [
+    `Security`,
+    `Web`
+  ],
+  actions: [
+    {
+      type: `Text`,
+      text: `Bitwarden is a self-hosted password manager with applications for all major operating system, mobiles and browsers.`
+    },
+    {
+      type: `Header`,
+      title: `Administator`
+    },
+    {
+      type: `Text`,
+      text: `Bitwarden has a single administator account which is protected by a long, random, unguessable admin token.`
+    },
+    {
+      type: `Environment`,
+      description: `Admin token`,
+      name: `ADMIN_TOKEN`
+    }
+  ],
+  properties: [
+    {
+      type: `Directory`,
+      style: `store`,
+      name: `/data`
+    },
+    {
+      type: `Environment`,
+      name: `ROCKET_ENV`,
+      defaultValue: `staging`
+    },
+    {
+      type: `Environment`,
+      name: `ROCKET_PORT`,
+      defaultValue: `80`
+    },
+    {
+      type: `Environment`,
+      name: `ADMIN_TOKEN`
+    },
+    {
+      type: `Environment`,
+      name: `ROCKET_WORKERS`,
+      defaultValue: `10`
+    },
+    {
+      type: `Port`,
+      name: `3012/tcp`,
+      port: 3012,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
+      port: 80,
+      protocol: `TCP`,
+      nat: false,
+      web: {
+        type: `newtab`,
+        path: `/admin`
+      },
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    polling: 0,
+    parser: ``,
+    minwidth: `200px`,
+    header: ``,
+    template: ``
+  }
+}
