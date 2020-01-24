@@ -19,7 +19,7 @@ const Skeletons = require('./skeletons/Skeletons');
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
 
 const CRASH_TIMEOUT = (2 * 60 * 1000); // 2 minutes
-const HELPER_STARTUP_TIMEOUT = (10 * 1000) // 10 seconds
+const HELPER_STARTUP_TIMEOUT = (30 * 1000) // 30 seconds
 
 let applications = [];
 let koaApp = null;
