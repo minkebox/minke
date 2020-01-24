@@ -1,5 +1,6 @@
 const FS = require('fs');
 const OS = require('os');
+const ChildProcess = require('child_process');
 const Net = require('network');
 const Netmask = require('netmask');
 const Address6 = require('ip-address').Address6;
