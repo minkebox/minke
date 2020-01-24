@@ -238,6 +238,18 @@ const Network = {
     return wifiAvailable;
   },
 
+  registerIP: function(ip) {
+    ChildProcess.spawnSync('/sbin/ip', [
+      'route', 'add', `${ip}/32`, 'dev', BRIDGE_NETWORK, 'metric', '50'
+    ]);
+  },
+
+  unregisterIP: function(ip) {
+    ChildProcess.spawnSync('/sbin/ip', [
+      'route', 'del', `${ip}/32`, 'dev', BRIDGE_NETWORK, 'metric', '50'
+    ]);
+  },
+
   _getNetwork: async function(config) {
     let net = networks[config.Name];
     if (!net) {
