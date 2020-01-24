@@ -31,7 +31,7 @@ function genApp(app) {
     link: app._forward && app._forward.url,
     linktarget: app._forward && app._forward.target,
     tags: app._tags,
-    tagcolor: tagColor(app._tags[0]),
+    tagcolor: tagColor(app._tags[0].toLowerCase()),
     networks: [
       app._networks.primary === 'host' ? 'home' : app._networks.primary,
       app._networks.secondary === 'host' ? 'home' : app._networks.secondary
