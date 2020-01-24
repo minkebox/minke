@@ -2,7 +2,7 @@
   name: `Simple VPN`,
   description: `Super simple VPN to connect to your home network`,
   image: `registry.minkebox.net/minkebox/openvpnserver`,
-  tags: [ 'VPN', 'Networking' ],
+  tags: [ 'VPN', 'Security', 'Networking' ],
   actions: [
     {
       type: `Header`,
