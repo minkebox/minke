@@ -86,7 +86,7 @@ MinkeSetup.prototype = {
       resolvers: [ this._env.DNSSERVER1.value, this._env.DNSSERVER2.value ],
       secure: [ this._env.DNSSECURE1.value, this._env.DNSSECURE2.value ]
     });
-    DDNS.start(this);
+    DDNS.start(this._globalId);
     UPNP.start({
       uuid: this._globalId,
       hostname: this._name,

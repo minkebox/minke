@@ -16,11 +16,13 @@ const DDNS = {
   _lastip: null,
   _lastip6: null,
   _pending: null,
+  _key: '',
 
-  start: function() {
+  start: function(key) {
+    this._key = key;
     let ticks = 0;
     this._tick = setInterval(async () => {
-      this._update(ticks === 0);
+      this._update(this._key, ticks === 0);
       ticks--;
       if (ticks < 0) {
         ticks = FORCE_TICKS;
@@ -33,7 +35,7 @@ const DDNS = {
     const gid = app._globalId;
     if (!(gid in this._gids)) {
       this._gids[gid] = app;
-      this._update(true);
+      this._update(this._key, true);
     }
   },
 
@@ -42,7 +44,7 @@ const DDNS = {
     delete this._gids[app._globalId];
   },
 
-  _update: function(force) {
+  _update: function(key, force) {
     if (Object.keys(this._gids).length) { // Dont store keys - may change after we've got the IP address
       if (force) {
         this._lastip = null;
@@ -54,22 +56,22 @@ const DDNS = {
         this._getExternalIP().then((ip) => {
           if (!ip) {
             setTimeout(() => {
-              this._update(true);
+              this._update(key, true);
             }, RETRY);
           }
           else if (ip !== this._lastip || ip6 !== this._lastip6) {
             this._lastip = ip;
             this._lastip6 = ip6;
-            Object.keys(this._gids).forEach(key => {
-              const app = this._gids[key];
+            Object.keys(this._gids).forEach(gid => {
+              const app = this._gids[gid];
               const ip6 = app.getNATIP6() ? app.getSLAACAddress() : null;
               if (!ip6) {
-                //console.log(`${DDNS_URL}?host=${key}&ip=${ip}`);
-                HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}`, () => {});
+                //console.log(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}`);
+                HTTPS.get(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}`, () => {});
               }
               else {
-                //console.log(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${ip6}`);
-                HTTPS.get(`${DDNS_URL}?host=${key}&ip=${ip}&ip6=${ip6}`, () => {});
+                //console.log(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}&ip6=${ip6}`);
+                HTTPS.get(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}&ip6=${ip6}`, () => {});
               }
             });
           }
