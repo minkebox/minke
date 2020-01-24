@@ -2,7 +2,7 @@
   name: `OpenVPN`,
   description: `OpenVPN client for use with various OpenVPN servers`,
   image: `registry.minkebox.net/minkebox/openvpnclient`,
-  tags: [ 'VPN' ],
+  tags: [ 'VPN', 'Networking' ],
   actions: [
     {
       type: `Environment`,
