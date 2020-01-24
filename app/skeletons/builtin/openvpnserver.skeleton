@@ -54,7 +54,7 @@ behind this VPN server and is not directly connected. Most of the time this won'
       text: `Compatible VPN clients
 <ul>
 <li><a target="_blank" href="https://www.sparklabs.com/viscosity/">Viscosity</a> (Win, Mac)</li>
-<li><a target="_blank" href="https://tunnelblick.net/">Tunnelblick<a> (Mac)</li>
+<li><a target="_blank" href="https://tunnelblick.net/">Tunnelblick</a> (Mac)</li>
 <li><a target="_blank" href="https://openvpn.net/client-connect-vpn-for-windows/">OpenVPN Connect</a> (Win)</li>
 <li><a target="_blank" href="https://apps.apple.com/us/app/openvpn-connect/id590379981">OpenVPN Connect</a> (iPhone)</li>
 <li><a target="_blank" href="https://play.google.com/store/apps/details?id=net.openvpn.openvpn">OpenVPN Connect</a> (Android)</li>
