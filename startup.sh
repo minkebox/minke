@@ -10,4 +10,8 @@ cp /usr/share/zoneinfo/$(cat /etc/timezone) /etc/localtime
 (sleep 60 ; ntpd -s -f /etc/ntpd.conf) &
 
 # Minke
-exec /app/index.js
+/app/index.js
+# Restart if testing (so we can debug inside the docker container)
+while -f /tmp/minke-testing; do
+  /app/index.js
+done
