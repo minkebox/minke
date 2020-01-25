@@ -3,6 +3,7 @@ const FS = require('fs');
 const Handlebars = require('handlebars');
 
 const DEFAULT_POLLING = 60; // Default polling is 60 seconds
+const ERROR_POLLING = 5; // Poll quickly if the last poll errored
 const DEFAULT_PARSER = 'output=input;'
 const DEFAULT_TEMPLATE = function(data) { return data; };
 const DEFAULT_COLORS = [
@@ -64,17 +65,19 @@ function WatchCmd(app, cmd, parser, template, polling) {
     if (app._container) {
       try {
         sandbox.input = await runCmd(app, cmd);
-        sandbox.output = {};
-        extractor();
-        if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
-          for (let name in sandbox.output.graph) {
-            const graph = sandbox.output.graph[name];
-            if (graph) {
-              sandbox.output.graph[name] = _generateGraph2(graph);
+        if (sandbox.input != '') {
+          sandbox.output = {};
+          extractor();
+          if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
+            for (let name in sandbox.output.graph) {
+              const graph = sandbox.output.graph[name];
+              if (graph) {
+                sandbox.output.graph[name] = _generateGraph2(graph);
+              }
             }
           }
+          html = ctemplate(sandbox.output);
         }
-        html = ctemplate(sandbox.output);
       }
       catch (e) {
         console.error(e);
@@ -83,7 +86,7 @@ function WatchCmd(app, cmd, parser, template, polling) {
     return `
       ${html}
       <script>
-      window.monitor('${app._id}',${(polling || DEFAULT_POLLING) * 1000});
+      window.monitor('${app._id}',${(html == '' ? ERROR_POLLING : (polling || DEFAULT_POLLING)) * 1000});
       </script>
     `;
   }
