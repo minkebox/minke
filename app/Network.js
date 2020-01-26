@@ -208,7 +208,7 @@ const Network = {
     }
 
     const iface = await Network.getActiveInterface();
-    const nnet = await this._getNetwork({
+    return await this._getNetwork({
       Name: HOME_NETWORK_NAME,
       Driver: 'bridge',
       IPAM: {
@@ -225,11 +225,6 @@ const Network = {
         'com.docker.network.bridge.enable_ip_masquerade': 'false'
       }
     });
-    // Wait 10 seconds after network creation (debugging weird mac issue).
-    await new Promise(resolve => {
-      setTimeout(resolve, 10000);
-    });
-    return nnet;
   }),
 
   getBridgeNetwork: Barrier(async function() {
@@ -268,7 +263,8 @@ const Network = {
       }
       catch (_) {
         if (config.Driver) {
-          net = await docker.createNetwork(config);
+          await docker.createNetwork(config);
+          net = docker.getNetwork(config.Name);
           net.info = await net.inspect();
           networks[config.Name] = net;
         }
