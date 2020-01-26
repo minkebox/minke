@@ -263,6 +263,9 @@ const Network = {
       }
       catch (_) {
         if (config.Driver) {
+          // Create network and then get it again. *DONT* use the network
+          // returned from createNetwork as this doesn't handle mac addresses
+          // correctly.
           await docker.createNetwork(config);
           net = docker.getNetwork(config.Name);
           net.info = await net.inspect();
