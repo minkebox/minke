@@ -208,7 +208,7 @@ const Network = {
     }
 
     const iface = await Network.getActiveInterface();
-    const net = await this._getNetwork({
+    const nnet = await this._getNetwork({
       Name: HOME_NETWORK_NAME,
       Driver: 'bridge',
       IPAM: {
@@ -229,7 +229,7 @@ const Network = {
     await new Promise(resolve => {
       setTimeout(resolve, 10000);
     });
-    return net;
+    return nnet;
   }),
 
   getBridgeNetwork: Barrier(async function() {
