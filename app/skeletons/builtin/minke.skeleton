@@ -114,8 +114,13 @@ which is given the recovery address of <b>192.168.1.200</b>.
       title: 'DNS'
     },
     {
+      type: 'Help',
+      text: `MinkeBox will act as a DNS server for your local machines and services, passing unknown DNS queries to the DNS servers specified below.
+Note that MinkeBox does <b>not</b> automatically use DNS servers provided by your DHCP server.`
+    },
+    {
       type: 'Text',
-      text: 'MinkeBox will act as a DNS server for your local machines and services. Select the external DNS servers to use for non-local addresses.'
+      text: 'Select the external DNS servers to use for non-local addresses.'
     },
     {
       type: 'Environment',
