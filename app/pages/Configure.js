@@ -558,7 +558,7 @@ async function ConfigurePageWS(ctx) {
   ];
 
   let changes = {};
-  async function save() {
+  async function save(forceRestart) {
     try {
       let changed = 0;
       for (let property in changes) {
@@ -581,12 +581,8 @@ async function ConfigurePageWS(ctx) {
           type: 'page.reload'
         });
       }
-      if (changed) {
+      if (changed || uapp._status === 'stopped' || forceRestart) {
         await uapp.restart();
-        await Promise.all(MinkeApp.needRestart().map(app => app.restart()));
-      }
-      else if (uapp._status === 'stopped') {
-        await uapp.start();
         await Promise.all(MinkeApp.needRestart().map(app => app.restart()));
       }
     }
@@ -602,8 +598,12 @@ async function ConfigurePageWS(ctx) {
         case 'action.change':
           changes[msg.property] = msg.value;
           break;
-        case 'app.save':
         case 'app.restart':
+          if (app) {
+            save(true);
+          }
+          break;
+        case 'app.save':
           if (app) {
             save();
           }
