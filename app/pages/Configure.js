@@ -603,13 +603,9 @@ async function ConfigurePageWS(ctx) {
           changes[msg.property] = msg.value;
           break;
         case 'app.save':
-          if (app) {
-            save();
-          }
-          break;
         case 'app.restart':
           if (app) {
-            app.restart('restart');
+            save();
           }
           break;
         case 'app.reboot':
