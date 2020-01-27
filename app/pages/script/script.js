@@ -184,6 +184,7 @@ function filter(net) {
       }
     });
   }
+  document.getElementsByClassName('list')[0].scrollTo(0, 0);
 }
 
 let editor = null;
@@ -344,7 +345,7 @@ function closeInlinePage() {
   if (div) {
     div.remove();
     document.body.removeEventListener('click', closeInlinePage);
-    document.body.removeEventListener('touchstart', closeInlinePage);
+    document.getElementsByClassName('nav')[0].removeEventListener('touchstart', closeInlinePage);
   }
 }
 
@@ -362,7 +363,7 @@ function openInlinePage(url, target) {
     setTimeout(() => {
       window.scrollTo(0, scrollY);
       document.body.addEventListener('click', closeInlinePage);
-      document.body.addEventListener('touchstart', closeInlinePage);
+      document.getElementsByClassName('nav')[0].addEventListener('touchstart', closeInlinePage);
     }, 0);
     const div = builder.firstElementChild;
     const insert = document.getElementById('insertion-point');
