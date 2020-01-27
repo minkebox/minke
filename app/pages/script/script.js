@@ -344,7 +344,7 @@ function closeInlinePage() {
   const div = document.querySelector(".inline-page");
   if (div) {
     div.remove();
-    document.getElementsByClassName('nav')[0]('click', closeInlinePage);
+    document.getElementsByClassName('nav')[0].removeEventListener('click', closeInlinePage);
     document.getElementsByClassName('nav')[0].removeEventListener('touchstart', closeInlinePage);
   }
 }
@@ -362,7 +362,7 @@ function openInlinePage(url, target) {
     const scrollY = window.scrollY;
     setTimeout(() => {
       window.scrollTo(0, scrollY);
-      document.getElementsByClassName('nav')[0]('click', closeInlinePage);
+      document.getElementsByClassName('nav')[0].addEventListener('click', closeInlinePage);
       document.getElementsByClassName('nav')[0].addEventListener('touchstart', closeInlinePage);
     }, 0);
     const div = builder.firstElementChild;
