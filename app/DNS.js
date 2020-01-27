@@ -26,7 +26,6 @@ let hostname = 'MinkeBox';
 let primaryResolver = '';
 let secondaryResolver = '';
 let secureResolver = null;
-let dohServer = false;
 const resolvers = {};
 const cacheSize = 1024;
 const hosts = {};
@@ -53,11 +52,9 @@ const DNS = {
       primaryResolver = resolver1 ? `server=${resolver1}#53\n` : '';
       secondaryResolver = resolver2 ? `server=${resolver2}#53\n` : '';
       secureResolver = null;
-      dohServer = false;
       this.unregisterHostIP(DOH_SERVER_NAME);
     }
     else {
-      dohServer = true;
       primaryResolver = `server=127.0.0.1#5453\n`;
       secondaryResolver = '';
       const fallback = resolver1 ? resolver1 : resolver2 ? resolver2 : DEFAULT_FALLBACK_RESOLVER;
