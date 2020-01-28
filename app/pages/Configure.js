@@ -591,7 +591,7 @@ async function ConfigurePageWS(ctx) {
         });
       }
       if (changed || uapp._status === 'stopped' || forceRestart) {
-        await uapp.restart('restart');
+        await uapp.restart(forceRestart ? 'restart' : null);
         await Promise.all(MinkeApp.needRestart().map(app => app.restart()));
       }
     }
