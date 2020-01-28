@@ -40,9 +40,9 @@
           <div class="section" {{#if id}}id="{{id}}"{{/if}}>
           <div class="content-header">{{title}}</div>
           {{else if (eq type "Text")}}
-          <div class="content-text">{{{text}}}</div>
+          <div class="content-text" {{#if id}}id="{{id}}"{{/if}}>{{{text}}}</div>
           {{else if (eq type "Help")}}
-          <div class="help-text"><div class="help-text-content">{{{text}}}</div></div>
+          <div class="help-text" {{#if id}}id="{{id}}"{{/if}}><div class="help-text-content">{{{text}}}</div></div>
           {{else if (eq type "Environment")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group">
             <label class="description">{{{description}}}</label>

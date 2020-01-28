@@ -7,7 +7,7 @@
     {
       type: `Header`,
       title: `Network`,
-      visible: `property['AdminMode'] == true`
+      visible: `property.AdminMode`
     },
     {
       type: `Text`,
@@ -30,11 +30,12 @@ your device is physically connected to your home network. Android and iOS do not
 and so "tun" networking is also provided. With this configuration, you can access anything on your network, but your machine is hidden
 behind this VPN server and is not directly connected. Most of the time this won't matter, but if you're using applications which rely on
 broadcast or multicast services, they might not work correctly. Finally, "tap" networking will not work if MinkeBox is connected to your network
-using Wi-Fi; use "tun" in this case.`
+using Wi-Fi; use "tun" in this case.`,
+      visible: `property.AdminMode`
     },
     {
       type: `Text`,
-      text: `The VPN will generate client configuration files which anyone can use to connect to your network. They can be used by any number of people or machines, and require no passwords. Guard them well!.`
+      text: `The VPN will generate configuration files which anyone can use to connect to your network. They can be used by any number of people or machines, and require no passwords. Guard them well!.`
     },
     {
       type: `Text`,
@@ -50,7 +51,8 @@ using Wi-Fi; use "tun" in this case.`
       type: `File`,
       description: `Desktop optimized configuration (see Help for details)`,
       name: `/etc/config.ovpn`,
-      style: `Download`
+      style: `Download`,
+      visible: `property.AdminMode`
     },
     {
       type: `Help`,
