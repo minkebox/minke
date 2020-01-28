@@ -103,6 +103,11 @@ const UPNP = {
     this._hostname = config.hostname;
   },
 
+  available: function() {
+    this.getWANLocationURL();
+    return !!this._WANIPConnectionURL;
+  },
+
   getWANLocationURL: async function() {
     if (!this._WANIPConnectionURL) {
       if (!ssdp) {

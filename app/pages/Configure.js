@@ -9,6 +9,7 @@ const Filesystem = require('../Filesystem');
 const Network = require('../Network');
 const Disks = require('../Disks');
 const Backup = require('../Backup');
+const UPNP = require('../UPNP');
 
 let template;
 let downloadTemplate;
@@ -275,10 +276,18 @@ async function ConfigurePageHTML(ctx) {
         case 'UPnP':
         {
           const ip6 = app._homeIP && app.getNATIP6() ? app.getSLAACAddress() : null;
-          return {
-            type: `Text`,
-            text: `UPnP is used to forward traffic from your router to this application. If your router does not support UPnP then you need to forward traffic manually${app._homeIP ? ' to IPv4 address <b>' + app._homeIP + '</b>' : ''}${ip6 ? ' and IPv6 address <b>' + ip6 + '</b>' : ''}`
-          };
+          const upnp = UPNP.available();
+          if (upnp) {
+            return {
+              type: 'Empty'
+            };
+          }
+          else {
+            return {
+              type: `Text`,
+              text: `UPnP can be used to forward traffic from a router to this application. Unfortunately it does not appear to be available so you need to forward traffic manually${app._homeIP ? ' to IPv4 address <b>' + app._homeIP + '</b>' : ''}${ip6 ? ' and IPv6 address <b>' + ip6 + '</b>' : ''}`
+            };
+          }
         }
         case 'Argument':
         default:
