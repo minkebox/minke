@@ -109,12 +109,14 @@ using Wi-Fi; use "tun" in this case.`,
     }
   ],
   monitor: {
-    cmd: `ifconfig eth0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/"`,
+    cmd: `echo $(ifconfig tun0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/") $(ifconfig tap0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/")`,
     polling: 1,
     parser: `
       const rxtx = input.split(' ');
-      if (rxtx.length == 2) {
+      if (rxtx.length == 4) {
         const now = Date.now() / 1000;
+        rxtx[0] = parseInt(rxtx[0]) + parseInt(rxtx[2]);
+        rxtx[1] = parseInt(rxtx[1]) + parseInt(rxtx[3]);
         if (!state) {
           state = {
             rx: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
@@ -125,8 +127,8 @@ using Wi-Fi; use "tun" in this case.`,
         }
         state.rx.shift();
         state.tx.shift();
-        state.rx.push((rxtx[1] - state.last[1]) * 8 / 1000000 / (now - state.then));
-        state.tx.push((rxtx[0] - state.last[0]) * 8 / 1000000 / (now - state.then));
+        state.rx.push((rxtx[0] - state.last[0]) * 8 / 1000000 / (now - state.then));
+        state.tx.push((rxtx[1] - state.last[1]) * 8 / 1000000 / (now - state.then));
         output.rx = state.rx.slice(-1)[0].toFixed(1);
         output.tx = state.tx.slice(-1)[0].toFixed(1);
         state.last = rxtx;
