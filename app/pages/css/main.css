@@ -392,7 +392,7 @@ background: #fd471f;
   border-color: #06f34d;
 }
 
-html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
+html:not(.advanced-mode) .admin-only, html.advanced-mode .user-only {
   display: none;
 }
 

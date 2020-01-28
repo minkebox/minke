@@ -171,7 +171,7 @@ body {
 
 /* Spinner */
 
-html:not(.admin-mode) .admin-only, html.admin-mode .user-only {
+html:not(.advanced-mode) .admin-only, html.advanced-mode .user-only {
   display: none;
 }
 

@@ -7,7 +7,7 @@
     {
       type: `Header`,
       title: `Network`,
-      visible: `property.AdminMode`
+      visible: `property.Advanced`
     },
     {
       type: `Text`,
@@ -31,7 +31,7 @@ and so "tun" networking is also provided. With this configuration, you can acces
 behind this VPN server and is not directly connected. Most of the time this won't matter, but if you're using applications which rely on
 broadcast or multicast services, they might not work correctly. Finally, "tap" networking will not work if MinkeBox is connected to your network
 using Wi-Fi; use "tun" in this case.`,
-      visible: `property.AdminMode`
+      visible: `property.Advanced`
     },
     {
       type: `Text`,
@@ -52,7 +52,7 @@ using Wi-Fi; use "tun" in this case.`,
       description: `Desktop optimized configuration (see Help for details)`,
       name: `/etc/config-alt.ovpn`,
       style: `Download`,
-      visible: `property.AdminMode`
+      visible: `property.Advanced`
     },
     {
       type: `Help`,

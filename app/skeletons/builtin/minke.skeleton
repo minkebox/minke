@@ -188,24 +188,26 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
       title: 'Advanced'
     },
     {
+      type: 'Environment',
+      name: 'ADMINMODE',
+      description: 'Enable advanced application features'
+    },
+    {
       type: 'Help',
-      text: `MinkeBox automatically updates itself (including the kernel) and its applications once a day. By default this happens during the night, but you can change the time if necessary. The time is specified using the 24-hour format.`
+      text: `MinkeBox automatically updates itself (including the kernel) and its applications once a day. By default this happens during the night, but you can change the time if necessary. The time is specified using the 24-hour format.`,
+      visible: `property.Advanced`
     },
     {
       type: 'Environment',
       name: 'UPDATETIME',
-      description: 'Select what time of day to install updates'
+      description: 'Select what time of day to install updates',
+      visible: `property.Advanced`
     },
     {
       type: 'Network',
       name: 'primary',
       description: 'Select an optional remote management network',
       visible: `false`
-    },
-    {
-      type: 'Environment',
-      name: 'ADMINMODE',
-      description: 'Admin Mode'
     },
     {
       type: 'Header',

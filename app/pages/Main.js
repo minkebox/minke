@@ -95,7 +95,7 @@ async function MainPageHTML(ctx) {
   const networks = MinkeApp.getNetworks();
   const apps = MinkeApp.getApps().map(app => genApp(app));
   const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app), []);
-  ctx.body = mainTemplate({ configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME, adminMode: MinkeApp.getAdminMode(), tags: tagsToMap(tags), networks: networks, apps: apps, statuses: statuses });
+  ctx.body = mainTemplate({ configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME, Advanced: MinkeApp.getAdvancedMode(), tags: tagsToMap(tags), networks: networks, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
 }
 

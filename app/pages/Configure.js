@@ -60,7 +60,7 @@ async function ConfigurePageHTML(ctx) {
   const visibles = {};
   const enabled = {};
   const properties = {
-    AdminMode: MinkeApp.getAdminMode(),
+    Advanced: MinkeApp.getAdvancedMode(),
     FirstUse: app._bootcount == 0,
     WifiAvailable: minkeConfig ? (await Network.wifiAvailable()) : false
   };
@@ -295,10 +295,10 @@ async function ConfigurePageHTML(ctx) {
       }
     })
   }
-  const adminMode = MinkeApp.getAdminMode();
+  const advanced = MinkeApp.getAdvancedMode();
   ctx.body = template({
     minkeConfig: minkeConfig,
-    adminMode: adminMode,
+    Advanced: advanced,
     skeleton: nskeleton,
     properties: JSON.stringify(properties),
     skeletonAsText: Skeletons.toString(skeleton),

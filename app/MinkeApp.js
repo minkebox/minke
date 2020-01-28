@@ -1351,8 +1351,8 @@ MinkeApp.startApps = async function(app, config) {
   }));
 }
 
-MinkeApp.getAdminMode = function() {
-  return setup ? setup.getAdminMode() : false;
+MinkeApp.getAdvancedMode = function() {
+  return setup ? setup.getAdvancedMode() : false;
 }
 
 MinkeApp.getLocalDomainName = function() {

@@ -244,7 +244,7 @@ MinkeSetup.prototype = {
     return false;
   },
 
-  getAdminMode: function() {
+  getAdvancedMode: function() {
     return this._env.ADMINMODE.value === 'ENABLED';
   },
 

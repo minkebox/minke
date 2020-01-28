@@ -70,7 +70,7 @@
     {
       type: `Header`,
       title: `Advanced`,
-      visible: `property['AdminMode'] == true`
+      visible: `property.Advanced`
     },
     {
       type: `Environment`,
