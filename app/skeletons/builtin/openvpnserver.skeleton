@@ -24,10 +24,13 @@
     },
     {
       type: `Help`,
-      text: `Simple VPN actually creates two VPN servers, one using "tap" networking and the other using "tun". The "tap" configuration can be used by desktops, while the "tun"
-configuration can be used by mobiles and desktops. The "tap" configutation makes it appear as if your device is physically connected to your home network and is the preferred options.
-Unfortunately iOS and Android don't support this, and so "tun" networking is also provided. With this configuration, you can access anything on your network, but your machine is hidden
-behind this VPN server and is not directly connected. Most of the time this won't matter, but if you're using applications which rely on broadcast or multicast services, they might not work correctly.`
+      text: `Simple VPN actually creates two VPN servers, one using "tap" networking and the other using "tun". The "tap" configuration
+can only be used by desktops, while the "tun" configuration can be used by anything. The "tap" configutation makes it appear as if
+your device is physically connected to your home network. Android and iOS do not support this mode,
+and so "tun" networking is also provided. With this configuration, you can access anything on your network, but your machine is hidden
+behind this VPN server and is not directly connected. Most of the time this won't matter, but if you're using applications which rely on
+broadcast or multicast services, they might not work correctly. Finally, "tap" networking will not work if MinkeBox is connected to your network
+using Wi-Fi; use "tun" in this case.`
     },
     {
       type: `Text`,
@@ -39,14 +42,14 @@ behind this VPN server and is not directly connected. Most of the time this won'
     },
     {
       type: `File`,
-      description: `Windows, Mac and Linux configuration file`,
-      name: `/etc/config.ovpn`,
+      description: `Configuration`,
+      name: `/etc/config-alt.ovpn`,
       style: `Download`
     },
     {
       type: `File`,
-      description: `Everything (including iPhone and Android) configuration file`,
-      name: `/etc/config-alt.ovpn`,
+      description: `Desktop optimized configuration (see Help for details)`,
+      name: `/etc/config.ovpn`,
       style: `Download`
     },
     {
