@@ -39,7 +39,7 @@ using Wi-Fi; use "tun" in this case.`,
     },
     {
       type: `Text`,
-      text: `These can take a while to generate. The download buttons will become blue once they are available.`
+      text: `These can take a while to generate. The download button will become blue once it is available.`
     },
     {
       type: `File`,
