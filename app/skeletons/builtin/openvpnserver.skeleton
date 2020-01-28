@@ -45,7 +45,7 @@ behind this VPN server and is not directly connected. Most of the time this won'
     },
     {
       type: `File`,
-      description: `iPhone and Android configuration file`,
+      description: `Everything (including iPhone and Android) configuration file`,
       name: `/etc/config-alt.ovpn`,
       style: `Download`
     },
