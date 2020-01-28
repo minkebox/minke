@@ -307,7 +307,7 @@ async function ConfigurePageHTML(ctx) {
     firstUse: app._bootcount == 0,
     help: help,
     changes: '[' + Object.keys(visibles).map((key) => {
-      return `function(){const c=document.getElementById("${key}").classList;try{if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){}}`;
+      return `function(){try{const c=document.getElementById("${key}").classList;if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){}}`;
     }).concat(Object.keys(enabled).map((key) => {
       return `function(){try{const v=(${enabled[key]});document.querySelectorAll("#${key}.can-disable,#${key} .can-disable").forEach((e)=>{e.disabled=(v?'':'disabled');if(v){e.classList.remove("disabled")}else{e.classList.add("disabled")}})}catch(_){}}`
     })).join(',') + ']'

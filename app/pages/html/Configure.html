@@ -37,14 +37,14 @@
           {{#each actions}}
           {{#if (eq type "Header")}}
           </div>
-          <div class="section" {{#if id}}id="{{id}}"{{/if}}>
+          <div class="section {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}>
           <div class="content-header">{{title}}</div>
           {{else if (eq type "Text")}}
-          <div class="content-text" {{#if id}}id="{{id}}"{{/if}}>{{{text}}}</div>
+          <div class="content-text {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}>{{{text}}}</div>
           {{else if (eq type "Help")}}
-          <div class="help-text" {{#if id}}id="{{id}}"{{/if}}><div class="help-text-content">{{{text}}}</div></div>
+          <div class="help-text {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}><div class="help-text-content">{{{text}}}</div></div>
           {{else if (eq type "Environment")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group">
+          <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             {{#if (eq style "Table")}}
             {{> Table}}
@@ -65,12 +65,12 @@
             {{/if}}
           </div>
           {{else if (eq type "Argument")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action argument pure-control-group">
+          <div {{#if id}}id="{{id}}"{{/if}} class="action argument pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             <input class="value" type="text" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
           </div>
           {{else if (eq type "File")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group">
+          <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             {{#if (eq style "Download")}}
             {{> Download}}
@@ -83,12 +83,12 @@
             {{/if}}
           </div>
           {{else if (eq type "NAT")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action nat pure-control-group">
+          <div {{#if id}}id="{{id}}"{{/if}} class="action nat pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
           </div>
           {{else if (eq type "Network")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action network pure-control-group">
+          <div {{#if id}}id="{{id}}"{{/if}} class="action network pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             <select onchange="{{action}}">
               {{#each networks}}
@@ -99,7 +99,7 @@
             </select>
           </div>
           {{else if (eq type "Directory")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group">
+          <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group {{#if visible}}invisible{{/if}}">
             {{#if shareables}}
             <label class="description">{{{description}}}</label>
             {{> Directory}}
@@ -108,7 +108,7 @@
             {{/if}}
           </div>
           {{else if (eq type "Shareables")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group">
+          <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group {{#if visible}}invisible{{/if}}">
             {{#if shareables}}
             <label class="description">{{{description}}}</label>
             {{> Shareables}}
@@ -117,7 +117,7 @@
             {{/if}}
           </div>
           {{else if (eq type "CustomShareables")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group">
+          <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             {{> CustomShareables}}
           </div>
