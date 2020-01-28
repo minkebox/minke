@@ -200,7 +200,7 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
       type: 'Network',
       name: 'primary',
       description: 'Select an optional remote management network',
-      visible: `property['AdminMode'] == true`
+      visible: `false`
     },
     {
       type: 'Environment',
