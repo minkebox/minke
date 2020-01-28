@@ -73,7 +73,9 @@ const UPNP = {
 
     this._wanRefresh = setInterval(() => {
       this._WANIPConnectionURL = null;
-    }, 60 * 1000);
+      this.getWANLocationURL();
+    }, 5 * 60 * 1000);
+    this.getWANLocationURL();
   },
 
   stop: async function() {
