@@ -125,8 +125,8 @@ using Wi-Fi; use "tun" in this case.`,
         }
         state.rx.shift();
         state.tx.shift();
-        state.rx.push((rxtx[0] - state.last[0]) * 8 / 1000000 / (now - state.then));
-        state.tx.push((rxtx[1] - state.last[1]) * 8 / 1000000 / (now - state.then));
+        state.rx.push((rxtx[1] - state.last[1]) * 8 / 1000000 / (now - state.then));
+        state.tx.push((rxtx[0] - state.last[0]) * 8 / 1000000 / (now - state.then));
         output.rx = state.rx.slice(-1)[0].toFixed(1);
         output.tx = state.tx.slice(-1)[0].toFixed(1);
         state.last = rxtx;
