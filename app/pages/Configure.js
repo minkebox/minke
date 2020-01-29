@@ -582,17 +582,19 @@ async function ConfigurePageWS(ctx) {
       }
       changes = {};
 
-      const uapp = app;
-      if ((changed & SKELCHANGE) !== 0) {
-        uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image, false), uapp.toJSON());
-        app = null;
-        send({
-          type: 'page.reload'
-        });
-      }
-      if (changed || uapp._status === 'stopped' || forceRestart) {
-        await uapp.restart(forceRestart ? 'restart' : null);
+      if (changed || app._status === 'stopped' || forceRestart) {
+        const skelchange = !!(changed & SKELCHANGE);
+        if (skelchange) {
+          app.updateFromSkeleton(Skeletons.loadSkeleton(app._image, false), app.toJSON());
+        }
+        await app.restart(forceRestart ? 'restart' : null);
         await Promise.all(MinkeApp.needRestart().map(app => app.restart()));
+        if (skelchange) {
+          app = null;
+          send({
+            type: 'page.reload'
+          });
+        }
       }
     }
     catch (e) {
@@ -629,9 +631,7 @@ async function ConfigurePageWS(ctx) {
           break;
         case 'app.delete':
           changes = {};
-          const uapp = app;
-          app = null;
-          uapp.uninstall();
+          app.uninstall();
           break;
         case 'app.format-disk':
           if (app._image === Images.MINKE) {
