@@ -269,7 +269,7 @@ function saveSkeleton() {
   catch (_) {
   }
   const a = document.createElement('a');
-  const url = URL.createObjectURL(new Blob([ content ], { type: 'text/plain' }));
+  const url = URL.createObjectURL(new Blob([ content ]));
   a.href = url;
   a.download = `${name}.skeleton`;
   document.body.appendChild(a);
