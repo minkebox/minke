@@ -218,6 +218,16 @@ MinkeApp.prototype = {
           if (bind) {
             target._binds.push(bind);
           }
+          else if (prop.style === 'parent') {
+            if (this._binds && this._binds.find(bind => bind.target === targetname)) {
+              target._binds.push({
+                src: Filesystem.getNativePath(this._id, prop.style, `/dir/${targetname}`),
+                target: targetname,
+                shares: prop.shares || [],
+                description: prop.description || targetname
+              });
+            }
+          }
           else {
             target._binds.push({
               src: Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`),
