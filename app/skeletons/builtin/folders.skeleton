@@ -2,7 +2,7 @@
   name: `Files and Folders`,
   description: `Create folders which can be shared with other applications`,
   image: `registry.minkebox.net/minkebox/folders`,
-  tags: [ 'Storage' ],
+  tags: [ `Storage` ],
   actions: [
     {
       type: `Header`,
