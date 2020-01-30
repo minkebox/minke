@@ -296,14 +296,15 @@ async function ConfigurePageHTML(ctx) {
     })
   }
   const advanced = MinkeApp.getAdvancedMode();
+  const link = app.getWebLink();
   ctx.body = template({
     minkeConfig: minkeConfig,
     Advanced: advanced,
     skeleton: nskeleton,
     properties: JSON.stringify(properties),
     skeletonAsText: Skeletons.toString(skeleton),
-    link: app._forward && app._forward.url,
-    linktarget: app._forward && app._forward.target,
+    link: link.url,
+    linktarget: link.target,
     firstUse: app._bootcount == 0,
     help: help,
     changes: '[' + Object.keys(visibles).map((key) => {
@@ -583,18 +584,16 @@ async function ConfigurePageWS(ctx) {
       changes = {};
 
       if (changed || app._status === 'stopped' || forceRestart) {
-        const skelchange = !!(changed & SKELCHANGE);
-        if (skelchange) {
-          app.updateFromSkeleton(Skeletons.loadSkeleton(app._image, false), app.toJSON());
-        }
-        await app.restart(forceRestart ? 'restart' : null);
-        await Promise.all(MinkeApp.needRestart().map(app => app.restart()));
-        if (skelchange) {
+        const uapp = app;
+        if ((changed & SKELCHANGE) !== 0) {
+          uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image, false), uapp.toJSON());
           app = null;
           send({
             type: 'page.reload'
           });
         }
+        await uapp.restart(forceRestart ? 'restart' : null);
+        await Promise.all(MinkeApp.needRestart().map(a => a.restart()));
       }
     }
     catch (e) {

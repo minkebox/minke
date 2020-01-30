@@ -236,6 +236,10 @@ MinkeSetup.prototype = {
     }, []);
   },
 
+  getWebLink: function() {
+    return {};
+  },
+
   _safeName: function() {
     return this._name;
   },

@@ -112,7 +112,7 @@ const HTTP = {
   createNewTab: function(args) {
     const f = new Redirect(args);
     return {
-      url: `${f._prefix}`,
+      url: f._prefix,
       target: '_blank',
       http: f._router.middleware(),
       ws: null

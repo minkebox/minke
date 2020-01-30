@@ -1003,6 +1003,25 @@ MinkeApp.prototype = {
     return Network.generateSLAACAddress(this._primaryMacAddress());
   },
 
+  getWebLink: function() {
+    if (this._forward) {
+      return { url: this._forward.url, target: this._forward.target };
+    }
+    const port = this._ports.find(port => port.web);
+    if (!port) {
+      return {};
+    }
+    if (this._networks.primary === 'home' || this._networks.secondary === 'home') {
+      let target = null;
+      let web = port.web;
+      if (web === 'newtab' || (web !== null && typeof web === 'object' && web.type === 'newtab')) {
+        target = '_blank';
+      }
+      return { url: `/a/${this._id}`, target: target };
+    }
+    return {};
+  },
+
   expand: function(txt) {
     if (typeof txt ==='string' && txt.indexOf('{{') !== -1) {
       const env = Object.assign({

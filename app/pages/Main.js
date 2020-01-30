@@ -23,13 +23,14 @@ function tagsToMap(tags) {
 }
 
 function genApp(app) {
+  const link = app.getWebLink();
   return {
     _id: app._id,
     name: app._name,
     status: app._status,
     ip: app._status !== 'running' ? null : (app._homeIP || app._privateIP),
-    link: app._forward && app._forward.url,
-    linktarget: app._forward && app._forward.target,
+    link: link.url,
+    linktarget: link.target,
     tags: app._tags,
     tagcolor: tagColor(app._tags[0].toLowerCase()),
     networks: [
