@@ -11,28 +11,21 @@
     {
       type: `CustomShareables`,
       name: `/folders`,
-      description: `Create a list of folders to store file and other data. These folders can be share with other apps.`
+      description: `Create a list of shares to store file and folders. These can be share with other apps.`
     },
     {
       type: `Text`
     },
     {
       type: `Text`,
-      text: `You can rename a share by editing it's name. However, if you remove a share from the list, the content will no longer be accessible but will <b>not</b> be erased until the applicaiton is removed.`
+      text: `You can rename a share by editing its name, but you cannot remove it unless it is empty. All shares <b>and their data</b> are erased if you remove this application.`
     }
   ],
   properties: [
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      defaultValue: `host`
     }
-  ],
-  monitor: {
-    cmd: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
-  }
+  ]
 }

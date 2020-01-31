@@ -250,7 +250,13 @@ async function ConfigurePageHTML(ctx) {
         case 'CustomShareables':
         {
           const root = app._customshares.find(share => share.target == action.name) || { shares: [] };
-          return Object.assign({ action: `${action.type}#${action.name}`, shareables: root.shares }, action);
+          return Object.assign({ action: `${action.type}#${action.name}`, shareables: root.shares.map(share => {
+            return {
+              name: share.name,
+              sname: share.sname,
+              empty: FS.readdirSync(`${root.src}/${share.sname || share.name}`).length === 0
+            };
+          }) }, action);
         }
         case '__Disks':
         {
@@ -544,6 +550,16 @@ async function ConfigurePageWS(ctx) {
         })
       };
       const idx = app._customshares.findIndex(oshare => oshare.target === bind.target);
+      if (idx !== -1) {
+        const obind = app._customshares[idx];
+        obind.shares.forEach(share => {
+          const name = share.sname || share.name;
+          if (FS.readdirSync(`${obind.src}/${name}`).length !== 0 && !bind.shares.find(ns => (ns.sname || ns.name) === name)) {
+            // Directory not empty, so make sure we keep it
+            bind.shares.push(share);
+          }
+        });
+      }
       if (bind.shares.length === 0) {
         if (idx !== -1) {
           app._customshares.splice(idx, 1);

@@ -224,6 +224,9 @@ html:not(.help-available) .help-text {
   font-weight: bold;
   cursor: pointer;
 }
+.configure .actions .shareables .no-remove {
+  color: #ccc;
+}
 
 .configure .actions .websites table {
   display: inline-block;
