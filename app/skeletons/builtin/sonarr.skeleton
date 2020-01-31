@@ -1,0 +1,149 @@
+{
+  name: `Sonarr`,
+  description: `Smart PVR for newsgroup and bittorrent users`,
+  image: `linuxserver/sonarr:preview`,
+  tags: [
+    `Media`
+  ],
+  actions: [
+    {
+      type: `Text`,
+      text: `<a href="https://sonaar.tv">Sonarr</a> is a smart PVR client which simplifies finding and downloading TV show.
+This application is bundled with the <a href="https://transmissionbt.com/">Transmission</a> bit torrent client and the <a href="https://nzbget.net/">NZBGet</a> Usenet client.`
+    },
+    {
+      type: `Header`,
+      title: `TV shows`
+    },
+    {
+      type: `Directory`,
+      name: `/tv`,
+      description: `Select the folder where we save your TV shows`
+    },
+    {
+      type: `Header`,
+      title: `Configure Client`
+    },
+    {
+      type: `Text`,
+      text: `You can configure the Transmission client <a href="http://{{__HOMEIP}}:9091/" target="_blank">here</a>.`
+    },
+    {
+      type: `Text`,
+      text: `You can configure the NZBGet client <a href="http://{{__HOMEIP}}:6789/" target="_blank">here</a> (login: nzbget, password: tegbzn6789).`
+    },
+    {
+      type: `Header`,
+      title: `Network`
+    },
+    {
+      type: `Text`,
+      text: `Select the network to use for downloading content. By default this is your <b>home</b> network,
+but you may want to use a VPN network for extra security and privacy.`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      description: `Select BitTorrent network`
+    }
+  ],
+  properties: [
+    {
+      type: `Directory`,
+      name: `/config`,
+      style: `boot`
+    },
+    {
+      type: `Directory`,
+      name: `/downloads`,
+      style: `store`
+    },
+    {
+      type: `Directory`,
+      name: `/tv`,
+      style: `store`
+    },
+    {
+      type: `Environment`,
+      name: `HOME`,
+      defaultValue: `/root`
+    },
+    {
+      type: `Environment`,
+      name: `LANGUAGE`,
+      defaultValue: `en_US.UTF-8`
+    },
+    {
+      type: `Environment`,
+      name: `TERM`,
+      defaultValue: `xterm`
+    },
+    {
+      type: `Environment`,
+      name: `XDG_CONFIG_HOME`,
+      defaultValue: `/config/xdg`
+    },
+    {
+      type: `Environment`,
+      name: `SONARR_BRANCH`,
+      defaultValue: `phantom-develop`
+    },
+    {
+      type: `Port`,
+      name: `8989/tcp`,
+      port: 8989,
+      protocol: `TCP`,
+      nat: false,
+      web: {
+        type: `newtab`,
+        path: `/`
+      },
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      defaultValue: `home`
+    }
+  ],
+  secondary: [
+    {
+      image: `linuxserver/transmission`,
+      delay: 0,
+      properties: [
+        {
+          type: `Directory`,
+          name: `/config`,
+          style: `boot`
+        },
+        {
+          type: `Directory`,
+          name: `/downloads`,
+          style: `parent`
+        }
+      ]
+    },
+    {
+      image: `linuxserver/nzbget`,
+      delay: 0,
+      properties: [
+        {
+          type: `Directory`,
+          name: `/config`,
+          style: `boot`
+        },
+        {
+          type: `Directory`,
+          name: `/downloads`,
+          style: `parent`
+        }
+      ]
+    }
+  ]
+}
