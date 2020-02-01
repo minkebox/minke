@@ -59,8 +59,8 @@ MinkeApp.prototype = {
     // FIX
 
     const skel = Skeletons.loadSkeleton(this._image, false);
-    if (skel && skel.monitor) {
-      this._monitor = skel.monitor;
+    if (skel) {
+      this._monitor = skel.monitor || {};
       this._delay = skel.delay || 0;
       this._tags = (skel.tags || []).concat([ 'All' ]);
     }
