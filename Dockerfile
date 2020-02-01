@@ -14,4 +14,6 @@ RUN apk add nodejs \
 EXPOSE 53/tcp 53/udp 80/tcp
 VOLUME /minke/db /minke/apps /app/skeletons/local /app/skeletons/internal
 
+LABEL net.minkebox.system="true"
+
 ENTRYPOINT ["/startup.sh"]
