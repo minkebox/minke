@@ -121,8 +121,8 @@ const Updater = {
     try {
       await docker.pruneImages({
         filters: {
-          'label!=net.minkebox.system': {},
-          'dangling=false': {}
+          'label!=net.minkebox.system': [],
+          'dangling': [ 'false' ]
         }
       });
     }
