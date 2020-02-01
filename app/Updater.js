@@ -120,10 +120,10 @@ const Updater = {
   _pruneImages: async function() {
     try {
       await docker.pruneImages({
-        filters: [
-          'label!=net.minkebox.system',
-          'dangling=false'
-        ]
+        filters: {
+          'label!=net.minkebox.system': {},
+          'dangling=false': {}
+        }
       });
     }
     catch (e) {
