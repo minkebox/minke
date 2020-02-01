@@ -1,24 +1,24 @@
 {
-  name: `Sonarr`,
-  description: `Smart PVR for newsgroup and bittorrent users`,
-  image: `linuxserver/sonarr`,
+  name: `Radarr`,
+  description: `Movies downloader for newsgroup and bittorrent users`,
+  image: `linuxserver/radarr`,
   tags: [
     `Media`
   ],
   actions: [
     {
       type: `Text`,
-      text: `<a href="https://sonaar.tv">Sonarr</a> is a smart PVR client which simplifies finding and downloading TV show.
+      text: `<a href="https://radarr.video/">Radarr</a> simplifies finding and downloading Movies.
 This application is bundled with the <a href="https://transmissionbt.com/">Transmission</a> bit torrent client and the <a href="https://nzbget.net/">NZBGet</a> Usenet client.`
     },
     {
       type: `Header`,
-      title: `TV shows`
+      title: `Movies`
     },
     {
       type: `Directory`,
-      name: `/tv`,
-      description: `Select the folder where we save your TV shows`
+      name: `/movies`,
+      description: `Select the folder where we save your Movies`
     },
     {
       type: `Header`,
@@ -66,7 +66,7 @@ but you may want to use a VPN network for extra security and privacy.`
     },
     {
       type: `Directory`,
-      name: `/tv`,
+      name: `/movies`,
       style: `store`
     },
     {
@@ -75,29 +75,9 @@ but you may want to use a VPN network for extra security and privacy.`
       defaultValue: `/root`
     },
     {
-      type: `Environment`,
-      name: `LANGUAGE`,
-      defaultValue: `en_US.UTF-8`
-    },
-    {
-      type: `Environment`,
-      name: `TERM`,
-      defaultValue: `xterm`
-    },
-    {
-      type: `Environment`,
-      name: `XDG_CONFIG_HOME`,
-      defaultValue: `/config/xdg`
-    },
-    {
-      type: `Environment`,
-      name: `SONARR_BRANCH`,
-      defaultValue: `phantom-develop`
-    },
-    {
       type: `Port`,
-      name: `8989/tcp`,
-      port: 8989,
+      name: `7878/tcp`,
+      port: 7878,
       protocol: `TCP`,
       nat: false,
       web: {

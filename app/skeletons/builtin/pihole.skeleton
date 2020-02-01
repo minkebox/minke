@@ -15,7 +15,7 @@
     {
       type: `Directory`,
       name: `/etc/pihole`,
-      style: `boot`
+      style: `store`
     },
     {
       type: `Directory`,
