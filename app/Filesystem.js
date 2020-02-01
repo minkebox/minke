@@ -84,7 +84,7 @@ _Filesystem.prototype = {
 
   _makeCustomShare: function(bind) {
     return bind.shares.map((share) => {
-      const src = Path.normalize(`${bind.src}/${share.sname || share.name}`);
+      const src = Path.normalize(`${bind.src}/${share.sname}`);
       //console.log('_makeCustomShare', bind, share, src);
       FS.mkdirSync(src, { recursive: true });
       return {

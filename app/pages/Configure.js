@@ -231,7 +231,7 @@ async function ConfigurePageHTML(ctx) {
             return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
               bind.shares.forEach((share) => {
                 const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
-                const src = Path.normalize(`${bind.src}/${share.sname || share.name}/`).slice(0, -1);
+                const src = Path.normalize(`${bind.src}/${share.sname}/`).slice(0, -1);
                 const ashare = app._shares.find(ashare => ashare.src === src);
                 const alttarget = ashare ? ashare.target.substr(action.name.length + 1) : '';
                 shares.push({
@@ -254,7 +254,7 @@ async function ConfigurePageHTML(ctx) {
             return {
               name: share.name,
               sname: share.sname,
-              empty: FS.readdirSync(`${root.src}/${share.sname || share.name}`).length === 0
+              empty: FS.readdirSync(`${root.src}/${share.sname}`).length === 0
             };
           }) }, action);
         }
@@ -553,8 +553,7 @@ async function ConfigurePageWS(ctx) {
       if (idx !== -1) {
         const obind = app._customshares[idx];
         obind.shares.forEach(share => {
-          const name = share.sname || share.name;
-          if (FS.readdirSync(`${obind.src}/${name}`).length !== 0 && !bind.shares.find(ns => (ns.sname || ns.name) === name)) {
+          if (FS.readdirSync(`${obind.src}/${name}`).length !== 0 && !bind.shares.find(ns => ns.sname === share.sname)) {
             // Directory not empty, so make sure we keep it
             bind.shares.push(share);
           }
