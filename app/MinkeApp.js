@@ -435,21 +435,6 @@ MinkeApp.prototype = {
         config.HostConfig.Privileged = true;
       }
 
-      if (this._features.vpn) {
-        let nr = 0;
-        applications.forEach((app) => {
-          if (app._networks.primary === this._id && app._privateIP) {
-            app._ports.forEach((port) => {
-              if (port.vpn) {
-                configEnv.push(`PORT_${nr}=${app._privateIP}:${port.port}:${port.protocol}:${port.mdns ? Buffer.from(JSON.stringify(port.mdns), 'utf8').toString('base64') : ''}`);
-                nr++;
-              }
-            });
-          }
-        });
-        configEnv.push(`PORTMAX=${nr-1}`);
-      }
-
       if (primary !== 'host') {
 
         const helperConfig = {
