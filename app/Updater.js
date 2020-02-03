@@ -21,13 +21,15 @@ const Updater = {
           await this._pruneImages();
           const updated = await this._updateImages();
           let updateMinke = null;
-          await Promise.all(updated.map(async (app) => {
+          for (let i = 0; i < updated.length; i++) {
+            const app = updated[i];
             if (app._willCreateNetwork()) {
               await Skeletons.updateInternalSkeleton(app._image);
               await app.restart('update');
             }
-          }));
-          await Promise.all(updated.map(async (app) => {
+          }
+          for (let i = 0; i < updated.length; i++) {
+            const app = updated[i];
             if (!app._willCreateNetwork()) {
               if (app._image !== Images.MINKE) {
                 await Skeletons.updateInternalSkeleton(app._image);
@@ -38,7 +40,7 @@ const Updater = {
                 updateMinke = app;
               }
             }
-          }));
+          }
           if (this._checkNativeUpdates()) {
             this._getApps().find(app => app._image === Images.MINKE).restart('update-native');
           }
