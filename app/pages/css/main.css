@@ -207,7 +207,7 @@ background: #fd471f;
   text-decoration: none;
   color: inherit;
 }
-.app .left a h6:hover {
+.app .left h6 a:hover {
   color: #333;
 }
 .app h5 {
