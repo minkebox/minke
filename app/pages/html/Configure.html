@@ -60,7 +60,7 @@
               {{/each}}
             </select>
             {{else}}
-            <input class="pure-input-rounded pure-u-16-24 value can-disable" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
+            <input class="pure-input-rounded pure-u-16-24 value can-disable" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}" {{#if validate}}pattern="^{{validate}}$"{{/if}}>
             {{/if}}
             {{/if}}
           </div>
