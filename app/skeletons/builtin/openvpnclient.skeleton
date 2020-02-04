@@ -42,8 +42,8 @@
       style: `boot`
     },
     {
-      type: `File`,
-      name: `/var/log/upnp.leases`,
+      type: `Directory`,
+      name: `/leases`,
       style: `boot`
     },
     {
