@@ -42,6 +42,11 @@
       style: `boot`
     },
     {
+      type: `File`,
+      name: `/var/log/upnp.leases`,
+      style: `boot`
+    },
+    {
       type: `Network`,
       name: `primary`,
       defaultValue: `home`
