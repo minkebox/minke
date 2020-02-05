@@ -356,7 +356,7 @@ MinkeApp.prototype = {
           configEnv.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
           configEnv.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
           configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
-          const wan = await UPNP.getWANLocationURL();
+          const wan = UPNP.getWANLocationURL();
           if (wan) {
             configEnv.push(`__UPNPURL=${wan.origin}/`);
           }
@@ -509,7 +509,7 @@ MinkeApp.prototype = {
               catch (e) {
                 // Sometimes we get an error setting up the gateway, but we don't want it to set the gateway anyway so it's safe
                 // to ignore.
-                //console.error(e);
+                console.error(e);
               }
               break;
             }
@@ -524,7 +524,7 @@ MinkeApp.prototype = {
               catch (e) {
                 // Sometimes we get an error setting up the gateway, but we don't want it to set the gateway anyway so it's safe
                 // to ignore.
-                //console.error(e);
+                console.error(e);
               }
               break;
             }
@@ -563,8 +563,9 @@ MinkeApp.prototype = {
             }, null);
           });
         }
-        catch (_) {
+        catch (e) {
           // Helper failed to startup cleanly - abort
+          console.error(e);
           this.stop();
           return this;
         }
@@ -729,11 +730,9 @@ MinkeApp.prototype = {
       }
     }
     catch (e) {
-
       // Startup failed for some reason, so attempt to shutdown and cleanup.
       console.error(e);
       this.stop();
-
     }
 
     return this;
@@ -743,20 +742,15 @@ MinkeApp.prototype = {
 
     this._setStatus('stopping');
 
-    try {
-      if (this._statusMonitor) {
-        this._statusMonitor = null;
-      }
-    }
-    catch (_) {
-    }
+    this._statusMonitor = null;
     try {
       if (this._networkMonitor) {
         this._networkMonitor = null;
         this.off('update.network.status', this._updateNetworkStatus);
       }
     }
-    catch (_) {
+    catch (e) {
+      console.error(e);
     }
 
     if (this._mdns) {
@@ -853,7 +847,8 @@ MinkeApp.prototype = {
           resolve();
         });
       }
-      catch (_) {
+      catch (e) {
+        console.error(e);
         resolve();
       }
     });
@@ -1201,7 +1196,8 @@ MinkeApp._monitorEvents = async function() {
               break;
           }
         }
-        catch (_) {
+        catch (e) {
+          console.error(e);
         }
       });
     });

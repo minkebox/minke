@@ -87,7 +87,7 @@ MinkeSetup.prototype = {
       secure: [ this._env.DNSSECURE1.value, this._env.DNSSECURE2.value ]
     });
     DDNS.start(this._globalId);
-    UPNP.start({
+    await UPNP.start({
       uuid: this._globalId,
       hostname: this._name,
       ipaddress: this._env.IPADDRESS.value,
