@@ -1,0 +1,79 @@
+{
+  name: `SyncThing`,
+  description: `Continuous and secure file synchronization between multiple computers anywhere`,
+  image: `linuxserver/syncthing`,
+  tags: [ 'Sync', 'Shares' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Sync`
+    },
+    {
+      type: `Text`,
+      text: `Select which application folders you want to synchronize. The specific synchronization is controlled in the app itself.`
+    },
+    {
+      type: `Shareables`,
+      name: `/FOLDERS`,
+      description: `Select folders`
+    },
+    {
+      type: `UPnP`
+    }
+  ],
+  properties: [
+    {
+      type: `Environment`,
+      name: `HOME`,
+      defaultValue: `/FOLDERS`
+    },
+    {
+      type: `Directory`,
+      name: `/FOLDERS`,
+      style: `store`
+    },
+    {
+      type: `Directory`,
+      name: `/config`,
+      style: `boot`
+    },
+    {
+      type: `Port`,
+      name: `8384/tcp`,
+      port: 8384,
+      protocol: `TCP`,
+      nat: false,
+      web: {
+        type: `newtab`,
+        path: `/`
+      },
+      dns: false,
+      mdns: {
+        type: `_http._tcp`
+      }
+    },
+    {
+      type: `Port`,
+      name: `22000/tcp`,
+      port: 22000,
+      protocol: `TCP`,
+      nat: false,
+      web: false,
+      dns: false
+    },
+    {
+      type: `Port`,
+      name: `21027/udp`,
+      port: 21027,
+      protocol: `UDP`,
+      nat: false,
+      web: false,
+      dns: false
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ]
+}
