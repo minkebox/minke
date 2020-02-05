@@ -61,21 +61,31 @@ const UPNP = {
     this._clearCache();
     this._WANIPConnectionURL = null;
 
-    await ssdp.advertise({
-      usn: 'upnp:rootdevice',
-      location: {
-        udp4: `http://${this._ip}/rootDesc.xml`
-      },
-      ttl: 60 * 1000, // ttl == 60 seconds
-      shutDownServers: () => {
-        return [];
-      }
+    await new Promise(resolve => {
+      ssdp.on('error', () => {
+        ssdp = null;
+        resolve();
+      });
+      ssdp.advertise({
+        usn: 'upnp:rootdevice',
+        location: {
+          udp4: `http://${this._ip}/rootDesc.xml`
+        },
+        ttl: 60 * 1000, // ttl == 60 seconds
+        shutDownServers: () => {
+          return [];
+        }
+      }).then(() => {
+        resolve();
+      });
     });
 
-    this._wanRefresh = setInterval(async () => {
-      this._WANIPConnectionURL = await this._fetchWANLocationURL();
-    }, 5 * 60 * 1000);
-    this._WANIPConnectionURL = await this._fetchWANLocationURL(true);
+    if (ssdp) {
+      this._wanRefresh = setInterval(async () => {
+        this._WANIPConnectionURL = await this._fetchWANLocationURL();
+      }, 5 * 60 * 1000);
+      this._WANIPConnectionURL = await this._fetchWANLocationURL(true);
+    }
   },
 
   stop: async function() {
