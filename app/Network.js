@@ -274,15 +274,6 @@ const Network = {
       }
     }
     return net;
-  },
-
-  _getHomeNetworkFile: function() {
-    try {
-      return FS.readFileSync(BRIDGE_NETWORK_FILE, { encoding: 'utf8' });
-    }
-    catch (_) {
-      return '';
-    }
   }
 
 }
