@@ -69,21 +69,7 @@
     {
       type: `NAT`,
       name: `WEB_NAT`,
-      description: `Make websites available on the Internet`,
-      visible: `property['Environment#LETS_ENCRYPT'] == true`,
-      ports: [
-        `443/tcp`,
-        `80/tcp`
-      ]
-    },
-    {
-      type: `NAT`,
-      name: `WEB_NAT`,
-      description: `Make websites available on the Internet`,
-      visible: `property['Environment#LETS_ENCRYPT'] == false`,
-      ports: [
-        `80/tcp`
-      ]
+      description: `Make websites available on the Internet`
     },
     {
       type: `Text`,
@@ -141,7 +127,7 @@
       name: `443/tcp`,
       port: 443,
       protocol: `TCP`,
-      nat: false,
+      nat: `{{LETS_ENCRYPT}}&{{_NAT}}`,
       web: false,
       dns: false,
       mdns: null
@@ -151,7 +137,7 @@
       name: `80/tcp`,
       port: 80,
       protocol: `TCP`,
-      nat: false,
+      nat: `{{__NAT}}`,
       web: false,
       dns: false,
       mdns: null

@@ -75,10 +75,7 @@
     {
       type: `NAT`,
       name: `PUBLIC_SERVER`,
-      description: `Make this server public and available on the Internet. The name on the Internet will be <div><b>{{__GLOBALNAME}}</b></div>`,
-      ports: [
-        `SERVER_PORT`
-      ]
+      description: `Make this server public and available on the Internet. The name on the Internet will be <div><b>{{__GLOBALNAME}}</b></div>`
     },
     {
       type: `Header`,
@@ -247,14 +244,7 @@
     {
       type: `Environment`,
       name: `SERVER_PORT`,
-      defaultValue: 25565,
-      update: [
-        {
-          type: `Port`,
-          name: `SERVER_PORT`,
-          path: `port`
-        }
-      ]
+      defaultValue: 25565
     },
     {
       type: `Environment`,
@@ -512,9 +502,9 @@
     {
       type: `Port`,
       name: `SERVER_PORT`,
-      port: 25565,
+      port: `{{SERVER_PORT}}`,
       protocol: `TCP`,
-      nat: false,
+      nat: `{{__NAT}}`,
       web: false,
       dns: false,
       mdns: null

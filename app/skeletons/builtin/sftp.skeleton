@@ -54,9 +54,6 @@
     {
       type: `NAT`,
       description: `Make available on the Internet with the name <div><b>{{__GLOBALNAME}}</b></div>`,
-      ports: [
-        `SSH_PORT`
-      ],
       visible: 'property["Network#primary"] === "home"'
     }
   ],
@@ -101,9 +98,9 @@
     {
       type: `Port`,
       name: `SSH_PORT`,
-      port: 22,
+      port: `{{SSH_PORT}}`,
       protocol: `TCP`,
-      nat: false,
+      nat: `{{__NAT}}`,
       vpn: true,
       web: false,
       dns: false,
@@ -121,12 +118,5 @@
       name: `primary`,
       defaultValue: `home`
     }
-  ],
-  monitor: {
-    cmd: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
-  }
+  ]
 }
