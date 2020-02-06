@@ -152,8 +152,7 @@ async function ConfigurePageHTML(ctx) {
         }
         case 'NAT':
         {
-          const natport = app._ports.find(port => action.ports.indexOf(port.target) !== -1) || { nat: false };
-          return Object.assign({ action: `window.action('${action.type}#${action.ports.join('#')}',this.checked)`, value: natport.nat }, action, { description: expand(action.description) });
+          return Object.assign({ action: `window.action('${action.type}',this.checked)`, value: app._features.nat || false }, action, { description: expand(action.description) });
         }
         case 'Network':
         {
@@ -392,28 +391,6 @@ async function ConfigurePageWS(ctx) {
           }
           if (r.value !== nvalue) {
             r.value = nvalue;
-            (r.update || []).forEach((update) => {
-              const path = update.path.split('.');
-              let obj = null;
-              switch (update.type) {
-                case 'Port':
-                  obj = app._ports.find(p => p.target === update.name);
-                  break;
-                default:
-                  break;
-              }
-              while (obj && path.length > 1) {
-                obj = obj[path.shift()];
-              }
-              if (obj) {
-                if (typeof obj[path[0]] === 'number') {
-                  obj[path[0]] = parseFloat(nvalue);
-                }
-                else {
-                  obj[path[0]] = nvalue;
-                }
-              }
-            });
             change = APPCHANGE;
           }
         }
@@ -424,18 +401,12 @@ async function ConfigurePageWS(ctx) {
 
       return change;
     }},
-    { p: /^NAT#(.+)$/, f: (value, match) => {
-      const ports = match[1].split('#');
+    { p: /^NAT$/, f: (value, match) => {
       let change = NOCHANGE;
-      value = !!value;
-      app._ports.forEach((port) => {
-        if (ports.indexOf(port.target) !== -1) {
-          if (port.nat !== value) {
-            port.nat = value;
-            change = APPCHANGE;
-          }
-        }
-      });
+      if (app._features.nat !== value) {
+        app._features.nat = value;
+        change = APPCHANGE;
+      }
       return change;
     }},
     { p: /^Network#(.+)$/, f: (value, match) => {

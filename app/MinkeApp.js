@@ -169,45 +169,16 @@ MinkeApp.prototype = {
         {
           const found = (defs.env || {})[prop.name];
           if (found) {
-            target._env[prop.name] = found;
+            target._env[prop.name] = { value: found.value };
+          }
+          else if ('defaultValue' in prop) {
+            target._env[prop.name] = { value: prop.defaultValue };
           }
           else {
-            target._env[prop.name] = { value: 'defaultValue' in prop ? prop.defaultValue : '' };
-            if ('defaultAltValue' in prop) {
-              target._env[prop.name].altValue = prop.defaultAltValue;
-            }
+            target._env[prop.name] = { value: '' };
           }
-          if ('update' in prop) {
-            target._env[prop.name].update = prop.update;
-          }
-          break;
-        }
-        case 'Feature':
-        {
-          if (defs.features && prop.name in defs.features) {
-            target._features[prop.name] = defs.features[prop.name];
-          }
-          else {
-            target._features[prop.name] = 'defaultValue' in prop ? prop.defaultValue : true;
-          }
-          break;
-        }
-        case 'Port':
-        {
-          const port = defs.ports && defs.ports.find(port => port.target === prop.name);
-          if (port) {
-            target._ports.push(port);
-          }
-          else {
-            target._ports.push({
-              target: prop.name,
-              port: prop.port,
-              protocol: prop.protocol,
-              web: prop.web,
-              dns: prop.dns,
-              nat: prop.nat,
-              mdns: prop.mdns
-            });
+          if ('defaultAltValue' in prop) {
+            target._env[prop.name].altValue = prop.defaultAltValue;
           }
           break;
         }
@@ -215,48 +186,72 @@ MinkeApp.prototype = {
         {
           const targetname = Path.normalize(prop.name);
           const bind = defs.binds && defs.binds.find(bind => bind.target === targetname);
+          const x = prop.style === 'parent' ? '' : ext;
+          const b = {
+            src: Filesystem.getNativePath(this._id, prop.style, `/dir${x}/${targetname}`),
+            target: targetname,
+            description: prop.description || targetname
+          };
           if (bind) {
-            target._binds.push(bind);
+            b.shares = bind.shares;
           }
-          else if (prop.style === 'parent') {
-            if (this._binds && this._binds.find(bind => bind.target === targetname)) {
-              target._binds.push({
-                src: Filesystem.getNativePath(this._id, prop.style, `/dir/${targetname}`),
-                target: targetname,
-                shares: prop.shares || [],
-                description: prop.description || targetname
-              });
-            }
+          else if ('shares' in prop) {
+            b.shares = prop.shares;
           }
           else {
-            target._binds.push({
-              src: Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`),
-              target: targetname,
-              shares: prop.shares || [],
-              description: prop.description || targetname
-            });
+            b.shares = [];
           }
+          target._binds.push(b);
           break;
         }
         case 'File':
         {
           const targetname = Path.normalize(prop.name);
-          const file = defs.files && defs.files.find(file => file.target === targetname);
-          if (file) {
-            target._files.push(file);
+          const file = (defs.files && defs.files.find(file => file.target === targetname)) || {};
+          const f = {
+            src: Filesystem.getNativePath(this._id, prop.style, `/file${ext}/${prop.name.replace(/\//g, '_')}`),
+            target: targetname,
+            mode: prop.mode || 0o666
+          };
+          if (file.data) {
+            f.data = file.data;
+          }
+          else if ('defaultValue' in prop) {
+            f.data = prop.defaultValue;
           }
           else {
-            const f = {
-              src: Filesystem.getNativePath(this._id, prop.style, `/file${ext}/${prop.name.replace(/\//g, '_')}`),
-              target: targetname,
-              mode: prop.mode || 0o666,
-              data: prop.defaultValue || ''
-            };
-            if ('defaultAltValue' in prop) {
-              f.altData = prop.defaultAltValue;
-            }
-            target._files.push(f);
+            f.data = '';
           }
+          if (file.altData) {
+            f.altData = file.altData;
+          }
+          else if ('defaultAltValue' in prop) {
+            f.altData = prop.defaultAltValue;
+          }
+          target._files.push(f);
+          break;
+        }
+        case 'Feature':
+        {
+          if (prop.name in defs._features) {
+            target._features[prop.name] = defs._features[prop.name];
+          }
+          else {
+            target._features[prop.name] = true;
+          }
+          break;
+        }
+        case 'Port':
+        {
+          target._ports.push({
+            target: prop.name,
+            port: prop.port,
+            protocol: prop.protocol,
+            web: prop.web,
+            dns: prop.dns,
+            nat: prop.nat,
+            mdns: prop.mdns
+          });
           break;
         }
         default:
@@ -450,7 +445,7 @@ MinkeApp.prototype = {
             DnsOptions: config.HostConfig.DnsOptions
           },
           MacAddress: config.MacAddress,
-          Env: Object.keys(this._env).map(key => `${key}=${this.expand(this._env[key].value)}`).concat(configEnv)
+          Env: Object.keys(this._env).map(key => `${key}=${this.expandEnv(this._env[key].value)}`).concat(configEnv)
         };
 
         if (primary === 'home' || secondary === 'home') {
@@ -464,6 +459,7 @@ MinkeApp.prototype = {
         this._ddns = false;
         if (this._ports.length) {
           const nat = this._ports.reduce((acc, port) => {
+            port = this.expandPort(port);
             if (port.nat) {
               acc.push(`${port.port}:${port.protocol}`);
             }
@@ -576,7 +572,7 @@ MinkeApp.prototype = {
           DNS.registerHostIP(this._safeName(), this._homeIP, homeip6);
           DNS.registerHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
            // If we need to be accessed remotely, register with DDNS
-          if (this._features.ddns || this._ddns || this._ports.find(port => port.nat)) {
+          if (this._features.ddns || this._ddns || this._ports.find(port => this.expandPort(port).nat)) {
             DDNS.register(this);
           }
         }
@@ -586,20 +582,10 @@ MinkeApp.prototype = {
       const ipAddr = this._homeIP || this._privateIP;
       if (ipAddr) {
 
-        const webport = this._ports.find(port => port.web);
+        const ports = this._ports.map(port => this.expandPort(port));
+        const webport = ports.find(port => port.web);
         if (webport) {
           let web = webport.web;
-          if (typeof web !== 'object') {
-            if (typeof web === 'string') {
-              web = { type: web, path: '' };
-            }
-            else if (web === true) {
-              web = { type: 'redirect', path: '' };
-            }
-            else {
-              web = { type: 'none', path: '' };
-            }
-          }
           if (this._homeIP) {
             switch (web.type) {
               case 'newtab':
@@ -626,16 +612,16 @@ MinkeApp.prototype = {
           }
         }
 
-        const dnsport = this._ports.find(port => port.dns);
+        const dnsport = ports.find(port => port.dns);
         if (dnsport) {
           this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.port, options: typeof dnsport.dns === 'object' ? dnsport.dns : null });
         }
 
         this._mdnsRecords = [];
         this._netRecords = [];
-        if (this._ports.length) {
+        if (ports.length) {
           if (primary === 'home' && secondary === 'none') {
-            await Promise.all(this._ports.map(async (port) => {
+            await Promise.all(ports.map(async (port) => {
               if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
                 this._mdnsRecords.push(await MDNS.addRecord({
                   hostname: this._safeName(),
@@ -654,7 +640,7 @@ MinkeApp.prototype = {
 
       }
 
-      config.Env = Object.keys(this._env).map(key => `${key}=${this.expand(this._env[key].value)}`).concat(configEnv);
+      config.Env = Object.keys(this._env).map(key => `${key}=${this.expandEnv(this._env[key].value)}`).concat(configEnv);
       this._fullEnv = config.Env;
 
       if (inherit.container) {
@@ -685,7 +671,7 @@ MinkeApp.prototype = {
                 LogConfig: config.LogConfig,
                 NetworkMode: `container:${this._helperContainer.id}`
               },
-              Env: Object.keys(secondary._env).map(key => `${key}=${this.expand(secondary._env[key].value)}`)
+              Env: Object.keys(secondary._env).map(key => `${key}=${this.expandEnv(secondary._env[key].value)}`)
             };
             this._secondaryContainers[c] = await docker.createContainer(sconfig);
             startup.push({ delay: secondary._delay, container: this._secondaryContainers[c] });
@@ -784,7 +770,7 @@ MinkeApp.prototype = {
     if (this._homeIP) {
       DNS.unregisterHostIP(this._safeName());
       DNS.unregisterHostIP(`${this._globalId}${GLOBALDOMAIN}`);
-      if (this._features.ddns || this._ddns || this._ports.find(port => port.nat)) {
+      if (this._features.ddns || this._ddns || this._ports.find(port => this.expandPort(port).nat)) {
         DDNS.unregister(this);
       }
       Network.unregisterIP(this._homeIP);
@@ -959,8 +945,9 @@ MinkeApp.prototype = {
   getAvailableWebsites: function() {
     return applications.reduce((acc, app) => {
       if (app !== this && this._networks.primary === app._networks.primary) {
-        const webport = app._ports.find(port => port.web);
+        const webport = app._ports.find(port => this.expandPort(port).web);
         if (webport) {
+          webport = this.expandPort(webport);
           acc.push({
             app: app,
             port: webport
@@ -987,17 +974,12 @@ MinkeApp.prototype = {
     if (this._forward) {
       return { url: this._forward.url, target: this._forward.target };
     }
-    const port = this._ports.find(port => port.web);
+    const port = this._ports.map(port => this.expandPort(port)).find(port => port.web);
     if (!port) {
       return {};
     }
     if (this._networks.primary === 'home' || this._networks.secondary === 'home') {
-      let target = null;
-      let web = port.web;
-      if (web === 'newtab' || (web !== null && typeof web === 'object' && web.type === 'newtab')) {
-        target = '_blank';
-      }
-      return { url: `/a/${this._id}`, target: target };
+      return { url: `/a/${this._id}`, target: port.web === 'newtab' ? '_blank' : null };
     }
     return {};
   },
@@ -1010,13 +992,97 @@ MinkeApp.prototype = {
         __HOMEIP: { value: this._homeIP || '<none>' },
         __HOMEIP6: { value: this.getSLAACAddress() || '<none>' },
         __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
-        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() }
+        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() },
+        __NAT: { value: this._features.nat || false }
       }, this._env);
       for (let key in env) {
         txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
       }
     }
     return txt;
+  },
+
+  expandEnv: function(val) {
+    return this.expand(val);
+  },
+
+  expandPort: function(port) {
+    let web = port.web;
+    if (web === null || web === undefined || web === false) {
+      web = null;
+    }
+    else if (web === true) {
+      web = {
+        type: 'redirect', // newtab, redirect, url
+        path: ''
+      };
+    }
+    else if (typeof web === 'string') {
+      web = {
+        type: web,
+        path: ''
+      }
+    }
+    else if (typeof web === 'object') {
+      switch (web.type) {
+        case 'url':
+          web = {
+            type: web.type,
+            url: this.expand(web.url)
+          };
+          break;
+        case 'redirect':
+        case 'newtab':
+          web = {
+            type: web.type,
+            path: this.expand(web.path)
+          };
+          break;
+        default:
+          break;
+      }
+    }
+    else {
+      web = null;
+    }
+    const nport = {
+      target: port.name,
+      port: this._expandNumber(port.port, port.defaultPort || 0),
+      protocol: port.protocol,
+      web: web,
+      dns: this._expandBool(port.dns),
+      nat: this._expandBool(port.nat),
+      mdns: port.mdns
+    };
+    return nport;
+  },
+
+  _expandNumber: function(val, alt) {
+    if (typeof val === 'number') {
+      return val;
+    }
+    if (typeof val === 'string') {
+      val = parseFloat(this.expand(val));
+      if (typeof val === 'number' && !isNaN(val)) {
+        return val;
+      }
+    }
+    return alt;
+  },
+
+  _expandBool: function(val) {
+    if (typeof val !== 'string') {
+      return !!val;
+    }
+    val = this.expand(val);
+    if (val == 'false' || parseFloat(val) == 0) {
+      return false;
+    }
+    // Need better solution here!
+    if (val === 'false&false' || val === 'false&true' || val === 'true&false' || val === 'false|false') {
+      return false;
+    }
+    return true;
   },
 
   _monitorNetwork: function() {
