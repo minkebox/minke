@@ -1,15 +1,12 @@
-const SSDP = require('@achingbrain/ssdp');
-const SSDPcache = require('@achingbrain/ssdp/lib/cache');
+const SSDP = require('node-ssdp');
 const URL = require('url').URL;
 const HTTP = require('http');
+const XMLJS = require('xml-js');
 
 const URN_WAN= 'urn:schemas-upnp-org:service:WANIPConnection:1';
-const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
 const TIMEOUT = 1 * 1000;
-const RETRY = 6;
-const RETRY_QUICK = 2;
+const REFRESH = 10 * 1000;
 
-let ssdp;
 
 const UPNP = {
 
@@ -53,38 +50,64 @@ const UPNP = {
     this._ip = config.ipaddress;
     this._port = config.port;
 
-    ssdp = SSDP({
-      udn: `uuid:${this._uuid}`,
-      signature: 'minkebox UPnP/1.1',
-    });
-
-    this._clearCache();
-    this._WANIPConnectionURL = null;
-
-    await new Promise(resolve => {
-      ssdp.on('error', () => {
-        ssdp = null;
-        resolve();
+    try {
+      this._ssdpServer = new SSDP.Server({
+        udn: `uuid:${this._uuid}`,
+        ssdpSig: 'MinkeBox UPnP/1.1',
+        location: `http://${this._ip}/rootDesc.xml`
       });
-      ssdp.advertise({
-        usn: 'upnp:rootdevice',
-        location: {
-          udp4: `http://${this._ip}/rootDesc.xml`
-        },
-        ttl: 60 * 1000, // ttl == 60 seconds
-        shutDownServers: () => {
-          return [];
+      this._ssdpServer.addUSN('upnp:rootdevice');
+      this._ssdpServer.start();
+    }
+    catch (e) {
+      console.error(e);
+      this._ssdpServer = null;
+    }
+
+    try {
+      this._ssdpClient = new SSDP.Client({});
+      this._ssdpClient.on('response', (headers, statusCode, rinfo) => {
+        if (statusCode === 200 && headers.ST === URN_WAN) {
+          const req = HTTP.request(headers.LOCATION, {
+            method: 'GET'
+          }, (res) => {
+            let xml = '';
+            res.on('data', (chunk) => {
+              xml += chunk.toString();
+            });
+            res.on('end', () => {
+              const json = JSON.parse(XMLJS.xml2json(xml, { compact: true }));
+              for (let device = json && json.root && json.root.device && json.root.device; device; device = device.deviceList && device.deviceList.device) {
+                const service = device.serviceList && device.serviceList.service;
+                if (service && service.serviceType && service.serviceType._text == URN_WAN) {
+                  this._WANIPConnectionURL = new URL(service.controlURL._text, headers.LOCATION);
+                  break;
+                }
+              }
+            });
+          });
+          req.end();
         }
-      }).then(() => {
-        resolve();
       });
-    });
-
-    if (ssdp) {
+      await this._ssdpClient.start();
+      this._ssdpClient.search(URN_WAN);
       this._wanRefresh = setInterval(async () => {
-        this._WANIPConnectionURL = await this._fetchWANLocationURL();
-      }, 5 * 60 * 1000);
-      this._WANIPConnectionURL = await this._fetchWANLocationURL(true);
+        if (this._ssdpClient) {
+          this._ssdpClient.search(URN_WAN);
+        }
+      }, REFRESH);
+
+      // Pause for a short while to get the UPNP stuff happen
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve();
+        }, TIMEOUT);
+      });
+    }
+    catch (e) {
+      console.error(e);
+      this._ssdpClient = null;
+      this._WANIPConnectionURL = null;
     }
   },
 
@@ -93,9 +116,13 @@ const UPNP = {
       clearInterval(this._wanRefresh);
       this._wanRefresh = null;
     }
-    if (ssdp) {
-      await ssdp.stop();
-      ssdp = null;
+    if (this._ssdpServer) {
+      this._ssdpServer.stop();
+      this._ssdpServer = null;
+    }
+    if (this._ssdpClient) {
+      this._ssdpClient.stop();
+      this._ssdpClient = null;
     }
   },
 
@@ -123,53 +150,6 @@ const UPNP = {
     return this._WANIPConnectionURL;
   },
 
-  _fetchWANLocationURL: async function(quick) {
-    if (!ssdp) {
-      return null;
-    }
-
-    let location = null;
-
-    function extractLocation(res) {
-      if (res.ST === URN_IGD) {
-        location = new URL(res.LOCATION);
-      }
-    }
-
-    function extractWANIPConnectionURL(service) {
-      if (location) {
-        for (let ptr = service.details; ptr && ptr.device; ptr = ptr.device.deviceList) {
-          const list = ptr.device.serviceList;
-          if (list && list.service && list.service.serviceType === URN_WAN) {
-            return new URL(list.service.controlURL, location.origin);
-          }
-        }
-      }
-      return null;
-    }
-
-    ssdp.on('ssdp:search-response', extractLocation);
-
-    this._clearCache();
-
-    let _WANIPConnectionURL = null;
-    const attempts = quick ? RETRY_QUICK : RETRY;
-    for (let retry = 1; retry < attempts && ssdp && !_WANIPConnectionURL; retry++) {
-      const services = await ssdp.discover(URN_IGD, TIMEOUT * retry);
-      services.forEach((service) => {
-        if (!_WANIPConnectionURL) {
-          _WANIPConnectionURL = extractWANIPConnectionURL(service);
-        }
-      });
-    }
-
-    if (ssdp) {
-      ssdp.off('ssdp:search-response', extractLocation);
-    }
-
-    return _WANIPConnectionURL;
-  },
-
   getExternalIP: async function() {
     const WANIPConnectionURL = this.getWANLocationURL();
     if (WANIPConnectionURL) {
@@ -181,12 +161,6 @@ const UPNP = {
       }
     }
     return null;
-  },
-
-  _clearCache: function() {
-    for (let key in SSDPcache) {
-      delete SSDPcache[key];
-    }
   },
 
   _sendRequest: async function(url, service, action, args) {
@@ -203,7 +177,7 @@ const UPNP = {
         }
       }, (res) => {
         let xml = '';
-        res.on('data', (chunk) => {
+        res.on('data', chunk => {
           xml += chunk.toString();
         });
         res.on('end', () => {
