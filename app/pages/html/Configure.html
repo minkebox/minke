@@ -11,6 +11,9 @@
       {{#with skeleton}}
       <div class="sidebar pure-u-1">
         <div class="header">
+          {{#if skeletonType}}
+            <div class="skeleton-type">{{skeletonType}}</div>
+          {{/if}}
           <div class="name">
             <input size="25" type="text" placeholder="{{name}}" oninput="action('Name',this.value)" value="{{value}}">
           </div>
