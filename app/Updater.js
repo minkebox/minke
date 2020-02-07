@@ -121,6 +121,9 @@ const Updater = {
 
   _pruneImages: async function() {
     try {
+      // Simple prune - anything not being used and without a tag
+      await docker.pruneImages({});
+      // Extra prune - anything not being used, even with a tag, but not a system component
       await docker.pruneImages({
         filters: {
           'label!': [ 'net.minkebox.system' ],
