@@ -150,10 +150,6 @@ async function ConfigurePageHTML(ctx) {
             return Object.assign({ action: act, value: env ? env.value : '', options: property.options }, action);
           }
         }
-        case 'NAT':
-        {
-          return Object.assign({ action: `window.action('${action.type}',this.checked)`, value: app._features.nat || false }, action, { description: expand(action.description) });
-        }
         case 'Network':
         {
           const networks = [ { _id: 'none', name: 'none' } ].concat(app.getAvailableNetworks());
@@ -399,14 +395,6 @@ async function ConfigurePageWS(ctx) {
       update(app._env[key]);
       app._secondary.forEach(secondary => update(secondary._env[key]));
 
-      return change;
-    }},
-    { p: /^NAT$/, f: (value, match) => {
-      let change = NOCHANGE;
-      if (app._features.nat !== value) {
-        app._features.nat = value;
-        change = APPCHANGE;
-      }
       return change;
     }},
     { p: /^Network#(.+)$/, f: (value, match) => {

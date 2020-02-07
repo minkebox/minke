@@ -992,8 +992,7 @@ MinkeApp.prototype = {
         __HOMEIP: { value: this._homeIP || '<none>' },
         __HOMEIP6: { value: this.getSLAACAddress() || '<none>' },
         __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
-        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() },
-        __NAT: { value: this._features.nat || false }
+        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() }
       }, this._env);
       for (let key in env) {
         txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
