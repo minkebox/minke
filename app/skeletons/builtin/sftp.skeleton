@@ -52,7 +52,9 @@
       description: `Select the SSH port (usually 22)`
     },
     {
-      type: `NAT`,
+      type: `Environment`,
+      name: `NAT`,
+      style: `Checkbox`,
       description: `Make available on the Internet with the name <div><b>{{__GLOBALNAME}}</b></div>`,
       visible: 'property["Network#primary"] === "home"'
     }
@@ -100,7 +102,7 @@
       name: `SSH_PORT`,
       port: `{{SSH_PORT}}`,
       protocol: `TCP`,
-      nat: `{{__NAT}}`,
+      nat: `{{NAT}}`,
       vpn: true,
       web: false,
       dns: false,

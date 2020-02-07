@@ -73,8 +73,9 @@
       enabled: 'property.FirstUse'
     },
     {
-      type: `NAT`,
+      type: `Environment`,
       name: `PUBLIC_SERVER`,
+      style: `Checkbox`,
       description: `Make this server public and available on the Internet. The name on the Internet will be <div><b>{{__GLOBALNAME}}</b></div>`
     },
     {
@@ -504,7 +505,7 @@
       name: `SERVER_PORT`,
       port: `{{SERVER_PORT}}`,
       protocol: `TCP`,
-      nat: `{{__NAT}}`,
+      nat: `{{PUBLIC_SERVER}}`,
       web: false,
       dns: false,
       mdns: null
