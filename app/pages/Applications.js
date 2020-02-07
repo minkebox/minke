@@ -53,8 +53,8 @@ async function PageWS(ctx) {
           (async function() {
             const images = [ msg.value ];
             const skel = Skeletons.loadSkeleton(images[0], false);
-            if (skel && skel.secondary) {
-              skel.secondary.forEach(secondary => {
+            if (skel && skel.skeleton.secondary) {
+              skel.skeleton.secondary.forEach(secondary => {
                 images.push(secondary.image);
               });
             }

@@ -60,9 +60,9 @@ MinkeApp.prototype = {
 
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel) {
-      this._monitor = skel.monitor || {};
-      this._delay = skel.delay || 0;
-      this._tags = (skel.tags || []).concat([ 'All' ]);
+      this._monitor = skel.skeleton.monitor || {};
+      this._delay = skel.skeleton.delay || 0;
+      this._tags = (skel.skeleton.tags || []).concat([ 'All' ]);
     }
     else {
       this._monitor = {};
@@ -1448,7 +1448,7 @@ MinkeApp.shutdown = async function(config) {
 }
 
 MinkeApp.create = async function(image) {
-  const app = new MinkeApp().createFromSkeleton(await Skeletons.loadSkeleton(image, true));
+  const app = new MinkeApp().createFromSkeleton((await Skeletons.loadSkeleton(image, true)).skeleton);
   applications.push(app);
   if (app._features.vpn) {
     networkApps.push(app);

@@ -297,14 +297,23 @@ function saveInternalSkeleton(skeleton) {
 function loadSkeleton(image, create) {
   const lpath = `${LOCALS_DIR}/${image}.skeleton`;
   if (FS.existsSync(lpath)) {
-    return stringToSkeleton(FS.readFileSync(lpath, { encoding: 'utf8' }));
+    return {
+      type: 'local',
+      skeleton: stringToSkeleton(FS.readFileSync(lpath, { encoding: 'utf8' }))
+    };
   }
   const ipath = `${INTERNAL_DIR}/${image}.skeleton`;
   if (FS.existsSync(ipath)) {
-    return stringToSkeleton(FS.readFileSync(ipath, { encoding: 'utf8' }));
+    return {
+      type: 'internal',
+      skeleton: stringToSkeleton(FS.readFileSync(ipath, { encoding: 'utf8' }))
+    };
   }
   if (image in Builtins) {
-    return Builtins[image];
+    return {
+      type: 'builtin',
+      skeleton: Builtins[image]
+    };
   }
   if (!create) {
     return null;
@@ -312,12 +321,18 @@ function loadSkeleton(image, create) {
   return findImageInternalSkeleton(image).then((skel) => {
     if (skel) {
       saveInternalSkeleton(skel);
-      return skel;
+      return {
+        type: 'internal',
+        skeleton: skel
+      };
     }
     else {
       return imageToSkeleton(image).then((skel) => {
         saveLocalSkeleton(skel);
-        return skel;
+        return {
+          type: 'local',
+          skeleton: skel
+        };
       });
     }
   }).catch ((e) => {
