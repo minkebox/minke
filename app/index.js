@@ -41,13 +41,6 @@ App.ws.use(async (ctx, next) => {
 
 MinkeApp.startApps(App, { inherit: process.env.RESTART_REASON === 'restart' || process.env.RESTART_REASON === 'update', port: PORT });
 
-// Main web server
-const Redirect = new Koa();
-Redirect.use(async ctx => {
-  ctx.redirect(`http://${ctx.request.hostname}:${PORT}${ctx.request.path}`);
-});
-Redirect.listen(80);
-
 // DNS-over-HTTPS server
 //DOHServer();
 

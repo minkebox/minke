@@ -1,6 +1,6 @@
 module.exports = {
   CONFIG_NAME: 'Production',
-  WEB_PORT: 41414,
+  WEB_PORT: 80,
   REGISTRY_HOST: 'registry.minkebox.net',
   REGISTRY_DEFAULT_TAG: 'latest',
   DDNS_UPDATE: 'https://minkebox.net/update',

@@ -895,8 +895,8 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
     },
     {
       type: 'Port',
-      name: '41414/tcp',
-      port: 41414,
+      name: '80/tcp',
+      port: 80,
       protocol: 'TCP',
       nat: false,
       web: false,
@@ -907,8 +907,8 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
     },
     {
       type: 'Port',
-      name: '41415/tcp',
-      port: 41415,
+      name: '22/tcp',
+      port: 22,
       protocol: 'TCP',
       nat: false,
       web: false,
