@@ -232,12 +232,7 @@ MinkeApp.prototype = {
         }
         case 'Feature':
         {
-          if (prop.name in defs._features) {
-            target._features[prop.name] = defs._features[prop.name];
-          }
-          else {
-            target._features[prop.name] = true;
-          }
+          target._features[prop.name] = true;
           break;
         }
         case 'Port':
