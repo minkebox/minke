@@ -137,6 +137,12 @@ using Wi-Fi; use "tun" in this case.`,
             then: now - 1
           };
         }
+        for (let elapse = Math.min(state.rx.length, Math.floor(now - state.then)); elapse > 1; elapse--) {
+          state.rx.shift();
+          state.tx.shift();
+          state.rx.push(0);
+          state.tx.push(0);
+        }
         state.rx.shift();
         state.tx.shift();
         state.rx.push((rxtx[0] - state.last[0]) * 8 / 1000000 / (now - state.then));
