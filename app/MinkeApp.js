@@ -478,41 +478,42 @@ MinkeApp.prototype = {
 
         if (inherit.helperContainer !== this._helperContainer) {
           await this._helperContainer.start();
-        }
 
-        if (primary != 'none') {
-          switch (secondary) {
-            case 'none':
-              break;
-            case 'home':
-            {
-              try {
-                const homenet = await Network.getHomeNetwork();
-                await homenet.connect({
-                  Container: this._helperContainer.id
-                });
+          // Attach new helper to secondary network if necessary
+          if (primary != 'none') {
+            switch (secondary) {
+              case 'none':
+                break;
+              case 'home':
+              {
+                try {
+                  const homenet = await Network.getHomeNetwork();
+                  await homenet.connect({
+                    Container: this._helperContainer.id
+                  });
+                }
+                catch (e) {
+                  // Sometimes we get an error setting up the gateway, but we don't want it to set the gateway anyway so it's safe
+                  // to ignore.
+                  console.error(e);
+                }
+                break;
               }
-              catch (e) {
-                // Sometimes we get an error setting up the gateway, but we don't want it to set the gateway anyway so it's safe
-                // to ignore.
-                console.error(e);
+              default:
+              {
+                const vpn = await Network.getPrivateNetwork(secondary);
+                try {
+                  await vpn.connect({
+                    Container: this._helperContainer.id
+                  });
+                }
+                catch (e) {
+                  // Sometimes we get an error setting up the gateway, but we don't want it to set the gateway anyway so it's safe
+                  // to ignore.
+                  console.error(e);
+                }
+                break;
               }
-              break;
-            }
-            default:
-            {
-              const vpn = await Network.getPrivateNetwork(secondary);
-              try {
-                await vpn.connect({
-                  Container: this._helperContainer.id
-                });
-              }
-              catch (e) {
-                // Sometimes we get an error setting up the gateway, but we don't want it to set the gateway anyway so it's safe
-                // to ignore.
-                console.error(e);
-              }
-              break;
             }
           }
         }
