@@ -94,10 +94,10 @@ const UPNP = {
         }
       });
       await this._ssdpClient.start();
-      this._ssdpClient.search(URN_WAN);
+      this._ssdpClient.search(URN_IGD);
       this._wanRefresh = setInterval(async () => {
         if (this._ssdpClient) {
-          this._ssdpClient.search(URN_WAN);
+          this._ssdpClient.search(URN_IGD);
         }
       }, REFRESH);
 
