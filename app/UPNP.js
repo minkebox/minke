@@ -70,7 +70,7 @@ const UPNP = {
     try {
       this._ssdpClient = new SSDP.Client({});
       this._ssdpClient.on('response', (headers, statusCode, rinfo) => {
-        if (statusCode === 200 && headers.ST === URN_WAN) {
+        if (statusCode === 200 && headers.ST === URN_IGD) {
           const req = HTTP.request(headers.LOCATION, {
             method: 'GET'
           }, (res) => {
