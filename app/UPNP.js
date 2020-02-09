@@ -2,8 +2,10 @@ const SSDP = require('node-ssdp');
 const URL = require('url').URL;
 const HTTP = require('http');
 const XMLJS = require('xml-js');
+const Network = require('./Network');
 
-const URN_WAN= 'urn:schemas-upnp-org:service:WANIPConnection:1';
+const URN_WAN = 'urn:schemas-upnp-org:service:WANIPConnection:1';
+const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
 const TIMEOUT = 1 * 1000;
 const REFRESH = 10 * 1000;
 
@@ -14,6 +16,7 @@ const UPNP = {
   _hostname: '',
   _ip: '0.0.0.0',
   _WANIPConnectionURL: null,
+  _gwLocation: null,
 
   register: function(root) {
     root.get('/rootDesc.xml', async (ctx) => {
@@ -81,6 +84,7 @@ const UPNP = {
                 const service = device.serviceList && device.serviceList.service;
                 if (service && service.serviceType && service.serviceType._text == URN_WAN) {
                   this._WANIPConnectionURL = new URL(service.controlURL._text, headers.LOCATION);
+                  this._updateProxy(headers.LOCATION);
                   break;
                 }
               }
@@ -187,6 +191,29 @@ const UPNP = {
       req.write(body);
       req.end();
     });
+  },
+
+  //
+  // Provide Internet Gateway information to applications behind the proxy when on WiFi.
+  //
+  _updateProxy: async function(location) {
+    // Only proxy when on WiFi
+    if ((await Network.getActiveInterface()).network.name !== 'wlan0') {
+      return;
+    }
+    if (location != this._gwLocation) {
+      if (this._proxy) {
+        this._proxy.stop();
+      }
+      this._gwLocation = location;
+      this._proxy = new SSDP.Server({
+        udn: `uuid:c079a3b5-761e-40cd-9662-bbb38f43bdc5`,
+        ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
+        location: location
+      });
+      this._proxy.addUSN(URN_IGD);
+      await this._proxy.start();
+    }
   }
 
 };
