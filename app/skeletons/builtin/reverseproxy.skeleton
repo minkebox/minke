@@ -69,7 +69,7 @@
     {
       type: `Environment`,
       name: `WEB_NAT`,
-      style: `CheckBox`,
+      style: `Checkbox`,
       description: `Make websites available on the Internet`
     },
     {
