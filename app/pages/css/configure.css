@@ -72,7 +72,7 @@ body {
   padding: 2px;
 }
 
-.configure .section.invisible, .configure .action.invisible, .configure .help-text.invisible {
+.configure .section.invisible, .configure .action.invisible, .configure .content-text.invisible, .configure .help-text.invisible {
   display: none;
 }
 .configure .section {
