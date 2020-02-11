@@ -91,6 +91,10 @@
     },
     {
       type: `Environment`,
+      name: `NAT`
+    },
+    {
+      type: `Environment`,
       name: `LOGLEVEL`
     },
     {
