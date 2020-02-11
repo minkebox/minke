@@ -74,12 +74,13 @@
     },
     {
       type: `Text`,
-      text: 'If Internet access is enabled, use CNAMEs with your favorite Domain Registry to forward requests to <b>{{__GLOBALNAME}}</b>. This name will automatically track any change to your Home IP address.'
+      text: 'With Internet access, use CNAMEs with your favorite Domain Registry to forward requests to <b>{{__GLOBALNAME}}</b>. This name will automatically track any change to your Home IP address.',
+      visible: `property['Environment#WEB_NAT']`
     },
     {
       type: `Text`,
       text: `UPnP is not available on your network. Please manually forward TCP ports 80 and 443 (if HTTPS is enabled) from your router to {{__HOMEADDRESSES}}.`
-      visible: `!property.UPnPAvailable`
+      visible: `!property.UPnPAvailable && property['Environment#WEB_NAT']`
     }
   ],
   properties: [
