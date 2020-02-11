@@ -72,7 +72,7 @@
             then: now - 1
           };
         }
-        for (let elapse = Math.min(state.rx.length, Math.floor(now - state.then)); elapse > 1; elapse--) {
+        for (let elapse = Math.min(state.rx.length, Math.floor(now - state.then)); elapse > 3; elapse--) {
           state.rx.shift();
           state.tx.shift();
           state.rx.push(0);

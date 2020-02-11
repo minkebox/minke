@@ -75,10 +75,8 @@ using Wi-Fi; use "tun" in this case.`,
     },
     {
       type: `Text`,
-      text: ''
-    },
-    {
-      type: `UPnP`
+      text: `<br/>UPnP it not available on your network. Please manually forward the VPN UDP port (listed at the top of the configuration file) from your router to {{__HOMEADDRESSES}}.`
+      visible: `!properties.UPnPAvailable`
     }
   ],
   properties: [
@@ -137,7 +135,7 @@ using Wi-Fi; use "tun" in this case.`,
             then: now - 1
           };
         }
-        for (let elapse = Math.min(state.rx.length, Math.floor(now - state.then)); elapse > 1; elapse--) {
+        for (let elapse = Math.min(state.rx.length, Math.floor(now - state.then)); elapse > 3; elapse--) {
           state.rx.shift();
           state.tx.shift();
           state.rx.push(0);

@@ -77,7 +77,9 @@
       text: 'If Internet access is enabled, use CNAMEs with your favorite Domain Registry to forward requests to <b>{{__GLOBALNAME}}</b>. This name will automatically track any change to your Home IP address.'
     },
     {
-      type: `UPnP`
+      type: `Text`,
+      text: `UPnP it not available on your network. Please manually forward TCP ports 80 and 443 (if HTTPS is enabled) from your router to {{__HOMEADDRESSES}}.`
+      visible: `!properties.UPnPAvailable`
     }
   ],
   properties: [

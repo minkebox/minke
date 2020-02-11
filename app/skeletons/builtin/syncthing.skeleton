@@ -16,9 +16,6 @@
       type: `Shareables`,
       name: `/FOLDERS`,
       description: `Select folders`
-    },
-    {
-      type: `UPnP`
     }
   ],
   properties: [

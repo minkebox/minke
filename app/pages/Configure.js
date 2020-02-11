@@ -63,7 +63,8 @@ async function ConfigurePageHTML(ctx) {
   const properties = {
     Advanced: MinkeApp.getAdvancedMode(),
     FirstUse: app._bootcount == 0,
-    WifiAvailable: minkeConfig ? (await Network.wifiAvailable()) : false
+    WifiAvailable: minkeConfig ? (await Network.wifiAvailable()) : false,
+    UPnPAvailable: UPNP.available()
   };
   let help = false;
   const nskeleton = {
@@ -274,22 +275,6 @@ async function ConfigurePageHTML(ctx) {
               }
             })
           };
-        }
-        case 'UPnP':
-        {
-          const ip6 = app._homeIP && app.getNATIP6() ? app.getSLAACAddress() : null;
-          const upnp = UPNP.available();
-          if (upnp) {
-            return {
-              type: 'Empty'
-            };
-          }
-          else {
-            return {
-              type: `Text`,
-              text: `UPnP can be used to forward traffic from a router to this application. Unfortunately it does not appear to be available so you need to forward traffic manually${app._homeIP ? ' to IPv4 address <b>' + app._homeIP + '</b>' : ''}${ip6 ? ' and IPv6 address <b>' + ip6 + '</b>' : ''}`
-            };
-          }
         }
         case 'Argument':
         default:

@@ -976,13 +976,24 @@ MinkeApp.prototype = {
 
   expand: function(txt) {
     if (typeof txt ==='string' && txt.indexOf('{{') !== -1) {
+      let addresses = '<none>';
+      if (this._homeIP) {
+        if (this.getSLAACAddress()) {
+          addresses = `${this._homeIP} and ${this.getSLAACAddress()}`;
+        }
+        else {
+          addresses = this._homeIP;
+        }
+      }
       const env = Object.assign({
         __APPNAME: { value: this._name },
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
         __HOMEIP: { value: this._homeIP || '<none>' },
         __HOMEIP6: { value: this.getSLAACAddress() || '<none>' },
+        __HOMEADDRESSES: { value: addresses },
         __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
         __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() }
+
       }, this._env);
       for (let key in env) {
         txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
