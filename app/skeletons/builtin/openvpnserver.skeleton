@@ -75,8 +75,8 @@ using Wi-Fi; use "tun" in this case.`,
     },
     {
       type: `Text`,
-      text: `<br/>UPnP it not available on your network. Please manually forward the VPN UDP port (listed at the top of the configuration file) from your router to {{__HOMEADDRESSES}}.`
-      visible: `!properties.UPnPAvailable`
+      text: `<br/>UPnP is not available on your network. Please manually forward the VPN UDP port (listed at the top of the configuration file) from your router to {{__HOMEADDRESSES}}.`
+      visible: `!property.UPnPAvailable`
     }
   ],
   properties: [

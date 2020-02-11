@@ -78,8 +78,8 @@
     },
     {
       type: `Text`,
-      text: `UPnP it not available on your network. Please manually forward TCP ports 80 and 443 (if HTTPS is enabled) from your router to {{__HOMEADDRESSES}}.`
-      visible: `!properties.UPnPAvailable`
+      text: `UPnP is not available on your network. Please manually forward TCP ports 80 and 443 (if HTTPS is enabled) from your router to {{__HOMEADDRESSES}}.`
+      visible: `!property.UPnPAvailable`
     }
   ],
   properties: [
