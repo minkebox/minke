@@ -169,6 +169,9 @@ MinkeApp.prototype = {
           const found = (defs.env || {})[prop.name];
           if (found) {
             target._env[prop.name] = { value: found.value };
+            if ('altValue' in found) {
+              arget._env[prop.name].altValue = found.altValue;
+            }
           }
           else if ('defaultValue' in prop) {
             target._env[prop.name] = { value: prop.defaultValue };
