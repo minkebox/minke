@@ -105,6 +105,11 @@
       defaultValue: false
     },
     {
+      type: `Environment`,
+      name: `WEB_NAT`,
+      defaultValue: false
+    },
+    {
       type: 'Directory',
       name: '/etc/nginx/acme.sh',
       style: 'boot'
