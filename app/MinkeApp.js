@@ -8,6 +8,7 @@ const HTTP = require('./HTTP');
 const DNS = require('./DNS');
 const DDNS = require('./DDNS');
 const MDNS = require('./MDNS');
+const UPNP = require('./UPNP');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
@@ -804,29 +805,34 @@ MinkeApp.prototype = {
     // Log everything
     await new Promise(async (resolve) => {
       try {
-        const log = await this._container.logs({
-          follow: true,
-          stdout: true,
-          stderr: true
-        });
-        let outlog = '';
-        let errlog = '';
-        docker.modem.demuxStream(log,
-          {
-            write: (chunk) => {
-              outlog += chunk.toString('utf8');
-            }
-          },
-          {
-            write: (chunk) => {
-              errlog += chunk.toString('utf8');
-            }
-          }
-        );
-        log.on('end', () => {
-          this._fs.saveLogs(outlog, errlog);
+        if (!this._container) {
           resolve();
-        });
+        }
+        else {
+          const log = await this._container.logs({
+            follow: true,
+            stdout: true,
+            stderr: true
+          });
+          let outlog = '';
+          let errlog = '';
+          docker.modem.demuxStream(log,
+            {
+              write: (chunk) => {
+                outlog += chunk.toString('utf8');
+              }
+            },
+            {
+              write: (chunk) => {
+                errlog += chunk.toString('utf8');
+              }
+            }
+          );
+          log.on('end', () => {
+            this._fs.saveLogs(outlog, errlog);
+            resolve();
+          });
+        }
       }
       catch (e) {
         console.error(e);
