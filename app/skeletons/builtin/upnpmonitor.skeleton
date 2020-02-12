@@ -1,0 +1,94 @@
+{
+  name: `UPnP Monitor`,
+  description: `Monitor the open UPnP ports on your firewall.`,
+  image: `registry.minkebox.net/minkebox/upnpmonitor`,
+  tags: [ 'Networking' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Active Ports`
+    },
+    {
+      type: `File`,
+      name: `/tmp/active.display`,
+      description: `Ports currently active on the firewall`,
+      style: `RTable`,
+      headers: [
+        { name: `Firewall Port` },
+        { name: `Target Address` },
+        { name: `Target Port` },
+        { name: `Note` }
+      ]
+    },
+    {
+      type: `Header`,
+      title: `All Time Ports`
+    },
+    {
+      type: `File`,
+      name: `/tmp/alltime.display`,
+      description: `Any port that has been active on the firewall`,
+      style: `RTable`,
+      headers: [
+        { name: `Firewall Port` },
+        { name: `Target Address` },
+        { name: `Target Port` },
+        { name: `Note` }
+      ]
+    },
+    {
+      type: `Header`,
+      title: `Network`,
+      visible: `property.Advanced`
+    },
+    {
+      type: `Text`,
+      text: `Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      description: `Select network`
+    }
+  ],
+  properties: [
+    {
+      type: `File`,
+      name: `/tmp/active.display`,
+      style: 'boot'
+    },
+    {
+      type: `File`,
+      name: `/tmp/alltime.display`,
+      style: 'boot'
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: `wc -l /tmp/active /tmp/alltime | sed "s/^ *\\([0-9]*\\).*$/\\1/" | head -n2`,
+    polling: 60,
+    parser: `
+      let i = input.split('\\n');
+      output.active = i[0];
+      output.alltime = i[1];
+    `,
+    minwidth: `150px`,
+    header: `
+      <style>
+        .up-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
+        .up-b { color: grey; text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
+        .up-r { display: inline-block; font-size: 24px; color: black; }
+      </style>
+    `,
+    template: `
+      <div class="up-o">
+        <div class="up-b"><div class="up-r">{{active}}</div><div>Active Ports</div></div>
+        <div class="up-b"><div class="up-r">{{alltime}}</div><div>All Time Ports</div></div>
+      </div>
+    `
+  }
+}
