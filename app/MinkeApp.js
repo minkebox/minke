@@ -146,10 +146,10 @@ MinkeApp.prototype = {
     else {
       this._secondary = [];
     }
-    this._delay = skel.delay || 5;
     this._monitor = skel.monitor || {};
-    this._bootcount = 0;
+    this._delay = skel.delay || 0;
     this._tags = (skel.tags || []).concat([ 'All' ]);
+    this._bootcount = 0;
 
     return this;
   },
