@@ -88,8 +88,8 @@ const UPNP = {
               for (let device = json && json.root && json.root.device && json.root.device; device; device = device.deviceList && device.deviceList.device) {
                 const service = device.serviceList && device.serviceList.service;
                 if (service && service.serviceType && service.serviceType._text == URN_WAN) {
+                  this._gwLocation = headers.LOCATION;
                   this._WANIPConnectionURL = new URL(service.controlURL._text, headers.LOCATION);
-                  this._setProxy(headers.LOCATION);
                   break;
                 }
               }
@@ -170,6 +170,26 @@ const UPNP = {
       }
     }
     return null;
+  },
+
+  register: async function() {
+    // Start up a UPNP proxy if necessary
+    if (!this._proxy && this._gwLocation && (await Network.getActiveInterface()).network.name === WIFI_NETWORK) {
+      this._proxy = new SSDP.Server({
+        udn: `uuid:${this._proxyUUID}`,
+        ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
+        location: this._gwLocation,
+        interfaces: [ PROXY_NETWORK ],
+        customLogger: (fmt) => {
+          if (fmt.indexOf('error') != -1) {
+            // Error - force restart
+            this._gwLocation = null;
+          }
+        }
+      });
+      this._proxy.addUSN(URN_IGD);
+      await this._proxy.start();
+    }
   },
 
   _sendRequest: async function(url, service, action, args) {
