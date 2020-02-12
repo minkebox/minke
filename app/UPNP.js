@@ -1,6 +1,7 @@
 const SSDP = require('node-ssdp');
 const URL = require('url').URL;
 const HTTP = require('http');
+const OS = require('os');
 const Util = require('util');
 const XMLJS = require('xml-js');
 const UUID = require('uuid/v4');
@@ -10,6 +11,8 @@ const URN_WAN = 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
 const TIMEOUT = 1 * 1000;
 const REFRESH = 30 * 1000;
+const PROXY_NETWORK = Network.BRIDGE_NETWORK;
+const WIFI_NETWORK = Network.WLAN_NETWORK;
 
 
 const UPNP = {
@@ -86,7 +89,7 @@ const UPNP = {
                 const service = device.serviceList && device.serviceList.service;
                 if (service && service.serviceType && service.serviceType._text == URN_WAN) {
                   this._WANIPConnectionURL = new URL(service.controlURL._text, headers.LOCATION);
-                  this._updateProxy(headers.LOCATION);
+                  this._setProxy(headers.LOCATION);
                   break;
                 }
               }
@@ -198,41 +201,60 @@ const UPNP = {
   //
   // Provide Internet Gateway information to applications behind the proxy when on WiFi.
   //
-  _updateProxy: async function(location) {
+  _setProxy: async function(location) {
     // Nothing to update
     if (location === this._gwLocation) {
       return;
     }
+    this._gwLocation = location;
+
     // Only proxy when on WiFi
-    if ((await Network.getActiveInterface()).network.name === 'wlan0') {
+    if ((await Network.getActiveInterface()).network.name !== WIFI_NETWORK) {
+      return;
+    }
+
+    // Make sure PROXY_NETWORK is up. If not, we need to wait for it.
+    for (;;) {
+      if (PROXY_NETWORK in OS.networkInterfaces()) {
+        await this._updateProxy();
+        break;
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  },
+
+  _updateProxy: async function() {
+    if (this._proxy) {
       try {
-        this._gwLocation = location;
-        if (this._proxy) {
-          this._proxy.stop();
-          this._proxy = null;
-        }
-        if (!this._proxyUUID) {
-          this._proxyUUID = UUID();
-        }
-        this._proxy = new SSDP.Server({
-          udn: `uuid:${this._proxyUUID}`,
-          ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
-          location: this._gwLocation,
-          customLogger: (fmt) => {
-            console.log(fmt);
-            if (fmt.indexOf('error') != -1) {
-              // Error - force restart
-              this._gwLocation = null;
-            }
-          }
-        });
-        this._proxy.addUSN(URN_IGD);
-        await this._proxy.start();
+        this._proxy.stop();
       }
       catch (e) {
         console.error(e);
-        this._gwLocation = null;
       }
+      this._proxy = null;
+    }
+    if (!this._proxyUUID) {
+      this._proxyUUID = UUID();
+    }
+    try {
+      this._proxy = new SSDP.Server({
+        udn: `uuid:${this._proxyUUID}`,
+        ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
+        location: this._gwLocation,
+        interfaces: [ PROXY_NETWORK ],
+        customLogger: (fmt) => {
+          if (fmt.indexOf('error') != -1) {
+            // Error - force restart
+            this._gwLocation = null;
+          }
+        }
+      });
+      this._proxy.addUSN(URN_IGD);
+      await this._proxy.start();
+    }
+    catch (e) {
+      console.error(e);
+      this._gwLocation = null;
     }
   }
 

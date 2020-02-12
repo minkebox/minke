@@ -23,6 +23,9 @@ let wifiAvailable = null;
 
 const Network = {
 
+  BRIDGE_NETWORK: BRIDGE_NETWORK,
+  WLAN_NETWORK: WLAN_NETWORK,
+
   getActiveInterface: async function() {
     return new Promise((resolve, reject) => {
       Net.get_interfaces_list((err, list) => {
