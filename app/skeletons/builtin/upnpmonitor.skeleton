@@ -70,7 +70,7 @@
   ],
   monitor: {
     cmd: `wc -l /tmp/active /tmp/alltime | sed "s/^ *\\([0-9]*\\).*$/\\1/" | head -n2`,
-    polling: 60,
+    polling: 10,
     parser: `
       let i = input.split('\\n');
       output.active = i[0];
