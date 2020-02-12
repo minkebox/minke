@@ -107,25 +107,6 @@ const UPNP = {
         }
       }, REFRESH);
 
-      // If proxy need, wait a little and then start it
-      if ((await Network.getActiveInterface()).network.name === WIFI_NETWORK) {
-        setTimeout(async () => {
-          if (this._gwLocation) {
-            this._proxy = new SSDP.Server({
-              udn: `uuid:${UUID()}`,
-              ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
-              location: () => {
-                return this._gwLocation
-              },
-              interfaces: [ PROXY_NETWORK ]
-            });
-            this._proxy.addUSN(URN_IGD);
-            await this._proxy.start();
-            console.log('UPNP Proxy started', this._gwLocation);
-          }
-        }, PROXY_WAIT);
-      }
-
       // Pause for a short while to get the UPNP stuff happen
       return new Promise(resolve => {
         setTimeout(() => {
@@ -216,6 +197,22 @@ const UPNP = {
       req.write(body);
       req.end();
     });
+  },
+
+  startProxy: async function() {
+    if (this._gwLocation && !this._proxy) {
+      this._proxy = new SSDP.Server({
+        udn: `uuid:${UUID()}`,
+        ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
+        location: () => {
+          return this._gwLocation
+        },
+        interfaces: [ PROXY_NETWORK ]
+      });
+      this._proxy.addUSN(URN_IGD);
+      await this._proxy.start();
+      console.log('UPNP Proxy started', this._gwLocation);
+    }
   }
 
 };

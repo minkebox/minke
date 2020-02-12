@@ -4,7 +4,8 @@ const ChildProcess = require('child_process');
 const Net = require('network');
 const Netmask = require('netmask');
 const Address6 = require('ip-address').Address6;
-const DetectRpi = require('detect-rpi');;
+const DetectRpi = require('detect-rpi');
+const UPNP = require('./UPNP');
 const Barrier = require('./utils/Barrier');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
@@ -211,7 +212,7 @@ const Network = {
     }
 
     const iface = await Network.getActiveInterface();
-    return await this._getNetwork({
+    const network = await this._getNetwork({
       Name: HOME_NETWORK_NAME,
       Driver: 'bridge',
       IPAM: {
@@ -228,6 +229,10 @@ const Network = {
         'com.docker.network.bridge.enable_ip_masquerade': 'false'
       }
     });
+    if (iface.network.name === WLAN_NETWORK) {
+      await UPNP.startProxy();
+    }
+    return network;
   }),
 
   getBridgeNetwork: Barrier(async function() {
