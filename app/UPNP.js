@@ -11,6 +11,7 @@ const URN_WAN = 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
 const TIMEOUT = 1 * 1000;
 const REFRESH = 30 * 1000;
+const PROXY_WAIT = 30 * 1000;
 const PROXY_NETWORK = Network.BRIDGE_NETWORK;
 const WIFI_NETWORK = Network.WLAN_NETWORK;
 
@@ -106,6 +107,25 @@ const UPNP = {
         }
       }, REFRESH);
 
+      // If proxy need, wait a little and then start it
+      if ((await Network.getActiveInterface()).network.name === WIFI_NETWORK) {
+        setTimeout(async () => {
+          if (this._gwLocation) {
+            this._proxy = new SSDP.Server({
+              udn: `uuid:${UUID()}`,
+              ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
+              location: () => {
+                return this._gwLocation
+              },
+              interfaces: [ PROXY_NETWORK ]
+            });
+            this._proxy.addUSN(URN_IGD);
+            await this._proxy.start();
+            console.log('UPNP Proxy started', this._gwLocation);
+          }
+        }, PROXY_WAIT);
+      }
+
       // Pause for a short while to get the UPNP stuff happen
       return new Promise(resolve => {
         setTimeout(() => {
@@ -170,34 +190,6 @@ const UPNP = {
       }
     }
     return null;
-  },
-
-  register: async function() {
-    // Restart the proxy as we add apps
-    // This is a bit of a hack because starting the proxy when the network is in flux seems to cause issues.
-    // This restarts it excessively but probably helps a bit.
-    if (this._gwLocation && (await Network.getActiveInterface()).network.name === WIFI_NETWORK) {
-      if (this._proxy) {
-        try {
-          this._proxy.stop();
-        }
-        catch (e) {
-          console.error(e);
-        }
-        this._proxy = null;
-      }
-      if (!this._proxyUUID) {
-        this._proxyUUID = UUID();
-      }
-      this._proxy = new SSDP.Server({
-        udn: `uuid:${this._proxyUUID}`,
-        ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
-        location: this._gwLocation,
-        interfaces: [ PROXY_NETWORK ]
-      });
-      this._proxy.addUSN(URN_IGD);
-      await this._proxy.start();
-    }
   },
 
   _sendRequest: async function(url, service, action, args) {

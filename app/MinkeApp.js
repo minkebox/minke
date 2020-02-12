@@ -8,7 +8,6 @@ const HTTP = require('./HTTP');
 const DNS = require('./DNS');
 const DDNS = require('./DDNS');
 const MDNS = require('./MDNS');
-const UPNP = require('./UPNP');
 const Network = require('./Network');
 const Filesystem = require('./Filesystem');
 const Database = require('./Database');
@@ -570,7 +569,6 @@ MinkeApp.prototype = {
           if (this._features.ddns || this._ddns || this._ports.find(port => this.expandPort(port).nat)) {
             DDNS.register(this);
           }
-          UPNP.register(this);
         }
 
       }
