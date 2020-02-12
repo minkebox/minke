@@ -173,19 +173,27 @@ const UPNP = {
   },
 
   register: async function() {
-    // Start up a UPNP proxy if necessary
-    if (!this._proxy && this._gwLocation && (await Network.getActiveInterface()).network.name === WIFI_NETWORK) {
+    // Restart the proxy as we add apps
+    // This is a bit of a hack because starting the proxy when the network is in flux seems to cause issues.
+    // This restarts it excessively but probably helps a bit.
+    if (this._gwLocation && (await Network.getActiveInterface()).network.name === WIFI_NETWORK) {
+      if (this._proxy) {
+        try {
+          this._proxy.stop();
+        }
+        catch (e) {
+          console.error(e);
+        }
+        this._proxy = null;
+      }
+      if (!this._proxyUUID) {
+        this._proxyUUID = UUID();
+      }
       this._proxy = new SSDP.Server({
         udn: `uuid:${this._proxyUUID}`,
         ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
         location: this._gwLocation,
-        interfaces: [ PROXY_NETWORK ],
-        customLogger: (fmt) => {
-          if (fmt.indexOf('error') != -1) {
-            // Error - force restart
-            this._gwLocation = null;
-          }
-        }
+        interfaces: [ PROXY_NETWORK ]
       });
       this._proxy.addUSN(URN_IGD);
       await this._proxy.start();
@@ -216,66 +224,6 @@ const UPNP = {
       req.write(body);
       req.end();
     });
-  },
-
-  //
-  // Provide Internet Gateway information to applications behind the proxy when on WiFi.
-  //
-  _setProxy: async function(location) {
-    // Nothing to update
-    if (location === this._gwLocation) {
-      return;
-    }
-    this._gwLocation = location;
-
-    // Only proxy when on WiFi
-    if ((await Network.getActiveInterface()).network.name !== WIFI_NETWORK) {
-      return;
-    }
-
-    // Make sure PROXY_NETWORK is up. If not, we need to wait for it.
-    for (;;) {
-      if (PROXY_NETWORK in OS.networkInterfaces()) {
-        await this._updateProxy();
-        break;
-      }
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-  },
-
-  _updateProxy: async function() {
-    if (this._proxy) {
-      try {
-        this._proxy.stop();
-      }
-      catch (e) {
-        console.error(e);
-      }
-      this._proxy = null;
-    }
-    if (!this._proxyUUID) {
-      this._proxyUUID = UUID();
-    }
-    try {
-      this._proxy = new SSDP.Server({
-        udn: `uuid:${this._proxyUUID}`,
-        ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
-        location: this._gwLocation,
-        interfaces: [ PROXY_NETWORK ],
-        customLogger: (fmt) => {
-          if (fmt.indexOf('error') != -1) {
-            // Error - force restart
-            this._gwLocation = null;
-          }
-        }
-      });
-      this._proxy.addUSN(URN_IGD);
-      await this._proxy.start();
-    }
-    catch (e) {
-      console.error(e);
-      this._gwLocation = null;
-    }
   }
 
 };
