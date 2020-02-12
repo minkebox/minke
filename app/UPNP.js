@@ -1,6 +1,7 @@
 const SSDP = require('node-ssdp');
 const URL = require('url').URL;
 const HTTP = require('http');
+const Util = require('util');
 const XMLJS = require('xml-js');
 const UUID = require('uuid/v4');
 const Network = require('./Network');
@@ -8,7 +9,7 @@ const Network = require('./Network');
 const URN_WAN = 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
 const TIMEOUT = 1 * 1000;
-const REFRESH = 10 * 1000;
+const REFRESH = 30 * 1000;
 
 
 const UPNP = {
@@ -198,11 +199,12 @@ const UPNP = {
   // Provide Internet Gateway information to applications behind the proxy when on WiFi.
   //
   _updateProxy: async function(location) {
-    // Only proxy when on WiFi
-    if ((await Network.getActiveInterface()).network.name !== 'wlan0') {
+    // Nothing to update
+    if (location === this._gwLocation) {
       return;
     }
-    if (location != this._gwLocation) {
+    // Only proxy when on WiFi
+    if ((await Network.getActiveInterface()).network.name === 'wlan0') {
       try {
         this._gwLocation = location;
         if (this._proxy) {
@@ -215,7 +217,14 @@ const UPNP = {
         this._proxy = new SSDP.Server({
           udn: `uuid:${this._proxyUUID}`,
           ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
-          location: location
+          location: this._gwLocation,
+          customLogger: (fmt) => {
+            console.log(fmt);
+            if (fmt.indexOf('error') != -1) {
+              // Error - force restart
+              this._gwLocation = null;
+            }
+          }
         });
         this._proxy.addUSN(URN_IGD);
         await this._proxy.start();
