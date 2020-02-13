@@ -231,7 +231,7 @@ const Network = {
     if (net._needUPNPProxy) {
       await UPNP.startProxy(net);
     }
-    return network;
+    return net;
   }),
 
   getBridgeNetwork: Barrier(async function() {
