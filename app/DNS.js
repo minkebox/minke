@@ -150,7 +150,7 @@ const DNS = {
       FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
-    this.registerHostIP(hostname, ip, Network.getSLAACAddress(), '_');
+    this.registerHostIP(hostname, ip, Network.getSLAACAddress());
     this.registerHostIP(DOH_SERVER_NAME, ip, Network.getSLAACAddress());
   },
 
@@ -159,22 +159,29 @@ const DNS = {
     this._updateLocalResolv();
     if (!DEBUG) {
       for (let hostname in hosts) {
-        this.registerHostIP(hostname, hosts[hostname].ip, hosts[hostname].ip6, hosts[hostname].filename);
+        this.registerHostIP(hostname, hosts[hostname].ip, hosts[hostname].ip6);
       }
     }
   },
 
-  registerHostIP: function(hostname, ip, ip6, filename) {
-    filename = filename || hostname;
-    hosts[hostname] = { ip: ip, ip6: ip6, filename: filename };
+  registerHostIP: function(hostname, ip, ip6) {
+    this._registerHostIP(hostname, ip, ip6, 'h/');
+  },
+
+  registerGlobalIP: function(hostname, ip, ip6) {
+    this._registerHostIP(hostname, ip, ip6, 'g/');
+  },
+
+  _registerHostIP: function(hostname, ip, ip6, ext) {
+    hosts[hostname] = { ip: ip, ip6: ip6 };
     if (!DEBUG) {
       if (hostname.indexOf('.') === -1) {
-        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${filename}.conf`,
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${ext}${hostname}.conf`,
           `${ip} ${hostname}.${domainName}\n` + (ip6 ? `${ip6} ${hostname}.${domainName}\n` : '')
         );
       }
       else {
-        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${filename}.conf`,
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${ext}${hostname}.conf`,
           `${ip} ${hostname}\n` + (ip6 ? `${ip6} ${hostname}\n` : '')
         );
       }
@@ -182,9 +189,17 @@ const DNS = {
   },
 
   unregisterHostIP: function(hostname) {
+    this._unregisterHostIP(hostname, 'h/');
+  },
+
+  unregisterGlobalIP: function(hostname) {
+    this._unregisterHostIP(hostname, 'g/');
+  },
+
+  _unregisterHostIP: function(hostname, ext) {
     if (!DEBUG) {
       try {
-        FS.unlinkSync(`${DNSMASQ_HOSTS_DIR}${hosts[hostname].filename}.conf`);
+        FS.unlinkSync(`${DNSMASQ_HOSTS_DIR}${ext}${hostname}.conf`);
       }
       catch (e) {
         //console.error(e);
@@ -218,7 +233,8 @@ const DNS = {
         'bind-interfaces',
         'no-resolv',
         `servers-file=${DNSMASQ_RESOLV}`,
-        `hostsdir=${DNSMASQ_HOSTS_DIR}`,
+        `hostsdir=${DNSMASQ_HOSTS_DIR}g/`,
+        `hostsdir=${DNSMASQ_HOSTS_DIR}h/`,
         'clear-on-reload',
         'strict-order',
         `cache-size=${cacheSize}`

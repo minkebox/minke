@@ -564,7 +564,7 @@ MinkeApp.prototype = {
           const homeip6 = this.getSLAACAddress();
           Network.registerIP(this._homeIP);
           DNS.registerHostIP(this._safeName(), this._homeIP, homeip6);
-          DNS.registerHostIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
+          DNS.registerGlobalIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
            // If we need to be accessed remotely, register with DDNS
           if (this._features.ddns || this._ddns || this._ports.find(port => this.expandPort(port).nat)) {
             DDNS.register(this);
@@ -763,7 +763,7 @@ MinkeApp.prototype = {
 
     if (this._homeIP) {
       DNS.unregisterHostIP(this._safeName());
-      DNS.unregisterHostIP(`${this._globalId}${GLOBALDOMAIN}`);
+      DNS.unregisterGlobalIP(`${this._globalId}${GLOBALDOMAIN}`);
       if (this._features.ddns || this._ddns || this._ports.find(port => this.expandPort(port).nat)) {
         DDNS.unregister(this);
       }

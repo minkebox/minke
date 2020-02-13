@@ -2,7 +2,7 @@ FROM alpine:latest
 
 RUN apk add nodejs npm \
     dnsmasq tzdata openntpd e2fsprogs parted dnscrypt-proxy ;\
-    mkdir -p /etc/dnshosts.d
+    mkdir -p /etc/dnshosts.d/h /etc/dnshosts.d/g
 
 COPY startup.sh /startup.sh
 
