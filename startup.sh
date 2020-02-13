@@ -7,6 +7,7 @@ fi
 cp /usr/share/zoneinfo/$(cat /etc/timezone) /etc/localtime
 
 # Start syncing time. Delay this for 60 seconds to give the MinkeBox DNS time to startup.
+echo "servers pool.ntp.org" > /etc/ntpd.conf
 (sleep 60 ; ntpd -s -f /etc/ntpd.conf) &
 
 # Minke
