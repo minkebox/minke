@@ -2,7 +2,6 @@ const SSDP = require('node-ssdp');
 const URL = require('url').URL;
 const HTTP = require('http');
 const OS = require('os');
-const Util = require('util');
 const XMLJS = require('xml-js');
 const UUID = require('uuid/v4');
 const Network = require('./Network');
@@ -200,7 +199,7 @@ const UPNP = {
   },
 
   startProxy: async function() {
-    if (this._gwLocation && !this._proxy) {
+    if (this._gwLocation && !this._proxy && (PROXY_NETWORK in OS.networkInterfaces())) {
       this._proxy = new SSDP.Server({
         udn: `uuid:${UUID()}`,
         ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',

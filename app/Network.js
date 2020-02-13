@@ -206,31 +206,30 @@ const Network = {
   },
 
   getHomeNetwork: Barrier(async function() {
-    const net = networks[HOME_NETWORK_NAME];
-    if (net) {
-      return net;
+    let net = networks[HOME_NETWORK_NAME];
+    if (!net) {
+      const iface = await Network.getActiveInterface();
+      net = await this._getNetwork({
+        Name: HOME_NETWORK_NAME,
+        Driver: 'bridge',
+        IPAM: {
+          Config: [{
+            Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
+            Gateway: iface.network.ip_address, // Dont use gateway_ip - set that using aux. This (re)sets the host IP address.
+            AuxiliaryAddresses: {
+              DefaultGatewayIPv4: iface.network.gateway_ip
+            }
+          }]
+        },
+        Options: {
+          'com.docker.network.bridge.name': BRIDGE_NETWORK,
+          'com.docker.network.bridge.enable_ip_masquerade': 'false'
+        }
+      });
+      net._needProxy = (iface.network.name !== BRIDGE_NETWORK);
     }
-
-    const iface = await Network.getActiveInterface();
-    const network = await this._getNetwork({
-      Name: HOME_NETWORK_NAME,
-      Driver: 'bridge',
-      IPAM: {
-        Config: [{
-          Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
-          Gateway: iface.network.ip_address, // Dont use gateway_ip - set that using aux. This (re)sets the host IP address.
-          AuxiliaryAddresses: {
-            DefaultGatewayIPv4: iface.network.gateway_ip
-          }
-        }]
-      },
-      Options: {
-        'com.docker.network.bridge.name': BRIDGE_NETWORK,
-        'com.docker.network.bridge.enable_ip_masquerade': 'false'
-      }
-    });
-    if (iface.network.name === WLAN_NETWORK) {
-      await UPNP.startProxy();
+    if (net._needUPNPProxy) {
+      await UPNP.startProxy(net);
     }
     return network;
   }),
