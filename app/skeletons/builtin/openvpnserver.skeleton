@@ -135,11 +135,14 @@ using Wi-Fi; use "tun" in this case.`,
             then: now - 1
           };
         }
-        for (let elapse = Math.min(state.rx.length, Math.floor(now - state.then)); elapse > 3; elapse--) {
-          state.rx.shift();
-          state.tx.shift();
-          state.rx.push(0);
-          state.tx.push(0);
+        let elapse = Math.min(state.rx.length, Math.floor(now - state.then));
+        if (elapse > 5) {
+          for (; elapse > 0; elapse--) {
+            state.rx.shift();
+            state.tx.shift();
+            state.rx.push(0);
+            state.tx.push(0);
+          }
         }
         state.rx.shift();
         state.tx.shift();
