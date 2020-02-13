@@ -4,15 +4,11 @@ const HTTP = require('http');
 const OS = require('os');
 const XMLJS = require('xml-js');
 const UUID = require('uuid/v4');
-const Network = require('./Network');
 
 const URN_WAN = 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
 const TIMEOUT = 1 * 1000;
 const REFRESH = 30 * 1000;
-const PROXY_WAIT = 30 * 1000;
-const PROXY_NETWORK = Network.BRIDGE_NETWORK;
-const WIFI_NETWORK = Network.WLAN_NETWORK;
 
 
 const UPNP = {
@@ -199,14 +195,13 @@ const UPNP = {
   },
 
   startProxy: async function() {
-    if (this._gwLocation && !this._proxy && (PROXY_NETWORK in OS.networkInterfaces())) {
+    if (this._gwLocation && !this._proxy) {
       this._proxy = new SSDP.Server({
         udn: `uuid:${UUID()}`,
         ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
         location: () => {
           return this._gwLocation
-        },
-        interfaces: [ PROXY_NETWORK ]
+        }
       });
       this._proxy.addUSN(URN_IGD);
       await this._proxy.start();

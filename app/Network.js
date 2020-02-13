@@ -226,7 +226,7 @@ const Network = {
           'com.docker.network.bridge.enable_ip_masquerade': 'false'
         }
       });
-      net._needProxy = (iface.network.name !== BRIDGE_NETWORK);
+      net._needUPNPProxy = (iface.network.name !== BRIDGE_NETWORK);
     }
     if (net._needUPNPProxy) {
       await UPNP.startProxy(net);
