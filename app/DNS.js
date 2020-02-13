@@ -33,8 +33,8 @@ const hosts = {};
 const DNS = {
 
   start: function(config) {
-    this.setHostname(config.hostname, config.ip);
     this.setDomainName(config.domainname);
+    this.setHostname(config.hostname, config.ip);
     this.setDefaultResolver(config.resolvers[0], config.resolvers[1], config.secure[0], config.secure[1]);
   },
 
@@ -150,6 +150,7 @@ const DNS = {
       FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
       ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
     }
+    this.registerHostIP(hostname, ip, Network.getSLAACAddress(), '_');
     this.registerHostIP(DOH_SERVER_NAME, ip, Network.getSLAACAddress());
   },
 
@@ -158,21 +159,22 @@ const DNS = {
     this._updateLocalResolv();
     if (!DEBUG) {
       for (let hostname in hosts) {
-        this.registerHostIP(hostname, hosts[hostname].ip, hosts[hostname].ip6);
+        this.registerHostIP(hostname, hosts[hostname].ip, hosts[hostname].ip6, hosts[hostname].filename);
       }
     }
   },
 
-  registerHostIP: function(hostname, ip, ip6) {
-    hosts[hostname] = { ip: ip, ip6: ip6 };
+  registerHostIP: function(hostname, ip, ip6, filename) {
+    filename = filename || hostname;
+    hosts[hostname] = { ip: ip, ip6: ip6, filename: filename };
     if (!DEBUG) {
       if (hostname.indexOf('.') === -1) {
-        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`,
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${filename}.conf`,
           `${ip} ${hostname}.${domainName}\n` + (ip6 ? `${ip6} ${hostname}.${domainName}\n` : '')
         );
       }
       else {
-        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`,
+        FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${filename}.conf`,
           `${ip} ${hostname}\n` + (ip6 ? `${ip6} ${hostname}\n` : '')
         );
       }
@@ -180,15 +182,15 @@ const DNS = {
   },
 
   unregisterHostIP: function(hostname) {
-    delete hosts[hostname];
     if (!DEBUG) {
       try {
-        FS.unlinkSync(`${DNSMASQ_HOSTS_DIR}${hostname}.conf`);
+        FS.unlinkSync(`${DNSMASQ_HOSTS_DIR}${hosts[hostname].filename}.conf`);
       }
       catch (e) {
         //console.error(e);
       }
     }
+    delete hosts[hostname];
   },
 
   getSDNS: function() {
