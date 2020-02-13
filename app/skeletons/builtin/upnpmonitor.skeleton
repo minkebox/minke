@@ -15,7 +15,7 @@
       style: `RTable`,
       headers: [
         { name: `Firewall Port` },
-        { name: `Target Address` },
+        { name: `Target Host` },
         { name: `Target Port` },
         { name: `Note` }
       ]
@@ -31,7 +31,7 @@
       style: `RTable`,
       headers: [
         { name: `Firewall Port` },
-        { name: `Target Address` },
+        { name: `Target Host` },
         { name: `Target Port` },
         { name: `Note` }
       ]
