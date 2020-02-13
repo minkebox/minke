@@ -5,7 +5,6 @@ const Net = require('network');
 const Netmask = require('netmask');
 const Address6 = require('ip-address').Address6;
 const DetectRpi = require('detect-rpi');
-const UPNP = require('./UPNP');
 const Barrier = require('./utils/Barrier');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
@@ -226,10 +225,6 @@ const Network = {
           'com.docker.network.bridge.enable_ip_masquerade': 'false'
         }
       });
-      net._needUPNPProxy = (iface.network.name !== BRIDGE_NETWORK);
-    }
-    if (net._needUPNPProxy) {
-      await UPNP.startProxy(net);
     }
     return net;
   }),

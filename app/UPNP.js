@@ -1,15 +1,15 @@
 const SSDP = require('node-ssdp');
 const URL = require('url').URL;
 const HTTP = require('http');
-const OS = require('os');
 const XMLJS = require('xml-js');
 const UUID = require('uuid/v4');
+const Network = require('./Network');
 
 const URN_WAN = 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
 const TIMEOUT = 1 * 1000;
 const REFRESH = 30 * 1000;
-
+const PROXY_REFRESH = 60 * 1000;
 
 const UPNP = {
 
@@ -86,6 +86,7 @@ const UPNP = {
                 if (service && service.serviceType && service.serviceType._text == URN_WAN) {
                   this._gwLocation = headers.LOCATION;
                   this._WANIPConnectionURL = new URL(service.controlURL._text, headers.LOCATION);
+                  this._startProxy();
                   break;
                 }
               }
@@ -120,6 +121,10 @@ const UPNP = {
     if (this._wanRefresh) {
       clearInterval(this._wanRefresh);
       this._wanRefresh = null;
+    }
+    if (this._proxyRefresh) {
+      clearInterval(this._proxyRefresh);
+      this._proxyRefresh = null;
     }
     if (this._ssdpServer) {
       this._ssdpServer.stop();
@@ -194,17 +199,30 @@ const UPNP = {
     });
   },
 
-  startProxy: async function() {
-    if (this._gwLocation && !this._proxy) {
-      this._proxy = new SSDP.Server({
-        udn: `uuid:${UUID()}`,
-        ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
-        location: () => {
-          return this._gwLocation
+  _startProxy: async function() {
+    if (!this._proxyRefresh && (await Network.getActiveInterface().network.name === 'wlan0')) {
+      const uuid = UUID();
+      const run = async () => {
+        if (this._proxy) {
+          try {
+            this._proxy.stop();
+          }
+          catch (e) {
+            console.error(e);
+          }
         }
-      });
-      this._proxy.addUSN(URN_IGD);
-      await this._proxy.start();
+        this._proxy = new SSDP.Server({
+          udn: `uuid:${uuid}`,
+          ssdpSig: 'MinkeBox IGD Proxy UPnP/1.1',
+          location: () => {
+            return this._gwLocation
+          }
+        });
+        this._proxy.addUSN(URN_IGD);
+        await this._proxy.start();
+      }
+      this._proxyRefresh = setInterval(run, PROXY_REFRESH);
+      await run();
       console.log('UPNP Proxy started', this._gwLocation);
     }
   }
