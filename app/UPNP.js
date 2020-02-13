@@ -200,7 +200,7 @@ const UPNP = {
   },
 
   _startProxy: async function() {
-    if (!this._proxyRefresh && (await Network.getActiveInterface().network.name === 'wlan0')) {
+    if (!this._proxyRefresh && (await Network.getActiveInterface()).network.name === 'wlan0') {
       const uuid = UUID();
       const run = async () => {
         if (this._proxy) {
