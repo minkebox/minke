@@ -125,6 +125,10 @@ const UPNP = {
     if (this._proxyRefresh) {
       clearInterval(this._proxyRefresh);
       this._proxyRefresh = null;
+      if (this._proxy) {
+        this._proxy.stop();
+        this._proxy = null;
+      }
     }
     if (this._ssdpServer) {
       this._ssdpServer.stop();
