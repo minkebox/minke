@@ -4,7 +4,7 @@ const Glob = require('fast-glob');
 const VM = require('vm');
 const Tar = require('tar-stream');
 
-const LOCALS_DIR = `${__dirname}/local`;
+const LOCALS_DIR   = `${__dirname}/local`;
 const BUILTINS_DIR = `${__dirname}/builtin`;
 const INTERNAL_DIR = `${__dirname}/internal`;
 
