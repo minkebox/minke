@@ -7,7 +7,7 @@ const Pages = {
   '/':                require('./Main'),
   '/new/application': require('./Applications'),
   '/configure/:id':   require('./Configure'),
-  '/minkebox.config': require('../Backup')
+  '/minkebox.config': require('../ConfigBackup')
 };
 
 function pages(root, wsroot) {

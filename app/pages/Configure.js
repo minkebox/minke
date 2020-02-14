@@ -8,7 +8,7 @@ const Skeletons = require('../skeletons/Skeletons');
 const Filesystem = require('../Filesystem');
 const Network = require('../Network');
 const Disks = require('../Disks');
-const Backup = require('../Backup');
+const ConfigBackup = require('../ConfigBackup');
 const UPNP = require('../UPNP');
 
 let template;
@@ -604,7 +604,7 @@ async function ConfigurePageWS(ctx) {
           break;
         case 'app.restore-all':
           if (app._image === Images.MINKE) {
-            Backup.restore(msg.value);
+            ConfigBackup.restore(msg.value);
           }
           break;
         case 'app.update-download':

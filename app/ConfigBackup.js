@@ -4,7 +4,7 @@ const Images = require('./Images');
 
 const VERSION = 1;
 
-const Backups = {
+const ConfigBackup = {
 
   backup: async function() {
     const backup = {
@@ -47,11 +47,11 @@ const Backups = {
 module.exports = {
 
   restore: async function(backup) {
-    Backups.restore(JSON.parse(backup));
+    ConfigBackup.restore(JSON.parse(backup));
   },
 
   HTML: async function(ctx) {
     ctx.type = 'text/plain';
-    ctx.body = JSON.stringify(await Backups.backup());
+    ctx.body = JSON.stringify(await ConfigBackup.backup());
   }
 }
