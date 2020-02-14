@@ -351,6 +351,8 @@ async function updateInternalSkeleton(image) {
 
 function catalog() {
   const cat = {};
+
+  // Builtins first
   for (let image in Builtins) {
     if (Builtins[image].catalog !== false) {
       cat[image] = {
@@ -361,13 +363,13 @@ function catalog() {
       };
     }
   }
-  const locals = Glob.sync([
-    `${LOCALS_DIR}/*.skeleton`, `${LOCALS_DIR}/*/*.skeleton`, `${LOCALS_DIR}/*/*/*.skeleton`,
+
+  // Internals override builtins
+  const internal = Glob.sync([
     `${INTERNAL_DIR}/*.skeleton`, `${INTERNAL_DIR}/*/*.skeleton`, `${INTERNAL_DIR}/*/*/*.skeleton`
   ]);
-  locals.forEach((file) => {
-    const str = FS.readFileSync(file, { encoding: 'utf8' });
-    const skeleton = stringToSkeleton(str);
+  internal.forEach((file) => {
+    const skeleton = stringToSkeleton(FS.readFileSync(file, { encoding: 'utf8' }));
     if (skeleton && skeleton.catalog !== false) {
       cat[skeleton.image] = {
         name: skeleton.name,
@@ -377,6 +379,23 @@ function catalog() {
       };
     }
   });
+
+  // Locals override everything
+  const locals = Glob.sync([
+    `${LOCALS_DIR}/*.skeleton`, `${LOCALS_DIR}/*/*.skeleton`, `${LOCALS_DIR}/*/*/*.skeleton`
+  ]);
+  locals.forEach((file) => {
+    const skeleton = stringToSkeleton(FS.readFileSync(file, { encoding: 'utf8' }));
+    if (skeleton && skeleton.catalog !== false) {
+      cat[skeleton.image] = {
+        name: skeleton.name,
+        description: skeleton.description,
+        tags: skeleton.tags || [],
+        image: skeleton.image
+      };
+    }
+  });
+
   const list = Object.values(cat);
   list.sort((a, b) => a.name.localeCompare(b.name));
   return list;
