@@ -159,7 +159,7 @@ const DNS = {
     this._updateLocalResolv();
     if (!DEBUG) {
       for (let hostname in hosts) {
-        this.registerHostIP(hostname, hosts[hostname].ip, hosts[hostname].ip6);
+        this._registerHostIP(hostname, hosts[hostname].ip, hosts[hostname].ip6, hosts[hostname].ext);
       }
     }
   },
@@ -173,7 +173,7 @@ const DNS = {
   },
 
   _registerHostIP: function(hostname, ip, ip6, ext) {
-    hosts[hostname] = { ip: ip, ip6: ip6 };
+    hosts[hostname] = { ip: ip, ip6: ip6, ext: ext };
     if (!DEBUG) {
       if (hostname.indexOf('.') === -1) {
         FS.writeFileSync(`${DNSMASQ_HOSTS_DIR}${ext}${hostname}.conf`,
