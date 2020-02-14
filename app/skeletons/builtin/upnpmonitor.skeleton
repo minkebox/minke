@@ -22,12 +22,12 @@
     },
     {
       type: `Header`,
-      title: `All Time Ports`
+      title: `Inactive Ports`
     },
     {
       type: `File`,
-      name: `/tmp/alltime.display`,
-      description: `Any port that has been active on the firewall`,
+      name: `/tmp/inactive.display`,
+      description: `Any port that once was active on the firewall`,
       style: `RTable`,
       headers: [
         { name: `Firewall Port` },
@@ -59,7 +59,7 @@
     },
     {
       type: `File`,
-      name: `/tmp/alltime.display`,
+      name: `/tmp/inactive.display`,
       style: 'boot'
     },
     {
@@ -69,12 +69,12 @@
     }
   ],
   monitor: {
-    cmd: `wc -l /tmp/active /tmp/alltime | sed "s/^ *\\([0-9]*\\).*$/\\1/" | head -n2`,
+    cmd: `wc -l /tmp/active /tmp/inactive | sed "s/^ *\\([0-9]*\\).*$/\\1/" | head -n2`,
     polling: 10,
     parser: `
       let i = input.split('\\n');
       output.active = i[0];
-      output.alltime = i[1];
+      output.inactive = i[1];
     `,
     minwidth: `150px`,
     header: `
@@ -87,7 +87,7 @@
     template: `
       <div class="up-o">
         <div class="up-b"><div class="up-r">{{active}}</div><div>Active Ports</div></div>
-        <div class="up-b"><div class="up-r">{{alltime}}</div><div>All Time Ports</div></div>
+        <div class="up-b"><div class="up-r">{{inactive}}</div><div>Inactive Ports</div></div>
       </div>
     `
   }
