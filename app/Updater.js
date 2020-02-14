@@ -24,7 +24,10 @@ const Updater = {
           for (let i = 0; i < updated.length; i++) {
             const app = updated[i];
             if (app._willCreateNetwork()) {
-              await Skeletons.updateInternalSkeleton(app._image);
+              const skel = await Skeletons.loadSkeleton(app._image, false);
+              if (skel && skel.type != 'local') {
+                app.updateFromSkeleton(skel.skeleton, app.toJSON());
+              }
               await app.restart('update');
             }
           }
@@ -32,7 +35,10 @@ const Updater = {
             const app = updated[i];
             if (!app._willCreateNetwork()) {
               if (app._image !== Images.MINKE) {
-                await Skeletons.updateInternalSkeleton(app._image);
+                const skel = await Skeletons.loadSkeleton(app._image, false);
+                if (skel && skel.type != 'local') {
+                  app.updateFromSkeleton(skel.skeleton, app.toJSON());
+                }
                 await app.restart('update');
               }
               else {
@@ -86,6 +92,7 @@ const Updater = {
         const pimage = Images.withTag(apps[i]._image);
         if (!(pimage in images)) {
           images[pimage] = await Pull.updateImage(pimage);
+          await Skeletons.updateInternalSkeleton(apps[i]._image);
         }
         await Promise.all(apps[i]._secondary.map(async secondary => {
           const simage = Images.withTag(secondary._image);
