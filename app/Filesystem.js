@@ -112,12 +112,13 @@ _Filesystem.prototype = {
   _makeBackups: function(backup) {
     const backups = [];
     const app = MinkeApp.getAppById(backup.appid);
+    const name = app._safeName();
     app._binds.forEach(bind => {
       if (bind.backup) {
         backups.push({
           Type: 'bind',
           Source: bind.src,
-          Target: this._expand(bind.target),
+          Target: this._expand(`${backup.target}/${name}/${bind.target}`),
           BindOptions: {
             Propagation: 'rshared'
           }
@@ -129,7 +130,7 @@ _Filesystem.prototype = {
         backups.push({
           Type: 'bind',
           Source: bind.src,
-          Target: this._expand(bind.target),
+          Target: this._expand(`${backup.target}/${name}/${bind.target}`),
           BindOptions: {
             Propagation: 'rshared'
           }
@@ -142,7 +143,7 @@ _Filesystem.prototype = {
           backups.push({
             Type: 'bind',
             Source: Path.normalize(`${customshare.src}/${share.sname}`),
-            Target: this._expand(`${customshare.target}/${share.name}`),
+            Target: this._expand(`${backup.target}/${name}/${customshare.target}/${share.name}`),
             BindOptions: {
               Propagation: 'rshared'
             }
