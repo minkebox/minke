@@ -47,7 +47,7 @@ MinkeApp.prototype = {
     this._files = app.files;
     this._shares = app.shares;
     this._customshares = app.customshares;
-    this._backups = app._backups || [];
+    this._backups = app.backups || [];
     this._networks = app.networks;
     this._bootcount = app.bootcount;
     this._secondary = app.secondary || [];
@@ -952,6 +952,7 @@ MinkeApp.prototype = {
       let backups = false;
       function backup(src) {
         src._binds.forEach(bind => backups |= bind.backup);
+        src._customshares.forEach(share => backups |= share.backup);
       }
       backup(app);
       app._secondary.forEach(secondary => backup(secondary));
@@ -959,6 +960,7 @@ MinkeApp.prototype = {
       if (backups) {
         acc.push({ app: app });
       }
+      return acc;
     }, []);
   },
 

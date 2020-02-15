@@ -23,7 +23,8 @@ function registerTemplates() {
     'Websites',
     'Disks',
     'BackupAndRestore',
-    'Download'
+    'Download',
+    'Backups'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, Handlebars.compile(
@@ -250,7 +251,7 @@ async function ConfigurePageHTML(ctx) {
           allBackups.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
           const backups = allBackups.map(backup => {
             return {
-              app: backup.app,
+              name: backup.app._name,
               action: `window.backup('${action.type}#${backup.app._id}#${action.name}',this)`,
               value: !!app._backups.find(abk => abk.appid === backup.app._id)
             };
@@ -507,13 +508,21 @@ async function ConfigurePageWS(ctx) {
         target: Path.normalize(shareroot),
         shares: JSON.parse(value).map((row) => {
           return { name: Path.normalize(row[0]), sname: row[1] || UUID() };
-        })
+        }),
+        backup: action.backup
       };
       const idx = app._customshares.findIndex(oshare => oshare.target === bind.target);
       if (idx !== -1) {
         const obind = app._customshares[idx];
         obind.shares.forEach(share => {
-          if (FS.readdirSync(`${obind.src}/${name}`).length !== 0 && !bind.shares.find(ns => ns.sname === share.sname)) {
+          let dirempty = true;
+          try {
+            dirempty = (FS.readdirSync(`${obind.src}/${share.sname}`).length === 0);
+          }
+          catch (e) {
+            console.error(e);
+          }
+          if (!dirempty && !bind.shares.find(ns => ns.sname === share.sname)) {
             // Directory not empty, so make sure we keep it
             bind.shares.push(share);
           }
@@ -532,12 +541,13 @@ async function ConfigurePageWS(ctx) {
       }
       return SHARECHANGE;
     }},
-    { p: /^Backups#(.+)#(.*)#(.*)/, f: (value, match) => {
+    { p: /^Backups#(.+)#(.*)/, f: (value, match) => {
       const backup = {
-        appid: match[2]
+        appid: match[1],
+        target: match[2]
       };
       const idx = app._backups.findIndex(obackup => obackup.appid === backup.appid);
-      if (value) {
+      if (value.backup) {
         if (idx === -1) {
           app._backups.push(backup);
         }
