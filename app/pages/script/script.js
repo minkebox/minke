@@ -152,6 +152,20 @@ function share(id, elem) {
   }));
 }
 
+function backup(id, elem) {
+  const parent = elem.parentElement.parentElement;
+  const checked = parent.querySelector('input[type="checkbox"]');
+  if (property[id] != checked.checked) {
+    property[id] = checked.checked;
+    changes.forEach(c => c());
+  }
+  ws.send(JSON.stringify({
+    type: 'action.change',
+    property: id,
+    value: { backup: checked.checked }
+  }));
+}
+
 function publish(elem) {
   const parent = elem.parentElement.parentElement;
   const name = parent.querySelector('input[type="text"]');
