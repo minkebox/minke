@@ -1,0 +1,19 @@
+<table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24">
+  <thead>
+    <tr>
+      <th>Application</th><th class="control">Backup</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each backups}}
+    <tr>
+      <td>
+        {{name}}
+      </td>
+      <td>
+        <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>

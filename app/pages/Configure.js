@@ -224,7 +224,7 @@ async function ConfigurePageHTML(ctx) {
         {
           const allShares = app.getAvailableShareables();
           allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
-          const shareables = allShares.map((shareable) => {
+          const shareables = allShares.map(shareable => {
             return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
               bind.shares.forEach((share) => {
                 const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
@@ -243,6 +243,19 @@ async function ConfigurePageHTML(ctx) {
             }, [])};
           });
           return Object.assign({ shareables: shareables }, action);
+        }
+        case 'Backups':
+        {
+          const allBackups = app.getAvailableBackups();
+          allBackups.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
+          const backups = allBackups.map(backup => {
+            return {
+              app: backup.app,
+              action: `window.backup('${action.type}#${backup.app._id}#${action.name}',this)`,
+              value: !!app._backups.find(abk => abk.appid === backup.app._id)
+            };
+          });
+          return Object.assign({ backups: backups }, action);
         }
         case 'CustomShareables':
         {
@@ -321,6 +334,7 @@ async function ConfigurePageWS(ctx) {
   const APPCHANGE = 1;
   const SKELCHANGE = 2;
   const SHARECHANGE = 4;
+  const BACKUPCHANGE = 8;
 
   function getTableData(app, name, value) {
     const action = skeleton.actions.find(action => action.name === name);
@@ -517,6 +531,21 @@ async function ConfigurePageWS(ctx) {
         app._customshares.push(bind);
       }
       return SHARECHANGE;
+    }},
+    { p: /^Backups#(.+)#(.*)#(.*)/, f: (value, match) => {
+      const backup = {
+        appid: match[2]
+      };
+      const idx = app._backups.findIndex(obackup => obackup.appid === backup.appid);
+      if (value) {
+        if (idx === -1) {
+          app._backups.push(backup);
+        }
+      }
+      else if (idx !== -1) {
+        app._backups.splice(idx, 1);
+      }
+      return BACKUPCHANGE;
     }},
     { p: /^Skeleton$/, f: (value, match) => {
       const skel = Skeletons.parse(value);

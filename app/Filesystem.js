@@ -27,11 +27,22 @@ _Filesystem.prototype = {
         app._shares.splice(i, 1);
       }
     }
+    // Or broken backups
+    for (let i = 0; i < app._backups.length; ) {
+      const appid = app._backups[i].appid;
+      if (MinkeApp.getAppById(appid)) {
+        i++;
+      }
+      else {
+        app._backups.splice(i, 1);
+      }
+    }
 
     return app._binds.map(map => this._makeMount(map)).concat(
       app._files.map(file => this.makeFile(file)),
       app._shares.map(share => this._makeShare(share)),
-      app._customshares.map(map => this._makeCustomShare(map))
+      app._customshares.map(map => this._makeCustomShare(map)),
+      app._backups.map(backup => this._makeBackups(backup))
     ).reduce((a, b) => a.concat(b), []);
   },
 
@@ -96,6 +107,50 @@ _Filesystem.prototype = {
         }
       }
     });
+  },
+
+  _makeBackups: function(backup) {
+    const backups = [];
+    const app = MinkeApp.getAppById(backup.appid);
+    app._binds.forEach(bind => {
+      if (bind.backup) {
+        backups.push({
+          Type: 'bind',
+          Source: bind.src,
+          Target: this._expand(bind.target),
+          BindOptions: {
+            Propagation: 'rshared'
+          }
+        });
+      }
+    });
+    app._files.forEach(bind => {
+      if (bind.backup) {
+        backups.push({
+          Type: 'bind',
+          Source: bind.src,
+          Target: this._expand(bind.target),
+          BindOptions: {
+            Propagation: 'rshared'
+          }
+        });
+      }
+    });
+    app._customshares.forEach(customshare => {
+      if (customshare.backup) {
+        customshare.shares.forEach(share => {
+          backups.push({
+            Type: 'bind',
+            Source: Path.normalize(`${customshare.src}/${share.sname}`),
+            Target: this._expand(`${customshare.target}/${share.name}`),
+            BindOptions: {
+              Propagation: 'rshared'
+            }
+          });
+        });
+      }
+    });
+    return backups;
   },
 
   mapFilenameToLocal: function(filename) {

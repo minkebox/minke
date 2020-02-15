@@ -119,6 +119,15 @@
             <div style="text-align: center">No applications sharing.</div>
             {{/if}}
           </div>
+          {{else if (eq type "Backups")}}
+          <div {{#if id}}id="{{id}}"{{/if}} class="action backups pure-control-group {{#if visible}}invisible{{/if}}">
+            {{#if backups}}
+            <label class="description">{{{description}}}</label>
+            {{> Backups}}
+            {{else}}
+            <div style="text-align: center">Nothing to backup.</div>
+            {{/if}}
+          </div>
           {{else if (eq type "CustomShareables")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>

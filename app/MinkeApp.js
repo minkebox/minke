@@ -47,6 +47,7 @@ MinkeApp.prototype = {
     this._files = app.files;
     this._shares = app.shares;
     this._customshares = app.customshares;
+    this._backups = app._backups || [];
     this._networks = app.networks;
     this._bootcount = app.bootcount;
     this._secondary = app.secondary || [];
@@ -89,6 +90,7 @@ MinkeApp.prototype = {
       files: this._files,
       shares: this._shares,
       customshares: this._customshares,
+      backups: this._backups,
       networks: this._networks,
       bootcount: this._bootcount,
       secondary: this._secondary
@@ -162,6 +164,7 @@ MinkeApp.prototype = {
     target._files = [];
     target._shares = [];
     target._customshares = [];
+    target._backups = [];
     properties.forEach(prop => {
       switch (prop.type) {
         case 'Environment':
@@ -192,7 +195,9 @@ MinkeApp.prototype = {
           const b = {
             src: Filesystem.getNativePath(this._id, prop.style, `/dir${x}/${targetname}`),
             target: targetname,
-            description: prop.description || targetname
+            description: prop.description || targetname,
+            backup: prop.backup
+
           };
           if (bind) {
             b.shares = bind.shares;
@@ -213,7 +218,8 @@ MinkeApp.prototype = {
           const f = {
             src: Filesystem.getNativePath(this._id, prop.style, `/file${ext}/${prop.name.replace(/\//g, '_')}`),
             target: targetname,
-            mode: prop.mode || 0o666
+            mode: prop.mode || 0o666,
+            backup: prop.backup
           };
           if (file.data) {
             f.data = file.data;
@@ -938,6 +944,21 @@ MinkeApp.prototype = {
         }
       }
       return acc;
+    }, []);
+  },
+
+  getAvailableBackups: function() {
+    return applications.reduce((acc, app) => {
+      let backups = false;
+      function backup(src) {
+        src._binds.forEach(bind => backups |= bind.backup);
+      }
+      backup(app);
+      app._secondary.forEach(secondary => backup(secondary));
+
+      if (backups) {
+        acc.push({ app: app });
+      }
     }, []);
   },
 
