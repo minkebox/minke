@@ -121,7 +121,8 @@ _Filesystem.prototype = {
           Target: this._expand(`${backup.target}/${name}/${bind.target}`),
           BindOptions: {
             Propagation: 'rshared'
-          }
+          },
+          ReadOnly: true
         });
       }
     });
@@ -133,7 +134,8 @@ _Filesystem.prototype = {
           Target: this._expand(`${backup.target}/${name}/${bind.target}`),
           BindOptions: {
             Propagation: 'rshared'
-          }
+          },
+          ReadOnly: true
         });
       }
     });
@@ -146,7 +148,8 @@ _Filesystem.prototype = {
             Target: this._expand(`${backup.target}/${name}/${customshare.target}/${share.name}`),
             BindOptions: {
               Propagation: 'rshared'
-            }
+            },
+            ReadOnly: true
           });
         });
       }
