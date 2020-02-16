@@ -50,9 +50,9 @@ _Filesystem.prototype = {
 
   _makeMount: function(bind, app) {
     //console.log('_makeMount', bind);
-    FS.mkdirSync(bind.src, { recursive: true });
+    FS.mkdirSync(bind.src, { recursive: true, mode: 0o777 });
     bind.shares.forEach((share) => {
-      FS.mkdirSync(`${bind.src}/${share.name}`, { recursive: true });
+      FS.mkdirSync(`${bind.src}/${share.name}`, { recursive: true, mode: 0o777 });
     });
     if (app._customshares.find(cbind => cbind.target === bind.target) || app._backups.find(bbind => bbind.target === bind.target)) {
       // Don't bind directories we will populate with customshares or backups later
@@ -72,8 +72,8 @@ _Filesystem.prototype = {
 
   makeFile: function(file) {
     //console.log('makeFile', file);
-    FS.mkdirSync(Path.dirname(file.src), { recursive: true });
-    FS.writeFileSync(file.src, file.data, { mode: ('mode' in file ? file.mode : 0o600) });
+    FS.mkdirSync(Path.dirname(file.src), { recursive: true, mode: 0o777 });
+    FS.writeFileSync(file.src, file.data, { mode: ('mode' in file ? file.mode : 0o666) });
     return {
       Type: 'bind',
       Source: file.src,
@@ -105,7 +105,7 @@ _Filesystem.prototype = {
     return bind.shares.map((share) => {
       const src = Path.normalize(`${bind.src}/${share.sname}`);
       //console.log('_makeCustomShare', bind, share, src);
-      FS.mkdirSync(src, { recursive: true });
+      FS.mkdirSync(src, { recursive: true, mode: 0o777 });
       return {
         Type: 'bind',
         Source: src,
@@ -188,7 +188,7 @@ _Filesystem.prototype = {
 
   saveLogs: function(stdout, stderr) {
     const root = Filesystem.getNativePath(this._app._id, 'boot', '/logs');
-    FS.mkdirSync(root, { recursive: true });
+    FS.mkdirSync(root, { recursive: true, mode: 0o777 });
     FS.writeFileSync(`${root}/stdout.txt`, stdout);
     FS.writeFileSync(`${root}/stderr.txt`, stderr);
   },
