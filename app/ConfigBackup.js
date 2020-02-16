@@ -1,12 +1,15 @@
-const MinkeApp = require('./MinkeApp');
+const FS = require('fs');
 const Database = require('./Database');
 const Images = require('./Images');
+let MinkeApp;
 
 const VERSION = 1;
+const BACKUP_PATH = `/minke/minkebox.config`;
 
 const ConfigBackup = {
 
   backup: async function() {
+    MinkeApp = MinkeApp || require('./MinkeApp');
     const backup = {
       version: VERSION,
       config: await Database.getConfig('minke'),
@@ -45,6 +48,10 @@ const ConfigBackup = {
 }
 
 module.exports = {
+
+  save: async function() {
+    FS.writeFileSync(BACKUP_PATH, JSON.stringify(await ConfigBackup.backup()));
+  },
 
   restore: async function(backup) {
     ConfigBackup.restore(JSON.parse(backup));
