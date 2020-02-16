@@ -16,6 +16,15 @@
       type: `Shareables`,
       name: `/FOLDERS`,
       description: `Select folders`
+    },
+    {
+      type: `Text`,
+      text: `Select which applications you want to synchronize.`
+    },
+    {
+      type: `Backups`,
+      name: `/APPLICATIONS`,
+      description: `Select applications`
     }
   ],
   properties: [
@@ -26,8 +35,11 @@
     },
     {
       type: `Directory`,
-      name: `/FOLDERS`,
-      style: `store`
+      name: `/FOLDERS`
+    },
+    {
+      type: `Directory`,
+      name: `/APPLICATIONS`
     },
     {
       type: `Directory`,

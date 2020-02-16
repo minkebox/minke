@@ -10,11 +10,20 @@
     },
     {
       type: `Text`,
-      text: `Select which applications folders you want to backup. The backup schedules are created in Duplicati itself.`
+      text: `Select which folders you want to backup. The backup schedules are created in Duplicati itself.`
     },
     {
       type: `Shareables`,
       name: `/source`,
+      description: `Select folders`
+    },
+    {
+      type: `Text`,
+      text: `Select which applications you want to backup.`
+    },
+    {
+      type: `Backups`,
+      name: `/applications`,
       description: `Select folders`
     }
   ],
@@ -28,6 +37,14 @@
       type: `Directory`,
       name: `/config`,
       style: `boot`
+    },
+    {
+      type: `Directory`,
+      name: `/source`
+    },
+    {
+      type: `Directory`,
+      name: `/applications`
     },
     {
       type: `Port`,
