@@ -23,6 +23,11 @@
   ],
   properties: [
     {
+      type: `Directory`,
+      name: `/folders`,
+      backup: true
+    },
+    {
       type: `Network`,
       name: `primary`,
       defaultValue: `host`
