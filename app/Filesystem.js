@@ -38,26 +38,34 @@ _Filesystem.prototype = {
       }
     }
 
-    return app._binds.map(map => this._makeMount(map)).concat(
+    const mounts = app._binds.map(map => this._makeMount(map, app)).concat(
       app._files.map(file => this.makeFile(file)),
       app._shares.map(share => this._makeShare(share)),
       app._customshares.map(map => this._makeCustomShare(map)),
       app._backups.map(backup => this._makeBackups(backup))
     ).reduce((a, b) => a.concat(b), []);
+    //console.log('getAllMounts', mounts);
+    return mounts;
   },
 
-  _makeMount: function(bind) {
+  _makeMount: function(bind, app) {
     //console.log('_makeMount', bind);
     FS.mkdirSync(bind.src, { recursive: true });
     bind.shares.forEach((share) => {
       FS.mkdirSync(`${bind.src}/${share.name}`, { recursive: true });
     });
-    return {
-      Type: 'bind',
-      Source: bind.src,
-      Target: this._expand(bind.target),
-      BindOptions: {
-        Propagation: 'rshared'
+    if (app._customshares.find(cbind => cbind.target === bind.target) || app._backups.find(bbind => bbind.target === bind.target)) {
+      // Don't bind directories we will populate with customshares or backups later
+      return [];
+    }
+    else {
+      return {
+        Type: 'bind',
+        Source: bind.src,
+        Target: this._expand(bind.target),
+        BindOptions: {
+          Propagation: 'rshared'
+        }
       }
     }
   },
@@ -114,7 +122,7 @@ _Filesystem.prototype = {
     const app = MinkeApp.getAppById(backup.appid);
     const name = app._safeName();
     app._binds.forEach(bind => {
-      if (bind.backup) {
+      if (bind.backup && !app._customshares.find(cbind => cbind.target === bind.target)) {
         backups.push({
           Type: 'bind',
           Source: bind.src,
@@ -139,13 +147,14 @@ _Filesystem.prototype = {
         });
       }
     });
-    app._customshares.forEach(customshare => {
-      if (customshare.backup) {
-        customshare.shares.forEach(share => {
+    app._customshares.forEach(bind => {
+      const directory = app._binds.find(pbind => pbind.target === bind.target);
+      if (directory.backup) {
+        bind.shares.forEach(share => {
           backups.push({
             Type: 'bind',
-            Source: Path.normalize(`${customshare.src}/${share.sname}`),
-            Target: this._expand(`${backup.target}/${name}/${customshare.target}/${share.name}`),
+            Source: Path.normalize(`${bind.src}/${share.sname}`),
+            Target: this._expand(`${backup.target}/${name}/${bind.target}/${share.name}`),
             BindOptions: {
               Propagation: 'rshared'
             },

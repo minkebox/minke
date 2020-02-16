@@ -952,7 +952,6 @@ MinkeApp.prototype = {
       let backups = false;
       function backup(src) {
         src._binds.forEach(bind => backups |= bind.backup);
-        src._customshares.forEach(share => backups |= share.backup);
       }
       backup(app);
       app._secondary.forEach(secondary => backup(secondary));

@@ -508,8 +508,7 @@ async function ConfigurePageWS(ctx) {
         target: Path.normalize(shareroot),
         shares: JSON.parse(value).map((row) => {
           return { name: Path.normalize(row[0]), sname: row[1] || UUID() };
-        }),
-        backup: action.backup
+        })
       };
       const idx = app._customshares.findIndex(oshare => oshare.target === bind.target);
       if (idx !== -1) {
