@@ -14,6 +14,7 @@ const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Skeletons = require('./skeletons/Skeletons');
+const ConfigBackup = require('./ConfigBackup');
 
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
 
@@ -952,6 +953,7 @@ MinkeApp.prototype = {
       let backups = false;
       function backup(src) {
         src._binds.forEach(bind => backups |= bind.backup);
+        src._files.forEach(bind => backups |= bind.backup);
       }
       backup(app);
       app._secondary.forEach(secondary => backup(secondary));
@@ -1372,6 +1374,9 @@ MinkeApp.startApps = async function(app, config) {
     host: MinkeApp._network.network.ip_address,
     port: config.port || 80
   });
+
+  // Save current config
+  await ConfigBackup.save();
 
   // Stop or inherit apps if they're still running
   const inheritables = {};
