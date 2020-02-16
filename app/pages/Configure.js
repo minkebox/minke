@@ -640,6 +640,7 @@ async function ConfigurePageWS(ctx) {
         case 'app.delete':
           changes = {};
           app.uninstall();
+          app = null;
           ConfigBackup.save();
           break;
         case 'app.format-disk':
