@@ -11,6 +11,8 @@ const Disks = require('../Disks');
 const ConfigBackup = require('../ConfigBackup');
 const UPNP = require('../UPNP');
 
+const MinkeBoxConfiguration = 'minke'; // MinkeSetup._id
+
 let template;
 let downloadTemplate;
 function registerTemplates() {
@@ -251,11 +253,18 @@ async function ConfigurePageHTML(ctx) {
           allBackups.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
           const backups = allBackups.map(backup => {
             return {
+              id: backup.app._id,
               name: backup.app._name,
               action: `window.backup('${action.type}#${backup.app._id}#${action.name}',this)`,
               value: !!app._backups.find(abk => abk.appid === backup.app._id)
             };
           });
+          const midx = backups.findIndex(backup => backup.id === MinkeBoxConfiguration);
+          if (midx !== -1) {
+            const config = backups.splice(midx, 1)[0];
+            config.name = `${config.name} (Configuration)`;
+            backups.unshift(config);
+          }
           return Object.assign({ backups: backups }, action);
         }
         case 'CustomShareables':
@@ -586,6 +595,7 @@ async function ConfigurePageWS(ctx) {
         const uapp = app;
         if ((changed & SKELCHANGE) !== 0) {
           uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image, false).skeleton, uapp.toJSON());
+          ConfigBackup.save();
           app = null;
           send({
             type: 'page.reload'
@@ -630,6 +640,7 @@ async function ConfigurePageWS(ctx) {
         case 'app.delete':
           changes = {};
           app.uninstall();
+          ConfigBackup.save();
           break;
         case 'app.format-disk':
           if (app._image === Images.MINKE) {
