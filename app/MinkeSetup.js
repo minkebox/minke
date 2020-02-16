@@ -30,6 +30,13 @@ function MinkeSetup(savedConfig, config) {
   this._status = 'running';
   this._features = {};
   this._binds = [];
+  this._files = [{
+    src: '/minke/minkebox.config',
+    target: '/minkebox.config',
+    data: '',
+    mode: 0o600,
+    backup: true
+  }];
   this._customshares = [];
   this._secondary = [];
   this._ports = [
