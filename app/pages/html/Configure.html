@@ -85,11 +85,6 @@
             {{> RTable}}
             {{/if}}
           </div>
-          {{else if (eq type "NAT")}}
-          <div {{#if id}}id="{{id}}"{{/if}} class="action nat pure-control-group {{#if visible}}invisible{{/if}}">
-            <label class="description">{{{description}}}</label>
-            <input class="value" type="checkbox" {{#if value}}checked{{/if}} onchange="{{action}}">
-          </div>
           {{else if (eq type "Network")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action network pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
