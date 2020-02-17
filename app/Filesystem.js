@@ -57,7 +57,6 @@ _Filesystem.prototype = {
     const paths = mounts.map(mount => mount.Source);
     // Sort longest to shortest
     paths.sort((a, b) => b.length - a.length);
-    console.log(paths);
     paths.forEach(path => {
       try {
         ChildProcess.spawnSync('/bin/umount', [ path ], { cwd: '/tmp', stdio: 'ignore' });
