@@ -275,6 +275,7 @@ MinkeApp.prototype = {
       inherit = inherit || {};
 
       this._fs = Filesystem.create(this);
+      this._allmounts = this._fs.getAllMounts(this);
 
       const config = {
         name: `${this._safeName()}__${this._id}`,
@@ -282,7 +283,7 @@ MinkeApp.prototype = {
         Image: Images.withTag(this._image),
         Cmd: this._args,
         HostConfig: {
-          Mounts: this._fs.getAllMounts(this),
+          Mounts: this._allmounts,
           Devices: [],
           CapAdd: [],
           LogConfig: {
@@ -659,6 +660,8 @@ MinkeApp.prototype = {
         // Setup secondary containers
         if (this._secondary.length) {
           this._secondaryContainers = [];
+          const secondaryMounts = this._fs.getAllMounts(secondary);
+          this._allmounts = this._allmounts.concat(secondaryMounts);
           for (let c = 0; c < this._secondary.length; c++) {
             const secondary = this._secondary[c];
             const sconfig = {
@@ -666,7 +669,7 @@ MinkeApp.prototype = {
               Image: Images.withTag(secondary._image),
               Cmd: secondary._args,
               HostConfig: {
-                Mounts: this._fs.getAllMounts(secondary),
+                Mounts: secondaryMounts,
                 Devices: [],
                 CapAdd: [],
                 LogConfig: config.LogConfig,
@@ -863,6 +866,9 @@ MinkeApp.prototype = {
     }
     await Promise.all(removing.map(rm => rm.catch(e => console.log(e)))); // Ignore exceptions
 
+    if (this._fs) {
+      this._fs.unmountAll(this._allmounts);
+    }
     this._fs = null;
 
     this._setStatus('stopped');

@@ -48,6 +48,25 @@ _Filesystem.prototype = {
     return mounts;
   },
 
+  //
+  // Docker should remove any mounts as it shutsdown a container. However, if there's any mount-in-mount going
+  // on it has a habit of not tidying things up properly. Do that here.
+  //
+  unmountAll: function(mounts) {
+    // Get list of mount targets
+    const paths = mounts.map(mount => mount.Source);
+    // Sort longest to shortest
+    paths.sort((a, b) => b.length - a.length);
+    console.log(paths);
+    paths.forEach(path => {
+      try {
+        ChildProcess.spawnSync('/bin/umount', [ path ], { cwd: '/tmp', stdio: 'ignore' });
+      }
+      catch (_) {
+      }
+    });
+  },
+
   _makeMount: function(bind, app) {
     //console.log('_makeMount', bind);
     FS.mkdirSync(bind.src, { recursive: true, mode: 0o777 });
