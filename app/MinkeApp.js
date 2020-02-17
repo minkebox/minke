@@ -111,6 +111,7 @@ MinkeApp.prototype = {
     this._name = name;
     this._image = skel.image,
     this._globalId = UUID();
+    this._customshares = [];
 
     this.updateFromSkeleton(skel, {});
 
@@ -164,7 +165,7 @@ MinkeApp.prototype = {
     target._binds = [];
     target._files = [];
     target._shares = [];
-    target._customshares = [];
+    // Note. Do *not* clear customshares!
     target._backups = [];
     properties.forEach(prop => {
       switch (prop.type) {
