@@ -111,7 +111,10 @@ MinkeApp.prototype = {
     this._name = name;
     this._image = skel.image,
     this._globalId = UUID();
+    this._shares = [];
     this._customshares = [];
+    this._backups = [];
+    this._bootcount = 0;
 
     this.updateFromSkeleton(skel, {});
 
@@ -153,7 +156,6 @@ MinkeApp.prototype = {
     this._monitor = skel.monitor || {};
     this._delay = skel.delay || 0;
     this._tags = (skel.tags || []).concat([ 'All' ]);
-    this._bootcount = 0;
 
     return this;
   },
@@ -164,9 +166,6 @@ MinkeApp.prototype = {
     target._ports = [];
     target._binds = [];
     target._files = [];
-    target._shares = [];
-    // Note. Do *not* clear customshares!
-    target._backups = [];
     properties.forEach(prop => {
       switch (prop.type) {
         case 'Environment':
