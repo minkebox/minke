@@ -53,11 +53,19 @@ MinkeApp.prototype = {
     this._bootcount = app.bootcount;
     this._secondary = app.secondary || [];
 
-    // FIX
-    if (!Array.isArray(this._args)) {
-      this._args = undefined;
-    }
-    // FIX
+    // Migrate customshares - START
+    const unfixed = [];
+    this._customshares.forEach(customshare => {
+      const bind = this._binds.find(bind => bind.target == customshare.target);
+      if (bind) {
+        bind.shares = customshare.shares;
+      }
+      else {
+        unfixed.push(customshare);
+      }
+    });
+    this._customshares = unfixed;
+    // Migrate customshares - END
 
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel) {

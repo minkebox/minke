@@ -223,6 +223,34 @@ async function ConfigurePageHTML(ctx) {
           });
           return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action);
         }
+        case 'OLD_CustomShareables':
+        {
+          const root = app._customshares.find(share => share.target == action.name) || { shares: [] };
+          return Object.assign({ action: `${action.type}#${action.name}`, shareables: root.shares.map(share => {
+            return {
+              name: share.name,
+              sname: share.sname,
+              empty: FS.readdirSync(`${root.src}/${share.sname}`).length === 0
+            };
+          }) }, action);
+        }
+        case 'CustomShareables':
+        {
+          const bind = app._binds.find(bind => bind.target === action.name) || { shares: [] };
+          return Object.assign({ action: `${action.type}#${action.name}`, shareables: bind.shares.map(share => {
+            let empty = true;
+            try {
+              empty = FS.readdirSync(`${bind.src}/${share.sname || share.name}`).length === 0;
+            }
+            catch (_) {
+            }
+            return {
+              name: share.name,
+              sname: share.sname,
+              empty: empty
+            };
+          }) }, action);
+        }
         case 'Shareables':
         {
           const allShares = app.getAvailableShareables();
@@ -266,17 +294,6 @@ async function ConfigurePageHTML(ctx) {
             backups.unshift(config);
           }
           return Object.assign({ backups: backups }, action);
-        }
-        case 'CustomShareables':
-        {
-          const root = app._customshares.find(share => share.target == action.name) || { shares: [] };
-          return Object.assign({ action: `${action.type}#${action.name}`, shareables: root.shares.map(share => {
-            return {
-              name: share.name,
-              sname: share.sname,
-              empty: FS.readdirSync(`${root.src}/${share.sname}`).length === 0
-            };
-          }) }, action);
         }
         case '__Disks':
         {
@@ -508,7 +525,7 @@ async function ConfigurePageWS(ctx) {
 
       return changed;
     }},
-    { p: /^CustomShareables#(.+)$/, f: (value, match) => {
+    { p: /^OLD_CustomShareables#(.+)$/, f: (value, match) => {
       const shareroot = match[1];
       const action = skeleton.actions.find(action => action.name === shareroot);
 
@@ -546,6 +563,29 @@ async function ConfigurePageWS(ctx) {
       }
       else {
         app._customshares.push(bind);
+      }
+      return SHARECHANGE;
+    }},
+    { p: /^CustomShareables#(.+)$/, f: (value, match) => {
+      const target = match[1];
+      const shares = JSON.parse(value).map(row => {
+        return { name: Path.normalize(row[0]), sname: row[1] || UUID() };
+      });
+      const bind = app._binds.find(bind => bind.target === target);
+      if (bind) {
+        // Put back any non-empty directories that got removed (UI should prevent this)
+        bind.shares.forEach(share => {
+          try {
+            if (!shares.find(ns => ns.sname === share.sname) && FS.readdirSync(`${bind.src}/${share.sname || share.name}`).length !== 0) {
+              shares.push(share);
+            }
+          }
+          catch (e) {
+            console.error(e);
+          }
+        });
+        // New share list
+        bind.shares = shares;
       }
       return SHARECHANGE;
     }},

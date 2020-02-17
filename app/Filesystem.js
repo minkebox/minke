@@ -70,7 +70,7 @@ _Filesystem.prototype = {
     //console.log('_makeMount', bind);
     FS.mkdirSync(bind.src, { recursive: true, mode: 0o777 });
     bind.shares.forEach((share) => {
-      FS.mkdirSync(`${bind.src}/${share.name}`, { recursive: true, mode: 0o777 });
+      FS.mkdirSync(`${bind.src}/${share.sname || share.name}`, { recursive: true, mode: 0o777 });
     });
     if (app._customshares.find(cbind => cbind.target === bind.target) || app._backups.find(bbind => bbind.target === bind.target)) {
       // Don't bind directories we will populate with customshares or backups later
