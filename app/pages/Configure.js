@@ -223,17 +223,6 @@ async function ConfigurePageHTML(ctx) {
           });
           return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action);
         }
-        case 'OLD_CustomShareables':
-        {
-          const root = app._customshares.find(share => share.target == action.name) || { shares: [] };
-          return Object.assign({ action: `${action.type}#${action.name}`, shareables: root.shares.map(share => {
-            return {
-              name: share.name,
-              sname: share.sname,
-              empty: FS.readdirSync(`${root.src}/${share.sname}`).length === 0
-            };
-          }) }, action);
-        }
         case 'CustomShareables':
         {
           const bind = app._binds.find(bind => bind.target === action.name) || { shares: [] };
@@ -524,47 +513,6 @@ async function ConfigurePageWS(ctx) {
       });
 
       return changed;
-    }},
-    { p: /^OLD_CustomShareables#(.+)$/, f: (value, match) => {
-      const shareroot = match[1];
-      const action = skeleton.actions.find(action => action.name === shareroot);
-
-      const bind = {
-        src: Filesystem.getNativePath(app._id, action.style, `/dir/${shareroot}`),
-        target: Path.normalize(shareroot),
-        shares: JSON.parse(value).map((row) => {
-          return { name: Path.normalize(row[0]), sname: row[1] || UUID() };
-        })
-      };
-      const idx = app._customshares.findIndex(oshare => oshare.target === bind.target);
-      if (idx !== -1) {
-        const obind = app._customshares[idx];
-        obind.shares.forEach(share => {
-          let dirempty = true;
-          try {
-            dirempty = (FS.readdirSync(`${obind.src}/${share.sname}`).length === 0);
-          }
-          catch (e) {
-            console.error(e);
-          }
-          if (!dirempty && !bind.shares.find(ns => ns.sname === share.sname)) {
-            // Directory not empty, so make sure we keep it
-            bind.shares.push(share);
-          }
-        });
-      }
-      if (bind.shares.length === 0) {
-        if (idx !== -1) {
-          app._customshares.splice(idx, 1);
-        }
-      }
-      else if (idx !== -1) {
-        app._customshares[idx] = bind;
-      }
-      else {
-        app._customshares.push(bind);
-      }
-      return SHARECHANGE;
     }},
     { p: /^CustomShareables#(.+)$/, f: (value, match) => {
       const target = match[1];

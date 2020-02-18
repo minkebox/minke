@@ -47,25 +47,10 @@ MinkeApp.prototype = {
     this._binds = app.binds;
     this._files = app.files;
     this._shares = app.shares;
-    this._customshares = app.customshares;
     this._backups = app.backups || [];
     this._networks = app.networks;
     this._bootcount = app.bootcount;
     this._secondary = app.secondary || [];
-
-    // Migrate customshares - START
-    const unfixed = [];
-    this._customshares.forEach(customshare => {
-      const bind = this._binds.find(bind => bind.target == customshare.target);
-      if (bind) {
-        bind.shares = customshare.shares;
-      }
-      else {
-        unfixed.push(customshare);
-      }
-    });
-    this._customshares = unfixed;
-    // Migrate customshares - END
 
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel) {
@@ -98,7 +83,6 @@ MinkeApp.prototype = {
       binds: this._binds,
       files: this._files,
       shares: this._shares,
-      customshares: this._customshares,
       backups: this._backups,
       networks: this._networks,
       bootcount: this._bootcount,
@@ -120,7 +104,6 @@ MinkeApp.prototype = {
     this._image = skel.image,
     this._globalId = UUID();
     this._shares = [];
-    this._customshares = [];
     this._backups = [];
     this._bootcount = 0;
 
@@ -938,11 +921,6 @@ MinkeApp.prototype = {
         const shares = [];
         function update(src) {
           src._binds.forEach(bind => {
-            if (bind.shares && bind.shares.length) {
-              shares.push(bind);
-            }
-          });
-          src._customshares.forEach(bind => {
             if (bind.shares && bind.shares.length) {
               shares.push(bind);
             }

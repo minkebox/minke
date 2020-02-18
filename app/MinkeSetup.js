@@ -37,7 +37,6 @@ function MinkeSetup(savedConfig, config) {
     mode: 0o600,
     backup: true
   }];
-  this._customshares = [];
   this._secondary = [];
   this._ports = [
     { port: getEnv('PORT').value, protocol: 'TCP', mdns: { type: '_minkebox._tcp' } },
