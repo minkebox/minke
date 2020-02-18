@@ -57,7 +57,7 @@ _Filesystem.prototype = {
   //
   unmountAll: function(mounts) {
     // Get list of mount targets
-    const paths = mounts.map(mount => this.mapFilenameToLocal(mount.Target));
+    const paths = mounts.map(mount => this.mapFilenameToLocal(mount.Target)).filter(v => v);
     // Sort longest to shortest
     paths.sort((a, b) => b.length - a.length);
     //console.log('unmountAll', paths);
