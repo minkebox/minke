@@ -38,13 +38,17 @@ _Filesystem.prototype = {
       }
     }
 
-    const mounts = app._binds.map(map => this._makeMount(map, app)).concat(
+    const mounts = app._binds.map(map => this._makeMount(map)).concat(
       app._files.map(file => this.makeFile(file)),
       app._shares.map(share => this._makeShare(share)),
       app._backups.map(backup => this._makeBackups(backup))
     ).reduce((a, b) => a.concat(b), []);
-    //console.log('getAllMounts', mounts);
-    return mounts;
+
+    // Remove any internal child mounts
+    const nmounts = this._removeChildren(mounts);
+
+    //console.log('getAllMounts', nmounts);
+    return nmounts;
   },
 
   //
@@ -53,9 +57,10 @@ _Filesystem.prototype = {
   //
   unmountAll: function(mounts) {
     // Get list of mount targets
-    const paths = mounts.map(mount => mount.Source);
+    const paths = mounts.map(mount => this.mapFilenameToLocal(mount.Target));
     // Sort longest to shortest
     paths.sort((a, b) => b.length - a.length);
+    //console.log('unmountAll', paths);
     paths.forEach(path => {
       try {
         ChildProcess.spawnSync('/bin/umount', [ path ], { cwd: '/tmp', stdio: 'ignore' });
@@ -65,7 +70,7 @@ _Filesystem.prototype = {
     });
   },
 
-  _makeMount: function(bind, app) {
+  _makeMount: function(bind) {
     //console.log('_makeMount', bind);
     FS.mkdirSync(bind.src, { recursive: true, mode: 0o777 });
     bind.shares.forEach((share) => {
@@ -122,7 +127,7 @@ _Filesystem.prototype = {
           backups.push({
             Type: 'bind',
             Source: bind.src,
-            Target: this._expand(`${backup.target}/${name}/${bind.target}`),
+            Target: Path.normalize(this._expand(`${backup.target}/${name}/${bind.target}`)),
             BindOptions: {
               Propagation: 'rshared'
             },
@@ -135,7 +140,7 @@ _Filesystem.prototype = {
           backups.push({
             Type: 'bind',
             Source: bind.src,
-            Target: this._expand(`${backup.target}/${name}/${bind.target}`),
+            Target: Path.normalize(this._expand(`${backup.target}/${name}/${bind.target}`)),
             BindOptions: {
               Propagation: 'rshared'
             },
@@ -145,6 +150,24 @@ _Filesystem.prototype = {
       });
     }
     return backups;
+  },
+
+  _removeChildren: function(mounts) {
+    const valid = [];
+    for (let jdx = 0; jdx < mounts.length; jdx++) {
+      let outer = mounts[jdx];
+      for (let idx = 0; outer && idx < mounts.length; idx++) {
+        const inner = mounts[idx];
+        if (outer !== inner && outer.Source.indexOf(inner.Source) === 0 && outer.Target.indexOf(inner.Target) === 0) {
+          // Outer is a child of Inner. Its source is a child path and it's target is a child path. - ignore
+          outer = null;
+        }
+      }
+      if (outer) {
+        valid.push(outer);
+      }
+    }
+    return valid;
   },
 
   mapFilenameToLocal: function(filename) {
