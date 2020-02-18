@@ -1,11 +1,9 @@
 const FS = require('fs');
 const Path = require('path');
-const UUID = require('uuid/v4');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
 const Skeletons = require('../skeletons/Skeletons');
-const Filesystem = require('../Filesystem');
 const Network = require('../Network');
 const Disks = require('../Disks');
 const ConfigBackup = require('../ConfigBackup');
@@ -210,7 +208,7 @@ async function ConfigurePageHTML(ctx) {
             return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
               bind.shares.forEach((share) => {
                 const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
-                const src = Path.normalize(`${bind.src}/${share.sname || share.name}/`).slice(0, -1);
+                const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
                 shares.push({
                   name: target,
                   src: src,
@@ -229,13 +227,12 @@ async function ConfigurePageHTML(ctx) {
           return Object.assign({ action: `${action.type}#${action.name}`, shareables: bind.shares.map(share => {
             let empty = true;
             try {
-              empty = FS.readdirSync(`${bind.src}/${share.sname || share.name}`).length === 0;
+              empty = FS.readdirSync(`${bind.src}/${share.name}`).length === 0;
             }
             catch (_) {
             }
             return {
               name: share.name,
-              sname: share.sname,
               empty: empty
             };
           }) }, action);
@@ -248,7 +245,7 @@ async function ConfigurePageHTML(ctx) {
             return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
               bind.shares.forEach((share) => {
                 const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
-                const src = Path.normalize(`${bind.src}/${share.sname || share.name}/`).slice(0, -1);
+                const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
                 const ashare = app._shares.find(ashare => ashare.src === src);
                 const alttarget = ashare ? ashare.target.substr(action.name.length + 1) : '';
                 shares.push({
@@ -517,14 +514,14 @@ async function ConfigurePageWS(ctx) {
     { p: /^CustomShareables#(.+)$/, f: (value, match) => {
       const target = match[1];
       const shares = JSON.parse(value).map(row => {
-        return { name: Path.normalize(row[0]), sname: row[1] || UUID() };
+        return { name: Path.normalize(row[0]) };
       });
       const bind = app._binds.find(bind => bind.target === target);
       if (bind) {
         // Put back any non-empty directories that got removed (UI should prevent this)
         bind.shares.forEach(share => {
           try {
-            if (!shares.find(ns => ns.sname === share.sname) && FS.readdirSync(`${bind.src}/${share.sname || share.name}`).length !== 0) {
+            if (!shares.find(ns => ns.name === share.name) && FS.readdirSync(`${bind.src}/${share.name}`).length !== 0) {
               shares.push(share);
             }
           }
