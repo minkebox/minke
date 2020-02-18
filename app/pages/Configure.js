@@ -518,11 +518,17 @@ async function ConfigurePageWS(ctx) {
       });
       const bind = app._binds.find(bind => bind.target === target);
       if (bind) {
-        // Put back any non-empty directories that got removed (UI should prevent this)
         bind.shares.forEach(share => {
           try {
-            if (!shares.find(ns => ns.name === share.name) && FS.readdirSync(`${bind.src}/${share.name}`).length !== 0) {
-              shares.push(share);
+            if (!shares.find(ns => ns.name === share.name)) {
+              const dir = `${bind.src}/${share.name}`;
+              if (FS.readdirSync(dir).length !== 0) {
+                // Directory not empty - put it back in the list
+                shares.push(share);
+              }
+              else {
+                FS.rmdirSync(dir);
+              }
             }
           }
           catch (e) {
