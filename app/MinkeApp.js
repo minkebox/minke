@@ -136,6 +136,7 @@ MinkeApp.prototype = {
           _image: secondary.image,
           _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
           _shares: [],
+          _backups: [],
           _delay: secondary.delay || 0
         };
         this._parseProperties(secondaryApp, `${idx}`, secondary.properties, {});
@@ -652,10 +653,10 @@ MinkeApp.prototype = {
         // Setup secondary containers
         if (this._secondary.length) {
           this._secondaryContainers = [];
-          const secondaryMounts = this._fs.getAllMounts(secondary);
-          this._allmounts = this._allmounts.concat(secondaryMounts);
           for (let c = 0; c < this._secondary.length; c++) {
             const secondary = this._secondary[c];
+            const secondaryMounts = this._fs.getAllMounts(secondary);
+            this._allmounts = this._allmounts.concat(secondaryMounts);
             const sconfig = {
               name: `${this._safeName()}__${this._id}__${c}`,
               Image: Images.withTag(secondary._image),
