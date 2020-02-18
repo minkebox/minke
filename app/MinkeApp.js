@@ -135,6 +135,7 @@ MinkeApp.prototype = {
         const secondaryApp = {
           _image: secondary.image,
           _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
+          _shares: [],
           _delay: secondary.delay || 0
         };
         this._parseProperties(secondaryApp, `${idx}`, secondary.properties, {});
