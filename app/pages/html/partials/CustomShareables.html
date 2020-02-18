@@ -9,7 +9,7 @@
   <tbody>
     {{#each shareables}}
     <tr>
-      <td contenteditable="true">{{name}}</td>
+      <td {{#if empty}}contenteditable="true"{{/if}}>{{name}}</td>
       <td style="display:none">{{#if sname}}{{sname}}{{else}}{{name}}{{/if}}</td>
       <td class="control">{{#if empty}}<span class="remove">&minus;</span>{{else}}<span class="no-remove">&minus;</span>{{/if}}</td>
     </tr>
