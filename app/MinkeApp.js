@@ -50,21 +50,16 @@ MinkeApp.prototype = {
     this._networks = app.networks;
     this._bootcount = app.bootcount;
     this._secondary = (app.secondary || []).map(secondary => {
-      if (secondary._image) {
-        return secondary; // OLD
-      }
-      else {
-        return {
-          _image: secondary.image,
-          _args: secondary.args,
-          _env: secondary.env,
-          _features: secondary.features,
-          _ports: secondary.ports,
-          _binds: secondary.binds,
-          _files: secondary.files,
-          _backups: secondary.backups
-        };
-      }
+      return {
+        _image: secondary.image,
+        _args: secondary.args,
+        _env: secondary.env,
+        _features: secondary.features,
+        _ports: secondary.ports,
+        _binds: secondary.binds,
+        _files: secondary.files,
+        _backups: secondary.backups
+      };
     });
 
     const skel = Skeletons.loadSkeleton(this._image, false);
