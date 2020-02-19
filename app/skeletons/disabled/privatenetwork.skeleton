@@ -23,10 +23,9 @@
       visible: `property['Environment#MODE'] == 'SERVER'`
     },
     {
-      type: `File`,
+      type: `DownloadFile`,
       description: `Generated client private network configuration file`,
-      name: `/etc/config.ovpn`,
-      style: `Download`
+      name: `/etc/config.ovpn`
     },
     {
       type: `Header`,

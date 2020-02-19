@@ -16,14 +16,14 @@ let downloadTemplate;
 function registerTemplates() {
   const partials = [
     'Table',
-    'RTable',
+    'ShowTable',
     'SelectDirectory',
     'SelectShares',
     'EditShares',
     'Websites',
     'Disks',
     'BackupAndRestore',
-    'Download',
+    'DownloadFile',
     'SelectBackups'
   ];
   partials.forEach((partial) => {
@@ -31,7 +31,7 @@ function registerTemplates() {
       FS.readFileSync(`${__dirname}/html/partials/${partial}.html`, { encoding: 'utf8' }), { preventIndent: true }));
   });
   template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Configure.html`, { encoding: 'utf8' }), { preventIndent: true });
-  downloadTemplate = Handlebars.compile('{{> Download}}', { preventIndent: true });
+  downloadTemplate = Handlebars.compile('{{> DownloadFile}}', { preventIndent: true });
 }
 if (!DEBUG) {
   registerTemplates();
@@ -160,6 +160,29 @@ async function ConfigurePageHTML(ctx) {
           properties[`${action.type}#${action.name}`] = network;
           return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, networks: networks, value: network }, action);
         }
+        case 'ShowFile':
+        {
+          const file = app._files.find(file => file.target === action.name);
+          if (file && app._fs) {
+            app._fs.readFile(file);
+          }
+          let value = [];
+          try {
+            value = JSON.parse(file.data)
+          }
+          catch (_) {
+          }
+          return Object.assign({ value: value }, action);
+        }
+        case 'DownloadFile':
+        {
+          const file = app._files.find(file => file.target === action.name);
+          if (file && app._fs) {
+            app._fs.readFile(file);
+          }
+          const value = file ? file.data : '';
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
+        }
         case 'File':
         {
           const file = app._files.find(file => file.target === action.name);
@@ -179,18 +202,6 @@ async function ConfigurePageHTML(ctx) {
               }
             }
             return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
-          }
-          else if (action.style === 'RTable') {
-            if (file && app._fs) {
-              app._fs.readFile(file);
-            }
-            let value = [];
-            try {
-              value = JSON.parse(file.data)
-            }
-            catch (_) {
-            }
-            return Object.assign({ value: value }, action);
           }
           else {
             if (file && app._fs) {

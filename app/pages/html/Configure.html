@@ -75,15 +75,21 @@
           {{else if (eq type "File")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
-            {{#if (eq style "Download")}}
-            {{> Download}}
             {{else if (eq style "Inline")}}
             <textarea class="can-disable value pure-input-rounded pure-u-16-24" spellcheck="false" oninput="{{action}}">{{value}}</textarea>
             {{else if (eq style "Table")}}
             {{> Table}}
-            {{else if (eq style "RTable")}}
-            {{> RTable}}
             {{/if}}
+          </div>
+          {{else if (eq type "DownloadFile")}}
+          <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
+            <label class="description">{{{description}}}</label>
+            {{> DownloadFile}}
+          </div>
+          {{else if (eq type "ShowFile")}}
+          <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
+            <label class="description">{{{description}}}</label>
+            {{> ShowTable}}
           </div>
           {{else if (eq type "SelectNetwork")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action network pure-control-group {{#if visible}}invisible{{/if}}">

@@ -58,10 +58,9 @@
       text: `IP addresses issued and currently active.`
     },
     {
-      type: `File`,
+      type: `ShowFile`,
       name: `/etc/dnsmasq-state.d/hosts`,
       description: `Addresses`,
-      style: `RTable`,
       headers: [
         { name: `IP Address` },
         { name: `Hostname` }

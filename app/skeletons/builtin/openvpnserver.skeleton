@@ -50,16 +50,14 @@ using Wi-Fi; use "tun" in this case.`,
       text: `These can take a while to generate. The download button will become blue once it is available.`
     },
     {
-      type: `File`,
+      type: `DownloadFile`,
       description: `Configuration`,
-      name: `/etc/config.ovpn`,
-      style: `Download`
+      name: `/etc/config.ovpn`
     },
     {
-      type: `File`,
+      type: `DownloadFile`,
       description: `Desktop optimized configuration (see Help for details)`,
       name: `/etc/config-alt.ovpn`,
-      style: `Download`,
       visible: `property.Advanced`
     },
     {

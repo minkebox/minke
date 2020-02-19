@@ -9,10 +9,9 @@
       title: `Active Ports`
     },
     {
-      type: `File`,
+      type: `ShowFile`,
       name: `/tmp/active.display`,
       description: `Ports currently active on the firewall`,
-      style: `RTable`,
       headers: [
         { name: `Firewall Port` },
         { name: `Target Host` },
@@ -25,10 +24,9 @@
       title: `Inactive Ports`
     },
     {
-      type: `File`,
+      type: `ShowFile`,
       name: `/tmp/inactive.display`,
       description: `Any port that once was active on the firewall`,
-      style: `RTable`,
       headers: [
         { name: `Firewall Port` },
         { name: `Target Host` },
