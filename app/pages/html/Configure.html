@@ -50,7 +50,7 @@
           <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             {{#if (eq style "Table")}}
-            {{> Table}}
+            {{> EditTable}}
             {{else if (eq style "Checkbox")}}
             <input class="value can-disable" type="checkbox" onchange="{{action}}" {{#if value}}checked{{/if}}>
             {{else if (eq style "Websites")}}
@@ -75,7 +75,7 @@
           {{else if (eq type "EditFile")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
-            {{if (eq style "Inline")}}
+            {{#if (eq style "Inline")}}
             <textarea class="can-disable value pure-input-rounded pure-u-16-24" spellcheck="false" oninput="{{action}}">{{value}}</textarea>
             {{else if (eq style "Table")}}
             {{> EditTable}}
