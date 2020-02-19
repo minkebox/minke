@@ -105,28 +105,28 @@
             <div style="text-align: center">No applications sharing.</div>
             {{/if}}
           </div>
-          {{else if (eq type "Shareables")}}
+          {{else if (eq type "SelectShares")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group {{#if visible}}invisible{{/if}}">
             {{#if shareables}}
             <label class="description">{{{description}}}</label>
-            {{> Shareables}}
+            {{> SelectShares}}
             {{else}}
             <div style="text-align: center">No applications sharing.</div>
             {{/if}}
           </div>
-          {{else if (eq type "Backups")}}
+          {{else if (eq type "SelectBackups")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action backups pure-control-group {{#if visible}}invisible{{/if}}">
             {{#if backups}}
             <label class="description">{{{description}}}</label>
-            {{> Backups}}
+            {{> SelectBackups}}
             {{else}}
             <div style="text-align: center">Nothing to backup.</div>
             {{/if}}
           </div>
-          {{else if (eq type "CustomShareables")}}
+          {{else if (eq type "EditShares")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
-            {{> CustomShareables}}
+            {{> EditShares}}
           </div>
           {{else if (eq type "__Disks")}}
           <div class="action disks pure-control-group">

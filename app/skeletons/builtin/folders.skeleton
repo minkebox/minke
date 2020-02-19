@@ -9,7 +9,7 @@
       title: `Files and Folders`
     },
     {
-      type: `CustomShareables`,
+      type: `EditShares`,
       name: `/folders`,
       description: `Create a list of shares to store file and folders. These can be share with other apps.`
     },

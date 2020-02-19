@@ -46,7 +46,6 @@ MinkeApp.prototype = {
     this._ports = app.ports;
     this._binds = app.binds;
     this._files = app.files;
-    this._shares = app.shares;
     this._backups = app.backups || [];
     this._networks = app.networks;
     this._bootcount = app.bootcount;
@@ -82,7 +81,6 @@ MinkeApp.prototype = {
       ports: this._ports,
       binds: this._binds,
       files: this._files,
-      shares: this._shares,
       backups: this._backups,
       networks: this._networks,
       bootcount: this._bootcount,
@@ -103,7 +101,6 @@ MinkeApp.prototype = {
     this._name = name;
     this._image = skel.image,
     this._globalId = UUID();
-    this._shares = [];
     this._backups = [];
     this._bootcount = 0;
 
@@ -135,7 +132,6 @@ MinkeApp.prototype = {
         const secondaryApp = {
           _image: secondary.image,
           _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
-          _shares: [],
           _backups: [],
           _delay: secondary.delay || 0
         };
@@ -185,9 +181,22 @@ MinkeApp.prototype = {
         {
           const targetname = Path.normalize(prop.name);
           const bind = defs.binds && defs.binds.find(bind => bind.target === targetname);
-          const x = prop.style === 'parent' ? '' : ext;
+          let src = null;
+          switch (prop.style) {
+            case 'parent':
+              src = Filesystem.getNativePath(this._id, 'store', `/dir/${targetname}`);
+              break;
+            case 'boot':
+            case 'store':
+            default:
+              src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`);
+              break;
+            case 'virtual':
+              src = null;
+              break;
+          }
           const b = {
-            src: Filesystem.getNativePath(this._id, prop.style, `/dir${x}/${targetname}`),
+            src: src,
             target: targetname,
             description: prop.description || targetname,
             backup: prop.backup
@@ -283,7 +292,7 @@ MinkeApp.prototype = {
             Type: 'json-file',
             Config: {
               'max-file': '1',
-              'max-size': '10k'
+              'max-size': '100k'
             }
           },
           Sysctls: {}
@@ -923,7 +932,8 @@ MinkeApp.prototype = {
         const shares = [];
         function update(src) {
           src._binds.forEach(bind => {
-            if (bind.shares && bind.shares.length) {
+            // Include bindings with shares which aren't bound to other things
+            if (bind.shares && bind.shares.length && !bind.shares.find(share => !!share.src)) {
               shares.push(bind);
             }
           });

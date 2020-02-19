@@ -33,7 +33,7 @@
       text: `Other applications can offer content they want to share.`
     },
     {
-      type: `Shareables`,
+      type: `SelectShares`,
       name: `/shareable`,
       description: `Select what to share. You can share using the default name or pick a name that's more meaningful`
     },

@@ -13,7 +13,7 @@
       text: `Select which application folders you want to synchronize. The specific synchronization is controlled in the app itself.`
     },
     {
-      type: `Shareables`,
+      type: `SelectShares`,
       name: `/FOLDERS`,
       description: `Select folders`
     },
@@ -22,7 +22,7 @@
       text: `Select which applications you want to synchronize.`
     },
     {
-      type: `Backups`,
+      type: `SelectBackups`,
       name: `/APPLICATIONS`,
       description: `Select applications`
     }

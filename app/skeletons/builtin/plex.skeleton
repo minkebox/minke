@@ -13,7 +13,7 @@
       text: `Plex will automatically create two folders (<b>TV</b> and <b>Movies</b>) to store your media. You can also include other folders by adding them below.`
     },
     {
-      type: `Shareables`,
+      type: `SelectShares`,
       name: `/data/Shared`,
       description: `Select folders Plex can acccess`
     }

@@ -13,7 +13,7 @@
       text: `Select which folders you want to backup. The backup schedules are created in Duplicati itself.`
     },
     {
-      type: `Shareables`,
+      type: `SelectShares`,
       name: `/source`,
       description: `Select folders`
     },
@@ -22,7 +22,7 @@
       text: `Select which applications you want to backup.`
     },
     {
-      type: `Backups`,
+      type: `SelectBackups`,
       name: `/applications`,
       description: `Select folders`
     }

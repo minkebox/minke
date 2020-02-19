@@ -18,13 +18,13 @@ function registerTemplates() {
     'Table',
     'RTable',
     'Directory',
-    'Shareables',
-    'CustomShareables',
+    'SelectShares',
+    'EditShares',
     'Websites',
     'Disks',
     'BackupAndRestore',
     'Download',
-    'Backups'
+    'SelectBackups'
   ];
   partials.forEach((partial) => {
     Handlebars.registerPartial(partial, Handlebars.compile(
@@ -221,7 +221,7 @@ async function ConfigurePageHTML(ctx) {
           });
           return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action);
         }
-        case 'CustomShareables':
+        case 'EditShares':
         {
           const bind = app._binds.find(bind => bind.target === action.name) || { shares: [] };
           return Object.assign({ action: `${action.type}#${action.name}`, shareables: bind.shares.map(share => {
@@ -237,22 +237,23 @@ async function ConfigurePageHTML(ctx) {
             };
           }) }, action);
         }
-        case 'Shareables':
+        case 'SelectShares':
         {
+          const binding = app._binds.find(bind => bind.target === action.name) || { shares: [] };
           const allShares = app.getAvailableShareables();
           allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
           const shareables = allShares.map(shareable => {
             return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
               bind.shares.forEach((share) => {
-                const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
+                const defaultName = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
                 const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
-                const ashare = app._shares.find(ashare => ashare.src === src);
-                const alttarget = ashare ? ashare.target.substr(action.name.length + 1) : '';
+                const ashare = binding.shares.find(ashare => ashare.src === src);
+                const altName = ashare ? ashare.name : '';
                 shares.push({
-                  name: target,
-                  altname: alttarget != target ? alttarget : null,
+                  name: defaultName,
+                  altname: altName != defaultName ? altName : null,
                   description: share.description,
-                  action: `window.share('${action.type}#${shareable.app._id}#${src}#${action.name}#${target}',this)`,
+                  action: `window.share('${action.type}#${shareable.app._id}#${src}#${action.name}#${defaultName}',this)`,
                   value: !!ashare
                 });
               });
@@ -261,7 +262,7 @@ async function ConfigurePageHTML(ctx) {
           });
           return Object.assign({ shareables: shareables }, action);
         }
-        case 'Backups':
+        case 'SelectBackups':
         {
           const allBackups = app.getAvailableBackups();
           allBackups.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
@@ -471,47 +472,49 @@ async function ConfigurePageWS(ctx) {
 
       return change;
     }},
-    { p: /^Shareables#(.*)#(.*)#(.*)#(.*)$/, f: (value, match) => {
-      const share = {
-        src: match[2],
-        target: `${match[3]}/${value.target.replace(/\//, '.') || match[4]}`,
-        shared: value.shared
-      };
+    { p: /^SelectShares#(.*)#(.*)#(.*)#(.*)$/, f: (value, match) => {
+      const sharesrc = match[2]; // Absolute path of directory we're sharing
+      const target = match[3]; // Path of the parent directory we're sharing onto
+      const name = value.target.replace(/\//, '.') || match[4]; // The directory name in the parent
       let changed = NOCHANGE;
 
-      function update(shares) {
-        const idx = shares.findIndex(oshare => oshare.src === share.src);
-        if (share.shared) {
-          if (idx !== -1) {
-            if (shares[idx].target !== share.target) {
-              shares[idx].target = share.target;
+      function update(binds) {
+        const bind = binds.find(bind => bind.target == target);
+        if (bind) {
+          const shares = bind.shares;
+          const idx = shares.findIndex(share => share.src == sharesrc);
+          if (value.shared) {
+            if (idx !== -1) {
+              if (shares[idx].name !== name) {
+                shares[idx].name = name;
+                shares[idx].description = name;
+                changed = SHARECHANGE;
+              }
+            }
+            else {
+              shares.push({
+                src: sharesrc,
+                name: name,
+                description: name
+              });
               changed = SHARECHANGE;
             }
           }
           else {
-            shares.push({
-              src: share.src,
-              target: share.target
-            });
-            changed = SHARECHANGE;
-          }
-        }
-        else {
-          if (idx !== -1) {
-            shares.splice(idx, 1);
-            changed = SHARECHANGE;
+            if (idx !== -1) {
+              shares.splice(idx, 1);
+              changed = SHARECHANGE;
+            }
           }
         }
       }
 
-      update(app._shares);
-      app._secondary.forEach(secondary => {
-        update(secondary._shares);
-      });
+      update(app._binds);
+      app._secondary.forEach(secondary => update(secondary._binds));
 
       return changed;
     }},
-    { p: /^CustomShareables#(.+)$/, f: (value, match) => {
+    { p: /^EditShares#(.+)$/, f: (value, match) => {
       const target = match[1];
       const shares = JSON.parse(value).map(row => {
         return { name: Path.normalize(row[0]) };
@@ -540,7 +543,7 @@ async function ConfigurePageWS(ctx) {
       }
       return SHARECHANGE;
     }},
-    { p: /^Backups#(.+)#(.*)/, f: (value, match) => {
+    { p: /^SelectBackups#(.+)#(.*)/, f: (value, match) => {
       const backup = {
         appid: match[1],
         target: match[2]

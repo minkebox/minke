@@ -16,33 +16,11 @@ function _Filesystem(app) {
 _Filesystem.prototype = {
 
   getAllMounts: function(app) {
-
-    // Remove any broken shares (in case an app was uninstalled)
-    for (let i = 0; i < app._shares.length; ) {
-      const appid = app._shares[i].src.replace(/^.*apps\/([^/]+).*$/,'$1');
-      if (MinkeApp.getAppById(appid) && FS.existsSync(app._shares[i].src)) {
-        i++;
-      }
-      else {
-        app._shares.splice(i, 1);
-      }
-    }
-    // Or broken backups
-    for (let i = 0; i < app._backups.length; ) {
-      const appid = app._backups[i].appid;
-      if (MinkeApp.getAppById(appid)) {
-        i++;
-      }
-      else {
-        app._backups.splice(i, 1);
-      }
-    }
-
-    const mounts = app._binds.map(map => this._makeMount(map)).concat(
+    const mounts = [
+      app._binds.map(map => this._makeMount(map)),
       app._files.map(file => this.makeFile(file)),
-      app._shares.map(share => this._makeShare(share)),
       app._backups.map(backup => this._makeBackups(backup))
-    ).reduce((a, b) => a.concat(b), []);
+    ].flat(8);
 
     // Remove any internal child mounts
     const nmounts = this._removeChildren(mounts);
@@ -52,7 +30,7 @@ _Filesystem.prototype = {
   },
 
   //
-  // Docker should remove any mounts as it shutsdown a container. However, if there's any mount-in-mount going
+  // Docker should remove any mounts as it shuts down a container. However, if there's any mount-in-mount going
   // on it has a habit of not tidying things up properly. Do that here.
   //
   unmountAll: function(mounts) {
@@ -72,18 +50,36 @@ _Filesystem.prototype = {
 
   _makeMount: function(bind) {
     //console.log('_makeMount', bind);
-    FS.mkdirSync(bind.src, { recursive: true, mode: 0o777 });
-    bind.shares.forEach((share) => {
-      FS.mkdirSync(`${bind.src}/${share.name}`, { recursive: true, mode: 0o777 });
-    });
-    return {
-      Type: 'bind',
-      Source: bind.src,
-      Target: this._expand(bind.target),
-      BindOptions: {
-        Propagation: 'rshared'
-      }
+    if (bind.src) {
+      FS.mkdirSync(bind.src, { recursive: true, mode: 0o777 });
+      bind.shares.forEach(share => FS.mkdirSync(`${bind.src}/${share.name}`, { recursive: true, mode: 0o777 }));
     }
+
+    const binds = [];
+    if (bind.src) {
+      binds.push({
+        Type: 'bind',
+        Source: bind.src,
+        Target: this._expand(bind.target),
+        BindOptions: {
+          Propagation: 'rshared'
+        }
+      });
+    }
+    bind.shares.forEach(share => {
+      // If share has a source which exists, bind it.
+      if (share.src && MinkeApp.getAppById(share.src.replace(/^.*apps\/([^/]+).*$/,'$1')) && FS.existsSync(share.src)) {
+        binds.push({
+          Type: 'bind',
+          Source: share.src,
+          Target: Path.normalize(this._expand(`${bind.target}/${share.name}`)),
+          BindOptions: {
+            Propagation: 'rshared'
+          }
+        });
+      }
+    });
+    return binds;
   },
 
   makeFile: function(file) {
@@ -105,7 +101,7 @@ _Filesystem.prototype = {
     file.data = FS.readFileSync(file.src, { encoding: 'utf8' });
   },
 
-  _makeShare: function(share) {
+  /*_makeShare: function(share) {
     //console.log('_makeShare', share);
     return {
       Type: 'bind',
@@ -115,7 +111,7 @@ _Filesystem.prototype = {
         Propagation: 'rshared'
       }
     }
-  },
+  },*/
 
   _makeBackups: function(backup) {
     const backups = [];

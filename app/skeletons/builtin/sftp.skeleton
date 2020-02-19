@@ -25,7 +25,7 @@
       title: `Folders`
     },
     {
-      type: `Shareables`,
+      type: `SelectShares`,
       name: `/home/{{SSH_USERNAME}}`,
       description: `Select the folders to share with this user`
     },
