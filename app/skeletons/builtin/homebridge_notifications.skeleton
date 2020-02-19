@@ -48,7 +48,7 @@
     },
     {
       type: `Text`,
-      text: `Notifications use the <a target="_blank" href="https://www.amazon.com/Thomptronics-Notify-Me/dp/B07BB2FYFS">Alexa Skill "Notify Me"</a> which you should install in your Alexa app`
+      text: `Notifications use the <a target="_blank" href="https://www.amazon.com/Thomptronics-Notify-Me/dp/B07BB2FYFS">Alexa Skill: Notify Me</a> which you should install in the Alexa app`
     },
     {
       type: `Environment`,
