@@ -378,6 +378,7 @@ function openInlinePage(url, target) {
       window.scrollTo(0, scrollY);
       document.getElementsByClassName('nav')[0].addEventListener('click', closeInlinePage);
       document.getElementsByClassName('nav')[0].addEventListener('touchstart', closeInlinePage);
+      onResizePage();
     }, 0);
     const div = builder.firstElementChild;
     const insert = document.getElementById('insertion-point');
