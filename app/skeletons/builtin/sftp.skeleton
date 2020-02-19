@@ -102,6 +102,11 @@
       name: `DEBUG`
     },
     {
+      type: `Directory`,
+      name: `/home/{{SSH_USERNAME}}`,
+      style: `virtual`
+    },
+    {
       type: `Port`,
       name: `SSH_PORT`,
       port: `{{SSH_PORT}}`,

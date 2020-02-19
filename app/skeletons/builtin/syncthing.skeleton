@@ -10,11 +10,11 @@
     },
     {
       type: `Text`,
-      text: `Select which application folders you want to synchronize. The specific synchronization is controlled in the app itself.`
+      text: `Select which folders you want to synchronize. The specific synchronization is controlled in the app itself.`
     },
     {
       type: `SelectShares`,
-      name: `/FOLDERS`,
+      name: `/Sync/Folders`,
       description: `Select folders`
     },
     {
@@ -23,7 +23,7 @@
     },
     {
       type: `SelectBackups`,
-      name: `/APPLICATIONS`,
+      name: `/Sync/Backups`,
       description: `Select applications`
     }
   ],
@@ -31,15 +31,21 @@
     {
       type: `Environment`,
       name: `HOME`,
-      defaultValue: `/FOLDERS`
+      defaultValue: `/`
     },
     {
       type: `Directory`,
-      name: `/FOLDERS`
+      name: `/Sync`
     },
     {
       type: `Directory`,
-      name: `/APPLICATIONS`
+      name: `/Sync/Folders`,
+      style: `virtual`
+    },
+    {
+      type: `Directory`,
+      name: `/Sync/Applications`,
+      style: `virtual`
     },
     {
       type: `Directory`,

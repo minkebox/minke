@@ -40,11 +40,13 @@
     },
     {
       type: `Directory`,
-      name: `/source`
+      name: `/source`,
+      style: `virtual`
     },
     {
       type: `Directory`,
-      name: `/applications`
+      name: `/applications`,
+      style: `virtual`
     },
     {
       type: `Port`,

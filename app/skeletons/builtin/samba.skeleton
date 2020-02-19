@@ -81,6 +81,11 @@
       style: `boot`
     },
     {
+      type: `Directory`,
+      name: `/shareable`,
+      style: `virtual`
+    },
+    {
       type: `Port`,
       name: `137/udp`,
       port: 137,

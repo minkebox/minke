@@ -52,6 +52,11 @@
       ]
     },
     {
+      type: `Directory`,
+      name: `/data/Shared`,
+      style: `virtual`
+    },
+    {
       type: `Environment`,
       name: `PLEX_MEDIA_SERVER_INFO_DEVICE`,
       defaultValue: `Docker Container (LinuxServer.io) / MinkeBox`
