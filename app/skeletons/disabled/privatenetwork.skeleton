@@ -33,7 +33,7 @@
       visible: `property['Environment#MODE'] == 'CLIENT'`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       description: `Drop your private network configuration file here`,
       name: `/etc/config.ovpn`,
       style: `Inline`,

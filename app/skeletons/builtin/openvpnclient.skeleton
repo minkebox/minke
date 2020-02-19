@@ -17,7 +17,7 @@
       placeholder: `Password`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       description: `Drop your .ovpn configuration file here`,
       name: `/etc/openvpn/config.ovpn`,
       style: `Inline`

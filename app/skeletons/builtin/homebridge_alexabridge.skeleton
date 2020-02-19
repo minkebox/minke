@@ -40,7 +40,7 @@
       text: `Create switches you are sharing between Alexa and HomeKit`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       name: `/app/switches1.conf`,
       description: `Toggle Switches`,
       style: `Table`,
@@ -51,7 +51,7 @@
       join: `,`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       name: `/app/switches2.conf`,
       description: `Push Switches`,
       style: `Table`,

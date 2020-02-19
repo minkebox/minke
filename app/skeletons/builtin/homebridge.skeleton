@@ -25,13 +25,13 @@
       description: `Plugins`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       name: `/app/accessories-config.json`,
       style: `Inline`,
       description: `Accessories`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       name: `/app/platforms-config.json`,
       style: `Inline`,
       description: `Platforms`

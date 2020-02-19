@@ -31,7 +31,7 @@
       text: `Create a set of switch names and associated notification messages`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       name: `/app/accessories1.conf`,
       description: `Notifications`,
       style: `Table`,
@@ -60,7 +60,7 @@
       text: `Create a set of switch names and associated notification messages`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       name: `/app/accessories2.conf`,
       description: `Alexa Notifications`,
       style: `Table`,

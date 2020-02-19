@@ -15,7 +15,7 @@ let template;
 let downloadTemplate;
 function registerTemplates() {
   const partials = [
-    'Table',
+    'EditTable',
     'ShowTable',
     'SelectDirectory',
     'SelectShares',
@@ -183,32 +183,37 @@ async function ConfigurePageHTML(ctx) {
           const value = file ? file.data : '';
           return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
         }
-        case 'File':
+        case 'EditFile':
         {
           const file = app._files.find(file => file.target === action.name);
-          if (action.style === 'Table') {
-            let value = [];
-            if (file && file.altData) {
-              try {
-                value = JSON.parse(file.altData);
-                const hlen = action.headers.length;
-                value.forEach((v) => {
-                  while (v.length < hlen) {
-                    v.push('');
-                  }
-                });
+          switch (action.style) {
+            case 'Table':
+            {
+              let value = [];
+              if (file && file.altData) {
+                try {
+                  value = JSON.parse(file.altData);
+                  const hlen = action.headers.length;
+                  value.forEach((v) => {
+                    while (v.length < hlen) {
+                      v.push('');
+                    }
+                  });
+                }
+                catch (_) {
+                }
               }
-              catch (_) {
+              return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
+            }
+            case 'Inline':
+            default:
+            {
+              if (file && app._fs) {
+                app._fs.readFile(file);
               }
+              const value = file ? file.data : '';
+              return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
             }
-            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
-          }
-          else {
-            if (file && app._fs) {
-              app._fs.readFile(file);
-            }
-            const value = file ? file.data : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
           }
         }
         case 'SelectDirectory':
@@ -455,7 +460,7 @@ async function ConfigurePageWS(ctx) {
         return change;
       }
     },
-    { p: /^File#(.+)$/, f: (value, match) => {
+    { p: /^EditFile#(.+)$/, f: (value, match) => {
       const filename = match[1];
       const tableValue = getTableData(app, filename, value);
       const nvalue = tableValue !== null ? tableValue : value;

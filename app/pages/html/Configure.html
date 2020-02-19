@@ -72,13 +72,13 @@
             <label class="description">{{{description}}}</label>
             <input class="value" type="text" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}">
           </div>
-          {{else if (eq type "File")}}
+          {{else if (eq type "EditFile")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             {{else if (eq style "Inline")}}
             <textarea class="can-disable value pure-input-rounded pure-u-16-24" spellcheck="false" oninput="{{action}}">{{value}}</textarea>
             {{else if (eq style "Table")}}
-            {{> Table}}
+            {{> EditTable}}
             {{/if}}
           </div>
           {{else if (eq type "DownloadFile")}}

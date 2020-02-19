@@ -13,7 +13,7 @@
       text: `Enter the range of IP addresses issued by this server.`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       name: `/etc/dnsmasq.d/dhcp-ranges.conf`,
       description: `Address Ranges`,
       style: `Table`,
@@ -36,7 +36,7 @@
       text: `Reserve individual IP addresses for specific hosts based on their MAC addresses.`
     },
     {
-      type: `File`,
+      type: `EditFile`,
       name: `/etc/dnsmasq-hosts.d/user-defined-hosts.conf`,
       description: `Reserved Addresses`,
       style: `Table`,
