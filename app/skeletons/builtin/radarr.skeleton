@@ -16,7 +16,7 @@ This application is bundled with the <a href="https://transmissionbt.com/">Trans
       title: `Movies`
     },
     {
-      type: `Directory`,
+      type: `SelectDirectory`,
       name: `/movies`,
       description: `Select the folder where we save your Movies`
     },

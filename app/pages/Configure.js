@@ -17,7 +17,7 @@ function registerTemplates() {
   const partials = [
     'Table',
     'RTable',
-    'Directory',
+    'SelectDirectory',
     'SelectShares',
     'EditShares',
     'Websites',
@@ -200,7 +200,7 @@ async function ConfigurePageHTML(ctx) {
             return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
           }
         }
-        case 'Directory':
+        case 'SelectDirectory':
         {
           const allShares = app.getAvailableShareables();
           allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);

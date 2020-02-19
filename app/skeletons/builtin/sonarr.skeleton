@@ -16,7 +16,7 @@ This application is bundled with the <a href="https://transmissionbt.com/">Trans
       title: `TV shows`
     },
     {
-      type: `Directory`,
+      type: `SelectDirectory`,
       name: `/tv`,
       description: `Select the folder where we save your TV shows`
     },

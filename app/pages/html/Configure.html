@@ -96,11 +96,11 @@
               {{/each}}
             </select>
           </div>
-          {{else if (eq type "Directory")}}
+          {{else if (eq type "SelectDirectory")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action shareables pure-control-group {{#if visible}}invisible{{/if}}">
             {{#if shareables}}
             <label class="description">{{{description}}}</label>
-            {{> Directory}}
+            {{> SelectDirectory}}
             {{else}}
             <div style="text-align: center">No applications sharing.</div>
             {{/if}}

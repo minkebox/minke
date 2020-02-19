@@ -13,7 +13,7 @@
       text: `Configure this website by selecting a folder containing your website pages. This can find the website logs in the "File Share" application.`
     },
     {
-      type: `Directory`,
+      type: `SelectDirectory`,
       name: `/usr/local/apache2/htdocs`,
       description: `Website's pages`
     },
