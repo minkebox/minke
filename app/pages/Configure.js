@@ -412,7 +412,7 @@ async function ConfigurePageWS(ctx) {
 
       return change;
     }},
-    { p: /^Network#(.+)$/, f: (value, match) => {
+    { p: /^SelectNetwork#(.+)$/, f: (value, match) => {
       const network = match[1];
       const ovalue = app._networks[network];
       if ((network in app._networks) && ovalue !== value) {
@@ -426,7 +426,7 @@ async function ConfigurePageWS(ctx) {
       return NOCHANGE;
     }},
     {
-      p: /^Directory#(.+)$/, f: (value, match) => {
+      p: /^SelectDirectory#(.+)$/, f: (value, match) => {
         const target = match[1];
         let change = NOCHANGE;
 
