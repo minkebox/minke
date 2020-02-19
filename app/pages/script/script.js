@@ -372,7 +372,7 @@ function openInlinePage(url, target) {
     const builder = document.createElement('div');
     const width = document.body.clientWidth;
     const height = document.body.clientHeight;
-    builder.innerHTML = `<div class="inline-page pure-g"><div class="pure-u-1"><iframe allowfullscreen="true" scroling="no" allow="fullscreen" frameborder="0" width="${width}" height="${height}"></div></div>`;
+    builder.innerHTML = `<div class="inline-page pure-g"><div class="pure-u-1"><iframe allow="fullscreen" scroling="no" allow="fullscreen" frameborder="0" width="${width}" height="${height}"></div></div>`;
     const scrollY = window.scrollY;
     setTimeout(() => {
       window.scrollTo(0, scrollY);
