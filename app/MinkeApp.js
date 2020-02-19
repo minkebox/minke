@@ -49,7 +49,23 @@ MinkeApp.prototype = {
     this._backups = app.backups || [];
     this._networks = app.networks;
     this._bootcount = app.bootcount;
-    this._secondary = app.secondary || [];
+    this._secondary = (app.secondary || []).map(secondary => {
+      if (secondary._image) {
+        return secondary; // OLD
+      }
+      else {
+        return {
+          _image: secondary.image,
+          _args: secondary.args,
+          _env: secondary.env,
+          _features: secondary.features,
+          _ports: secondary.ports,
+          _binds: secondary.binds,
+          _files: secondary.files,
+          _backups: secondary.backups
+        };
+      }
+    });
 
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel) {
@@ -84,7 +100,18 @@ MinkeApp.prototype = {
       backups: this._backups,
       networks: this._networks,
       bootcount: this._bootcount,
-      secondary: this._secondary
+      secondary: this._secondary.map(secondary => {
+        return {
+          image: secondary._image,
+          args: secondary._args,
+          env: secondary._env,
+          features: secondary._features,
+          ports: secondary._ports,
+          binds: secondary._binds,
+          files: secondary._files,
+          backups: secondary._backups
+        };
+      })
     }
   },
 
