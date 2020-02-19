@@ -42,7 +42,7 @@ This application is bundled with the <a href="https://transmissionbt.com/">Trans
 but you may want to use a VPN network for extra security and privacy.`
     },
     {
-      type: `Network`,
+      type: `SelectNetwork`,
       name: `primary`,
       description: `Select BitTorrent network`
     }

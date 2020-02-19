@@ -14,7 +14,7 @@
       text: `Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.`
     },
     {
-      type: `Network`,
+      type: `SelectNetwork`,
       name: `primary`,
       description: `Select network`
     },

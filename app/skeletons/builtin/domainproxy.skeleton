@@ -23,7 +23,7 @@
       text: `Select source network for traffic. You probably want <b>home</b> unless this application is being used on a private network.`
     },
     {
-      type: `Network`,
+      type: `SelectNetwork`,
       name: `secondary`,
       description: `Select source network`
     },

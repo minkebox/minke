@@ -85,7 +85,7 @@
             {{> RTable}}
             {{/if}}
           </div>
-          {{else if (eq type "Network")}}
+          {{else if (eq type "SelectNetwork")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action network pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             <select onchange="{{action}}">

@@ -29,7 +29,7 @@
       name: `CRONJOB_ITERATION`
     },
     {
-      type: `Network`,
+      type: `SelectNetwork`,
       name: `primary`,
       description: `Select which network to test (you probably want the default)`
     },

@@ -204,7 +204,7 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
       visible: `property.Advanced`
     },
     {
-      type: 'Network',
+      type: 'SelectNetwork',
       name: 'primary',
       description: 'Select an optional remote management network',
       visible: `false`

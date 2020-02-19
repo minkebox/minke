@@ -13,7 +13,7 @@
       text: 'Traffic from the source network, and targetting the domains listed below, will be routed to the target network.'
     },
     {
-      type: `Network`,
+      type: `SelectNetwork`,
       name: `primary`,
       description: `Select target network`
     },
@@ -22,7 +22,7 @@
       text: `Select source network for traffic. You probably want <b>home</b> unless this application is being used on a private network.`
     },
     {
-      type: `Network`,
+      type: `SelectNetwork`,
       name: `secondary`,
       description: `Select source network`
     },

@@ -153,7 +153,7 @@ async function ConfigurePageHTML(ctx) {
             return Object.assign({ action: act, value: env ? env.value : '', options: property.options }, action);
           }
         }
-        case 'Network':
+        case 'SelectNetwork':
         {
           const networks = [ { _id: 'none', name: 'none' } ].concat(app.getAvailableNetworks());
           const network = app._networks[action.name] || 'none';
