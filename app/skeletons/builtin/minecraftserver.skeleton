@@ -16,28 +16,64 @@
       enabled: 'property.FirstUse'
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SERVER_NAME`,
       description: `Server Name`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `MOTD`,
       description: `Message of the day`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `MAX_PLAYERS`,
       description: `Maxiumum number of players`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `MODE`,
+      options: [
+        {
+          name: `creative`,
+          value: `creative`
+        },
+        {
+          name: `survival`,
+          value: `survival`
+        },
+        {
+          name: `adventure`,
+          value: `adventure`
+        },
+        {
+          name: `spectator`,
+          value: `spectator`
+        }
+      ],
       description: `Game mode`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `DIFFICULTY`,
+      options: [
+        {
+          name: `peaceful`,
+          value: `peaceful`
+        },
+        {
+          name: `easy`,
+          value: `easy`
+        },
+        {
+          name: `normal`,
+          value: `normal`
+        },
+        {
+          name: `hard`,
+          value: `hard`
+        }
+      ],
       description: `Difficulty`
     },
     {
@@ -65,7 +101,7 @@
       join: `,`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SERVER_PORT`,
       description: `Server port`,
       enabled: 'property.FirstUse'
@@ -81,17 +117,17 @@
       enabled: 'property.FirstUse'
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `MAX_WORLD_SIZE`,
       description: `Maximum block radius of the world`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `MAX_BUILD_HEIGHT`,
       description: `Maximum building height`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `VIEW_DISTANCE`,
       description: `View block radius`
     },
@@ -160,8 +196,46 @@
       text: `Select the Mod type, then install Mods and Plugins via shared folders (see the File Share application).`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `TYPE`,
+      options: [
+        {
+          name: `Vanilla`,
+          value: `VANILLA`
+        },
+        {
+          name: `Forge`,
+          value: `FORGE`
+        },
+        {
+          name: `Bukkit`,
+          value: `BUKKIT`
+        },
+        {
+          name: `Spigot`,
+          value: `SPIGOT`
+        },
+        {
+          name: `Paper Spigot`,
+          value: `PAPER`
+        },
+        {
+          name: `Feed-The-Beast`,
+          value: `FTB`
+        },
+        {
+          name: `CurseForge`,
+          value: `CURSEFORGE`
+        },
+        {
+          name: `SpongeVanilla`,
+          value: `SPONGEVANILLA`
+        },
+        {
+          name: `Custom`,
+          value: `CUSTOM`
+        }
+      ],
       description: 'Mod type'
     },
     {
@@ -170,18 +244,44 @@
       enabled: 'property.FirstUse'
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `VERSION`,
       description: `Specific Minecraft version`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SEED`,
       description: `Seed`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `LEVEL_TYPE`,
+      options: [
+        {
+          name: `Default`,
+          value: `DEFAULT`
+        },
+        {
+          name: `Flat`,
+          value: `FLAT`
+        },
+        {
+          name: `Large biomes`,
+          value: `LARGEBIOMES`
+        },
+        {
+          name: `Amplified`,
+          value: `AMPLIFIED`
+        },
+        {
+          name: `Customized`,
+          value: `CUSTOMIZED`
+        },
+        {
+          name: `Buffer`,
+          value: `BUFFET`
+        }
+      ],
       description: `Level type`
     },
     {
@@ -191,7 +291,7 @@
       enabled: 'property.FirstUse'
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `GENERATOR_SETTINGS`,
       description: `Generator settings`,
     }
@@ -209,25 +309,7 @@
     },
     {
       type: `Environment`,
-      name: `MODE`,
-      options: [
-        {
-          name: `creative`,
-          value: `creative`
-        },
-        {
-          name: `survival`,
-          value: `survival`
-        },
-        {
-          name: `adventure`,
-          value: `adventure`
-        },
-        {
-          name: `spectator`,
-          value: `spectator`
-        }
-      ],
+      name: `MODE`
       defaultValue: `creative`
     },
     {
@@ -238,24 +320,6 @@
     {
       type: `Environment`,
       name: `DIFFICULTY`,
-      options: [
-        {
-          name: `peaceful`,
-          value: `peaceful`
-        },
-        {
-          name: `easy`,
-          value: `easy`
-        },
-        {
-          name: `normal`,
-          value: `normal`
-        },
-        {
-          name: `hard`,
-          value: `hard`
-        }
-      ],
       defaultValue: `peaceful`
     },
     {
@@ -373,33 +437,7 @@
     {
       type: `Environment`,
       name: `LEVEL_TYPE`,
-      defaultValue: `DEFAULT`,
-      options: [
-        {
-          name: `Default`,
-          value: `DEFAULT`
-        },
-        {
-          name: `Flat`,
-          value: `FLAT`
-        },
-        {
-          name: `Large biomes`,
-          value: `LARGEBIOMES`
-        },
-        {
-          name: `Amplified`,
-          value: `AMPLIFIED`
-        },
-        {
-          name: `Customized`,
-          value: `CUSTOMIZED`
-        },
-        {
-          name: `Buffer`,
-          value: `BUFFET`
-        }
-      ]
+      defaultValue: `DEFAULT`
     },
     {
       type: `Environment`,
@@ -418,45 +456,7 @@
     {
       type: `Environment`,
       name: `TYPE`,
-      defaultValue: `VANILLA`,
-      options: [
-        {
-          name: `Vanilla`,
-          value: `VANILLA`
-        },
-        {
-          name: `Forge`,
-          value: `FORGE`
-        },
-        {
-          name: `Bukkit`,
-          value: `BUKKIT`
-        },
-        {
-          name: `Spigot`,
-          value: `SPIGOT`
-        },
-        {
-          name: `Paper Spigot`,
-          value: `PAPER`
-        },
-        {
-          name: `Feed-The-Beast`,
-          value: `FTB`
-        },
-        {
-          name: `CurseForge`,
-          value: `CURSEFORGE`
-        },
-        {
-          name: `SpongeVanilla`,
-          value: `SPONGEVANILLA`
-        },
-        {
-          name: `Custom`,
-          value: `CUSTOM`
-        }
-      ]
+      defaultValue: `VANILLA`
     },
     {
       type: `Directory`,

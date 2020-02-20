@@ -15,6 +15,16 @@
     {
       type: `Environment`,
       name: `MODE`,
+      options: [
+        {
+          name: `Server`,
+          value: `SERVER`
+        },
+        {
+          name: `Client`,
+          value: `CLIENT`
+        }
+      ],
       description: `Select network mode`
     },
     {
@@ -51,16 +61,6 @@
     {
       type: `Environment`,
       name: `MODE`,
-      options: [
-        {
-          name: `Server`,
-          value: `SERVER`
-        },
-        {
-          name: `Client`,
-          value: `CLIENT`
-        }
-      ],
       defaultValue: `CLIENT`
     },
     {

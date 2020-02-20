@@ -98,16 +98,14 @@ async function ConfigurePageHTML(ctx) {
           help = true;
           return Object.assign({}, action, { text: expand(action.text) });
         }
-        case 'Environment':
+        case 'EditEnvironment':
         {
-          const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
           const env = app._env[action.name];
           properties[`${action.type}#${action.name}`] = env ? env.value : '';
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: env ? env.value : '', options: property.options }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: env ? env.value : '', options: action.options }, action);
         }
         case 'EditEnvironmentAsCheckbox':
         {
-          const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
           const env = app._env[action.name];
           properties[`${action.type}#${action.name}`] = env ? env.value : '';
           return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: env ? env.value : '' }, action);
@@ -399,7 +397,7 @@ async function ConfigurePageWS(ctx) {
       }
       return NOCHANGE;
     }},
-    { p: /^Environment#(.+)$/, f: (value, match) => {
+    { p: /^EditEnvironment#(.+)$/, f: (value, match) => {
       const key = match[1];
       let change = NOCHANGE;
 

@@ -34,7 +34,7 @@ using Wi-Fi; use "tun" in this case.`,
       visible: `property.Advanced`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SELECTED_PORT`,
       description: `Select the UDP port number for the VPN, or leave blank to auto-assign`,
       validate: `\\d*`,

@@ -11,12 +11,12 @@
       title: `User`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SSH_USERNAME`,
       description: `Select the user's login name`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SSH_PASSWORD`,
       description: `Select the user's password`
     },
@@ -47,7 +47,7 @@
       title: `Advanced`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SSH_PORT`,
       description: `Select the SSH port (usually 22)`
     },

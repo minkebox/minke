@@ -5,13 +5,13 @@
   tags: [ 'VPN', 'Security', 'Networking' ],
   actions: [
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Enter your VPN username`,
       name: `USER`,
       placeholder: `Username`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Enter your VPN password`,
       name: `PASSWORD`,
       placeholder: `Password`

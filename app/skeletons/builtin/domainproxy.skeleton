@@ -13,7 +13,7 @@
       text: 'Traffic targetting the domains listed below, will be routed to the proxy IP address.'
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `PROXYIP`,
       description: `Proxy IP Address`,
       placeholder: '0.0.0.0'

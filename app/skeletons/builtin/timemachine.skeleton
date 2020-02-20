@@ -13,13 +13,13 @@
       text: `Select the username and password needed for access. Leave this blank if you want anyone to have access.`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SAMBA_USERNAME`,
       description: `User's login name`,
       placeholder: `Guest`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SAMBA_PASSWORD`,
       description: `User's password`,
       placeholder: `Guest`
@@ -29,7 +29,7 @@
       title: `Backup size`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `MAXSIZE`,
       description: `Limit space available for backups (e.g. 50G, 5T)`
     },

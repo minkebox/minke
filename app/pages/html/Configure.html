@@ -46,7 +46,7 @@
           <div class="content-text {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}>{{{text}}}</div>
           {{else if (eq type "Help")}}
           <div class="help-text {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}><div class="help-text-content">{{{text}}}</div></div>
-          {{else if (eq type "Environment")}}
+          {{else if (eq type "EditEnvironment")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             {{#if options}}

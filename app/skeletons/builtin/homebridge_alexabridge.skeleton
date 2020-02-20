@@ -9,7 +9,7 @@
       title: `Configure HomeKit`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Pin used to add this device to your network using the Home app`,
       name: `BRIDGE_PIN`
     },
@@ -22,12 +22,12 @@
       text: `Create an account <a target="_blank" href="https://www.homebridge.ca/">here</a> and enter the username and password below`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Username`,
       name: `USERNAME`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Password`,
       name: `PASSWORD`
     },

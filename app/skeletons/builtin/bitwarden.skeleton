@@ -20,7 +20,7 @@
       text: `Bitwarden has a single administator account which is protected by a long, random, unguessable admin token.`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Admin token`,
       name: `ADMIN_TOKEN`
     }

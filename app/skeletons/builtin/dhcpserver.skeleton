@@ -70,7 +70,7 @@
       visible: `property.Advanced`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `ALT_DNS`,
       description: `Override default DNS server`
     },

@@ -18,25 +18,25 @@
       text: `Define the initial site information here. These can be changed later from within Discourse.`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `DISCOURSE_SITENAME`,
       description: `Title`,
       enabled: `property.FirstUse`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `DISCOURSE_HOSTNAME`,
       description: `Hostname`,
       enabled: `property.FirstUse`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `DISCOURSE_USERNAME`,
       description: `Admin username`,
       enabled: `property.FirstUse`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `DISCOURSE_PASSWORD`,
       description: `Admin password (10 or more characters)`,
       enabled: `property.FirstUse`
@@ -47,22 +47,22 @@
       enabled: `property.FirstUse`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SMTP_HOST`,
       description: `Host`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SMTP_PORT`,
       description: `Port`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SMTP_USER`,
       description: `Username`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SMTP_PASSWORD`,
       description: `Password`
     }

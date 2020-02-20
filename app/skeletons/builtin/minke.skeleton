@@ -23,22 +23,22 @@ to change this to a fixed IP address. Any change to the network configuration re
       text: 'Changes to the IP address, netmask and gateway will not take effect until you reboot.'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'IPADDRESS',
       description: 'IP Address'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'NETMASK',
       description: 'Netmask'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'GATEWAY',
       description: 'Gateway'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'LOCALDOMAIN',
       description: 'Local domain name'
     },
@@ -70,12 +70,12 @@ which is given the recovery address of <b>192.168.1.200</b>.
       description: 'Use Wi-Fi network'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'WIFINAME',
       description: 'Wi-Fi network name'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'WIFIPASSWORD',
       description: 'Wi-Fi password'
     },
@@ -119,12 +119,12 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
       text: 'Select the external DNS servers to use for non-local addresses.'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'DNSSERVER1',
       description: 'Primary DNS Server'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'DNSSERVER2',
       description: 'Secondary DNS Server'
     },
@@ -142,12 +142,12 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
   The primary and secondary servers can be configured using either a DNSCrypt name, a DNS-over-HTTPS https://... style url, or a SDNS sdns://... hash.`
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'DNSSECURE1',
       description: 'Primary'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'DNSSECURE2',
       description: 'Secondary'
     },
@@ -175,124 +175,7 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
       text: 'Select the timezone'
     },
     {
-      type: 'Environment',
-      name: 'TIMEZONE',
-      description: 'Timezone'
-    },
-    {
-      type: 'Header',
-      title: 'Advanced'
-    },
-    {
-      type: 'Environment',
-      name: 'ADMINMODE',
-      description: 'Enable advanced application features'
-    },
-    {
-      type: 'Help',
-      text: `MinkeBox automatically updates itself (including the kernel) and its applications once a day. By default this happens during the night, but you can change the time if necessary. The time is specified using the 24-hour format.`,
-      visible: `property.Advanced`
-    },
-    {
-      type: 'Environment',
-      name: 'UPDATETIME',
-      description: 'Select what time of day to install updates',
-      visible: `property.Advanced`
-    },
-    {
-      type: 'SelectNetwork',
-      name: 'primary',
-      description: 'Select an optional remote management network',
-      visible: `false`
-    },
-    {
-      type: 'Header',
-      title: 'Backup and Restore'
-    },
-    {
-      type: 'Text',
-      text: 'You can backup and restore the MinkeBox configuration. Restoring a configuration will erase the current configuration. Backing up a configuration will not necessarily backup app specific data.'
-    },
-    {
-      type: '__BackupAndRestore'
-    }
-  ],
-  properties: [
-    {
-      type: 'Environment',
-      name: 'HOSTNAME'
-    },
-    {
-      type: 'Environment',
-      name: 'IPADDRESS'
-    },
-    {
-      type: 'Environment',
-      name: 'NETMASK'
-    },
-    {
-      type: 'Environment',
-      name: 'GATEWAY'
-    },
-    {
-      type: 'Environment',
-      name: 'DHCP'
-    },
-    {
-      type: 'Environment',
-      name: 'WIFIENABLED'
-    },
-    {
-      type: 'Environment',
-      name: 'WIFINAME'
-    },
-    {
-      type: 'Environment',
-      name: 'WIFIPASSWORD'
-    },
-    {
-      type: 'Environment',
-      name: 'IP6'
-    },
-    {
-      type: 'Environment',
-      name: 'NATIP6'
-    },
-    {
-      type: 'Environment',
-      name: 'DNSSERVER1'
-    },
-    {
-      type: 'Environment',
-      name: 'DNSSERVER2'
-    },
-    {
-      type: 'Environment',
-      name: 'DNSSECURE1'
-    },
-    {
-      type: 'Environment',
-      name: 'DNSSECURE2'
-    },
-    {
-      type: 'Environment',
-      name: 'DOH'
-    },
-    {
-      type: 'Environment',
-      name: 'ADMINMODE',
-      options: [
-        { name: 'Disabled', value: 'DISABLED' },
-        { name: 'Enabled', value: 'ENABLED' }
-      ]
-    },
-    {
-      type: 'Environment',
-      name: 'UPDATETIME',
-      defaultValue: '03:00'
-    },
-    {
-      type: 'Environment',
+      type: 'EditEnvironment',
       name: 'TIMEZONE',
       options: [
         { name: 'Africa/Abidjan', value: 'Africa/Abidjan' },
@@ -887,7 +770,124 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
         { name: 'W-SU', value: 'W-SU' },
         { name: 'WET', value: 'WET' },
         { name: 'Zulu', value: 'Zulu' }
-      ]
+      ],
+      description: 'Timezone'
+    },
+    {
+      type: 'Header',
+      title: 'Advanced'
+    },
+    {
+      type: 'EditEnvironment',
+      name: 'ADMINMODE',
+      options: [
+        { name: 'Disabled', value: 'DISABLED' },
+        { name: 'Enabled', value: 'ENABLED' }
+      ],
+      description: 'Enable advanced application features'
+    },
+    {
+      type: 'Help',
+      text: `MinkeBox automatically updates itself (including the kernel) and its applications once a day. By default this happens during the night, but you can change the time if necessary. The time is specified using the 24-hour format.`,
+      visible: `property.Advanced`
+    },
+    {
+      type: 'EditEnvironment',
+      name: 'UPDATETIME',
+      description: 'Select what time of day to install updates',
+      visible: `property.Advanced`
+    },
+    {
+      type: 'SelectNetwork',
+      name: 'primary',
+      description: 'Select an optional remote management network',
+      visible: `false`
+    },
+    {
+      type: 'Header',
+      title: 'Backup and Restore'
+    },
+    {
+      type: 'Text',
+      text: 'You can backup and restore the MinkeBox configuration. Restoring a configuration will erase the current configuration. Backing up a configuration will not necessarily backup app specific data.'
+    },
+    {
+      type: '__BackupAndRestore'
+    }
+  ],
+  properties: [
+    {
+      type: 'Environment',
+      name: 'HOSTNAME'
+    },
+    {
+      type: 'Environment',
+      name: 'IPADDRESS'
+    },
+    {
+      type: 'Environment',
+      name: 'NETMASK'
+    },
+    {
+      type: 'Environment',
+      name: 'GATEWAY'
+    },
+    {
+      type: 'Environment',
+      name: 'DHCP'
+    },
+    {
+      type: 'Environment',
+      name: 'WIFIENABLED'
+    },
+    {
+      type: 'Environment',
+      name: 'WIFINAME'
+    },
+    {
+      type: 'Environment',
+      name: 'WIFIPASSWORD'
+    },
+    {
+      type: 'Environment',
+      name: 'IP6'
+    },
+    {
+      type: 'Environment',
+      name: 'NATIP6'
+    },
+    {
+      type: 'Environment',
+      name: 'DNSSERVER1'
+    },
+    {
+      type: 'Environment',
+      name: 'DNSSERVER2'
+    },
+    {
+      type: 'Environment',
+      name: 'DNSSECURE1'
+    },
+    {
+      type: 'Environment',
+      name: 'DNSSECURE2'
+    },
+    {
+      type: 'Environment',
+      name: 'DOH'
+    },
+    {
+      type: 'Environment',
+      name: 'ADMINMODE'
+    },
+    {
+      type: 'Environment',
+      name: 'UPDATETIME',
+      defaultValue: '03:00'
+    },
+    {
+      type: 'Environment',
+      name: 'TIMEZONE'
     },
     {
       type: 'Port',

@@ -13,13 +13,13 @@
       text: `Select the username and password to access the shared files. Leave this blank if you want anyone to have access.`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SAMBA_USERNAME`,
       description: `Select the user's login name`,
       placeholder: `Guest`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SAMBA_PASSWORD`,
       description: `Select the user's password`,
       placeholder: `Guest`
@@ -43,7 +43,7 @@
       visible: `property.Advanced`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `SAMBA_WORKGROUP`,
       description: `Set the workgroup name`,
       placeholder: `WORKGROUP`

@@ -11,22 +11,22 @@
       title: `Cache configuration`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `CACHE_MEM_SIZE`,
       description: `In memory cache size`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `CACHE_DISK_SIZE`,
       description: `Disk cache size`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `CACHE_MAX_AGE`,
       description: `Maximum cache age`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       name: `CACHE_DOMAINS_REPO`,
       description: `Git repo list of domains to cache`
     }
