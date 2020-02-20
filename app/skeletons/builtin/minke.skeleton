@@ -43,9 +43,8 @@ to change this to a fixed IP address. Any change to the network configuration re
       description: 'Local domain name'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironmentAsCheckbox',
       name: 'DHCP',
-      style: 'Checkbox',
       description: 'Use DHCP to set address'
     },
     {
@@ -66,9 +65,8 @@ which is given the recovery address of <b>192.168.1.200</b>.
       text: 'Connect to your Wi-Fi network instead of your wired network.'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironmentAsCheckbox',
       name: 'WIFIENABLED',
-      style: 'Checkbox',
       description: 'Use Wi-Fi network'
     },
     {
@@ -90,9 +88,8 @@ which is given the recovery address of <b>192.168.1.200</b>.
       text: 'IPv6 application support. Changes will not take effect until you reboot.'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironmentAsCheckbox',
       name: 'IP6',
-      style: 'Checkbox',
       description: 'IPv6 enabled'
     },
     {
@@ -104,9 +101,8 @@ which is given the recovery address of <b>192.168.1.200</b>.
       text: 'MinkeBox can publish your services globally using its own DDNS. By default this is only IPv4 but can include IPv6 if the network supports it.'
     },
     {
-      type: 'Environment',
+      type: 'EditEnvironmentAsCheckbox',
       name: 'NATIP6',
-      style: 'Checkbox',
       description: 'Publish IPv6 addresses globally'
     },
     {

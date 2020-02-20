@@ -52,9 +52,8 @@
       description: `Select the SSH port (usually 22)`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsCheckbox`,
       name: `NAT`,
-      style: `Checkbox`,
       description: `Make available on the Internet with the name <div><b>{{__GLOBALNAME}}</b></div>`,
       visible: 'property["Network#primary"] === "home"'
     }

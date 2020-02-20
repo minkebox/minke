@@ -36,7 +36,6 @@
       type: `EditFile`,
       description: `Drop your private network configuration file here`,
       name: `/etc/config.ovpn`,
-      style: `Inline`,
       enabled: 'property.FirstUse'
     }
   ],

@@ -13,10 +13,9 @@
       text: `Enter fully qualified hostnames (e.g. minkebox.com) and associated IP addresses.`
     },
     {
-      type: `EditFile`,
+      type: `EditFileAsTable`,
       name: `/etc/dnshosts.d/hosts.conf`,
       description: `Hostnames`,
-      style: `Table`,
       headers: [
         {
           name: `Hostname`

@@ -13,10 +13,9 @@
       text: `Enter the range of IP addresses issued by this server.`
     },
     {
-      type: `EditFile`,
+      type: `EditFileAsTable`,
       name: `/etc/dnsmasq.d/dhcp-ranges.conf`,
       description: `Address Ranges`,
-      style: `Table`,
       headers: [
         { name: `Start IP`, validate: `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)` },
         { name: `End IP`, validate: `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)` },
@@ -36,10 +35,9 @@
       text: `Reserve individual IP addresses for specific hosts based on their MAC addresses.`
     },
     {
-      type: `EditFile`,
+      type: `EditFileAsTable`,
       name: `/etc/dnsmasq-hosts.d/user-defined-hosts.conf`,
       description: `Reserved Addresses`,
-      style: `Table`,
       headers: [
         { name: `Hostname` },
         { name: `MAC Address`, validate: `([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})` },

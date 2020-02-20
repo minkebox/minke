@@ -18,9 +18,8 @@
       name: `SERVER_ID`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsCheckbox`,
       description: `Autorun SpeedTest. If this is unchecked, SpeedTest will only be run when you restart`,
-      style: 'Checkbox',
       name: `CRONJOB_RUN`
     },
     {

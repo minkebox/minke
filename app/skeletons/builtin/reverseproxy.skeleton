@@ -9,9 +9,8 @@
       title: `Websites`
     },
     {
-      type: `Environment`,
+      type: `SelectWebsites`,
       name: `WEBSITES`,
-      style: `Websites`,
       description: `Select and name each of the websites you wish to publish`,
       pattern: `{{1}}#{{2}}#{{3}}#{{4}}`,
       join: ` `
@@ -25,9 +24,8 @@
       text: 'You can published other websites which are not hosted by MinkeBox'
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsTable`,
       name: `OTHER_WEBSITES`,
-      style: `Table`,
       description: `Publish non-MinkeBox websites`,
       headers: [
         { name: 'URL' },
@@ -45,9 +43,8 @@
       text: 'You can redirect websites to different urls'
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsTable`,
       name: `REDIRECT_WEBSITES`,
-      style: `Table`,
       description: `Redirect websites`,
       headers: [
         { name: 'Redirect URL' },
@@ -61,15 +58,13 @@
       title: `Internet access`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsCheckbox`,
       name: `LETS_ENCRYPT`,
-      style: 'Checkbox',
       description: `Enable HTTPS support using <b>Let's&nbsp;Encrypt</b>`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsCheckbox`,
       name: `WEB_NAT`,
-      style: `Checkbox`,
       description: `Make websites available on the Internet`
     },
     {

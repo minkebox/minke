@@ -216,7 +216,7 @@ function setEditMode(edit) {
         let skel;
         eval(`skel=${content}`);
         div.classList.remove('invalid');
-        action('Skeleton', content);
+        action('__EditSkeleton', content);
       }
       catch (_) {
         div.classList.add('invalid');

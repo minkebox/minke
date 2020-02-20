@@ -13,10 +13,9 @@
       text: `Enter the network shares which should be imported. These will placed in a <b>/folders</b> directory and shareable with other applications.`
     },
     {
-      type: `EditFile`,
+      type: `EditFileAsTable`,
       name: `/mounts`,
       description: `Enter share names and credentials. Leave username and password blank if no authentication is required.`,
-      style: `Table`,
       headers: [
         {
           name: `Share UNC name`

@@ -27,13 +27,11 @@
     {
       type: `EditFile`,
       name: `/app/accessories-config.json`,
-      style: `Inline`,
       description: `Accessories`
     },
     {
       type: `EditFile`,
       name: `/app/platforms-config.json`,
-      style: `Inline`,
       description: `Platforms`
     }
   ],

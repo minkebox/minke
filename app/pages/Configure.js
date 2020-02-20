@@ -20,7 +20,7 @@ function registerTemplates() {
     'SelectDirectory',
     'SelectShares',
     'EditShares',
-    'Websites',
+    'SelectWebsites',
     'Disks',
     'BackupAndRestore',
     'DownloadFile',
@@ -103,55 +103,66 @@ async function ConfigurePageHTML(ctx) {
           const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
           const env = app._env[action.name];
           properties[`${action.type}#${action.name}`] = env ? env.value : '';
-          if (action.style === 'Table') {
-            let value = [];
-            if (env && env.altValue) {
-              try {
-                value = JSON.parse(env.altValue);
-                const hlen = action.headers.length;
-                value.forEach((v) => {
-                  while (v.length < hlen) {
-                    v.push('');
-                  }
-                });
-              }
-              catch (_) {
-              }
-            }
-            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
-          }
-          else if (action.style === 'Websites') {
-            let currentSites = [];
-            if (env && env.altValue) {
-              try {
-                currentSites = JSON.parse(env.altValue);
-              }
-              catch (_) {
-              }
-            }
-            const websites = app.getAvailableWebsites().map((site) => {
-              const match = currentSites.find(cs => cs[0] === site.app._id);
-              return {
-                appid: site.app._id,
-                name: site.app._name,
-                hostname: site.app._safeName(),
-                port: site.port.port,
-                dns: match ? match[3] : '',
-                published: match ? !!match[4] : false
-              };
-            });
-            return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action);
+          let act;
+          if (action.style === 'Checkbox') {
+            act = `window.action('${action.type}#${action.name}',this.checked)`;
           }
           else {
-            let act;
-            if (action.style === 'Checkbox') {
-              act = `window.action('${action.type}#${action.name}',this.checked)`;
-            }
-            else {
-              act = `window.action('${action.type}#${action.name}',this.value)`;
-            }
-            return Object.assign({ action: act, value: env ? env.value : '', options: property.options }, action);
+            act = `window.action('${action.type}#${action.name}',this.value)`;
           }
+          return Object.assign({ action: act, value: env ? env.value : '', options: property.options }, action);
+        }
+        case 'EditEnvironmentAsCheckbox':
+        {
+          const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
+          const env = app._env[action.name];
+          properties[`${action.type}#${action.name}`] = env ? env.value : '';
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: env ? env.value : '' }, action);
+        }
+        case 'EditEnvironmentAsTable':
+        {
+          const env = app._env[action.name];
+          properties[`${action.type}#${action.name}`] = env ? env.value : '';
+          let value = [];
+          if (env && env.altValue) {
+            try {
+              value = JSON.parse(env.altValue);
+              const hlen = action.headers.length;
+              value.forEach((v) => {
+                while (v.length < hlen) {
+                  v.push('');
+                }
+              });
+            }
+            catch (_) {
+            }
+          }
+          return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
+        }
+        case 'SelectWebsites':
+        {
+          const env = app._env[action.name];
+          properties[`${action.type}#${action.name}`] = env ? env.value : '';
+          let currentSites = [];
+          if (env && env.altValue) {
+            try {
+              currentSites = JSON.parse(env.altValue);
+            }
+            catch (_) {
+            }
+          }
+          const websites = app.getAvailableWebsites().map((site) => {
+            const match = currentSites.find(cs => cs[0] === site.app._id);
+            return {
+              appid: site.app._id,
+              name: site.app._name,
+              hostname: site.app._safeName(),
+              port: site.port.port,
+              dns: match ? match[3] : '',
+              published: match ? !!match[4] : false
+            };
+          });
+          return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action);
         }
         case 'SelectNetwork':
         {
@@ -186,35 +197,30 @@ async function ConfigurePageHTML(ctx) {
         case 'EditFile':
         {
           const file = app._files.find(file => file.target === action.name);
-          switch (action.style) {
-            case 'Table':
-            {
-              let value = [];
-              if (file && file.altData) {
-                try {
-                  value = JSON.parse(file.altData);
-                  const hlen = action.headers.length;
-                  value.forEach((v) => {
-                    while (v.length < hlen) {
-                      v.push('');
-                    }
-                  });
+          if (file && app._fs) {
+            app._fs.readFile(file);
+          }
+          const value = file ? file.data : '';
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
+        }
+        case 'EditFileAsTable':
+        {
+          const file = app._files.find(file => file.target === action.name);
+          let value = [];
+          if (file && file.altData) {
+            try {
+              value = JSON.parse(file.altData);
+              const hlen = action.headers.length;
+              value.forEach((v) => {
+                while (v.length < hlen) {
+                  v.push('');
                 }
-                catch (_) {
-                }
-              }
-              return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
+              });
             }
-            case 'Inline':
-            default:
-            {
-              if (file && app._fs) {
-                app._fs.readFile(file);
-              }
-              const value = file ? file.data : '';
-              return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
+            catch (_) {
             }
           }
+          return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
         }
         case 'SelectDirectory':
         {
@@ -366,14 +372,14 @@ async function ConfigurePageWS(ctx) {
   const SHARECHANGE = 4;
   const BACKUPCHANGE = 8;
 
-  function getTableData(app, name, value) {
-    const action = skeleton.actions.find(action => action.name === name);
-    if (action && (action.style === 'Table' || action.style === 'Websites')) {
+  function getTableValue(value, format) {
+    try {
       const table = JSON.parse(value);
-      const headers = action.headers || [];
+      const headers = (format && format.headers) || [];
+      const pattern = (format && format.pattern) || '{{0}}';
       value = [];
       table.forEach((row) => {
-        let line = action.pattern || '{{0}}';
+        let line = pattern;
         for (let i = 0; i < row.length; i++) {
           const header = headers[i] || {};
           let rowval = row[i];
@@ -382,16 +388,14 @@ async function ConfigurePageWS(ctx) {
           }
           line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), rowval);
         }
-        if (line.indexOf('{{') !== -1) {
-          for (let key in app._env) {
-            line = line.replace(new RegExp('\\{\\{' + key + '\\}\\}', 'g'), app._env[key].value);
-          }
-        }
-        value.push(line);
+        value.push(app.expandEnv(line));
       });
-      return value.join('join' in action ? action.join : '\n');
+      return value.join('join' in format ? format.join : '\n');
     }
-    return null;
+    catch (e) {
+      console.log(e);
+      return '';
+    }
   }
 
   const patterns = [
@@ -404,8 +408,43 @@ async function ConfigurePageWS(ctx) {
     }},
     { p: /^Environment#(.+)$/, f: (value, match) => {
       const key = match[1];
-      const tableValue = getTableData(app, key, value);
-      const nvalue = tableValue !== null ? tableValue : value;
+      let change = NOCHANGE;
+
+      function update(r) {
+        if (r) {
+          if (r.value !== value) {
+            r.value = value;
+            change = APPCHANGE;
+          }
+        }
+      }
+
+      update(app._env[key]);
+      app._secondary.forEach(secondary => update(secondary._env[key]));
+
+      return change;
+    }},
+    { p: /^EditEnvironmentAsCheckbox#(.+)$/, f: (value, match) => {
+      const key = match[1];
+      let change = NOCHANGE;
+
+      function update(r) {
+        if (r) {
+          if (r.value !== value) {
+            r.value = value;
+            change = APPCHANGE;
+          }
+        }
+      }
+
+      update(app._env[key]);
+      app._secondary.forEach(secondary => update(secondary._env[key]));
+
+      return change;
+    }},
+    { p: /^EditEnvironmentAsTable#(.+)$/, f: (value, match) => {
+      const key = match[1];
+      const tableValue = getTableValue(value, skeleton.actions.find(action => action.name === key));
       let change = NOCHANGE;
 
       function update(r) {
@@ -416,8 +455,33 @@ async function ConfigurePageWS(ctx) {
           else {
             delete r.altValue;
           }
-          if (r.value !== nvalue) {
-            r.value = nvalue;
+          if (r.value !== tableValue) {
+            r.value = tableValue;
+            change = APPCHANGE;
+          }
+        }
+      }
+
+      update(app._env[key]);
+      app._secondary.forEach(secondary => update(secondary._env[key]));
+
+      return change;
+    }},
+    { p: /^SelectWebsites#(.+)$/, f: (value, match) => {
+      const key = match[1];
+      const tableValue = getTableValue(value, skeleton.actions.find(action => action.name === key));
+      let change = NOCHANGE;
+
+      function update(r) {
+        if (r) {
+          if (tableValue !== null) {
+            r.altValue = value;
+          }
+          else {
+            delete r.altValue;
+          }
+          if (r.value !== tableValue) {
+            r.value = tableValue;
             change = APPCHANGE;
           }
         }
@@ -462,20 +526,45 @@ async function ConfigurePageWS(ctx) {
     },
     { p: /^EditFile#(.+)$/, f: (value, match) => {
       const filename = match[1];
-      const tableValue = getTableData(app, filename, value);
-      const nvalue = tableValue !== null ? tableValue : value;
       let change = NOCHANGE;
 
       function update(files) {
         const file = files.find(file => file.target == filename)
-        if (file && file.data !== nvalue) {
+        if (file && file.data !== value) {
           if (tableValue !== null) {
             file.altData = value;
           }
           else {
             delete file.altData;
           }
-          file.data = nvalue;
+          file.data = value;
+          if (app._fs) {
+            app._fs.makeFile(file);
+          }
+          change = APPCHANGE;
+        }
+      }
+
+      update(app._files);
+      app._secondary.forEach(secondary => update(secondary._files));
+
+      return change;
+    }},
+    { p: /^EditFileAsTable#(.+)$/, f: (value, match) => {
+      const filename = match[1];
+      const tableValue = getTableValue(value, skeleton.actions.find(action => action.name === filename));
+      let change = NOCHANGE;
+
+      function update(files) {
+        const file = files.find(file => file.target == filename)
+        if (file && file.data !== tableValue) {
+          if (tableValue !== null) {
+            file.altData = value;
+          }
+          else {
+            delete file.altData;
+          }
+          file.data = tableValue;
           if (app._fs) {
             app._fs.makeFile(file);
           }
@@ -575,7 +664,7 @@ async function ConfigurePageWS(ctx) {
       }
       return BACKUPCHANGE;
     }},
-    { p: /^Skeleton$/, f: (value, match) => {
+    { p: /^__EditSkeleton$/, f: (value, match) => {
       const skel = Skeletons.parse(value);
       if (skel) {
         Skeletons.saveLocalSkeleton(skel);

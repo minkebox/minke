@@ -45,9 +45,8 @@
       title: `Access`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsTable`,
       name: `WHITELIST`,
-      style: `Table`,
       description: `List of users (if no users are listed then anyone can join this server if it is public)`,
       headers: [
         { name: `Username` }
@@ -56,9 +55,8 @@
       join: `,`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsTable`,
       name: `OPS`,
-      style: `Table`,
       description: `List of administrators`,
       headers: [
         { name: `Username` }
@@ -73,9 +71,8 @@
       enabled: 'property.FirstUse'
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsCheckbox`,
       name: `PUBLIC_SERVER`,
-      style: `Checkbox`,
       description: `Make this server public and available on the Internet. The name on the Internet will be <div><b>{{__GLOBALNAME}}</b></div>`
     },
     {
@@ -104,38 +101,32 @@
       enabled: 'property.FirstUse'
     },
     {
-      type: `Environment`,
-      style: `Checkbox`,
+      type: `EditEnvironmentAsCheckbox`,
       description: `Allow players to travel to the Nether`,
       name: `ALLOW_NETHER`
     },
     {
-      type: `Environment`,
-      style: `Checkbox`,
+      type: `EditEnvironmentAsCheckbox`,
       description: `Enable command blocks`,
       name: `ENABLE_COMMAND_BLOCK`
     },
     {
-      type: `Environment`,
-      style: `Checkbox`,
+      type: `EditEnvironmentAsCheckbox`,
       description: `Generate structures (such as villages)`,
       name: `GENERATE_STRUCTURES`
     },
     {
-      type: `Environment`,
-      style: `Checkbox`,
+      type: `EditEnvironmentAsCheckbox`,
       description: `Enable Player-vs-player`,
       name: `PVP`
     },
     {
-      type: `Environment`,
-      style: `Checkbox`,
+      type: `EditEnvironmentAsCheckbox`,
       description: `Dead players become spectators`,
       name: `HARDCORE`
     },
     {
-      type: `Environment`,
-      style: `Checkbox`,
+      type: `EditEnvironmentAsCheckbox`,
       description: `Announce player achievements`,
       name: `ANNOUNCE_PLAYER_ACHIEVEMENTS`
     },
@@ -145,21 +136,18 @@
       enabled: 'property.FirstUse'
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsCheckbox`,
       name: `SPAWN_ANIMALS`,
-      style: `Checkbox`,
       description: `Animals`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsCheckbox`,
       name: `SPAWN_MONSTERS`,
-      style: `Checkbox`,
       description: `Monsters`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironmentAsCheckbox`,
       name: `SPAWN_NPCS`,
-      style: `Checkbox`,
       description: `Villagers`
     },
     {
