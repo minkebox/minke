@@ -54,7 +54,7 @@
     {
       type: `Directory`,
       name: `/data/Shared`,
-      style: `virtual`
+      style: `temp`
     },
     {
       type: `Environment`,

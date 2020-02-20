@@ -213,7 +213,7 @@ MinkeApp.prototype = {
             default:
               src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`);
               break;
-            case 'virtual':
+            case 'temp':
               src = null;
               break;
           }

@@ -103,14 +103,7 @@ async function ConfigurePageHTML(ctx) {
           const property = skeleton.properties.find(property => property.type === action.type && property.name == action.name) || {};
           const env = app._env[action.name];
           properties[`${action.type}#${action.name}`] = env ? env.value : '';
-          let act;
-          if (action.style === 'Checkbox') {
-            act = `window.action('${action.type}#${action.name}',this.checked)`;
-          }
-          else {
-            act = `window.action('${action.type}#${action.name}',this.value)`;
-          }
-          return Object.assign({ action: act, value: env ? env.value : '', options: property.options }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: env ? env.value : '', options: property.options }, action);
         }
         case 'EditEnvironmentAsCheckbox':
         {

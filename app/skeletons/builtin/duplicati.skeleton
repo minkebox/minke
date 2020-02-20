@@ -41,12 +41,12 @@
     {
       type: `Directory`,
       name: `/source`,
-      style: `virtual`
+      style: `temp`
     },
     {
       type: `Directory`,
       name: `/applications`,
-      style: `virtual`
+      style: `temp`
     },
     {
       type: `Port`,

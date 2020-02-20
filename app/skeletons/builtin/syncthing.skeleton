@@ -40,12 +40,12 @@
     {
       type: `Directory`,
       name: `/Sync/Folders`,
-      style: `virtual`
+      style: `temp`
     },
     {
       type: `Directory`,
       name: `/Sync/Applications`,
-      style: `virtual`
+      style: `temp`
     },
     {
       type: `Directory`,

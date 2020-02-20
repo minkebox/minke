@@ -103,7 +103,7 @@
     {
       type: `Directory`,
       name: `/home/{{SSH_USERNAME}}`,
-      style: `virtual`
+      style: `temp`
     },
     {
       type: `Port`,
