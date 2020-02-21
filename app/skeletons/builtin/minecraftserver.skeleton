@@ -460,7 +460,8 @@
     },
     {
       type: `Directory`,
-      name: `/config`
+      name: `/config`,
+      backup: true
     },
     {
       type: `Directory`,
@@ -482,11 +483,13 @@
           name: `/plugins`,
           description: `Install Plugins here`
         }
-      ]
+      ],
+      backup: true
     },
     {
       type: `Directory`,
-      name: `/mods`
+      name: `/mods`,
+      backup: true
     },
     {
       type: `Port`,

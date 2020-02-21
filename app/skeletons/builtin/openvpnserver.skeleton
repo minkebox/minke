@@ -93,7 +93,8 @@ using Wi-Fi; use "tun" in this case.`,
     {
       type: `Directory`,
       name: `/etc/openvpn`,
-      style: `boot`
+      style: `boot`,
+      backup: true
     },
     {
       type: `File`,

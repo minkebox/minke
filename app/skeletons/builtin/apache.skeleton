@@ -46,7 +46,8 @@
           name: `/`,
           description: `Access logs`
         }
-      ]
+      ],
+      backup: true
     },
     {
       type: `Port`,
