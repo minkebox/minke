@@ -3,7 +3,7 @@
   description: `A modern, lightweight and powerful wiki app`,
   images: {
     x64: `requarks/wiki:2`,
-    arm64: `requarks/wiki:2.0-arm`
+    arm64: `requarks/wiki:2.1-arm`
   },
   tags: [
     'Wiki',
@@ -46,17 +46,6 @@
       type: `Environment`,
       name: `DB_NAME`,
       defaultValue: `wiki`
-    },
-    {
-      type: 'Directory',
-      name: '/wiki/data',
-      style: 'store',
-      shares: [
-        { name: 'repo', description: 'Wiki.js Repo' },
-        { name: 'cache', description: 'Wiki.js Cache' },
-        { name: 'uploads', description: 'Wiki.js Uploads' },
-        { name: 'secure', description: 'Wiki.js Secure' }
-      ]
     },
     {
       type: `Port`,
@@ -102,7 +91,8 @@
           name: '/var/lib/postgresql/data',
           shares: [
             { name: '/', description: 'Wiki.js Postgres DB' }
-          ]
+          ],
+          backup: true
         }
       ]
     }
