@@ -309,7 +309,7 @@
     },
     {
       type: `Environment`,
-      name: `MODE`
+      name: `MODE`,
       defaultValue: `creative`
     },
     {

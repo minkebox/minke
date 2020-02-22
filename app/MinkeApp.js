@@ -157,7 +157,7 @@ MinkeApp.prototype = {
           _backups: [],
           _delay: secondary.delay || 0
         };
-        this._parseProperties(secondaryApp, `${idx}`, secondary.properties, {});
+        this._parseProperties(secondaryApp, `${idx}`, secondary.properties, defs.secondary[idx] || {});
         return secondaryApp;
       });
     }
@@ -206,7 +206,13 @@ MinkeApp.prototype = {
           let src = null;
           switch (prop.style) {
             case 'parent':
-              src = Filesystem.getNativePath(this._id, 'store', `/dir/${targetname}`);
+              const pbind = this._binds.find(pbind => pbind.target === targetname);
+              if (pbind) {
+                src = pbind.src;
+              }
+              else {
+                src = null;
+              }
               break;
             case 'boot':
             case 'store':
@@ -222,16 +228,12 @@ MinkeApp.prototype = {
             target: targetname,
             description: prop.description || targetname,
             backup: prop.backup
-
           };
-          if (bind) {
+          if (bind && bind.shares.length) {
             b.shares = bind.shares;
           }
-          else if ('shares' in prop) {
-            b.shares = prop.shares;
-          }
           else {
-            b.shares = [];
+            b.shares = prop.shares || [];
           }
           target._binds.push(b);
           break;
