@@ -214,7 +214,7 @@ function skeletonToString(skeleton) {
   if (skel.images) {
     delete skel.image;
   }
-  skel.secondary.forEach(secondary => {
+  (skel.secondary || []).forEach(secondary => {
     if (secondary.images) {
       delete secondary.image;
     }
