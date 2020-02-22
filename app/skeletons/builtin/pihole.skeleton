@@ -25,7 +25,7 @@
     {
       type: `Environment`,
       name: `IPv6`,
-      defaultValue: `False`
+      defaultValue: `{{__IPV6ENABLED}}`
     },
     {
       type: `Environment`,
