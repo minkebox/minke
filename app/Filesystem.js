@@ -101,49 +101,41 @@ _Filesystem.prototype = {
     file.data = FS.readFileSync(file.src, { encoding: 'utf8' });
   },
 
-  /*_makeShare: function(share) {
-    //console.log('_makeShare', share);
-    return {
-      Type: 'bind',
-      Source: share.src,
-      Target: this._expand(share.target),
-      BindOptions: {
-        Propagation: 'rshared'
-      }
-    }
-  },*/
-
   _makeBackups: function(backup) {
     const backups = [];
-    const app = MinkeApp.getAppById(backup.appid);
-    if (app) {
-      const name = app._safeName();
-      app._binds.forEach(bind => {
-        if (bind.backup) {
-          backups.push({
-            Type: 'bind',
-            Source: bind.src,
-            Target: Path.normalize(this._expand(`${backup.target}/${name}/${bind.target}`)),
-            BindOptions: {
-              Propagation: 'rshared'
-            },
-            ReadOnly: true
-          });
-        }
-      });
-      app._files.forEach(bind => {
-        if (bind.backup) {
-          backups.push({
-            Type: 'bind',
-            Source: bind.src,
-            Target: Path.normalize(this._expand(`${backup.target}/${name}/${bind.target}`)),
-            BindOptions: {
-              Propagation: 'rshared'
-            },
-            ReadOnly: true
-          });
-        }
-      });
+    const mainApp = MinkeApp.getAppById(backup.appid);
+    if (mainApp) {
+      const name = mainApp._safeName();
+      const addBackups = (app, ext) => {
+        app._binds.forEach(bind => {
+          if (bind.backup) {
+            backups.push({
+              Type: 'bind',
+              Source: bind.src,
+              Target: Path.normalize(this._expand(`${backup.target}/${name}${ext}/${bind.target}`)),
+              BindOptions: {
+                Propagation: 'rshared'
+              },
+              ReadOnly: true
+            });
+          }
+        });
+        app._files.forEach(bind => {
+          if (bind.backup) {
+            backups.push({
+              Type: 'bind',
+              Source: bind.src,
+              Target: Path.normalize(this._expand(`${backup.target}/${name}${ext}/${bind.target}`)),
+              BindOptions: {
+                Propagation: 'rshared'
+              },
+              ReadOnly: true
+            });
+          }
+        });
+      }
+      addBackups(mainApp, '');
+      mainApp._secondary.forEach((secondary, idx) => addBackups(secondary, `__${idx}`));
     }
     return backups;
   },
