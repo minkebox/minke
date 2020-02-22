@@ -23,7 +23,7 @@
     },
     {
       type: `SelectBackups`,
-      name: `/Sync/Backups`,
+      name: `/Sync/Applications`,
       description: `Select applications`
     }
   ],
