@@ -51,7 +51,8 @@ but you may want to use a VPN network for extra security and privacy.`
     {
       type: `Directory`,
       name: `/config`,
-      style: `boot`
+      style: `boot`,
+      backup: true
     },
     {
       type: `Directory`,
@@ -106,7 +107,8 @@ but you may want to use a VPN network for extra security and privacy.`
         {
           type: `Directory`,
           name: `/config`,
-          style: `boot`
+          style: `boot`,
+          backup: true
         },
         {
           type: `Directory`,
@@ -122,7 +124,8 @@ but you may want to use a VPN network for extra security and privacy.`
         {
           type: `Directory`,
           name: `/config`,
-          style: `boot`
+          style: `boot`,
+          backup: true
         },
         {
           type: `Directory`,
