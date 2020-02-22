@@ -209,7 +209,17 @@ function _toText(o, t) {
 
 
 function skeletonToString(skeleton) {
-  return _toText(skeleton, 0);
+  // Clone and remove any properties we shouldn't see in the text version of a skeleton
+  const skel = JSON.parse(JSON.stringify(skeleton));
+  if (skel.images) {
+    delete skel.image;
+  }
+  skel.secondary.forEach(secondary => {
+    if (secondary.images) {
+      delete secondary.image;
+    }
+  });
+  return _toText(skel, 0);
 }
 
 function stringToSkeleton(str) {
