@@ -30,6 +30,11 @@
   properties: [
     {
       type: `Environment`,
+      name: `PUID`,
+      defaultValue: 0`
+    },
+    {
+      type: `Environment`,
       name: `HOME`,
       defaultValue: `/`
     },
