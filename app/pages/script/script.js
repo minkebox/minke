@@ -398,7 +398,7 @@ function onResizePage() {
     const box = frame.parentElement;
     if (box) {
       frame.width = box.clientWidth;
-      frame.height = window.innerHeight;
+      frame.height = screen.height;
     }
   });
 }
