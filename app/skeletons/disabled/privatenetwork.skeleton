@@ -52,7 +52,7 @@
   properties: [
     {
       type: `Feature`,
-      name: `vpn`
+      name: `+NET_ADMIN`
     },
     {
       type: `Feature`,

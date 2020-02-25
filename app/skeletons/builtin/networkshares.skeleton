@@ -40,7 +40,11 @@
   properties: [
     {
       type: `Feature`,
-      name: `mount`
+      name: `+SYS_ADMIN`
+    },
+    {
+      type: `Feature`,
+      name: `+DAC_READ_SEARCH`
     },
     {
       type: `File`,

@@ -82,7 +82,7 @@
     },
     {
       type: `Feature`,
-      name: `dhcp`
+      name: `+NET_ADMIN`
     },
     {
       type: `Port`,

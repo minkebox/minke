@@ -80,7 +80,7 @@ using Wi-Fi; use "tun" in this case.`,
   properties: [
     {
       type: `Feature`,
-      name: `vpn`
+      name: `+NET_ADMIN`
     },
     {
       type: `Feature`,
