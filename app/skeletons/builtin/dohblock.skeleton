@@ -1,5 +1,5 @@
 {
-  name: `Local DNS-over-HTTP Block`,
+  name: `DoH Block`,
   description: `Block Firefox from bypassing your DNS`,
   image: `registry.minkebox.net/minkebox/dohblock`,
   tags: [ 'Networking' ],
