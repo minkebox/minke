@@ -290,6 +290,19 @@ MinkeApp.prototype = {
     });
   },
 
+  _updateIfBuiltin: function() {
+    const skel = Skeletons.loadSkeleton(this._image, false);
+    if (!skel || skel.type !== 'builtin') {
+      return false;
+    }
+    const before = this.toJSON();
+    this.updateFromSkeleton(skel.skeleton, before);
+    if (JSON.stringify(before) == JSON.stringify(this.toJSON())) {
+      return false;
+    }
+    return true;
+  },
+
   start: async function(inherit) {
 
     try {
@@ -1437,7 +1450,7 @@ MinkeApp.startApps = async function(app, config) {
       inherit.secondary.push(docker.getContainer(running[sidx].Id));
     }
     // We can only inherit under specific circumstances
-    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._networks.primary === 'host')) && inherit.secondary.length === app._secondary.length) {
+    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._networks.primary === 'host')) && inherit.secondary.length === app._secondary.length && app._updateIfBuiltin() === false) {
       console.log(`Inheriting ${app._name}`);
       inheritables[app._id] = inherit;
     }
