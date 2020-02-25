@@ -394,11 +394,12 @@ function openInlinePage(url, target) {
 }
 
 function onResizePage() {
+  const height = document.querySelector('.main .nav').clientHeight;
   document.querySelectorAll('.inline-page iframe').forEach((frame) => {
     const box = frame.parentElement;
     if (box) {
       frame.width = box.clientWidth;
-      frame.height = window.innerHeight;
+      frame.height = height;
     }
   });
 }
