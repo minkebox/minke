@@ -28,6 +28,10 @@
       name: `+NET_ADMIN`
     },
     {
+      type: `Feature`,
+      name: `vpn`
+    },
+    {
       type: `Environment`,
       name: `USER`
     },

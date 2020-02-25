@@ -84,6 +84,10 @@ using Wi-Fi; use "tun" in this case.`,
     },
     {
       type: `Feature`,
+      name: `vpn`
+    },
+    {
+      type: `Feature`,
       name: `ddns`
     },
     {
