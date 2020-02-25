@@ -812,7 +812,7 @@ MinkeApp.prototype = {
     if (this._homeIP) {
       DNS.unregisterHostIP(this._safeName());
       DNS.unregisterGlobalIP(`${this._globalId}${GLOBALDOMAIN}`);
-      if (his._ddns) {
+      if (this._ddns) {
         DDNS.unregister(this);
       }
       Network.unregisterIP(this._homeIP);
