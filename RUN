@@ -25,6 +25,7 @@ docker run --name minke -d --privileged \
   --mount type=bind,source=${MINKE_CONFIG},target=${MINKE_CONFIG},bind-propagation=rshared \
   --network=home --ip=${MINKE_IP} \
   --log-driver json-file --log-opt max-size=110k --log-opt max-file=1 \
+  -e RESTART_REASON=$(cat ${RESTART_STATUS}) \
   -e DEBUG=1 \
   registry.minkebox.net/minkebox/minke
 

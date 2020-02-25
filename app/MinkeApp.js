@@ -1456,17 +1456,33 @@ MinkeApp.startApps = async function(app, config) {
     }
     else {
       if (inherit.container) {
-        console.log(`Stopping ${app._name}`);
-        await inherit.container.remove({ force: true });
+        console.log(`Stopping ${app._safeName()}`);
+        try {
+          await inherit.container.remove({ force: true });
+        }
+        catch (e) {
+          console.error(e);
+        }
       }
       if (inherit.helperContainer) {
-        console.log(`Stopping helper-${app._name}`);
-        await inherit.helperContainer.remove({ force: true });
+        console.log(`Stopping helper-${app._safeName()}`);
+        try {
+          await inherit.helperContainer.remove({ force: true });
+        }
+        catch (e) {
+          console.error(e);
+        }
       }
-      await Promise.all(inherit.secondary.map((sec, idx) => {
-        console.log(`Stopping ${app._name} secondary ${idx}`);
-        return sec.remove({ force: true });
+      await Promise.all(inherit.secondary.map(async (sec, idx) => {
+        console.log(`Stopping ${app._safeName()}__${idx}`);
+        try {
+          await sec.remove({ force: true });
+        }
+        catch (e) {
+          console.error(e);
+        }
       }));
+      await app.save();
     }
   }));
 

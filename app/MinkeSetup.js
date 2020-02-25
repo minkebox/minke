@@ -138,7 +138,9 @@ MinkeSetup.prototype = {
   },
 
   restart: async function(reason) {
-    await MDNS.removeRecord(this._hostMdns);
+    if (this._hostMdns) {
+      await MDNS.removeRecord(this._hostMdns);
+    }
     this._hostMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
