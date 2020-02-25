@@ -9,7 +9,7 @@
       title: `Configure HomeKit`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Pin used to add this device to your network using the Home app`,
       name: `BRIDGE_PIN`
     },
@@ -22,22 +22,22 @@
       text: `To bridge your Netatmo devices onto the HomeKit network, you need to provides various pieces of security information. These can be found by logging into your Netatmo account at https://dev.netatmo.com.`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Your Netatmo username`,
       name: `USERNAME`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Your Netatmo password`,
       name: `PASSWORD`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `The client ID of the Netatmo app created in your development account`,
       name: `CLIENT_ID`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `The associated client secret`,
       name: `CLIENT_SECRET`
     }
@@ -89,12 +89,5 @@
       name: `/app/homebridge`,
       style: 'store'
     }
-  ],
-  monitor: {
-    cmd: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
-  }
+  ]
 }

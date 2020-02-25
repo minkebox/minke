@@ -9,7 +9,7 @@
       title: `Configure HomeKit`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Pin used to add this device to your network using the Home app`,
       name: `BRIDGE_PIN`
     },
@@ -22,7 +22,7 @@
       text: `Notifications uses an <a target="_blank" href="https://ifttt.com/applets/108075226d">IFTTT applet</a> which you should connect to your account`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `IFTTT WebHook key`,
       name: `IFTTT_KEY`
     },
@@ -50,7 +50,7 @@
       text: `Notifications use the <a target="_blank" href="https://www.amazon.com/Thomptronics-Notify-Me/dp/B07BB2FYFS">Alexa Skill: Notify Me</a> which you should install in the Alexa app`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Notify Me key`,
       name: `NOTIFYME_KEY`
     },
@@ -117,12 +117,5 @@
       name: `/app/homebridge`,
       style: 'store'
     }
-  ],
-  monitor: {
-    cmd: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
-  }
+  ]
 }

@@ -9,7 +9,7 @@
       title: `Configure HomeKit`
     },
     {
-      type: `Environment`,
+      type: `EditEnvironment`,
       description: `Pin used to add this device to your network using the Home app`,
       name: `BRIDGE_PIN`
     },
@@ -53,12 +53,5 @@
       name: `/app/homebridge`,
       style: 'store'
     }
-  ],
-  monitor: {
-    cmd: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
-  }
+  ]
 }

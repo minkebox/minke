@@ -84,12 +84,5 @@
       name: `/app/homebridge`,
       style: `boot`
     }
-  ],
-  monitor: {
-    cmd: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
-  }
+  ]
 }

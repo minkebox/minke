@@ -108,12 +108,5 @@
       name: `/app/homebridge`,
       style: 'store'
     }
-  ],
-  monitor: {
-    cmd: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
-  }
+  ]
 }

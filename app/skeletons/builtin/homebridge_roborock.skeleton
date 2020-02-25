@@ -1,7 +1,7 @@
 {
-  name: `Nest`,
-  description: `Add Google Nest devices to your HomeKit network using HomeBridge`,
-  image: `registry.minkebox.net/minkebox/homebridge_nest`,
+  name: `Roborock`,
+  description: `Add a Roborock vacuum to your HomeKit network using HomeBridge`,
+  image: `registry.minkebox.net/minkebox/homebridge_roborock`,
   tags: [ 'HomeKit' ],
   actions: [
     {
@@ -15,27 +15,22 @@
     },
     {
       type: `Header`,
-      title: `Configure Nest`
+      title: `Configure Roborock`
     },
     {
       type: `Text`,
-      text: `To bridge your Nest devices onto the HomeKit network, you need to provides various pieces of security information. Instructions for gettings these can be found at <a target="_blank" href="https://www.npmjs.com/package/homebridge-nest#using-a-google-account">here</a>.`
+      text: `You need to provide the IP address of your vacuum as well as the security token. The security token is tricky to extract, but there are good instructions <a href="https://python-miio.readthedocs.io/en/latest/discovery.html">here</a>`
     },
     {
       type: `EditEnvironment`,
-      description: `Your issueToken`,
-      name: `ISSUE_TOKEN`
+      description: `The IP address of your vacuum`,
+      name: `ROBOROCK_IP`
     },
     {
       type: `EditEnvironment`,
-      description: `Your cookies`,
-      name: `COOKIES`
+      description: `The security token of your vacuum`,
+      name: `ROBOROCK_TOKEN`
     },
-    {
-      type: `EditEnvironment`,
-      description: `Your apiKey`,
-      name: `API_KEY`
-    }
   ],
   properties: [
     {
@@ -65,15 +60,11 @@
     },
     {
       type: `Environment`,
-      name: `ISSUE_TOKEN`
+      name: `ROBOROCK_IP`
     },
-     {
+    {
       type: `Environment`,
-      name: `COOKIES`
-    },
-     {
-      type: `Environment`,
-      name: `API_KEY`
+      name: `ROBOROCK_TOKEN`
     },
     {
       type: `Directory`,

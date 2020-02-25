@@ -81,12 +81,5 @@
       name: `secondary`,
       defaultValue: `home`
     }
-  ],
-  monitor: {
-    cmd: ``,
-    polling: 0,
-    parser: ``,
-    header: ``,
-    template: ``
-  }
+  ]
 }
