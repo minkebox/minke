@@ -31,10 +31,6 @@
   ],
   properties: [
     {
-      type: `Feature`,
-      name: `dns`
-    },
-    {
       type: `File`,
       name: `/etc/dnshosts.d/hosts.conf`
     },

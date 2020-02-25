@@ -9,10 +9,6 @@
   ],
   properties: [
     {
-      type: `Feature`,
-      name: `dns`
-    },
-    {
       type: `Directory`,
       name: `/etc/pihole`,
       style: `store`

@@ -78,10 +78,6 @@
   properties: [
     {
       type: `Feature`,
-      name: `dns`
-    },
-    {
-      type: `Feature`,
       name: `+NET_ADMIN`
     },
     {

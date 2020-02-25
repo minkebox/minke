@@ -43,10 +43,6 @@
   ],
   properties: [
     {
-      type: `Feature`,
-      name: `dns`
-    },
-    {
       type: `File`,
       style: 'boot',
       name: `/etc/dnsmasq.d/proxies.preconf`
