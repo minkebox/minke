@@ -312,6 +312,7 @@ MinkeApp.prototype = {
           Mounts: this._allmounts,
           Devices: [],
           CapAdd: [],
+          CapDrop: [],
           LogConfig: {
             Type: 'json-file',
             Config: {
@@ -446,16 +447,26 @@ MinkeApp.prototype = {
         });
         config.HostConfig.Sysctls["net.ipv4.ip_forward"] = "1";
       }
-      if (this._features.vpn || this._features.dhcp) {
-        config.HostConfig.CapAdd.push('NET_ADMIN');
-      }
-      if (this._features.mount) {
-        config.HostConfig.CapAdd.push('SYS_ADMIN');
-        config.HostConfig.CapAdd.push('DAC_READ_SEARCH');
-      }
+
       if (this._features.privileged) {
         config.HostConfig.Privileged = true;
       }
+
+      // Add supported capabilities
+      [ '+SYS_MODULE','+SYS_RAWIO','+SYS_PACCT','+SYS_ADMIN','+SYS_NICE','+SYS_RESOURCE','+SYS_TIME','+SYS_TTY_CONFIG',
+        '+AUDIT_CONTROL','+MAC_ADMIN','+MAC_OVERRIDE','+NET_ADMIN','+SYSLOG','+DAC_READ_SEARCH','+LINUX_IMMUTABLE',
+        '+NET_BROADCAST','+IPC_LOCK','+IPC_OWNER','+SYS_PTRACE','+SYS_BOOT','+LEASE','+WAKE_ALARM','+BLOCK_SUSPEND' ].forEach(cap => {
+        if (this._features[cap]) {
+          config.HostConfig.CapAdd.push(cap.substring(1));
+        }
+      });
+
+      [ '-SETPCAP','-MKNOD','-AUDIT_WRITE','-CHOWN','-NET_RAW','-DAC_OVERRIDE','-FOWNER','-FSETID','-KILL','-SETGID',
+        '-SETUID','-NET_BIND_SERVICE','-SYS_CHROOT','-SETFCAP' ].forEach(cap => {
+          if (this._features[cap]) {
+            config.HostConfig.CapDrop.push(cap.substring(1));
+          }
+        });
 
       if (primary !== 'host') {
 
@@ -483,7 +494,7 @@ MinkeApp.prototype = {
           }
         }
 
-        this._ddns = false;
+        this._ddns = this._features.ddns || false;
         if (this._ports.length) {
           const nat = this._ports.reduce((acc, port) => {
             port = this.expandPort(port);
@@ -600,7 +611,7 @@ MinkeApp.prototype = {
           DNS.registerHostIP(this._safeName(), this._homeIP, homeip6);
           DNS.registerGlobalIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
            // If we need to be accessed remotely, register with DDNS
-          if (this._features.ddns || this._ddns || this._ports.find(port => this.expandPort(port).nat)) {
+          if (this._ddns) {
             DDNS.register(this);
           }
         }
@@ -698,6 +709,7 @@ MinkeApp.prototype = {
                 Mounts: secondaryMounts,
                 Devices: [],
                 CapAdd: [],
+                CapDrop: [],
                 LogConfig: config.LogConfig,
                 NetworkMode: `container:${this._helperContainer.id}`
               },
@@ -800,7 +812,7 @@ MinkeApp.prototype = {
     if (this._homeIP) {
       DNS.unregisterHostIP(this._safeName());
       DNS.unregisterGlobalIP(`${this._globalId}${GLOBALDOMAIN}`);
-      if (this._features.ddns || this._ddns || this._ports.find(port => this.expandPort(port).nat)) {
+      if (his._ddns) {
         DDNS.unregister(this);
       }
       Network.unregisterIP(this._homeIP);
