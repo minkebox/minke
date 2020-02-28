@@ -8,6 +8,7 @@ const Network = require('../Network');
 const Disks = require('../Disks');
 const ConfigBackup = require('../ConfigBackup');
 const UPNP = require('../UPNP');
+const Filesystem = require('../Filesystem');
 
 const MinkeBoxConfiguration = 'minke'; // MinkeSetup._id
 
@@ -217,21 +218,30 @@ async function ConfigurePageHTML(ctx) {
         {
           const allShares = app.getAvailableShareables();
           allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
+          let found = false;
           const shareables = allShares.map((shareable) => {
             return { app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
               bind.shares.forEach((share) => {
                 const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
                 const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
+                const selected = !!app._binds.find(abind => abind.src === src);
+                found |= selected;
                 shares.push({
                   name: target,
                   src: src,
                   description: share.description,
-                  value: !!app._binds.find(abind => abind.src === src)
+                  value: selected
                 });
               });
               return shares;
             }, [])};
           });
+          const prop = skeleton.properties.find(prop => prop.name === action.name);
+          if (prop) {
+            shareables.unshift({
+              app: app, shares: [ { name: 'Local', src: Filesystem.getNativePath(app._id, prop.style, `/dir/${action.name}`), description: 'Local', value: !found }]
+            });
+          }
           return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action);
         }
         case 'EditShares':
