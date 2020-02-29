@@ -66,8 +66,7 @@ function MinkeSetup(savedConfig, config) {
     TIMEZONE: getEnv('TIMEZONE'),
     ADMINMODE: getEnv('ADMINMODE'),
     GLOBALID: getEnv('GLOBALID'),
-    UPDATETIME: getEnv('UPDATETIME'),
-    DISKS: getEnv('DISKS')
+    UPDATETIME: getEnv('UPDATETIME')
   };
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
@@ -222,15 +221,13 @@ MinkeSetup.prototype = {
       DNSSECURE2: null,
       ADMINMODE: null,
       GLOBALID: null,
-      UPDATETIME: null,
-      DISKS: null
+      UPDATETIME: null
     };
     for (let key in config) {
       config[key] = this._env[key].value;
     }
     config.HOSTNAME = this._name;
     config.REMOTEMANAGEMENT = this._networks.primary;
-    config.DISKS = Disks.getMappedDisks();
     config._id = this._id;
     await Database.saveConfig(config);
   },
@@ -294,7 +291,7 @@ MinkeSetup.prototype = {
   },
 
   _setupDisks: async function() {
-    await Disks.init(this._env.DISKS.value);
+    await Disks.init();
   },
 
   _setTimezone: function() {

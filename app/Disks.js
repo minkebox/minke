@@ -14,13 +14,17 @@ const DF = require('@sindresorhus/df');
  *                /<id>/... Application data needing large disk (store)
  */
 
+const BOOT_PATH = '/minke';
+const STORE_PATH = '/mnt/store';
 const TAG = '.minke-formatted';
 const TICK = 10 * 60 * 1000;
 const BLOCKSIZE = 512;
-const DISKS = [ 'sda', 'sdb', 'sdc', 'sdd', 'sde', 'mmcblk0', 'mmcblk1', 'mmcblk2' ];
+const DISKS = [
+  BOOT_PATH, [ 'sda', 'mmcblk0' ],
+  STORE_PATH, [ 'sdb', 'sdc', 'sdd', 'sde', 'mmcblk1', 'mmcblk2' ]
+];
 const PART = 1;
-const BOOT_PATH = '/minke';
-const STORE_PATH = '/mnt/store';
+
 
 const Disks = {
 
@@ -31,55 +35,49 @@ const Disks = {
     this._timer = setInterval(async () => {
       await this._update();
     }, TICK);
-    await this._initDisks(disks);
+    this._initDisks(disks);
     await this._update();
   },
 
-  _initDisks: async function(disks) {
-
-    // Find disks
-    DISKS.forEach((diskid) => {
-      if (FS.existsSync(`/sys/block/${diskid}`)) {
-        this._diskinfo[diskid] = {
-          name: diskid,
-          size: BLOCKSIZE * parseInt(FS.readFileSync(`/sys/block/${diskid}/size`, { encoding: 'utf8' })),
-          used: 0,
-          status: 'unknown'
-        };
-      }
-    });
-
-    // Mount disks
-    for (let diskid in disks) {
-      const info = this._diskinfo[diskid];
-      if (info) {
-        info.root = disks[diskid];
-        if (info.root === BOOT_PATH) {
-          // Boot disk already mounted
-          info.status = 'ready';
-        }
-        else {
-          FS.mkdirSync(info.root, { recursive: true });
-          ChildProcess.spawnSync('mount', [ `/dev/${this._partName(info.name, PART)}`, info.root ]);
-          if (FS.existsSync(`${info.root}/${TAG}`)) {
-            info.status = 'ready';
+  _initDisks: function() {
+    // Locate the disks which could be BOOT and STORE
+    for (let did = 0; did < DISKS.length; did += 2) {
+      const diskroot = DISKS[did + 0];
+      const possibles = DISKS[did + 1];
+      for (let p = 0; p < possibles.length; p++) {
+        // Look through possible matches until we find one that exists
+        const diskid = possibles[p];
+        if (FS.existsSync(`/sys/block/${diskid}`)) {
+          const info = {
+            name: diskid,
+            size: BLOCKSIZE * parseInt(FS.readFileSync(`/sys/block/${diskid}/size`, { encoding: 'utf8' })),
+            used: 0
+          };
+          switch (diskroot) {
+            case BOOT_PATH:
+              info.root = diskroot;
+              info.status = 'ready';
+              break;
+            case STORE_PATH:
+              FS.mkdirSync(diskroot, { recursive: true });
+              ChildProcess.spawnSync('mount', [ `/dev/${this._partName(diskid, PART)}`, diskroot ]);
+              if (FS.existsSync(`${diskroot}/${TAG}`)) {
+                info.root = diskroot;
+                info.status = 'ready';
+              }
+              else {
+                ChildProcess.spawnSync('umount', [ info.root ]);
+              }
+              break;
+            default:
+              this._diskinfo[diskid].status = 'unknown';
+              break;
           }
-          else {
-            ChildProcess.spawnSync('umount', [ info.root ]);
-            info.root = null;
-          }
+          this._diskinfo[diskid] = info;
+          break;
         }
       }
     }
-  },
-
-  getMappedDisks: function() {
-    return Object.values(this._diskinfo).reduce((acc, info) => {
-      if (info.status === 'ready') {
-        acc[info.name] = info.root;
-      }
-      return acc;
-    }, {});
   },
 
   _update: async function() {
@@ -102,21 +100,21 @@ const Disks = {
     if (!info || info.status === 'ready') {
       throw new Error('Cannot format');
     }
-  
+
     // If disk isn't mounted, attempt to mount it so we can check to see if we
     // already formatted it.
     const mounts = FS.readFileSync('/proc/mounts', { encoding: 'utf8' });
     if (mounts.indexOf(`/dev/${info.name}`) === -1) {
       ChildProcess.spawnSync('mount', [ `/dev/${this._partName(info.name, PART)}`, info.root ]);
     }
-  
+
     // Must remove the tag to reformat.
     if (FS.existsSync(`${info.root}/${TAG}`)) {
       throw new Error('Disk already formatted');
     }
 
     info.status = 'formatting';
-    
+
     // Partition and format disk, then tag it.
     const cmds = [
       [ 'umount', [ info.root ]],

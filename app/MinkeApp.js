@@ -1418,8 +1418,7 @@ MinkeApp.startApps = async function(app, config) {
     TIMEZONE: Moment.tz.guess(),
     ADMINMODE: 'DISABLED',
     GLOBALID: UUID(),
-    UPDATETIME: '03:00',
-    DISKS: { [process.env.ROOTDISK || 'sda']: '/minke' }
+    UPDATETIME: '03:00'
   });
   applications.unshift(setup);
 
