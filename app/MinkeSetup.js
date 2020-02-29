@@ -10,7 +10,6 @@ const UPNP = require('./UPNP');
 const MinkeApp = require('./MinkeApp');
 const Updater = require('./Updater');
 const DDNS = require('./DDNS');
-const Disks = require('./Disks');
 
 const RESTART_REASON = '/tmp/minke-restart-reason';
 
@@ -78,8 +77,6 @@ function MinkeSetup(savedConfig, config) {
 MinkeSetup.prototype = {
 
   start: async function() {
-
-    await this._setupDisks();
 
     this._setTimezone();
     this._setUpdateTime();
@@ -288,10 +285,6 @@ MinkeSetup.prototype = {
       }
     }
     return txt;
-  },
-
-  _setupDisks: async function() {
-    await Disks.init();
   },
 
   _setTimezone: function() {

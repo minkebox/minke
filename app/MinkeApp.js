@@ -13,6 +13,7 @@ const Filesystem = require('./Filesystem');
 const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
+const Disks = require('./Disks');
 const Skeletons = require('./skeletons/Skeletons');
 const ConfigBackup = require('./ConfigBackup');
 
@@ -1430,6 +1431,9 @@ MinkeApp.startApps = async function(app, config) {
 
   // Save current config
   await ConfigBackup.save();
+
+  // Setup Disks
+  await Disks.init();
 
   // Stop or inherit apps if they're still running
   const inheritables = {};
