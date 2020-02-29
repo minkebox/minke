@@ -131,7 +131,7 @@ MDNS.prototype = {
 
   _answer: async function(answers) {
     //console.log(answers);
-    if (answers.length) {
+    if (answers.length && this._socket) {
       return new Promise((resolve) => {
         const msg = DnsPacket.encode({
           type: 'response',
