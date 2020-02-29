@@ -25,6 +25,7 @@
     {
       type: `Directory`,
       name: `/folders`,
+      style: `store`,
       backup: true
     },
     {
