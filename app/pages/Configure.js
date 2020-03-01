@@ -72,7 +72,7 @@ async function ConfigurePageHTML(ctx) {
   const nskeleton = {
     name: skeleton.name,
     value: app._name,
-    description: skeleton.description,
+    description: expand(skeleton.description),
     actions: skeleton.actions.map((action) => {
       if ('visible' in action || 'enabled' in action) {
         const id = `x${++nextid}`;
