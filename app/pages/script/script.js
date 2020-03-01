@@ -394,14 +394,17 @@ function openInlinePage(url, target) {
 }
 
 function onResizePage() {
-  const height = document.querySelector('.main .nav').clientHeight;
-  document.querySelectorAll('.inline-page iframe').forEach((frame) => {
-    const box = frame.parentElement;
-    if (box) {
-      frame.width = box.clientWidth;
-      frame.height = height;
-    }
-  });
+  const elem = document.querySelector('.main .nav');
+  if (elem) {
+    const height = elem.clientHeight;
+    document.querySelectorAll('.inline-page iframe').forEach((frame) => {
+      const box = frame.parentElement;
+      if (box) {
+        frame.width = box.clientWidth;
+        frame.height = height;
+      }
+    });
+  }
 }
 
 /* Inline page */
