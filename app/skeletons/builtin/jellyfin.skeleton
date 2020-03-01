@@ -1,0 +1,62 @@
+{
+  name: `JellyFin`,
+  description: `The Free Software Media Browser`,
+  image: `jellyfin/jellyfin`,
+  tags: [
+    `Media`
+  ],
+  actions: [
+    {
+      type: `Text`,
+      text: `Jellyfin is a Free Software Media System that puts you in control of managing and streaming your media. It is an alternative to the proprietary Emby and Plex, to provide media from a dedicated server to end-user devices via multiple apps.`
+    },
+    {
+      type: `Header`,
+      title: `Media`
+    },
+    {
+      type: `SelectShares`,
+      name: `/media`,
+      description: `Select the media to share in JellyFin`
+    }
+  ],
+  properties: [
+    {
+      type: `Directory`,
+      name: `/cache`,
+      style: `store`
+    },
+    {
+      type: `Directory`,
+      name: `/config`
+    },
+    {
+      type: `Directory`,
+      name: `/media`,
+      style: `store`
+    },
+    {
+      type: `Environment`,
+      name: `DOTNET_RUNNING_IN_CONTAINER`,
+      defaultValue: `true`
+    },
+    {
+      type: `Port`,
+      name: `8096/tcp`,
+      port: 8096,
+      protocol: `TCP`,
+      nat: false,
+      web: {
+        type: `newtab`,
+        path: ``
+      },
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ]
+}
