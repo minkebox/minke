@@ -216,7 +216,7 @@ MinkeApp.prototype = {
             case 'boot':
             case 'store':
             default:
-              if (bind.src) {
+              if (bind && bind.src) {
                 src = bind.src;
               }
               else {
