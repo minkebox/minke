@@ -216,7 +216,12 @@ MinkeApp.prototype = {
             case 'boot':
             case 'store':
             default:
-              src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`);
+              if (bind.src) {
+                src = bind.src;
+              }
+              else {
+                src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`);
+              }
               break;
             case 'temp':
               src = null;
