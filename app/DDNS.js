@@ -1,9 +1,9 @@
 const HTTPS = require('https');
 const Config = require('./Config');
 const UPNP = require('./UPNP');
-const Network = require('./Network');
+const MinkeApp = require('./MinkeApp');
 
-const FALLBACK_GETIP = 'https://api.ipify.org';
+const FALLBACK_GETIP = 'http://api.ipify.org';
 const DDNS_URL = `${Config.DDNS_UPDATE}`;
 const TICK = 30 * 60 * 1000; // 30 minutes
 const RETRY = 60 * 1000; // 1 minute
@@ -13,8 +13,6 @@ const FORCE_TICKS = 48; // 1 day
 const DDNS = {
 
   _gids: {},
-  _lastip: null,
-  _lastip6: null,
   _pending: null,
   _key: '',
 
@@ -32,11 +30,12 @@ const DDNS = {
 
   register: function(app) {
     //console.log('register', app._globalId);
-    const gid = app._globalId;
-    if (!(gid in this._gids)) {
-      this._gids[gid] = app;
-      this._update(this._key, true);
-    }
+    this._gids[app._globalId] = {
+      app: app,
+      lastIP: null,
+      lastIP6: null
+    };
+    this._update(this._key, true);
   },
 
   unregister: function(app) {
@@ -47,31 +46,52 @@ const DDNS = {
   _update: function(key, force) {
     if (Object.keys(this._gids).length) { // Dont store keys - may change after we've got the IP address
       if (force) {
-        this._lastip = null;
-        this._lastip6 = null;
+        Object.values(this._gids).forEach(entry => {
+          entry.lastIP = null;
+          entry.lastIP6 = null;
+        });
       }
       clearTimeout(this._pending);
       this._pending = setTimeout(() => {
-        const ip6 = Network.getSLAACAddress();
-        this._getExternalIP().then((ip) => {
-          if (!ip) {
+        this._getExternalIP().then(eip => {
+          if (!eip) {
             setTimeout(() => {
               this._update(key, true);
             }, RETRY);
           }
-          else if (ip !== this._lastip || ip6 !== this._lastip6) {
-            this._lastip = ip;
-            this._lastip6 = ip6;
+          else {
             Object.keys(this._gids).forEach(gid => {
-              const app = this._gids[gid];
-              const ip6 = app.getNATIP6() ? app.getSLAACAddress() : null;
-              if (!ip6) {
-                //console.log(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}`);
-                HTTPS.get(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}`, () => {});
+              const entry = this._gids[gid];
+              const primary = entry.app._networks.primary;
+              let ip = null;
+              switch (primary) {
+                case 'none':
+                  break;
+                case 'home':
+                case 'host':
+                  ip = eip;
+                  break;
+                default:
+                  const napp = MinkeApp.getAppById(primary);
+                  if (napp) {
+                    ip = napp._remoteIP;
+                  }
+                  break;
               }
-              else {
-                //console.log(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}&ip6=${ip6}`);
-                HTTPS.get(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}&ip6=${ip6}`, () => {});
+              const ip6 = entry.app.getNATIP6() ? entry.app.getSLAACAddress() : null;
+              if (ip != entry.lastIP || ip6 != entry.lastIP6) {
+                if (ip) {
+                  if (!ip6) {
+                    //console.log(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}`);
+                    HTTPS.get(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}`, () => {});
+                  }
+                  else {
+                    //console.log(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}&ip6=${ip6}`);
+                    HTTPS.get(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}&ip6=${ip6}`, () => {});
+                  }
+                }
+                entry.lastIP = ip;
+                entry.lastIP6 = ip6;
               }
             });
           }
