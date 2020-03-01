@@ -532,12 +532,6 @@ async function ConfigurePageWS(ctx) {
       function update(files) {
         const file = files.find(file => file.target == filename)
         if (file && file.data !== value) {
-          if (tableValue !== null) {
-            file.altData = value;
-          }
-          else {
-            delete file.altData;
-          }
           file.data = value;
           if (app._fs) {
             app._fs.makeFile(file);
