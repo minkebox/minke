@@ -287,7 +287,7 @@
     {
       type: `Header`,
       title: `Generator`,
-      visible: `property['Environment#LEVEL_TYPE'] === 'FLAT' || property['Environment#LEVEL_TYPE'] === 'CUSTOMIZED' || property['Environment#LEVEL_TYPE'] === 'BUFFET'`,
+      visible: `property['EditEnvironment#LEVEL_TYPE'] === 'FLAT' || property['EditEnvironment#LEVEL_TYPE'] === 'CUSTOMIZED' || property['EditEnvironment#LEVEL_TYPE'] === 'BUFFET'`,
       enabled: 'property.FirstUse'
     },
     {
