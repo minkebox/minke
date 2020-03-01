@@ -1,7 +1,7 @@
 const HTTPS = require('https');
 const Config = require('./Config');
 const UPNP = require('./UPNP');
-const MinkeApp = require('./MinkeApp');
+let MinkeApp;
 
 const FALLBACK_GETIP = 'http://api.ipify.org';
 const DDNS_URL = `${Config.DDNS_UPDATE}`;
@@ -72,6 +72,7 @@ const DDNS = {
                   ip = eip;
                   break;
                 default:
+                  MinkeApp = MinkeApp || require('./MinkeApp');
                   const napp = MinkeApp.getAppById(primary);
                   if (napp) {
                     ip = napp._remoteIP;
