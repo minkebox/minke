@@ -28,7 +28,8 @@
     },
     {
       type: `Directory`,
-      name: `/config`
+      name: `/config`,
+      backup: true
     },
     {
       type: `Directory`,
