@@ -103,13 +103,13 @@ async function ConfigurePageHTML(ctx) {
         {
           const env = app._env[action.name];
           properties[`${action.type}#${action.name}`] = env ? env.value : '';
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: env ? env.value : '', options: action.options }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: env ? env.value : '', options: action.options }, action, { description: expand(action.description) });
         }
         case 'EditEnvironmentAsCheckbox':
         {
           const env = app._env[action.name];
           properties[`${action.type}#${action.name}`] = env ? env.value : '';
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: env ? env.value : '' }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: env ? env.value : '' }, action, { description: expand(action.description) });
         }
         case 'EditEnvironmentAsTable':
         {
@@ -129,7 +129,7 @@ async function ConfigurePageHTML(ctx) {
             catch (_) {
             }
           }
-          return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
+          return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: expand(action.description) });
         }
         case 'SelectWebsites':
         {
@@ -154,14 +154,14 @@ async function ConfigurePageHTML(ctx) {
               published: match ? !!match[4] : false
             };
           });
-          return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action);
+          return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action, { description: expand(action.description) });
         }
         case 'SelectNetwork':
         {
           const networks = [ { _id: 'none', name: 'none' } ].concat(app.getAvailableNetworks());
           const network = app._networks[action.name] || 'none';
           properties[`${action.type}#${action.name}`] = network;
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, networks: networks, value: network }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, networks: networks, value: network }, action, { description: expand(action.description) });
         }
         case 'ShowFile':
         {
@@ -175,7 +175,7 @@ async function ConfigurePageHTML(ctx) {
           }
           catch (_) {
           }
-          return Object.assign({ value: value }, action);
+          return Object.assign({ value: value }, action, { description: expand(action.description) });
         }
         case 'DownloadFile':
         {
@@ -184,7 +184,7 @@ async function ConfigurePageHTML(ctx) {
             app._fs.readFile(file);
           }
           const value = file ? file.data : '';
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action, { description: expand(action.description) });
         }
         case 'EditFile':
         {
@@ -193,7 +193,7 @@ async function ConfigurePageHTML(ctx) {
             app._fs.readFile(file);
           }
           const value = file ? file.data : '';
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action, { description: expand(action.description) });
         }
         case 'EditFileAsTable':
         {
@@ -212,7 +212,7 @@ async function ConfigurePageHTML(ctx) {
             catch (_) {
             }
           }
-          return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action);
+          return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: expand(action.description) });
         }
         case 'SelectDirectory':
         {
@@ -242,7 +242,7 @@ async function ConfigurePageHTML(ctx) {
               app: app, shares: [ { name: 'Local', src: Filesystem.getNativePath(app._id, prop.style, `/dir/${action.name}`), description: 'Local', value: !found }]
             });
           }
-          return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action);
+          return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action, { description: expand(action.description) });
         }
         case 'EditShares':
         {
@@ -258,7 +258,7 @@ async function ConfigurePageHTML(ctx) {
               name: share.name,
               empty: empty
             };
-          }) }, action);
+          }) }, action, { description: expand(action.description) });
         }
         case 'SelectShares':
         {
@@ -283,7 +283,7 @@ async function ConfigurePageHTML(ctx) {
               return shares;
             }, [])};
           });
-          return Object.assign({ shareables: shareables }, action);
+          return Object.assign({ shareables: shareables }, action, { description: expand(action.description) });
         }
         case 'SelectBackups':
         {
@@ -303,7 +303,7 @@ async function ConfigurePageHTML(ctx) {
             config.name = `${config.name} (Configuration)`;
             backups.unshift(config);
           }
-          return Object.assign({ backups: backups }, action);
+          return Object.assign({ backups: backups }, action, { description: expand(action.description) });
         }
         case '__Disks':
         {
