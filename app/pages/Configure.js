@@ -498,10 +498,6 @@ async function ConfigurePageWS(ctx) {
       const ovalue = app._networks[network];
       if ((network in app._networks) && ovalue !== value) {
         app._networks[network] = value;
-        const napp = MinkeApp.getAppById(ovalue);
-        if (napp) {
-          napp._needRestart = true;
-        }
         return APPCHANGE;
       }
       return NOCHANGE;
