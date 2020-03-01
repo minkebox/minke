@@ -521,6 +521,10 @@ MinkeApp.prototype = {
           }
         }
 
+        if (this._features.vpn) {
+          helperConfig.Env.push(`FETCH_REMOTE_IP=tun`);
+        }
+
         if (inherit.helperContainer) {
           this._helperContainer = inherit.helperContainer;
         }
@@ -579,40 +583,8 @@ MinkeApp.prototype = {
         }
 
         // Wait while the helper configures everything.
-        const log = await this._helperContainer.logs({
-          follow: true,
-          stdout: true,
-          stderr: false
-        });
-        try {
-          await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-              log.destroy();
-              reject();
-            }, HELPER_STARTUP_TIMEOUT);
-            docker.modem.demuxStream(log, {
-              write: (data) => {
-                data = data.toString('utf8');
-                let idx = data.indexOf('MINKE:HOME:IP ');
-                if (idx !== -1) {
-                  this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
-                }
-                idx = data.indexOf('MINKE:PRIVATE:IP ');
-                if (idx !== -1) {
-                  this._privateIP = data.replace(/.*MINKE:PRIVATE:IP (.*)\n.*/, '$1');
-                }
-                if (data.indexOf('MINKE:UP') !== -1) {
-                  log.destroy();
-                  clearTimeout(timeout);
-                  resolve();
-                }
-              }
-            }, null);
-          });
-        }
-        catch (e) {
+        if (!await this._monitorHelper()) {
           // Helper failed to startup cleanly - abort
-          console.error(e);
           this.stop();
           return this;
         }
@@ -622,10 +594,11 @@ MinkeApp.prototype = {
           Network.registerIP(this._homeIP);
           DNS.registerHostIP(this._safeName(), this._homeIP, homeip6);
           DNS.registerGlobalIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
-           // If we need to be accessed remotely, register with DDNS
-          if (this._ddns) {
-            DDNS.register(this);
-          }
+        }
+
+        // If we need to be accessed remotely, register with DDNS
+        if (this._ddns) {
+          DDNS.register(this);
         }
 
       }
@@ -898,6 +871,8 @@ MinkeApp.prototype = {
       }
     });
 
+    this._unmonitorHelper();
+
     // Remove everything
     const removing = [];
     if (this._secondaryContainers) {
@@ -1168,6 +1143,49 @@ MinkeApp.prototype = {
       return false;
     }
     return true;
+  },
+
+  _monitorHelper: async function() {
+    this._helperLog = await this._helperContainer.logs({
+      follow: true,
+      stdout: true,
+      stderr: false
+    });
+    return new Promise(resolve => {
+      const timeout = setTimeout(() => {
+        this._helperLog.destroy();
+        this._helperLog = null;
+        resolve(false);
+      }, HELPER_STARTUP_TIMEOUT);
+      docker.modem.demuxStream(this._helperLog, {
+        write: (data) => {
+          data = data.toString('utf8');
+          let idx = data.indexOf('MINKE:HOME:IP ');
+          if (idx !== -1) {
+            this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
+          }
+          idx = data.indexOf('MINKE:PRIVATE:IP ');
+          if (idx !== -1) {
+            this._privateIP = data.replace(/.*MINKE:PRIVATE:IP (.*)\n.*/, '$1');
+          }
+          idx = data.indexOf('MINKE:REMOTE:IP ');
+          if (idx !== -1) {
+            this._remoteIP = data.replace(/.*MINKE:REMOTE:IP (.*)\n.*/, '$1');
+          }
+          if (data.indexOf('MINKE:UP') !== -1) {
+            clearTimeout(timeout);
+            resolve(true);
+          }
+        }
+      }, null);
+    });
+  },
+
+  _unmonitorHelper: function() {
+    if (this._helperLog) {
+      this._helperLog.destroy();
+      this._helperLog = null;
+    }
   },
 
   _monitorNetwork: function() {
