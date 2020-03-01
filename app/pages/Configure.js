@@ -229,7 +229,7 @@ async function ConfigurePageHTML(ctx) {
                 shares.push({
                   name: target,
                   src: src,
-                  description: share.description,
+                  description: expand(share.description),
                   value: selected
                 });
               });
@@ -275,7 +275,7 @@ async function ConfigurePageHTML(ctx) {
                 shares.push({
                   name: defaultName,
                   altname: altName != defaultName ? altName : null,
-                  description: share.description,
+                  description: expand(share.description),
                   action: `window.share('${action.type}#${shareable.app._id}#${src}#${action.name}#${defaultName}',this)`,
                   value: !!ashare
                 });
