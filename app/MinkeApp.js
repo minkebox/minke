@@ -112,16 +112,14 @@ MinkeApp.prototype = {
   },
 
   createFromSkeleton: function(skel) {
-    let name = null;
-    for (let i = 1; ; i++) {
-      name = `${skel.name} ${i}`;
+    for (let i = 0; ; i++) {
+      const name = (i === 0 ? skel.name : `${skel.name} ${i}`);
       if (!applications.find(app => name === app._name)) {
+        this._name = name;
         break;
       }
     }
-
     this._id = Database.newAppId();
-    this._name = name;
     this._image = skel.image,
     this._globalId = UUID();
     this._backups = [];
