@@ -38,7 +38,7 @@
       text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.'
     },
     {
-      type: 'SekectNetwork',
+      type: 'SelectNetwork',
       name: 'primary',
       description: 'Select network'
     },
@@ -54,8 +54,7 @@
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `NAT`,
-      description: `Make available on the Internet with the name <div><b>{{__GLOBALNAME}}</b></div>`,
-      visible: 'property["Network#primary"] === "home"'
+      description: `Make available on the Internet with the name <div><b>{{__GLOBALNAME}}</b></div>`
     }
   ],
   properties: [
