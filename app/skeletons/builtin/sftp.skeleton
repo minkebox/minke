@@ -32,10 +32,11 @@
     {
       type: 'Header',
       title: 'Network',
+      visible: `property.Advanced`
     },
     {
       type: 'Text',
-      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.'
+      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a VPN or private network.'
     },
     {
       type: 'SelectNetwork',
