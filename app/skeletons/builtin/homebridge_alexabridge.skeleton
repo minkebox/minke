@@ -59,6 +59,16 @@
       ],
       pattern: `{ "accessory": "DelaySwitch", "name": "{{0}}", "delay": {{1}}, "disableSensor": true }`,
       join: `,`
+    },
+    {
+      type: `EditFileAsTable`,
+      name: `/app/switches3.conf`,
+      description: `Motion Switches to trigger Alexa Routines`,
+      headers: [
+        { name: `Name` }
+      ],
+      pattern: `{ "accessory": "DelaySwitch", "name": "{{0}}", "delay": 20, "disableSensor": false }`,
+      join: `,`
     }
   ],
   properties: [
@@ -84,6 +94,10 @@
     {
       type: `File`,
       name: `/app/switches2.conf`
+    },
+    {
+      type: `File`,
+      name: `/app/switches3.conf`
     },
     {
       type: `Environment`,
