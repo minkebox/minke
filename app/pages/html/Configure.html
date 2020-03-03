@@ -72,7 +72,9 @@
           {{else if (eq type "SelectWebsites")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
-            {{> SelectWebsites}}
+            <table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24 websites"  oninput="saveTable('{{action}}',this)" onchange="saveTable('{{action}}',this)">
+              {{> SelectWebsites}}
+            </table>
           </div>
           {{else if (eq type "Argument")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action argument pure-control-group {{#if visible}}invisible{{/if}}">

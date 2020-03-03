@@ -997,9 +997,9 @@ MinkeApp.prototype = {
     }, []);
   },
 
-  getAvailableWebsites: function() {
+  getAvailableWebsites: function(network) {
     return applications.reduce((acc, app) => {
-      if (app !== this && this._networks.primary === app._networks.primary) {
+      if (app !== this && network === app._networks.primary) {
         const webport = app._ports.find(port => this.expandPort(port).web);
         if (webport) {
           acc.push({

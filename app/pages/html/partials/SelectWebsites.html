@@ -1,24 +1,22 @@
-<table class="pure-table pure-table-horizontal pure-input-rounded pure-u-16-24 websites"  oninput="saveTable('{{action}}',this)" onchange="saveTable('{{action}}',this)">
-  <thead>
-    <tr>
-      <th style="display:none"></th>
-      <th>Name</th>
-      <th style="display:none"></th>
-      <th>Port</th>
-      <th>Published Name</th>
-      <th>Publish</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each websites}}
-    <tr>
-      <td style="display:none">{{appid}}</td>
-      <td data-ignore>{{name}}</td>
-      <td style="display:none">{{hostname}}</td>
-      <td>{{port}}</td>
-      <td><input type="text" value="{{dns}}" placeholder="Website name" oninput="publish(this)"></td>
-      <td><input class="value" type="checkbox" {{#if published}}checked{{/if}} onchange="publish(this)"></td>
-    </tr>
-    {{/each}}
-  </tbody>
-</table>
+<thead>
+  <tr>
+    <th style="display:none"></th>
+    <th>Name</th>
+    <th style="display:none"></th>
+    <th>Port</th>
+    <th>Published Name</th>
+    <th>Publish</th>
+  </tr>
+</thead>
+<tbody>
+  {{#each websites}}
+  <tr>
+    <td style="display:none">{{appid}}</td>
+    <td data-ignore>{{name}}</td>
+    <td style="display:none">{{hostname}}</td>
+    <td>{{port}}</td>
+    <td><input type="text" value="{{dns}}" placeholder="Website name" oninput="publish(this)"></td>
+    <td><input class="value" type="checkbox" {{#if published}}checked{{/if}} onchange="publish(this)"></td>
+  </tr>
+  {{/each}}
+</tbody>
