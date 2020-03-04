@@ -672,6 +672,18 @@ MinkeApp.prototype = {
       config.Env = Object.keys(this._env).map(key => `${key}=${this.expandEnv(this._env[key].value)}`).concat(configEnv);
       this._fullEnv = config.Env;
 
+      // Setup timezone
+      config.HostConfig.Mounts.push({
+        Type: 'bind',
+        Source: '/usr/share/zoneinfo',
+        Target: '/usr/share/zoneinfo',
+        BindOptions: {
+          Propagation: 'rshared'
+        },
+        ReadOnly: true
+      });
+      config.Env.push(`TZ=${this.getTimezone()}`);
+
       if (inherit.container) {
         this._container = inherit.container;
         if (inherit.secondary.length) {
@@ -1036,6 +1048,10 @@ MinkeApp.prototype = {
       return { url: `/a/${this._id}`, target: port.web === 'newtab' ? '_blank' : null };
     }
     return {};
+  },
+
+  getTimezone: function() {
+    return setup ? setup.getTimezone() : 'UTC';
   },
 
   expand: function(txt) {

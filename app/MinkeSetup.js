@@ -287,6 +287,10 @@ MinkeSetup.prototype = {
     return txt;
   },
 
+  getTimezone: function() {
+    return this._env.TIMEZONE.value;
+  },
+
   _setTimezone: function() {
     if (DEBUG) {
       return false;
