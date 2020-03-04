@@ -218,7 +218,8 @@ MinkeSetup.prototype = {
       DNSSECURE2: null,
       ADMINMODE: null,
       GLOBALID: null,
-      UPDATETIME: null
+      UPDATETIME: null,
+      TIMEZONE: null
     };
     for (let key in config) {
       config[key] = this._env[key].value;
