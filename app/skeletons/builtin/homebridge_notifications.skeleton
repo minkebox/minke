@@ -72,6 +72,10 @@
   ],
   properties: [
     {
+      type: `Feature`,
+      name: `localtime`
+    },
+    {
       type: `Port`,
       name: `51826/tcp`,
       port: 51826,

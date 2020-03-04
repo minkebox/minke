@@ -673,16 +673,18 @@ MinkeApp.prototype = {
       this._fullEnv = config.Env;
 
       // Setup timezone
-      config.HostConfig.Mounts.push({
-        Type: 'bind',
-        Source: '/usr/share/zoneinfo',
-        Target: '/usr/share/zoneinfo',
-        BindOptions: {
-          Propagation: 'rshared'
-        },
-        ReadOnly: true
-      });
-      config.Env.push(`TZ=${this.getTimezone()}`);
+      if (this._features.localtime) {
+        config.HostConfig.Mounts.push({
+          Type: 'bind',
+          Source: '/usr/share/zoneinfo',
+          Target: '/usr/share/zoneinfo',
+          BindOptions: {
+            Propagation: 'rshared'
+          },
+          ReadOnly: true
+        });
+        config.Env.push(`TZ=${this.getTimezone()}`);
+      }
 
       if (inherit.container) {
         this._container = inherit.container;
