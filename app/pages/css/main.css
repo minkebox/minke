@@ -190,6 +190,7 @@ background: #fd471f;
 }
 
 .app .left {
+  position: relative;
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid #ddd;
@@ -199,7 +200,7 @@ background: #fd471f;
   height: 100px;
   background-color: #fff;
 }
-.app .left:hover,
+.app .left.single:hover,
 .app .right.link:hover {
   background-color: #eee;
 }
@@ -224,6 +225,26 @@ background: #fd471f;
   margin: 0;
   color: #999;
 }
+.app .left .link-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100px;
+  width: 237px;
+  clip-path: polygon(0 0, 0 100px, 150px 100px, 100px 0);
+}
+.app .left .link-right {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100px;
+  width: 237px;
+  clip-path: polygon(150px 100px, 237px 100px, 237px 0px, 100px 0);
+}
+.app .left .link-left:hover, .app .left .link-right:hover {
+  background-color: rgba(0,0,0,0.07);
+}
+
 .app .right .status-header {
   width: 570px;
   height: 100px;
