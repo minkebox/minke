@@ -1,5 +1,4 @@
 const VM = require('vm');
-const FS = require('fs');
 const Handlebars = require('handlebars');
 
 const DEFAULT_POLLING = 60; // Default polling is 60 seconds
@@ -21,16 +20,7 @@ const DEFAULT_COLORS = [
   '#d85452'
 ];
 
-function debounce(func, timeout) {
-  let timer = null;
-  return function() {
-    clearTimeout(timer);
-    timer = setTimeout(function() {
-      timer = null;
-      func.apply(null, arguments);
-    }, timeout);
-  }
-}
+let graphId = 1;
 
 async function runCmd(app, cmd) {
   const exec = await app._container.exec({
@@ -48,7 +38,7 @@ async function runCmd(app, cmd) {
       buffer += data.toString('utf8');
     }
   }, null);
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     stream.output.on('close', () => {
       resolve(buffer);
     });
@@ -57,7 +47,7 @@ async function runCmd(app, cmd) {
 
 function WatchCmd(app, cmd, parser, template, polling) {
   const ctemplate = template ? Handlebars.compile(template) : DEFAULT_TEMPLATE;
-  const sandbox = { input: null, output: null, state: null, props: { homeIP: app._homeIP, colors: DEFAULT_COLORS }};
+  const sandbox = { input: null, output: null, state: null, props: { colors: DEFAULT_COLORS }};
   VM.createContext(sandbox);
   const extractor = VM.compileFunction(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, [], { parsingContext: sandbox });
   this.update = async () => {
@@ -72,7 +62,10 @@ function WatchCmd(app, cmd, parser, template, polling) {
             for (let name in sandbox.output.graph) {
               const graph = sandbox.output.graph[name];
               if (graph) {
-                sandbox.output.graph[name] = _generateGraph2(graph);
+                const id = `gid${graphId++}`;
+                const width = 'width' in graph ? `width: ${graph.width};` : '';
+                const height = 'height' in graph ? `height: ${graph.height};` : 'height: 250px;';
+                sandbox.output.graph[name] = `<div style="position: relative; ${width} ${height}"><canvas id="${id}"></canvas></div><script>window.addChart("${id}", new Chart(document.getElementById("${id}").getContext("2d"), ${JSON.stringify(graph)}));</script>`;
               }
             }
           }
@@ -90,21 +83,6 @@ function WatchCmd(app, cmd, parser, template, polling) {
       </script>
     `;
   }
-}
-
-let graphId = 1;
-
-function _generateGraph2(graph) {
-  const id = `gid${graphId++}`;
-  const width = 'width' in graph ? `width: ${graph.width};` : '';
-  return `
-    <div style="position: relative; ${width} height: ${graph.height || '250px'}">
-      <canvas id="${id}"></canvas>
-    </div>
-    <script>
-    window.addChart("${id}", new Chart(document.getElementById("${id}").getContext("2d"), ${JSON.stringify(graph)}));
-    </script>
-  `;
 }
 
 const _Monitor = {
