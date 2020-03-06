@@ -232,6 +232,7 @@ background: #fd471f;
   height: 100px;
   width: 237px;
   clip-path: polygon(0 0, 0 100px, 150px 100px, 100px 0);
+  -webkit-clip-path: polygon(0 0, 0 100px, 150px 100px, 100px 0);
 }
 .app .left .link-right {
   position: absolute;
@@ -240,6 +241,7 @@ background: #fd471f;
   height: 100px;
   width: 237px;
   clip-path: polygon(150px 100px, 237px 100px, 237px 0px, 100px 0);
+  -webkit-clip-path: polygon(150px 100px, 237px 100px, 237px 0px, 100px 0);
 }
 .app .left .link-left:hover, .app .left .link-right:hover {
   background-color: rgba(0,0,0,0.07);
