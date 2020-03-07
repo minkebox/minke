@@ -124,7 +124,10 @@ const Network = {
     return await this._getNetwork({
       Name: networkId,
       CheckDuplicate: true,
-      Driver: 'bridge'
+      Driver: 'bridge',
+      Options: {
+        'com.docker.network.bridge.enable_ip_masquerade': 'false'
+      }
     });
   }),
 
@@ -227,12 +230,6 @@ const Network = {
       });
     }
     return net;
-  }),
-
-  getBridgeNetwork: Barrier(async function() {
-    return await this._getNetwork({
-      Name: 'bridge'
-    });
   }),
 
   wifiAvailable: async function() {
