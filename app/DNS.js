@@ -3,6 +3,7 @@ const FS = require('fs');
 const URL = require('url');
 const Config = require('./Config');
 const Network = require('./Network');
+const Flatten = require('./utils/Flatten');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
@@ -215,15 +216,15 @@ const DNS = {
   encodeSDNS: function(urlstring) {
     const url = new URL.URL(urlstring);
     const addr = url.port ? `:${url.port}` : '';
-    const buffer = [
+    const buffer = Flatten([
       0x02,
       [ 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ],
       [ addr.length, Array.from(Buffer.from(addr)) ],
       0x00,
       [ url.hostname.length, Array.from(Buffer.from(url.hostname)) ],
       [ url.pathname.length, Array.from(Buffer.from(url.pathname)) ],
-    ];
-    return `sdns://${Buffer.from(buffer.flat(Infinity)).toString('base64').replace(/=/g,'')}`;
+    ]);
+    return `sdns://${Buffer.from(buffer).toString('base64').replace(/=/g,'')}`;
   },
 
   _updateConfig: function() {

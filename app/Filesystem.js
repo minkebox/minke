@@ -2,10 +2,10 @@ const FS = require('fs');
 const Path = require('path');
 const ChildProcess = require('child_process');
 const Disks = require('./Disks');
+const Flatten = require('./utils/Flatten');
 let MinkeApp;
 
 process.umask(0);
-
 
 function _Filesystem(app) {
   this._app = app;
@@ -16,11 +16,11 @@ function _Filesystem(app) {
 _Filesystem.prototype = {
 
   getAllMounts: function(app) {
-    const mounts = [
+    const mounts = Flatten([
       app._binds.map(map => this._makeMount(map)),
       app._files.map(file => this.makeFile(file)),
       app._backups.map(backup => this._makeBackups(backup))
-    ].flat(8);
+    ]);
 
     // Remove any internal child mounts
     const nmounts = this._removeChildren(mounts);
