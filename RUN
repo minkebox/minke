@@ -13,7 +13,7 @@ TRACER_OUT=/tmp/tracer.out
 MINKE_CONFIG=/minke/minkebox.config
 touch ${RESTART_STATUS} ${TRACER_OUT} ${MINKE_CONFIG}
 docker container rm minke
-docker run --name minke -d --privileged \
+docker run --init --name minke -d --privileged \
   -v /tmp/timezone:/etc/timezone \
   -v ${RESTART_STATUS}:${RESTART_STATUS} \
   -v ${TRACER_OUT}:${TRACER_OUT} \
