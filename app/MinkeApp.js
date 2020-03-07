@@ -910,7 +910,7 @@ MinkeApp.prototype = {
     }
     await Promise.all(removing.map(rm => rm.catch(e => console.log(e)))); // Ignore exceptions
 
-    if (this._fs) {
+    if (this._fs && this._allmounts) {
       this._fs.unmountAll(this._allmounts);
     }
     this._fs = null;
@@ -1463,10 +1463,11 @@ MinkeApp.startApps = async function(app, config) {
   applications.unshift(setup);
 
   // Safe to start listening - only on the home network.
-  app.listen({
+  const server = app.listen({
     host: MinkeApp._network.network.ip_address,
     port: config.port || 80
   });
+  //server.keepAliveTimeout = 0;
 
   // Save current config
   await ConfigBackup.save();
