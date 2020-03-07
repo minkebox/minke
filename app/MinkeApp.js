@@ -1467,7 +1467,7 @@ MinkeApp.startApps = async function(app, config) {
     host: MinkeApp._network.network.ip_address,
     port: config.port || 80
   });
-  //server.keepAliveTimeout = 0;
+  server.keepAliveTimeout = 0;
 
   // Save current config
   await ConfigBackup.save();
