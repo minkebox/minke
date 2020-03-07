@@ -27,9 +27,6 @@ App.use(async (ctx, next) => {
   await next();
   const ms = Date.now() - start;
   ctx.set('X-Response-Time', `${ms}ms`);
-  if (global.gc) {
-    global.gc();
-  }
 });
 
 App.use(CacheControl({ noCache: true }));
