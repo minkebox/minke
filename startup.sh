@@ -11,7 +11,7 @@ echo "servers pool.ntp.org" > /etc/ntpd.conf
 (sleep 60 ; ntpd -s -f /etc/ntpd.conf) &
 
 # Minke
-/app/index.js
+/usr/bin/node --expose-gc /app/index.js
 # Restart if testing (so we can debug inside the docker container)
 while [ -f /tmp/minke-testing ]; do
   /usr/bin/node --expose-gc /app/index.js
