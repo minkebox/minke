@@ -22,6 +22,13 @@ App.on('error', (err) => {
   console.log(err);
 });
 
+App.use(async (ctx, next) => {
+  const start = Date.now();
+  await next();
+  const ms = Date.now() - start;
+  ctx.set('X-Response-Time', `${ms}ms`);
+});
+
 App.use(CacheControl({ noCache: true }));
 
 const root = Router();
