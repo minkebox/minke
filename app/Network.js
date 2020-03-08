@@ -126,7 +126,8 @@ const Network = {
       CheckDuplicate: true,
       Driver: 'bridge',
       Options: {
-        'com.docker.network.bridge.enable_ip_masquerade': 'false'
+        'com.docker.network.bridge.enable_ip_masquerade': 'false',
+        'com.docker.network.driver.mtu': '1400'
       }
     });
   }),
