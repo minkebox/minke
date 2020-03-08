@@ -1,0 +1,185 @@
+{
+  name: `PPTP`,
+  description: `PPTP client to connect to PPTP servers`,
+  image: `registry.minkebox.net/minkebox/pptpclient`,
+  tags: [ 'VPN', 'Security', 'Networking' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Enter your VPN server name`,
+      name: `SERVER`,
+      placeholder: `Server Name`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Enter your VPN username`,
+      name: `USER`,
+      placeholder: `Username`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Enter your VPN password`,
+      name: `PASSWORD`,
+      placeholder: `Password`
+    },
+    {
+      type: `Header`,
+      title: `Advanced`,
+      visible: `property.Advanced`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `PAP`,
+      description: `Enable PAP authentication`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `EAP`,
+      description: `Enable EAP authentication`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `CHAP`,
+      description: `Enable CHAP authentication`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `MSCHAP`,
+      description: `Enable MS-CHAP authentication`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `MPPE`,
+      description: `Enable encryption`
+    }
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `privileged`
+    },
+    {
+      type: `Feature`,
+      name: `vpn`
+    },
+    {
+      type: `Environment`,
+      name: `USER`
+    },
+    {
+      type: `Environment`,
+      name: `PASSWORD`
+    },
+    {
+      type: `Environment`,
+      name: `SERVER`
+    },
+    {
+      type: `Environment`,
+      name: `PAP`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `CHAP`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `EAP`,
+      defaultValue: false
+    },
+    {
+      type: `Environment`,
+      name: `MSCHAP`,
+      defaultValue: true
+    },
+    {
+      type: `Environment`,
+      name: `MPPE`,
+      defaultValue: true
+    },
+    {
+      type: `Directory`,
+      name: `/leases`,
+      style: `boot`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      defaultValue: `__create`
+    }
+  ],
+  monitor: {
+    cmd: `ifconfig ppp0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/"`,
+    polling: 1,
+    parser: `
+      const rxtx = input.split(' ');
+      if (rxtx.length == 2) {
+        const now = Date.now() / 1000;
+        if (!state) {
+          state = {
+            rx: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
+            tx: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
+            last: rxtx,
+            then: now - 1
+          };
+        }
+        let elapse = Math.min(state.rx.length, Math.floor(now - state.then));
+        if (elapse > 5) {
+          for (; elapse > 0; elapse--) {
+            state.rx.shift();
+            state.tx.shift();
+            state.rx.push(0);
+            state.tx.push(0);
+          }
+        }
+        state.rx.shift();
+        state.tx.shift();
+        state.rx.push(Math.max(0, (rxtx[0] - state.last[0]) * 8 / 1000000 / (now - state.then)));
+        state.tx.push(Math.max(0, (rxtx[1] - state.last[1]) * 8 / 1000000 / (now - state.then)));
+        output.rx = state.rx.slice(-1)[0].toFixed(1);
+        output.tx = state.tx.slice(-1)[0].toFixed(1);
+        state.last = rxtx;
+        state.then = now;
+      }
+      output.graph = {
+        traffic: {
+          type: 'line',
+          data: {
+            labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63],
+            datasets: [
+              { label: 'RX', data: state.rx, borderColor: '#88cce7', backgroundColor: '#88cce7', fill: false, pointRadius: 0 },
+              { label: 'TX', data: state.tx, borderColor: '#41b376', backgroundColor: '#41b376', fill: false, pointRadius: 0 }
+            ]
+          },
+          options: {
+            animation: { duration: 0 },
+            maintainAspectRatio: false,
+            adaptive: true,
+            title: { display: true, text: 'Bandwidth (Mb/s)' },
+            scales: {
+              xAxes: [{
+                display: false
+              }],
+              yAxes: [{
+                ticks: { beginAtZero: true }
+              }]
+            }
+          }
+        }
+      };
+    `,
+    minwidth: '400px',
+    template: `{{{graph.traffic}}}`
+  }
+}
