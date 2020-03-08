@@ -3,7 +3,6 @@ const URL = require('url').URL;
 const HTTP = require('http');
 const XMLJS = require('xml-js');
 const UUID = require('uuid/v4');
-const Network = require('./Network');
 
 const URN_WAN = 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
@@ -204,7 +203,7 @@ const UPNP = {
   },
 
   _startProxy: async function() {
-    if (!this._proxyRefresh && (await Network.getActiveInterface()).network.name === 'wlan0') {
+    if (!this._proxyRefresh &&  MinkeApp._network.network.name === 'wlan0') {
       const uuid = UUID();
       const run = async () => {
         if (this._proxy) {
