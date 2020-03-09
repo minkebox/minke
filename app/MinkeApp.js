@@ -948,6 +948,7 @@ MinkeApp.prototype = {
     for (let i = 0; i < images.length && !fail; i++) {
       try {
         await docker.getImage(images[i]).inspect();
+        images[i] = null;
       }
       catch (_) {
         fail = true;
@@ -956,10 +957,11 @@ MinkeApp.prototype = {
     if (fail) {
       for (let i = 0; i < images.length; i++) {
         try {
-          await Pull.updateImage(images[i]);
+          if (images[i]) {
+            await Pull.updateImage(images[i]);
+          }
         }
         catch (_) {
-          console.log(_);
         }
       }
     }
