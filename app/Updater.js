@@ -76,6 +76,32 @@ const Updater = {
     this.start();
   },
 
+  updateApp: async function(app) {
+    let updated = false;
+    try {
+      updated = await Pull.updateImage(Images.withTag(app._image));
+      if (updated) {
+        await Skeletons.updateInternalSkeleton(app._image);
+      }
+      updated |= await Pull.updateImage(Images.withTag(Images.MINKE_HELPER));
+      await Promise.all(app._secondary.map(async secondary => {
+        updated |= await Pull.updateImage(Images.withTag(secondary._image));
+      }));
+    }
+    catch (e) {
+      console.error(e);
+    }
+
+    if (updated) {
+      const skel = await Skeletons.loadSkeleton(app._image, false);
+      if (skel && skel.type != 'local') {
+        app.updateFromSkeleton(skel.skeleton, app.toJSON());
+      }
+    }
+
+    return updated;
+  },
+
   _getApps: function() {
     MinkeApp = MinkeApp || require('./MinkeApp');
     return MinkeApp.getApps();

@@ -13,7 +13,7 @@ const Filesystem = require('./Filesystem');
 const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
-const Pull = require('./Pull');
+const Updater = require('./Updater');
 const Disks = require('./Disks');
 const Skeletons = require('./skeletons/Skeletons');
 const ConfigBackup = require('./ConfigBackup');
@@ -938,32 +938,24 @@ MinkeApp.prototype = {
     return this;
   },
 
-  check: async function() {
+  checkInstalled: async function() {
     const images = [
       Images.withTag(Images.MINKE_HELPER),
       Images.withTag(this._image)
     ];
     this._secondary.forEach(secondary => images.push(Images.withTag(secondary._image)));
+
     let fail = false;
     for (let i = 0; i < images.length && !fail; i++) {
       try {
         await docker.getImage(images[i]).inspect();
-        images[i] = null;
       }
       catch (_) {
         fail = true;
       }
     }
     if (fail) {
-      for (let i = 0; i < images.length; i++) {
-        try {
-          if (images[i]) {
-            await Pull.updateImage(images[i]);
-          }
-        }
-        catch (_) {
-        }
-      }
+      await Updater.updateApp(this);
     }
   },
 
@@ -1565,7 +1557,7 @@ MinkeApp.startApps = async function(app, config) {
   await Promise.all(applications.map(async (app) => {
     try {
       if (app._networks.primary === 'host') {
-        await app.check();
+        await app.checkInstalled();
         await app.start(inheritables[app._id]);
       }
     }
@@ -1577,7 +1569,7 @@ MinkeApp.startApps = async function(app, config) {
   await Promise.all(applications.map(async (app) => {
     try {
       if (app._willCreateNetwork() && app._status === 'stopped') {
-        await app.check();
+        await app.checkInstalled();
         await app.start(inheritables[app._id]);
       }
     }
@@ -1589,7 +1581,7 @@ MinkeApp.startApps = async function(app, config) {
   await Promise.all(applications.map(async (app) => {
     try {
       if (app._status === 'stopped') {
-        await app.check();
+        await app.checkInstalled();
         await app.start(inheritables[app._id]);
       }
     }
