@@ -188,6 +188,14 @@ async function ConfigurePageHTML(ctx) {
             }
             return Object.assign({ value: value }, action, { description: expand(action.description) });
           }
+        case 'ShowFile':
+          {
+            const file = app._files.find(file => file.target === action.name);
+            if (file && app._fs) {
+              app._fs.readFile(file);
+            }
+            return Object.assign({ value: file ? file.data : '' }, action, { description: expand(action.description) });
+          }
         case 'DownloadFile':
           {
             const file = app._files.find(file => file.target === action.name);
