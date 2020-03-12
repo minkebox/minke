@@ -586,7 +586,7 @@ async function ConfigurePageWS(ctx) {
 
         function update(files) {
           const file = files.find(file => file.target == filename)
-          if (file && file.data !== tableValue) {
+          if (file && (file.data !== tableValue || file.altData !== value)) {
             if (tableValue !== null) {
               file.altData = value;
             }
