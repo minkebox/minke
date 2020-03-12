@@ -86,6 +86,11 @@
             <label class="description">{{{description}}}</label>
             <textarea class="can-disable value pure-input-rounded pure-u-16-24" spellcheck="false" oninput="{{action}}">{{value}}</textarea>
           </div>
+          {{else if (eq type "ShowFile")}}
+          <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
+            <label class="description">{{{description}}}</label>
+            <textarea disabled class="value pure-input-rounded pure-u-16-24" spellcheck="false">{{value}}</textarea>
+          </div>
           {{else if (eq type "EditFileAsTable")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
@@ -96,7 +101,7 @@
             <label class="description">{{{description}}}</label>
             {{> DownloadFile}}
           </div>
-          {{else if (eq type "ShowFile")}}
+          {{else if (eq type "ShowFileAsTable")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
             {{> ShowTable}}

@@ -9,7 +9,7 @@
       title: `Active Ports`
     },
     {
-      type: `ShowFile`,
+      type: `ShowFileAsTable`,
       name: `/tmp/active.display`,
       description: `Ports currently active on the firewall`,
       headers: [
@@ -24,7 +24,7 @@
       title: `Inactive Ports`
     },
     {
-      type: `ShowFile`,
+      type: `ShowFileAsTable`,
       name: `/tmp/inactive.display`,
       description: `Any port that once was active on the firewall`,
       headers: [

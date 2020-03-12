@@ -56,7 +56,7 @@
       text: `IP addresses issued and currently active.`
     },
     {
-      type: `ShowFile`,
+      type: `ShowFileAsTable`,
       name: `/etc/dnsmasq-state.d/hosts`,
       description: `Addresses`,
       headers: [

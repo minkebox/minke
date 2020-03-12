@@ -174,7 +174,7 @@ async function ConfigurePageHTML(ctx) {
               value: network
             }, action, { description: expand(action.description) });
           }
-        case 'ShowFile':
+        case 'ShowFileAsTable':
           {
             const file = app._files.find(file => file.target === action.name);
             if (file && app._fs) {
