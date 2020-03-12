@@ -89,7 +89,7 @@
           {{else if (eq type "ShowFile")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
-            <div disabled class="value pure-input-rounded pure-u-16-24">{{value}}</div>
+            <div class="value pure-input-rounded pure-u-16-24">{{value}}</div>
           </div>
           {{else if (eq type "EditFileAsTable")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action file table pure-control-group {{#if visible}}invisible{{/if}}">
@@ -149,6 +149,8 @@
             <label class="description">{{{description}}}</label>
             {{> EditShares}}
           </div>
+          {{else if (eq type "Script")}}
+          <script>(function(){ {{{script}}} })()</script>
           {{else if (eq type "__Disks")}}
           <div class="action disks pure-control-group">
             {{> Disks}}

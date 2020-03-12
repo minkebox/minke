@@ -77,7 +77,7 @@ async function ConfigurePageHTML(ctx) {
     description: expand(skeleton.description),
     actions: skeleton.actions.map((action) => {
       if ('visible' in action || 'enabled' in action) {
-        const id = `x${++nextid}`;
+        const id = action.id || `x${++nextid}`;
         if ('visible' in action) {
           visibles[id] = action.visible;
           action = Object.assign({ id: id }, action);
@@ -88,10 +88,6 @@ async function ConfigurePageHTML(ctx) {
         }
       }
       switch (action.type) {
-        case 'Header':
-          {
-            return action;
-          }
         case 'Text':
           {
             return Object.assign({}, action, { text: expand(action.text) });
@@ -351,6 +347,8 @@ async function ConfigurePageHTML(ctx) {
               })
             };
           }
+        case 'Header':
+        case 'Script':
         case 'Argument':
         default:
           return action;
