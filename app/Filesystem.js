@@ -178,8 +178,8 @@ _Filesystem.prototype = {
     rmAll(Filesystem.getNativePath(this._app._id, 'store', ''));
   },
 
-  saveLogs: function(stdout, stderr) {
-    const root = Filesystem.getNativePath(this._app._id, 'boot', '/logs');
+  saveLogs: function(stdout, stderr, ext) {
+    const root = Filesystem.getNativePath(this._app._id, 'boot', `/logs${ext}`);
     FS.mkdirSync(root, { recursive: true, mode: 0o777 });
     FS.writeFileSync(`${root}/stdout.txt`, stdout);
     FS.writeFileSync(`${root}/stderr.txt`, stderr);

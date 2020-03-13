@@ -854,19 +854,16 @@ MinkeApp.prototype = {
     }
 
     // Log everything
-    await new Promise(async (resolve) => {
+    const getLogs = async (container) => {
       try {
-        if (!this._container) {
-          resolve();
-        }
-        else {
-          const log = await this._container.logs({
-            follow: true,
-            stdout: true,
-            stderr: true
-          });
-          let outlog = '';
-          let errlog = '';
+        const log = await container.logs({
+          follow: true,
+          stdout: true,
+          stderr: true
+        });
+        let outlog = '';
+        let errlog = '';
+        return new Promise(resolve => {
           docker.modem.demuxStream(log,
             {
               write: (chunk) => {
@@ -880,16 +877,25 @@ MinkeApp.prototype = {
             }
           );
           log.on('end', () => {
-            this._fs.saveLogs(outlog, errlog);
-            resolve();
+            resolve({ out: outlog, err: errlog });
           });
-        }
+        });
       }
-      catch (e) {
-        console.error(e);
-        resolve();
+      catch (_) {
+        return { out: '', err: '' };
       }
-    });
+    }
+
+    if (this._container) {
+      const logs = await getLogs(this._container);
+      this._fs.saveLogs(logs.out, logs.err, '');
+    }
+    if (this._secondaryContainers) {
+      await Promise.all(this._secondaryContainers.map(async (container, idx) => {
+        const logs = await getLogs(container);
+        this._fs.saveLogs(logs.out, logs.err, `_${idx}`);
+      }));
+    }
 
     this._unmonitorHelper();
 
