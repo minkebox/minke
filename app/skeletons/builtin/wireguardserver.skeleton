@@ -1,6 +1,6 @@
 {
-  name: `Wireguard`,
-  description: `Fast, Modern, Secure VPN Tunnel`,
+  name: `Wireguard Server`,
+  description: `Fast, Modern, Secure VPN Tunnel Server`,
   image: `registry.minkebox.net/minkebox/wireguardserver`,
   tags: [ 'VPN', 'Security', 'Networking' ],
   actions: [
