@@ -313,6 +313,10 @@ MinkeApp.prototype = {
     try {
       this._setStatus('starting');
 
+      if (this._features.vpn) {
+        MinkeApp.emit('net.create', { app: this });
+      }
+
       this._bootcount++;
       this._needRestart = false;
 
@@ -757,10 +761,6 @@ MinkeApp.prototype = {
       this._startTime = Date.now();
 
       this._setStatus('running');
-
-      if (this._features.vpn) {
-        MinkeApp.emit('net.create', { app: this });
-      }
     }
     catch (e) {
       // Startup failed for some reason, so attempt to shutdown and cleanup.
