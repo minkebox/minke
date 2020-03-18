@@ -25,7 +25,6 @@ const HELPER_STARTUP_TIMEOUT = (30 * 1000) // 30 seconds
 
 let applications = [];
 let koaApp = null;
-let networkApps = [];
 let setup = null;
 
 function MinkeApp() {
@@ -313,7 +312,7 @@ MinkeApp.prototype = {
     try {
       this._setStatus('starting');
 
-      if (this._features.vpn) {
+      if (this._willCreateNetwork()) {
         MinkeApp.emit('net.create', { app: this });
       }
 
@@ -924,7 +923,7 @@ MinkeApp.prototype = {
 
     this._setStatus('stopped');
 
-    if (this._features.vpn) {
+    if (this._willCreateNetwork()) {
       MinkeApp.emit('net.create', { app: this });
     }
 
@@ -969,10 +968,6 @@ MinkeApp.prototype = {
     const idx = applications.indexOf(this);
     if (idx !== -1) {
       applications.splice(idx, 1);
-      const nidx = networkApps.indexOf(this);
-      if (nidx !== -1) {
-        networkApps.splice(nidx, 1);
-      }
     }
     if (this.isRunning()) {
       await this.stop();
@@ -991,9 +986,7 @@ MinkeApp.prototype = {
   },
 
   getAvailableNetworks: function() {
-    return [ { _id: 'home', name: 'home' } ].concat(networkApps.map((app) => {
-      return (app && app._willCreateNetwork()) || (app === this && this._features.vpn) ? { _id: app._id, name: app._name } : null;
-    }));
+    return MinkeApp.getNetworks();
   },
 
   getAvailableShareables: function() {
@@ -1457,13 +1450,7 @@ MinkeApp.startApps = async function(app, config) {
   applications = (await Database.getApps()).map((json) => {
     return new MinkeApp().createFromJSON(json);
   });
-  // And networks
-  networkApps = applications.reduce((acc, app) => {
-    if (app._features.vpn) {
-      acc.push(app);
-    }
-    return acc;
-  }, []);
+
   // Setup at the top. We load this now rather than at the top of the file because it will attempt to load us
   // recursively (which won't work).
   const MinkeSetup = require('./MinkeSetup');
@@ -1630,8 +1617,7 @@ MinkeApp.shutdown = async function(config) {
 MinkeApp.create = async function(image) {
   const app = new MinkeApp().createFromSkeleton((await Skeletons.loadSkeleton(image, true)).skeleton);
   applications.push(app);
-  if (app._features.vpn) {
-    networkApps.push(app);
+  if (app._willCreateNetwork()) {
     MinkeApp.emit('net.create', { app: app });
   }
   await app.save();
@@ -1649,17 +1635,18 @@ MinkeApp.getAppById = function(id) {
 }
 
 MinkeApp.getNetworks = function() {
-  return [ { _id: 'home', name: 'home' } ].concat(networkApps.reduce((acc, app) => {
-    if (app && app._willCreateNetwork()) {
-      acc.push({ _id: app._id, name: app._name });
+  const networks = [ { _id: 'home', name: 'home' } ];
+  applications.forEach(app => {
+    if (app._willCreateNetwork()) {
+      networks.push({ _id: app._id, name: app._name });
     }
-    return acc;
-  }, []));
+  });
+  return networks;
 }
 
 MinkeApp.getTags = function() {
   const tags = [];
-  MinkeApp.getApps().forEach(app => {
+  applications.forEach(app => {
     app._tags.forEach(tag => {
       if (tag !== 'All' && tags.indexOf(tag) === -1) {
         tags.push(tag);
