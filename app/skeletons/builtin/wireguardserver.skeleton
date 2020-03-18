@@ -37,11 +37,6 @@
       title: `Clients`
     },
     {
-      type: `EditEnvironmentAsCheckBox`,
-      name: `INTERNET_ONLY`,
-      description: `Clients can <b>only</b> access the Internet`
-    },
-    {
       type: `Text`,
       text: `Add clients to the tables below. Each entry will be auto-populated with an ID (between 2 and 250) and a public/private keypair. You can edit these if you wish.  Selecting an entry will show the associated configuration as text and a QR code.`
     },
@@ -58,6 +53,11 @@
       pattern: `{{1}}#{{2}}`,
       controls: true,
       id: 'wgc'
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `INTERNET_ONLY`,
+      description: `Clients can <b>only</b> access the Internet`
     },
     {
       type: `Header`,
