@@ -50,7 +50,8 @@ to change this to a fixed IP address. Any change to the network configuration re
     {
       type: 'Header',
       title: 'Wifi',
-      visible: 'property.WifiAvailable'
+      visible: 'property.WifiAvailable',
+      enabled: `property['EditEnvironmentAsCheckbox#DHCP'] == 'false'`
     },
     {
       type: 'Help',
@@ -58,7 +59,7 @@ to change this to a fixed IP address. Any change to the network configuration re
 you can switch to using Wi-Fi if your host hardware supports it. A switch to Wi-Fi won't take effect until you reboot.
 If changing to Wi-Fi fails for some reason (perhaps your network password was entered incorrectly), you can reconnect using the ethernet connection
 which is given the recovery address of <b>192.168.1.200</b>.
-<p/>Wi-Fi support is experimental.`
+<p/>Wi-Fi support is experimental and only available with a fixed IP address.`
     },
     {
       type: 'Text',
