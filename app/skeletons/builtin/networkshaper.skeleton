@@ -24,7 +24,12 @@
       type: `EditEnvironment`,
       name: `OUT_TO_IN`,
       description: `Maximum bandwidth in from target network (Kb/s)`
-    }
+    },
+     {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `INTERNET_ONLY`,
+      description: `Clients can <b>only</b> access the Internet`
+    },
   ],
   properties: [
     {
@@ -38,6 +43,11 @@
     {
       type: `Environment`,
       name: `OUT_TO_IN`
+    },
+    {
+      type: `Environment`,
+      name: `INTERNET_ONLY`,
+      defaultValue: false
     },
     {
       type: `Network`,
