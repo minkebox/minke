@@ -367,9 +367,11 @@ MinkeApp.prototype = {
           break;
         case 'home':
           configEnv.push(`__HOME_INTERFACE=eth${netid++}`);
+          configEnv.push(`__PRIMARY_INTERFACE=eth${netid}`);
           break;
         case 'host':
           configEnv.push(`__HOST_INTERFACE=eth${netid++}`);
+          configEnv.push(`__PRIMARY_INTERFACE=eth${netid}`);
           break;
         default:
           if (primary === this._id) {
@@ -378,6 +380,7 @@ MinkeApp.prototype = {
           else {
             configEnv.push(`__PRIVATE_INTERFACE=eth${netid++}`);
           }
+          configEnv.push(`__PRIMARY_INTERFACE=eth${netid}`);
           break;
       }
       switch (secondary) {
@@ -385,9 +388,11 @@ MinkeApp.prototype = {
           break;
         case 'home':
           configEnv.push(`__HOME_INTERFACE=eth${netid++}`);
+          configEnv.push(`__SECONDARY_INTERFACE=eth${netid}`);
           break;
         default:
           configEnv.push(`__PRIVATE_INTERFACE=eth${netid++}`);
+          configEnv.push(`__SECONDARY_INTERFACE=eth${netid}`);
           break;
       }
 
