@@ -466,7 +466,6 @@ MinkeApp.prototype = {
           PathInContainer: '/dev/net/tun',
           CgroupPermissions: 'rwm'
         });
-        config.HostConfig.Sysctls["net.ipv4.ip_forward"] = "1";
       }
 
       if (this._features.privileged) {
@@ -488,6 +487,10 @@ MinkeApp.prototype = {
             config.HostConfig.CapDrop.push(cap.substring(1));
           }
         });
+
+      if (this._features.vpn || this._willCreateNetwork()) {
+        config.HostConfig.Sysctls["net.ipv4.ip_forward"] = "1";
+      }
 
       if (primary !== 'host') {
 
