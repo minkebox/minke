@@ -28,7 +28,7 @@ function genApp(app) {
     _id: app._id,
     name: app._name,
     status: app._status,
-    ip: app._status !== 'running' ? null : (app._homeIP || app._privateIP),
+    ip: app._status !== 'running' ? null : app._defaultIP,
     link: link.url,
     linktarget: link.target,
     tags: app._tags,

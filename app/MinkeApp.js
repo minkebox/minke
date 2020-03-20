@@ -75,6 +75,13 @@ MinkeApp.prototype = {
       this._tags = [ 'All' ];
     }
 
+      // FIXUP
+      if (!this._networks.secondary) {
+        this._networks.secondary = 'none';
+        this.save();
+      }
+      // FIXUP
+
     this._setStatus('stopped');
 
     return this;
@@ -136,17 +143,39 @@ MinkeApp.prototype = {
 
     this._description = skel.description;
     this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue;
-    this._networks = skel.properties.reduce((r, prop) => {
+
+    this._networks = {
+      primary: 'none',
+      secondary: 'none'
+    };
+    skel.properties.forEach(prop => {
       if (prop.type === 'Network') {
-        if (defs.networks && prop.name in defs.networks) {
-          r[prop.name] = defs.networks[prop.name];
+        if (defs.networks && defs.networks[prop.name]) {
+          this._networks[prop.name] = defs.networks[prop.name];
         }
-        else {
-          r[prop.name] = (prop.defaultValue === '__create' ? this._id : prop.defaultValue) || 'none';
+        else if (prop.defaultValue === '__create') {
+          this._networks[prop.name] = this._id;
+        }
+        else if (prop.defaultValue) {
+          this._networks[prop.name] = prop.defaultValue;
         }
       }
-      return r;
-    }, {});
+    });
+    // Any created network must be secondary
+    if (this._networks.primary === this._id) {
+      this._networks.primary = this._networks.secondary;
+      this._networks.secondary = this._id;
+    }
+    // If we only have one network, must be primary
+    if (this._networks.primary === 'none') {
+      this._networks.primary = secondary;
+      this._networks.secondary = 'none';
+    }
+    // Remove duplicate secondary
+    if (this._networks.primary === this._networks.secondary) {
+      this._networks.secondary = 'none';
+    }
+
     this._parseProperties(this, '', skel.properties, defs);
     if (skel.secondary) {
       this._secondary = skel.secondary.map((secondary, idx) => {
@@ -348,55 +377,39 @@ MinkeApp.prototype = {
       const configEnv = [];
 
       // Create network environment
-      let netid = 0;
-      let primary = this._networks.primary || 'none';
-      let secondary = this._networks.secondary || 'none';
-      if (primary === 'none') {
-        primary = secondary;
-        secondary = 'none';
+      const netEnv = {};
+      if (this._networks.primary !== 'none') {
+        switch (this._networks.primary) {
+          case 'home':
+            netEnv.DHCP_INTERFACE = 0;
+            netEnv.NAT_INTERFACE = 0;
+            netEnv.DEFAULT_INTERFACE = 0;
+            break;
+          case 'host':
+            netEnv.DEFAULT_INTERFACE = 0;
+            break;
+          default:
+            netEnv.INTERNAL_INTERFACE = 0;
+            netEnv.DEFAULT_INTERFACE = 0;
+            break;
+        }
+        if (this._networks.secondary !== 'none') {
+          switch (this._networks.secondary) {
+            case 'home':
+              netEnv.DHCP_INTERFACE = 1;
+              netEnv.NAT_INTERFACE = 1;
+              break;
+            default:
+              netEnv.INTERNAL_INTERFACE = 1;
+              break;
+          }
+        }
       }
-      if (primary === 'host' && !MinkeApp._container) {
-        primary = 'home';
-      }
-      if (primary === secondary) {
-        secondary = 'none';
+      for (let eth in netEnv) {
+        configEnv.push(`__${eth}=eth${netEnv[eth]}`);
       }
 
-      switch (primary) {
-        case 'none':
-          break;
-        case 'home':
-          configEnv.push(`__HOME_INTERFACE=eth${netid++}`);
-          configEnv.push(`__PRIMARY_INTERFACE=eth${netid}`);
-          break;
-        case 'host':
-          configEnv.push(`__HOST_INTERFACE=eth${netid++}`);
-          configEnv.push(`__PRIMARY_INTERFACE=eth${netid}`);
-          break;
-        default:
-          if (primary === this._id) {
-            console.error('Cannot create a VPN as primary network');
-          }
-          else {
-            configEnv.push(`__PRIVATE_INTERFACE=eth${netid++}`);
-          }
-          configEnv.push(`__PRIMARY_INTERFACE=eth${netid}`);
-          break;
-      }
-      switch (secondary) {
-        case 'none':
-          break;
-        case 'home':
-          configEnv.push(`__HOME_INTERFACE=eth${netid++}`);
-          configEnv.push(`__SECONDARY_INTERFACE=eth${netid}`);
-          break;
-        default:
-          configEnv.push(`__PRIVATE_INTERFACE=eth${netid++}`);
-          configEnv.push(`__SECONDARY_INTERFACE=eth${netid}`);
-          break;
-      }
-
-      switch (primary) {
+      switch (this._networks.primary) {
         case 'none':
           config.HostConfig.NetworkMode = 'none';
           break;
@@ -422,6 +435,7 @@ MinkeApp.prototype = {
           config.HostConfig.NetworkMode = `container:${MinkeApp._container.id}`;
           config.Hostname = null;
           this._homeIP = MinkeApp._network.network.ip_address;
+          this._defaultIP = this._homeIP;
           configEnv.push(`__DNSSERVER=${this._homeIP}`);
           configEnv.push(`__GATEWAY=${MinkeApp._network.network.gateway_ip}`);
           configEnv.push(`__HOSTIP=${this._homeIP}`);
@@ -433,7 +447,7 @@ MinkeApp.prototype = {
           // If we're using a private network as primary, then we also select the X.X.X.2
           // address as both the default gateway and the dns server. The server at X.X.X.2
           // should be the creator (e.g. VPN client/server) for this network.
-          const vpn = await Network.getPrivateNetwork(primary);
+          const vpn = await Network.getPrivateNetwork(this._networks.primary);
           config.HostConfig.NetworkMode = vpn.id;
           const dns = vpn.info.IPAM.Config[0].Gateway.replace(/\.\d$/,'.2');
           configEnv.push(`__DNSSERVER=${dns}`);
@@ -443,24 +457,12 @@ MinkeApp.prototype = {
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
           // When we start a new app which is attached to a private network, we must restart the
           // private network so it can inform the peer about the new app.
-          const napp = MinkeApp.getAppById(primary);
+          const napp = MinkeApp.getAppById(this._networks.primary);
           if (napp && napp._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
             napp._needRestart = true;
           }
           break;
         }
-      }
-      switch (secondary) {
-        case 'none':
-        case 'home':
-          break;
-        default:
-          if (this._willCreateNetwork()) {
-            const vpn = await Network.getPrivateNetwork(secondary);
-            const ip = vpn.info.IPAM.Config[0].Gateway.replace(/\.\d$/,'.2');
-            configEnv.push(`__PRIVATE_INTERFACE_IP=${ip}`);
-          }
-          break;
       }
 
       configEnv.push(`__GLOBALID=${this._globalId}`);
@@ -497,7 +499,7 @@ MinkeApp.prototype = {
         config.HostConfig.Sysctls["net.ipv4.ip_forward"] = "1";
       }
 
-      if (primary !== 'host') {
+      if (this._networks.primary !== 'host') {
 
         const helperConfig = {
           name: `helper-${this._safeName()}__${this._id}`,
@@ -515,8 +517,7 @@ MinkeApp.prototype = {
           Env: Object.keys(this._env).map(key => `${key}=${this.expandEnv(this._env[key].value)}`).concat(configEnv)
         };
 
-        if (primary === 'home' || secondary === 'home') {
-          helperConfig.Env.push('ENABLE_DHCP=1');
+        if (this._networks.primary === 'home' || this._networks.secondary === 'home') {
           const ip6 = this.getSLAACAddress();
           if (ip6) {
             helperConfig.Env.push(`__HOSTIP6=${ip6}`);
@@ -558,11 +559,18 @@ MinkeApp.prototype = {
         config.MacAddress = null;
 
         if (inherit.helperContainer !== this._helperContainer) {
-          await this._helperContainer.start();
+          try {
+            await this._helperContainer.start();
+          }
+          catch (e) {
+            console.error('Error starting helper');
+            console.error(e);
+            throw e;
+          }
 
           // Attach new helper to secondary network if necessary
-          if (primary != 'none') {
-            switch (secondary) {
+          if (this._networks.primary != 'none') {
+            switch (this._networks.secondary) {
               case 'none':
                 break;
               case 'home':
@@ -576,13 +584,14 @@ MinkeApp.prototype = {
                 catch (e) {
                   // Sometimes we get an error setting up the gateway, but we don't want it to set the gateway anyway so it's safe
                   // to ignore.
+                  console.error('Error connecting home network');
                   console.error(e);
                 }
                 break;
               }
               default:
               {
-                const vpn = await Network.getPrivateNetwork(secondary);
+                const vpn = await Network.getPrivateNetwork(this._networks.secondary);
                 try {
                   await vpn.connect({
                     Container: this._helperContainer.id
@@ -591,6 +600,7 @@ MinkeApp.prototype = {
                 catch (e) {
                   // Sometimes we get an error setting up the gateway, but we don't want it to set the gateway anyway so it's safe
                   // to ignore.
+                  console.error('Error connecting private network');
                   console.error(e);
                 }
                 break;
@@ -620,10 +630,8 @@ MinkeApp.prototype = {
 
       }
 
-      const ipAddr = this._homeIP || this._privateIP;
-      if (ipAddr) {
-
-        const ports = this._ports.map(port => this.expandPort(port));
+      const ports = this._ports.map(port => this.expandPort(port));
+      if (this._defaultIP) {
         const webport = ports.find(port => port.web);
         if (webport) {
           let web = webport.web;
@@ -643,7 +651,7 @@ MinkeApp.prototype = {
             }
           }
           else {
-            this._forward = HTTP.createForward({ prefix: `/a/${this._id}`, IP4Address: ipAddr, port: webport.port, path: web.path });
+            this._forward = HTTP.createForward({ prefix: `/a/${this._id}`, IP4Address: this._defaultIP, port: webport.port, path: web.path });
           }
           if (this._forward.http) {
             koaApp.use(this._forward.http);
@@ -652,33 +660,32 @@ MinkeApp.prototype = {
             koaApp.ws.use(this._forward.ws);
           }
         }
+      }
 
+      if (this._homeIP) {
         const dnsport = ports.find(port => port.dns);
         if (dnsport) {
-          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: ipAddr, port: dnsport.port, options: typeof dnsport.dns === 'object' ? dnsport.dns : null });
+          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: this._homeIP, port: dnsport.port, options: typeof dnsport.dns === 'object' ? dnsport.dns : null });
         }
+      }
 
-        this._mdnsRecords = [];
-        this._netRecords = [];
-        if (ports.length) {
-          if (primary === 'home' && secondary === 'none') {
-            await Promise.all(ports.map(async (port) => {
-              if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
-                this._mdnsRecords.push(await MDNS.addRecord({
-                  hostname: this._safeName(),
-                  domainname: 'local',
-                  ip: ipAddr,
-                  port: port.port,
-                  service: port.mdns.type,
-                  txt: !port.mdns.txt ? [] : Object.keys(port.mdns.txt).map((key) => {
-                    return `${key}=${port.mdns.txt[key]}`;
-                  })
-                }));
-              }
+      this._mdnsRecords = [];
+      this._netRecords = [];
+      if (this._homeIP) {
+        await Promise.all(ports.map(async (port) => {
+          if (port.mdns && port.mdns.type && port.mdns.type.split('.')[0]) {
+            this._mdnsRecords.push(await MDNS.addRecord({
+              hostname: this._safeName(),
+              domainname: 'local',
+              ip: this._homeIP,
+              port: port.port,
+              service: port.mdns.type,
+              txt: !port.mdns.txt ? [] : Object.keys(port.mdns.txt).map((key) => {
+                return `${key}=${port.mdns.txt[key]}`;
+              })
             }));
           }
-        }
-
+        }));
       }
 
       config.Env = Object.keys(this._env).map(key => `${key}=${this.expandEnv(this._env[key].value)}`).concat(configEnv);
@@ -830,7 +837,6 @@ MinkeApp.prototype = {
       Network.unregisterIP(this._homeIP);
       this._homeIP = null;
     }
-    this._privateIP = null;
 
     // Stop everything
     if (this._secondaryContainers) {
@@ -896,6 +902,10 @@ MinkeApp.prototype = {
     if (this._container) {
       const logs = await getLogs(this._container);
       this._fs.saveLogs(logs.out, logs.err, '');
+    }
+    if (this._helperContainer) {
+      const logs = await getLogs(this._helperContainer);
+      this._fs.saveLogs(logs.out, logs.err, '_helper');
     }
     if (this._secondaryContainers) {
       await Promise.all(this._secondaryContainers.map(async (container, idx) => {
@@ -1212,13 +1222,13 @@ MinkeApp.prototype = {
       docker.modem.demuxStream(this._helperLog, {
         write: (data) => {
           data = data.toString('utf8');
-          let idx = data.indexOf('MINKE:HOME:IP ');
+          let idx = data.indexOf('MINKE:DHCP:IP ');
           if (idx !== -1) {
-            this._homeIP = data.replace(/.*MINKE:HOME:IP (.*)\n.*/, '$1');
+            this._homeIP = data.replace(/.*MINKE:DHCP:IP (.*)\n.*/, '$1');
           }
-          idx = data.indexOf('MINKE:PRIVATE:IP ');
+          idx = data.indexOf('MINKE:DEFAULT:IP ');
           if (idx !== -1) {
-            this._privateIP = data.replace(/.*MINKE:PRIVATE:IP (.*)\n.*/, '$1');
+            this._defaultIP = data.replace(/.*MINKE:DEFAULT:IP (.*)\n.*/, '$1');
           }
           idx = data.indexOf('MINKE:REMOTE:IP ');
           if (idx !== -1) {
