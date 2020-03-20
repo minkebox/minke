@@ -396,10 +396,12 @@ MinkeApp.prototype = {
         if (this._networks.secondary !== 'none') {
           switch (this._networks.secondary) {
             case 'home':
+              netEnv.SECONDARY_INTERFACE = 1;
               netEnv.DHCP_INTERFACE = 1;
               netEnv.NAT_INTERFACE = 1;
               break;
             default:
+              netEnv.SECONDARY_INTERFACE = 1;
               netEnv.INTERNAL_INTERFACE = 1;
               break;
           }
