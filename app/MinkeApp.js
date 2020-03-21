@@ -1605,7 +1605,9 @@ MinkeApp.getStartupOrder = function() {
   const networks = {
     none: true, host: true, home: true
   };
-  while (list.length) {
+  let len;
+  do {
+    len = list.length;
     let i = 0;
     while (i < list.length) {
       const app = list[i];
@@ -1620,7 +1622,9 @@ MinkeApp.getStartupOrder = function() {
         i++;
       }
     }
-  }
+  } while (list.length < len);
+  // Repeat as long as the list gets shorted. Once it stops we either have ordered everything, or somehow have applications
+  // which are dependent on things that don't exist. Let's not start those.
 
   return order;
 }
