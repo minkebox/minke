@@ -75,13 +75,6 @@ MinkeApp.prototype = {
       this._tags = [ 'All' ];
     }
 
-      // FIXUP
-      if (!this._networks.secondary) {
-        this._networks.secondary = 'none';
-        this.save();
-      }
-      // FIXUP
-
     this._setStatus('stopped');
 
     return this;
@@ -1566,33 +1559,11 @@ MinkeApp.startApps = async function(app, config) {
 
   await setup.start();
 
-  // Start up any Host network servers.
-  await Promise.all(applications.map(async (app) => {
+  // Startup applications in order
+  const order = MinkeApp.getStartupOrder();
+  for (let i = 0; i < order.length; i++) {
     try {
-      if (app._networks.primary === 'host') {
-        await app.checkInstalled();
-        await app.start(inheritables[app._id]);
-      }
-    }
-    catch (e) {
-      console.error(e);
-    }
-  }));
-  // Start up any VPNs. We want them to claim the lowest IP on their networks.
-  await Promise.all(applications.map(async (app) => {
-    try {
-      if (app._willCreateNetwork() && app._status === 'stopped') {
-        await app.checkInstalled();
-        await app.start(inheritables[app._id]);
-      }
-    }
-    catch (e) {
-      console.error(e);
-    }
-  }));
-  // Then the rest
-  await Promise.all(applications.map(async (app) => {
-    try {
+      const app = order[i];
       if (app._status === 'stopped') {
         await app.checkInstalled();
         await app.start(inheritables[app._id]);
@@ -1601,7 +1572,8 @@ MinkeApp.startApps = async function(app, config) {
     catch (e) {
       console.error(e);
     }
-  }));
+  }
+
   // Restart any apps which have been marked
   await Promise.all(MinkeApp.needRestart().map(async (app) => {
     try {
@@ -1611,6 +1583,46 @@ MinkeApp.startApps = async function(app, config) {
       console.error(e);
     }
   }));
+}
+
+MinkeApp.getStartupOrder = function() {
+  const order = [];
+  const list = [].concat(applications);
+
+  // Start with all the 'host' applications.
+  for (let i = 0; i < list.length; ) {
+    if (list[i]._networks.primary === 'host' && list[i]._networks.secondary === 'none') {
+      order.push(list[i]);
+      list.splice(i, 1);
+    }
+    else {
+      i++;
+    }
+  }
+
+  // Now with the base networks (or none), add applications which depend on already existing networks.
+  // If apps create networks, they are added after any neworks they depend on.
+  const networks = {
+    none: true, host: true, home: true
+  };
+  while (list.length) {
+    let i = 0;
+    while (i < list.length) {
+      const app = list[i];
+      if ((networks[app._networks.primary] || app._networks.primary === app._id) &&
+          (networks[app._networks.secondary] || app._networks.secondary === app._id)) {
+        networks[app._networks.primary] = true;
+        networks[app._networks.secondary] = true;
+        order.push(app);
+        list.splice(i, 1);
+      }
+      else {
+        i++;
+      }
+    }
+  }
+
+  return order;
 }
 
 MinkeApp.getAdvancedMode = function() {

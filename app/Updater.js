@@ -20,43 +20,31 @@ const Updater = {
           await this._pruneNetworks();
           await this._pruneImages();
           const updated = await this._updateImages();
+
           let updateMinke = null;
-          for (let i = 0; i < updated.length; i++) {
-            try {
-              const app = updated[i];
-              if (app._willCreateNetwork()) {
-                const skel = await Skeletons.loadSkeleton(app._image, false);
-                if (skel && skel.type != 'local') {
-                  app.updateFromSkeleton(skel.skeleton, app.toJSON());
-                }
-                await app.restart('update');
-              }
-            }
-            catch (e) {
-              console.error(e);
-            }
-          }
-          for (let i = 0; i < updated.length; i++) {
-            try {
-              const app = updated[i];
-              if (!app._willCreateNetwork()) {
-                if (app._image !== Images.MINKE) {
+          const order = Updater._getRestartOrder();
+          for (let i = 0; i < order.length; i++) {
+            const app = order[i];
+            if (updated.indexOf(app) !== -1) {
+              if (app._image !== Images.MINKE) {
+                try {
                   const skel = await Skeletons.loadSkeleton(app._image, false);
                   if (skel && skel.type != 'local') {
                     app.updateFromSkeleton(skel.skeleton, app.toJSON());
                   }
                   await app.restart('update');
                 }
-                else {
-                  // Leave to the end
-                  updateMinke = app;
+                catch (e) {
+                  console.error(e);
                 }
               }
-            }
-            catch (e) {
-              console.error(e);
+              else {
+                // Leave to the end
+                updateMinke = app;
+              }
             }
           }
+
           if (this._checkNativeUpdates()) {
             this._getApps().find(app => app._image === Images.MINKE).restart('update-native');
           }
@@ -115,6 +103,11 @@ const Updater = {
   _getApps: function() {
     MinkeApp = MinkeApp || require('./MinkeApp');
     return MinkeApp.getApps();
+  },
+
+  _getRestartOrder: function() {
+    MinkeApp = MinkeApp || require('./MinkeApp');
+    return MinkeApp.getStartupOrder();
   },
 
   _updateImages: async function() {
