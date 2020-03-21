@@ -62,23 +62,7 @@ const DDNS = {
           else {
             Object.keys(this._gids).forEach(gid => {
               const entry = this._gids[gid];
-              const primary = entry.app._networks.primary;
-              let ip = null;
-              switch (primary) {
-                case 'none':
-                  break;
-                case 'home':
-                case 'host':
-                  ip = eip;
-                  break;
-                default:
-                  MinkeApp = MinkeApp || require('./MinkeApp');
-                  const napp = MinkeApp.getAppById(primary);
-                  if (napp) {
-                    ip = napp._remoteIP;
-                  }
-                  break;
-              }
+              const ip = entry.app._remoteIP || eip;
               const ip6 = entry.app.getNATIP6() ? entry.app.getSLAACAddress() : null;
               if (ip != entry.lastIP || ip6 != entry.lastIP6) {
                 if (ip) {

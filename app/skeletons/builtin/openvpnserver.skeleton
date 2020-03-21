@@ -84,7 +84,7 @@ using Wi-Fi; use "tun" in this case.`,
     },
     {
       type: `Feature`,
-      name: `vpn`
+      name: `tuntap`
     },
     {
       type: `Feature`,

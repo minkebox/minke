@@ -94,11 +94,8 @@ async function imageToSkeleton(image) {
       Object.keys(info.ContainerConfig.ExposedPorts || {}).find(key => key === '53/udp') ? [
         { type: 'Feature', name: 'dns' }
       ] : [],
-      Object.keys(info.ContainerConfig.ExposedPorts || {}).find(key => key === '67/udp') ? [
-        { type: 'Feature', name: 'dhcp' }
-      ] : [],
       Object.keys(info.ContainerConfig.Volumes || {}).find(key => key === '/etc/openvpn') ? [
-        { type: 'Feature', name: 'vpn' }
+        { type: 'Feature', name: 'tuntap' }
       ] : [],
       // Directories
       Object.keys(info.ContainerConfig.Volumes || {}).map((key) => {

@@ -382,6 +382,7 @@ MinkeApp.prototype = {
             netEnv.DEFAULT_INTERFACE = 0;
             break;
           default:
+            netEnv.NAT_INTERFACE = 0;
             netEnv.INTERNAL_INTERFACE = 0;
             netEnv.DEFAULT_INTERFACE = 0;
             break;
@@ -462,7 +463,7 @@ MinkeApp.prototype = {
 
       configEnv.push(`__GLOBALID=${this._globalId}`);
 
-      if (this._features.vpn) {
+      if (this._features.tuntap) {
         config.HostConfig.Devices.push({
           PathOnHost: '/dev/net/tun',
           PathInContainer: '/dev/net/tun',
@@ -490,10 +491,6 @@ MinkeApp.prototype = {
           }
         });
 
-      if (this._features.vpn || this._willCreateNetwork()) {
-        config.HostConfig.Sysctls["net.ipv4.ip_forward"] = "1";
-      }
-
       if (this._networks.primary !== 'host') {
 
         const helperConfig = {
@@ -506,7 +503,8 @@ MinkeApp.prototype = {
             ExtraHosts: config.HostConfig.ExtraHosts,
             Dns: config.HostConfig.Dns,
             DnsSearch: config.HostConfig.DnsSearch,
-            DnsOptions: config.HostConfig.DnsOptions
+            DnsOptions: config.HostConfig.DnsOptions,
+            Sysctls: {}
           },
           MacAddress: config.MacAddress,
           Env: Object.keys(this._env).map(key => `${key}=${this.expandEnv(this._env[key].value)}`).concat(configEnv)
@@ -519,23 +517,28 @@ MinkeApp.prototype = {
           }
         }
 
-        this._ddns = this._features.ddns || false;
-        if (this._ports.length) {
-          const nat = this._ports.reduce((acc, port) => {
-            port = this.expandPort(port);
-            if (port.nat) {
-              acc.push(`${port.port}:${port.protocol}`);
-            }
-            return acc;
-          }, []);
-          if (nat.length) {
-            helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
-            this._ddns = true;
-          }
+        if (this._willCreateNetwork()) {
+          helperConfig.HostConfig.Sysctls["net.ipv4.ip_forward"] = "1";
         }
 
-        if (this._features.vpn) {
-          helperConfig.Env.push(`FETCH_REMOTE_IP=tun`);
+        this._ddns = this._features.ddns || false;
+        const nat = this._ports.reduce((acc, port) => {
+          port = this.expandPort(port);
+          if (port.nat) {
+            acc.push(`${port.port}:${port.protocol}`);
+          }
+          return acc;
+        }, []);
+        if (nat.length) {
+          helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
+          this._ddns = true;
+
+          // If we're opening the NAT, and we're not on the home network, we need to find
+          // the actual remote endpoint so we can create global network addresses.
+          if ((netEnv.NAT_INTERFACE === 0 && this._networks.primary != 'home') ||
+              (netEnv.NAT_INTERFACE === 1 && this._networks.secondary != 'home')) {
+            helperConfig.Env.push(`FETCH_REMOTE_IP=true`);
+          }
         }
 
         if (inherit.helperContainer) {

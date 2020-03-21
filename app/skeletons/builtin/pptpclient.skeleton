@@ -63,10 +63,6 @@
       name: `privileged`
     },
     {
-      type: `Feature`,
-      name: `vpn`
-    },
-    {
       type: `Environment`,
       name: `USER`
     },

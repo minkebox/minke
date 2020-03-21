@@ -29,7 +29,7 @@
     },
     {
       type: `Feature`,
-      name: `vpn`
+      name: `tuntap`
     },
     {
       type: `Environment`,
