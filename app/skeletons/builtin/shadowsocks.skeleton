@@ -83,9 +83,12 @@
         const meth = document.querySelector('#meth select');
         const globalname = document.querySelector('#gn').innerText;
         setInterval(function() {
-          ss.innerHTML = '<b>ss://' + btoa(
+          const uri = '<b>ss://' + btoa(
             meth.value + ':' + pass.value + '@' + globalname + ':' + port.value
           ) + '</b>';
+          if (uri != ss.innerHTML) {
+            ss.innerHTML = uri;
+          }
         }, 1000);`
     },
     {
