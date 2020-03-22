@@ -339,7 +339,7 @@ document.addEventListener('drop', function(event) {
           try {
             let skel;
             eval(`skel=${content}`);
-            if (('name' in skel) && ('image' in skel) && ('properties' in skel)) {
+            if (('name' in skel) && (('image' in skel) || ('images' in skel)) && ('properties' in skel)) {
               cmd('skeleton.drop', content);
             }
           }
