@@ -1,0 +1,147 @@
+{
+  name: `Shadowsocks`,
+  description: `A secure socks5 proxy, designed to protect your Internet traffic`,
+  images: {
+    x64: `shadowsocks/shadowsocks-libev`
+  },
+  tags: [
+    `Proxies`, `VPN`, `Networking`
+  ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configuration`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `SERVER_PORT`,
+      description: `TCP port to access the proxy`,
+      id: `port`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `PASSWORD`,
+      description: `Password`,
+      id: `pass`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `TIMEOUT`,
+      description: `Connection timeout (seconds)`,
+      visible: `property.Advanced`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `ENCRYPTION_METHOD`,
+      description: `Encryption method`,
+      options: [
+        {
+          name: `aes-256-gcm`,
+          value: `aes-256-gcm`
+        },
+        {
+          name: `aes-192-gcm`,
+          value: `aes-192-gcm`
+        },
+        {
+          name: `aes-128-gcm`,
+          value: `aes-128-gcm`
+        },
+        {
+          name: `chacha20-ietf-poly1305`,
+          value: `chacha20-ietf-poly1305`
+        }
+      ],
+      id: `meth`,
+      visible: `property.Advanced`
+    },
+    {
+      type: `Header`,
+      title: `Client Configuration`
+    },
+    {
+      type: `Text`,
+      text: `To add this proxy to a client, use the ss:// URI below:`
+    },
+    {
+      type: `Text`,
+      text: ``,
+      id: `ss`
+    },
+    {
+      type: `Text`,
+      text: `{{__GLOBALNAME}}`,
+      id: `gn`,
+      visible: false
+    },
+    {
+      type: `Script`,
+      script: `
+        const ss = document.querySelector('#ss');
+        const pass = document.querySelector('#pass input');
+        const port = document.querySelector('#port input');
+        const meth = document.querySelector('#meth select');
+        const globalname = document.querySelector('#gn').innerText;
+        setInterval(function() {
+          ss.innerHTML = '<b>ss://' + btoa(
+            meth.value + ':' + pass.value + '@' + globalname + ':' + port.value
+          ) + '</b>';
+        }, 1000);`
+    },
+    {
+      type: `Text`,
+      text: `UPnP is not available on your network. Please manually forward TCP port {{SERVER_PORT}} from your router to {{__HOMEADDRESSES}}.`,
+      visible: `!property.UPnPAvailable`
+    }
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `localtime`
+    },
+    {
+      type: `Environment`,
+      name: `PASSWORD`
+    },
+    {
+      type: `Environment`,
+      name: `SERVER_NAME`,
+      defaultValue: `0.0.0.0`
+    },
+    {
+      type: `Environment`,
+      name: `SERVER_PORT`,
+      defaultValue: `8388`
+    },
+    {
+      type: `Environment`,
+      name: `ENCRYPTION_METHOD`,
+      defaultValue: `aes-256-gcm`
+    },
+    {
+      type: `Environment`,
+      name: `TIMEOUT`,
+      defaultValue: `300`
+    },
+    {
+      type: `Environment`,
+      name: `DNS_ADDRS`,
+      defaultValue: `127.0.0.1`
+    },
+    {
+      type: `Port`,
+      name: `SERVER_PORT`,
+      port: `{{SERVER_PORT}}`,
+      protocol: `TCP`,
+      nat: true,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ]
+}
