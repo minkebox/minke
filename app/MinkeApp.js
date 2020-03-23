@@ -1186,7 +1186,6 @@ MinkeApp.prototype = {
       nat: this._expandBool(port.nat),
       mdns: port.mdns
     };
-    console.log(nport);
     return nport;
   },
 
@@ -1224,7 +1223,7 @@ MinkeApp.prototype = {
 
   _eval: function(val) {
     const js = new JSInterpreter(val);
-    for (let i = JSINTERPRETER_STEPS; i >= 0 && js.step(); i--)
+    for (let i = 0; i < JSINTERPRETER_STEPS && js.step(); i++)
       ;
     return js.value;
   },
