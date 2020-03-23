@@ -15,6 +15,7 @@ const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Updater = require('./Updater');
 const Disks = require('./Disks');
+const UPNP = require('./UPNP');
 const Skeletons = require('./skeletons/Skeletons');
 const ConfigBackup = require('./ConfigBackup');
 
@@ -210,13 +211,13 @@ MinkeApp.prototype = {
             }
           }
           else if ('defaultValue' in prop) {
-            target._env[prop.name] = { value: prop.defaultValue };
+            target._env[prop.name] = { value: this.expand(prop.defaultValue) };
           }
           else {
             target._env[prop.name] = { value: '' };
           }
           if ('defaultAltValue' in prop) {
-            target._env[prop.name].altValue = prop.defaultAltValue;
+            target._env[prop.name].altValue = this.expand(prop.defaultAltValue);
           }
           break;
         }
@@ -1104,6 +1105,14 @@ MinkeApp.prototype = {
           addresses = this._homeIP;
         }
       }
+      // Fetching a random port (while avoiding those in use on the NAT) can be time consuming so
+      // only do this if we need to.
+      let natPort = null;
+      if (txt.indexOf('{{__RANDOMPORT}}') !== -1) {
+        this._allocateRandomNatPort().then(port => natPort = port);
+        // This method is currently sync, while fetching a random nat port isn't ... so we have to do this for now.
+        require('deasync').loopWhile(() => natPort === null);
+      }
       const env = Object.assign({
         __APPNAME: { value: this._name },
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
@@ -1112,8 +1121,9 @@ MinkeApp.prototype = {
         __IPV6ENABLED: { value : this.getSLAACAddress() ? 'true' : 'false' },
         __HOMEADDRESSES: { value: addresses },
         __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
-        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() }
-
+        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() },
+        __DNSSERVER: { value: MinkeApp._network.network.ip_address },
+        __RANDOMPORT: { value: natPort }
       }, this._env);
       for (let key in env) {
         txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
@@ -1315,6 +1325,16 @@ MinkeApp.prototype = {
 
   _willCreateNetwork: function() {
     return (this._networks.primary === this._id || this._networks.secondary === this._id);
+  },
+
+  _allocateRandomNatPort: async function() {
+    const minPort = 40000;
+    const nrPorts= 1024;
+    const active = await UPNP.getActivePorts();
+    let port;
+    for (port = Math.floor(Math.random() * nrPorts); active.indexOf(minPort + port) !== -1; port = (port + 1) % nrPorts)
+      ;
+    return minPort + port;
   },
 
   _setupUpdateListeners: function() {

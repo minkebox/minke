@@ -177,10 +177,42 @@ const UPNP = {
     return null;
   },
 
+  getActivePorts: async function() {
+    const WANIPConnectionURL = this.getWANLocationURL();
+    if (WANIPConnectionURL) {
+      const udp = await this._sendRequest(WANIPConnectionURL, URN_WAN, 'GetListOfPortMappings', [
+        [ 'NewStartPort', 0 ],
+        [ 'NewEndPort', 65535 ],
+        [ 'NewProtocol', 'UDP' ],
+        [ 'NewManage', '1' ],
+        [ 'NewNumberOfPorts', 1000 ]
+      ]);
+      const tcp = await this._sendRequest(WANIPConnectionURL, URN_WAN, 'GetListOfPortMappings', [
+        [ 'NewStartPort', 0 ],
+        [ 'NewEndPort', 65535 ],
+        [ 'NewProtocol', 'TCP' ],
+        [ 'NewManage', '1' ],
+        [ 'NewNumberOfPorts', 1000 ]
+      ]);
+      const ports = {};
+      let m;
+      for (const re = /<.*?NewExternalPort>(.*?)<\/.*?NewExternalPort>/g; m = re.exec(udp), m; ) {
+        ports[m[1]] = true;
+      }
+      for (const re = /<.*?NewExternalPort>(.*?)<\/.*?NewExternalPort>/g; m = re.exec(tcp), m; ) {
+        ports[m[1]] = true;
+      }
+      return Object.keys(ports).map(port => parseInt(port));
+    }
+    else {
+      return [];
+    }
+  },
+
   _sendRequest: async function(url, service, action, args) {
     return new Promise((resolve) => {
       args = args || [];
-      const body = `<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:${action} xmlns:u="${service}">${args.map(arg => '<' + arg[0] + '>' + (arg.length === 1 ? '' : arg[1]) + '</' + arg[0] + '>')}</u:${action}></s:Body></s:Envelope>`;
+      const body = `<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:${action} xmlns:u="${service}">${args.map(arg => '<' + arg[0] + '>' + (arg.length === 1 ? '' : arg[1]) + '</' + arg[0] + '>').join('')}</u:${action}></s:Body></s:Envelope>`;
       const req = HTTP.request(url, {
         method: 'POST',
         headers: {
