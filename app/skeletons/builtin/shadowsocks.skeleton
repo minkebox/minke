@@ -26,6 +26,12 @@
     },
     {
       type: `EditEnvironment`,
+      name: `DNS_ADDRS`,
+      description: `DNS server`,
+      visible: `property.Advanced`
+    },
+    {
+      type: `EditEnvironment`,
       name: `TIMEOUT`,
       description: `Connection timeout (seconds)`,
       visible: `property.Advanced`
@@ -114,7 +120,7 @@
     {
       type: `Environment`,
       name: `SERVER_PORT`,
-      defaultValue: `8388`
+      defaultValue: `{{__RANDOMPORT}}`
     },
     {
       type: `Environment`,
@@ -129,7 +135,7 @@
     {
       type: `Environment`,
       name: `DNS_ADDRS`,
-      defaultValue: `127.0.0.1`
+      defaultValue: `{{__DNSSERVER}}`
     },
     {
       type: `Port`,
