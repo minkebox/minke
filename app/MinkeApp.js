@@ -3,7 +3,7 @@ const Util = require('util');
 const Path = require('path');
 const Moment = require('moment-timezone');
 const UUID = require('uuid/v4');
-const ExprEvalParser = require('expr-eval').Parser;
+const JSInterpreter = require('js-interpreter');
 const Config = require('./Config');
 const HTTP = require('./HTTP');
 const DNS = require('./DNS');
@@ -23,7 +23,8 @@ const ConfigBackup = require('./ConfigBackup');
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
 
 const CRASH_TIMEOUT = (2 * 60 * 1000); // 2 minutes
-const HELPER_STARTUP_TIMEOUT = (30 * 1000) // 30 seconds
+const HELPER_STARTUP_TIMEOUT = (30 * 1000); // 30 seconds
+const JSINTERPRETER_STEPS = 100;
 
 let applications = [];
 let koaApp = null;
@@ -1195,7 +1196,7 @@ MinkeApp.prototype = {
     }
     if (typeof val === 'string') {
       try {
-        val = ExprEvalParser.evaluate(this.expand(val));
+        val = this._eval(this.expand(val));
         if (typeof val === 'number' && !isNaN(val)) {
           return val;
         }
@@ -1211,7 +1212,7 @@ MinkeApp.prototype = {
       return !!val;
     }
     try {
-      val = ExprEvalParser.evaluate(this.expand(val));
+      val = this._eval(this.expand(val));
       if (!val) {
         return false;
       }
@@ -1219,6 +1220,13 @@ MinkeApp.prototype = {
     catch (_) {
     }
     return true;
+  },
+
+  _eval: function(val) {
+    const js = new JSInterpreter(val);
+    for (let i = JSINTERPRETER_STEPS; i >= 0 && js.step(); i--)
+      ;
+    return js.value;
   },
 
   _monitorHelper: async function() {

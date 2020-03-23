@@ -145,7 +145,7 @@
       name: `443/tcp`,
       port: 443,
       protocol: `TCP`,
-      nat: `{{LETS_ENCRYPT}} and {{WEB_NAT}}`,
+      nat: `{{LETS_ENCRYPT}} && {{WEB_NAT}}`,
       web: false,
       dns: false,
       mdns: null
