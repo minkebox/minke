@@ -203,6 +203,16 @@
       name: `/etc/wireguard/server.info`
     },
     {
+      type: `Port`,
+      name: `SELECTED_PORT`,
+      port: `{{SELECTED_PORT}}`,
+      protocol: `UDP`,
+      nat: true,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
       type: `Network`,
       name: `primary`,
       defaultValue: `home`

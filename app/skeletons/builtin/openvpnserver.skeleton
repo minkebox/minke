@@ -112,6 +112,26 @@ using Wi-Fi; use "tun" in this case.`,
       style: `boot`
     },
     {
+      type: `Port`,
+      name: `SELECTED_PORT`,
+      port: `{{SELECTED_PORT}}`,
+      protocol: `UDP`,
+      nat: true,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
+      type: `Port`,
+      name: `SELECTED_PORT+1`,
+      port: `{{SELECTED_PORT}}+1`,
+      protocol: `UDP`,
+      nat: true,
+      web: false,
+      dns: false,
+      mdns: null
+    },
+    {
       type: `Network`,
       name: `primary`,
       defaultValue: `home`
