@@ -154,10 +154,10 @@
     cmd: `wc -l /etc/dnsmasq-hosts.d/user-defined-hosts.conf ; cat /etc/dnsmasq.d/dhcp-ranges.conf ; cat /etc/dnsmasq-state.d/leases`,
     polling: 600,
     parser: `
-      const now = Math.floor(Date.now() / 1000);
-      const lines = input.split('\\n');
-      const times = lines.slice(2).map(line => parseInt(line.split(' ')[0]) - now);
-      const range = lines[1].split(/[=,]/);
+      var now = Math.floor(Date.now() / 1000);
+      var lines = input.split('\\n');
+      var times = lines.slice(2).map(line => parseInt(line.split(' ')[0]) - now);
+      var range = lines[1].split(/[=,]/);
       output.active = times.reduce((acc, time) => acc += (time > 0) ? 1 : 0, 0);
       output.from = range[1];
       output.to = range[2];

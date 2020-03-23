@@ -86,7 +86,7 @@
     cmd: `tail -1 /var/www/html/data/result.csv`,
     polling: 60,
     parser: `
-      const v = input.split(',');
+      var v = input.split(',');
       output = {
         time: new Date(parseInt(v[0])).toLocaleTimeString(),
         ping: parseFloat(v[1]),

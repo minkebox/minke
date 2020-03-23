@@ -159,13 +159,13 @@
     cmd: `cd /backups;du -d0 *`,
     poll: 3600,
     parser: `
-      const lines = input.split('\\n');
+      var lines = input.split('\\n');
 
-      const labels = [];
-      const series = [];
+      var labels = [];
+      var series = [];
 
-      for (let i = 0; i < lines.length && lines[i]; i++) {
-        const p = lines[i].split(/\\t+/);
+      for (var i = 0; i < lines.length && lines[i]; i++) {
+        var p = lines[i].split(/\\t+/);
         labels.push(p[1].split('.').slice(-2,1)[0]);
         series.push(parseInt(p[0]) / 1000000);
       }
@@ -175,7 +175,20 @@
           type: 'horizontalBar',
           data: {
             datasets: [{
-              backgroundColor: props.colors,
+              backgroundColor: [
+                '#fd0a1a',
+                '#ffd73e',
+                '#278b30',
+                '#b12427',
+                '#808020',
+                '#fd471f',
+                '#41b376',
+                '#fd1a91',
+                '#88cce7',
+                '#19196b',
+                '#efad5a',
+                '#d85452'
+              ],
               data: series
             }],
             labels: labels,

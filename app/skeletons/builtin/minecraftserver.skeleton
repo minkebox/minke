@@ -521,8 +521,8 @@
     cmd: `mcstatus localhost status`,
     polling: 60,
     parser: `
-      const lines = input.split('\\n');
-      const nrplayers = lines[2].split(' ',2)[1].split('/');
+      var lines = input.split('\\n');
+      var nrplayers = lines[2].split(' ',2)[1].split('/');
       output.nr = nrplayers[0];
       output.max = nrplayers[1];
       try {

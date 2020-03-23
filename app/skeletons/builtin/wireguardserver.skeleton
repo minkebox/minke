@@ -227,9 +227,9 @@
     cmd: `echo $(ifconfig wg0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/")`,
     polling: 1,
     parser: `
-      const rxtx = input.split(' ');
+      var rxtx = input.split(' ');
       if (rxtx.length == 2) {
-        const now = Date.now() / 1000;
+        var now = Date.now() / 1000;
         rxtx[0] = parseInt(rxtx[0]);
         rxtx[1] = parseInt(rxtx[1]);
         if (!state) {
@@ -240,7 +240,7 @@
             then: now - 1
           };
         }
-        let elapse = Math.min(state.rx.length, Math.floor(now - state.then));
+        var elapse = Math.min(state.rx.length, Math.floor(now - state.then));
         if (elapse > 5) {
           for (; elapse > 0; elapse--) {
             state.rx.shift();

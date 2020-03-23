@@ -1,5 +1,5 @@
-const VM = require('vm');
 const Handlebars = require('handlebars');
+const JSInterpreter = require('js-interpreter');
 
 const DEFAULT_POLLING = 60; // Default polling is 60 seconds
 const ERROR_POLLING = 5; // Poll quickly if the last poll errored
@@ -19,6 +19,7 @@ const DEFAULT_COLORS = [
   '#efad5a',
   '#d85452'
 ];
+const JSINTERPRETER_STEPS = 5000;
 
 let graphId = 1;
 
@@ -47,29 +48,46 @@ async function runCmd(app, cmd) {
 
 function WatchCmd(app, cmd, parser, template, polling) {
   const ctemplate = template ? Handlebars.compile(template) : DEFAULT_TEMPLATE;
-  const sandbox = { input: null, output: null, state: null, props: { colors: DEFAULT_COLORS }};
-  VM.createContext(sandbox);
-  const extractor = VM.compileFunction(`(function(){try{${parser || DEFAULT_PARSER}}catch(_){}})()`, [], { parsingContext: sandbox });
+  let state = null;
+  const extractor = `(function(){${parser || DEFAULT_PARSER}})()`;
   this.update = async () => {
     let html = '';
     if (app._container) {
       try {
-        sandbox.input = await runCmd(app, cmd);
-        if (sandbox.input != '') {
-          sandbox.output = {};
-          extractor();
-          if (sandbox.output.graph && ctemplate !== DEFAULT_TEMPLATE) {
-            for (let name in sandbox.output.graph) {
-              const graph = sandbox.output.graph[name];
+        const input = await runCmd(app, cmd);
+        if (input != '') {
+          const js = new JSInterpreter(extractor, (intr, glb) => {
+            intr.setProperty(glb, 'input', input);
+            intr.setProperty(glb, 'output', new JSInterpreter.Object(null));
+            intr.setProperty(glb, 'state', intr.nativeToPseudo(state));
+          });
+          js.REGEXP_MODE = 1;
+          let output = {};
+          try {
+            for (let i = 0; i < JSINTERPRETER_STEPS && js.step(); i++)
+              ;
+            if (js.step()) {
+              console.info(`Failed to complete code for ${app._name}`);
+            }
+            state = js.pseudoToNative(js.getProperty(js.globalObject, 'state'));
+            output = js.pseudoToNative(js.getProperty(js.globalObject, 'output'));
+          }
+          catch (e) {
+            console.info(e);
+            console.info(js.stateStack);
+          }
+          if (output.graph && ctemplate !== DEFAULT_TEMPLATE) {
+            for (let name in output.graph) {
+              const graph = output.graph[name];
               if (graph) {
                 const id = `gid${graphId++}`;
                 const width = 'width' in graph ? `width: ${graph.width};` : '';
                 const height = 'height' in graph ? `height: ${graph.height};` : 'height: 250px;';
-                sandbox.output.graph[name] = `<div style="position: relative; ${width} ${height}"><canvas id="${id}"></canvas></div><script>window.addChart("${id}", new Chart(document.getElementById("${id}").getContext("2d"), ${JSON.stringify(graph)}));</script>`;
+                output.graph[name] = `<div style="position: relative; ${width} ${height}"><canvas id="${id}"></canvas></div><script>window.addChart("${id}", new Chart(document.getElementById("${id}").getContext("2d"), ${JSON.stringify(graph)}));</script>`;
               }
             }
           }
-          html = ctemplate(sandbox.output);
+          html = ctemplate(output);
         }
       }
       catch (e) {
