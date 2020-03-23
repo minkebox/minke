@@ -3,6 +3,7 @@ const Util = require('util');
 const Path = require('path');
 const Moment = require('moment-timezone');
 const UUID = require('uuid/v4');
+const ExprEvalParser = require('expr-eval').Parser;
 const Config = require('./Config');
 const HTTP = require('./HTTP');
 const DNS = require('./DNS');
@@ -1184,6 +1185,7 @@ MinkeApp.prototype = {
       nat: this._expandBool(port.nat),
       mdns: port.mdns
     };
+    console.log(nport);
     return nport;
   },
 
@@ -1192,9 +1194,13 @@ MinkeApp.prototype = {
       return val;
     }
     if (typeof val === 'string') {
-      val = parseFloat(this.expand(val));
-      if (typeof val === 'number' && !isNaN(val)) {
-        return val;
+      try {
+        val = ExprEvalParser.evaluate(this.expand(val));
+        if (typeof val === 'number' && !isNaN(val)) {
+          return val;
+        }
+      }
+      catch (_) {
       }
     }
     return alt;
@@ -1204,13 +1210,13 @@ MinkeApp.prototype = {
     if (typeof val !== 'string') {
       return !!val;
     }
-    val = this.expand(val);
-    if (val == 'false' || parseFloat(val) == 0) {
-      return false;
+    try {
+      val = ExprEvalParser.evaluate(this.expand(val));
+      if (!val) {
+        return false;
+      }
     }
-    // Need better solution here!
-    if (val === 'false&false' || val === 'false&true' || val === 'true&false' || val === 'false|false') {
-      return false;
+    catch (_) {
     }
     return true;
   },
