@@ -21,7 +21,7 @@
     {
       type: `EditEnvironment`,
       name: `SELECTED_PORT`,
-      description: `Select the UDP port number for the VPN, or leave blank to auto-assign`,
+      description: `Select the UDP port number for the VPN`,
       validate: `\\d*`,
       enabled: `property.FirstUse`
     },
@@ -175,7 +175,8 @@
     },
     {
       type: `Environment`,
-      name: `SELECTED_PORT`
+      name: `SELECTED_PORT`,
+      defaultValue: `{{__RANDOMPORT}}`
     },
     {
       type: `Environment`,
