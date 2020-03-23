@@ -1105,11 +1105,11 @@ MinkeApp.prototype = {
           addresses = this._homeIP;
         }
       }
-      // Fetching a random port (while avoiding those in use on the NAT) can be time consuming so
-      // only do this if we need to.
+      // Fetching random ports (while avoiding those in use on the NAT) can be time consuming so
+      // only do this if we need to. We make sure 3 consequtive ports are available.
       let natPort = null;
       if (txt.indexOf('{{__RANDOMPORT}}') !== -1) {
-        this._allocateRandomNatPort().then(port => natPort = port);
+        this._allocateRandomNatPorts(3).then(port => natPort = port);
         // This method is currently sync, while fetching a random nat port isn't ... so we have to do this for now.
         require('deasync').loopWhile(() => natPort === null);
       }
@@ -1327,13 +1327,23 @@ MinkeApp.prototype = {
     return (this._networks.primary === this._id || this._networks.secondary === this._id);
   },
 
-  _allocateRandomNatPort: async function() {
+  _allocateRandomNatPorts: async function(count) {
     const minPort = 40000;
     const nrPorts= 1024;
     const active = await UPNP.getActivePorts();
-    let port;
-    for (port = Math.floor(Math.random() * nrPorts); active.indexOf(minPort + port) !== -1; port = (port + 1) % nrPorts)
-      ;
+    let port = Math.floor(Math.random() * nrPorts);
+    for (;;) {
+      let i;
+      for (i = 0; i < count; i++) {
+        if (active.indexOf(minPort + port + i) !== -1) {
+          break;
+        }
+      }
+      if (i === count) {
+        break;
+      }
+      port = (port + count) % nrPorts;
+    }
     return minPort + port;
   },
 
