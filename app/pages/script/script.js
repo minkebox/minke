@@ -19,6 +19,7 @@ function onPageShow() {
             eval(se[i].innerHTML);
           }
         });
+        Chart.instances.forEach(chart => chart.resize());
         break;
       case 'html.replace':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
@@ -31,6 +32,7 @@ function onPageShow() {
             eval(se[i].innerHTML);
           }
         });
+        Chart.instances.forEach(chart => chart.resize());
         break;
       case 'html.update.attribute':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
@@ -43,11 +45,13 @@ function onPageShow() {
           builder.innerHTML = msg.html;
           elem.appendChild(builder.firstElementChild);
         });
+        Chart.instances.forEach(chart => chart.resize());
         break;
       case 'html.remove':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
           elem.remove();
         });
+        Chart.instances.forEach(chart => chart.resize());
         break;
       case 'css.class.add':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
