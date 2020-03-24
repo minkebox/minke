@@ -91,7 +91,6 @@
   ],
   monitor: {
     cmd: `pihole -c --json`,
-    minwidth: `200px`,
     init: `
       <style>
         .ph-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }

@@ -46,7 +46,6 @@ function genAppStatus(acc, app) {
       _id: app._id,
       name: app._name,
       init: app._statusMonitor && app._statusMonitor.init,
-      minwidth: app._monitor.minwidth,
       link: app._forward && app._forward.url,
       linktarget: app._forward && app._forward.target,
       running: app._status === 'running',

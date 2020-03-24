@@ -157,9 +157,10 @@
   ],
   monitor: {
     cmd: `cd /backups;du -d0 *`,
-    minwidth: '400px',
     init: `
-      <canvas style="height: 250px;" id="{{ID}}"></canvas>
+      <div style="min-width: 400px; height: 250px">
+        <canvas style="position: absolute" id="{{ID}}"></canvas>
+      </div>
       <script>
         (function(){
           const chart = new Chart(document.getElementById("{{ID}}").getContext("2d"), {
