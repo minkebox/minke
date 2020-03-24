@@ -68,25 +68,22 @@
   ],
   monitor: {
     cmd: `wc -l /tmp/active /tmp/inactive | sed "s/^ *\\([0-9]*\\).*$/\\1/" | head -n2`,
-    polling: 10,
-    parser: `
-      var i = input.split('\\n');
-      output.active = i[0];
-      output.inactive = i[1];
-    `,
-    minwidth: `150px`,
-    header: `
+    init: `
       <style>
         .up-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
         .up-b { color: grey; text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
         .up-r { display: inline-block; font-size: 24px; color: black; }
       </style>
-    `,
-    template: `
       <div class="up-o">
-        <div class="up-b"><div class="up-r">{{active}}</div><div>Active Ports</div></div>
-        <div class="up-b"><div class="up-r">{{inactive}}</div><div>Inactive Ports</div></div>
+        <div id="{{ID}}_a" class="up-b"><div class="up-r">0</div><div>Active Ports</div></div>
+        <div id="{{ID}}_i" class="up-b"><div class="up-r">0</div><div>Inactive Ports</div></div>
       </div>
-    `
+      <script>
+        window.monitor2("{{ID}}", 10, (input) => {
+          const i = input.split('\\n');
+          document.getElementById("{{ID}}_a").firstElementChild.innerText = i[0];
+          document.getElementById("{{ID}}_i").firstElementChild.innerText = i[1];
+        });
+      </script>`
   }
 }

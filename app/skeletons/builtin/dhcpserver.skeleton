@@ -152,32 +152,31 @@
   ],
   monitor: {
     cmd: `wc -l /etc/dnsmasq-hosts.d/user-defined-hosts.conf ; cat /etc/dnsmasq.d/dhcp-ranges.conf ; cat /etc/dnsmasq-state.d/leases`,
-    polling: 600,
-    parser: `
-      var now = Math.floor(Date.now() / 1000);
-      var lines = input.split('\\n');
-      var times = lines.slice(2).map(function(line) { return parseInt(line.split(' ')[0]) - now; });
-      var range = lines[1].split(/[=,]/);
-      output.active = times.reduce(function(acc, time) { return acc += (time > 0) ? 1 : 0; }, 0);
-      output.from = range[1];
-      output.to = range[2];
-      output.fixed = lines[0].trim().split(' ')[0];
-    `,
-    header: `
+    init: `
       <style>
         .dhcp-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
         .dhcp-b { color: grey; text-align: right; padding: 0 5px 10px 0; }
         .dhcp-v { display: inline-block; font-size: 24px; color: black; }
         .dhcp-r { display: inline-block; font-size: 18px; color: black; }
       </style>
-    `,
-    template: `
       <div class="dhcp-o">
-        <div class="dhcp-b"><div class="dhcp-r">{{from}}</div><div>From</div></div>
-        <div class="dhcp-b"><div class="dhcp-r">{{to}}</div><div>To</div></div>
-        <div class="dhcp-b"><div class="dhcp-v">{{active}}</div><div>Active Leases</div></div>
-        <div class="dhcp-b"><div class="dhcp-v">{{fixed}}</div><div>Fixed Addresses</div></div>
+        <div class="dhcp-b"><div id="{{ID}}_f" class="dhcp-r">0</div><div>From</div></div>
+        <div class="dhcp-b"><div id="{{ID}}_t" class="dhcp-r">0</div><div>To</div></div>
+        <div class="dhcp-b"><div id="{{ID}}_a" class="dhcp-v">0</div><div>Active Leases</div></div>
+        <div class="dhcp-b"><div id="{{ID}}_x" class="dhcp-v">0</div><div>Fixed Addresses</div></div>
       </div>
+      <script>
+        window.monitor2("{{ID}}", 600, (input) => {
+          const now = Math.floor(Date.now() / 1000);
+          const lines = input.split('\\n');
+          const times = lines.slice(2).map(function(line) { return parseInt(line.split(' ')[0]) - now; });
+          const range = lines[1].split(/[=,]/);
+          document.getElementById("{{ID}}_f").innerText = range[1];
+          document.getElementById("{{ID}}_t").innerText = range[2];
+          document.getElementById("{{ID}}_a").innerText = times.reduce(function(acc, time) { return acc += (time > 0) ? 1 : 0; }, 0);
+          document.getElementById("{{ID}}_x").innerText = lines[0].trim().split(' ')[0];
+        });
+      </script>
     `
   }
 }

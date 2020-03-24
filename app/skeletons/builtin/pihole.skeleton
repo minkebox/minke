@@ -91,27 +91,25 @@
   ],
   monitor: {
     cmd: `pihole -c --json`,
-    polling: 60,
-    parser: `
-      output = JSON.parse(input);
-      output.ads_blocked_today = output.ads_blocked_today.toLocaleString();
-      output.domains_being_blocked = output.domains_being_blocked.toLocaleString();
-      output.ads_percentage_today = output.ads_percentage_today.toFixed(1)
-    `,
     minwidth: `200px`,
-    header: `
+    init: `
       <style>
         .ph-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
         .ph-b { color: grey; text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
         .ph-r { display: inline-block; font-size: 24px; color: black; }
       </style>
-    `,
-    template: `
       <div class="ph-o">
-        <div class="ph-b"><div class="ph-r">{{ads_blocked_today}}</div><div>Blocked in last 24 hours</div></div>
-        <div class="ph-b"><div class="ph-r">{{ads_percentage_today}}%</div><div>Percentage Blocked</div></div>
-        <div class="ph-b"><div class="ph-r">{{domains_being_blocked}}</div><div>Domains Being Blocked</div></div>
+        <div class="ph-b"><div id="{{ID}}_b" class="ph-r">0</div><div>Blocked in last 24 hours</div></div>
+        <div class="ph-b"><div id="{{ID}}_p"class="ph-r">0%</div><div>Percentage Blocked</div></div>
+        <div class="ph-b"><div id="{{ID}}_t"class="ph-r">0</div><div>Domains Being Blocked</div></div>
       </div>
-    `
+      <script>
+        window.monitor2("{{ID}}", 60, (input) => {
+          const output = JSON.parse(input);
+          document.getElementById("{{ID}}_b").innerText = output.ads_blocked_today.toLocaleString();
+          document.getElementById("{{ID}}_p").innerText = output.ads_percentage_today.toFixed(1) + "%";
+          document.getElementById("{{ID}}_t").innerText = output.domains_being_blocked.toLocaleString();
+        });
+      </script>`
   }
 }
