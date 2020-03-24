@@ -157,60 +157,51 @@
   ],
   monitor: {
     cmd: `cd /backups;du -d0 *`,
-    poll: 3600,
-    parser: `
-      var lines = input.split('\\n');
-
-      var labels = [];
-      var series = [];
-
-      for (var i = 0; i < lines.length && lines[i]; i++) {
-        var p = lines[i].split(/\\t+/);
-        labels.push(p[1].split('.').slice(-2,1)[0]);
-        series.push(parseInt(p[0]) / 1000000);
-      }
-
-      output.graph = {
-        diskspace: {
-          type: 'horizontalBar',
-          data: {
-            datasets: [{
-              backgroundColor: [
-                '#fd0a1a',
-                '#ffd73e',
-                '#278b30',
-                '#b12427',
-                '#808020',
-                '#fd471f',
-                '#41b376',
-                '#fd1a91',
-                '#88cce7',
-                '#19196b',
-                '#efad5a',
-                '#d85452'
-              ],
-              data: series
-            }],
-            labels: labels,
-          },
-          options: {
-            maintainAspectRatio: false,
-            adaptive: true,
-            legend: { display: false },
-            title: { display: true, text: 'Backup Usage (GB)' },
-            scales: {
-              xAxes: [{
-                ticks: {
-                  precision: 2,
-                  beginAtZero: true
-                }
-              }]
-            }
-          }
-        }
-      };
-    `,
     minwidth: '400px',
-    template: `{{{graph.diskspace}}}`
+    init: `
+      <canvas style="height: 250px;" id="{{ID}}"></canvas>
+      <script>
+        (function(){
+          const chart = new Chart(document.getElementById("{{ID}}").getContext("2d"), {
+            type: 'horizontalBar',
+            data: {
+              datasets: [{
+                backgroundColor: [ '#fd0a1a', '#ffd73e', '#278b30', '#b12427', '#808020', '#fd471f', '#41b376', '#fd1a91', '#88cce7', '#19196b', '#efad5a', '#d85452' ],
+                data: []
+              }],
+              labels: [],
+            },
+            options: {
+              animation: { duration: 1000, easing: 'linear' },
+              maintainAspectRatio: false,
+              adaptive: true,
+              legend: { display: false },
+              title: { display: true, text: 'Backup Usage (GB)' },
+              scales: {
+                xAxes: [{
+                  ticks: {
+                    precision: 2,
+                    beginAtZero: true
+                  }
+                }]
+              }
+            }
+          });
+          window.monitor2("{{ID}}", 3600, (input) => {
+            const lines = input.split('\\n');
+            let c = 0;
+            for (let i = 0; i < lines.length && lines[i]; i++) {
+              const p = lines[i].split(/\\t+/);
+              chart.data.labels[c] = p[1];
+              chart.data.datasets[0].data[c] = parseInt(p[0]) / 1000000;
+              c++;
+            }
+            chart.data.labels.length = c;
+            chart.data.datasets[0].data.length = c;
+            chart.update();
+          });
+        })();
+      </script>
+    `
   }
 }

@@ -117,65 +117,68 @@
   ],
   monitor: {
     cmd: `ifconfig ppp0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/"`,
-    polling: 1,
-    parser: `
-      var rxtx = input.split(' ');
-      if (rxtx.length == 2) {
-        var now = Date.now() / 1000;
-        if (!state) {
-          state = {
-            rx: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
-            tx: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ],
-            last: rxtx,
-            then: now - 1
-          };
-        }
-        var elapse = Math.min(state.rx.length, Math.floor(now - state.then));
-        if (elapse > 5) {
-          for (; elapse > 0; elapse--) {
-            state.rx.shift();
-            state.tx.shift();
-            state.rx.push(0);
-            state.tx.push(0);
-          }
-        }
-        state.rx.shift();
-        state.tx.shift();
-        state.rx.push(Math.max(0, (rxtx[0] - state.last[0]) * 8 / 1000000 / (now - state.then)));
-        state.tx.push(Math.max(0, (rxtx[1] - state.last[1]) * 8 / 1000000 / (now - state.then)));
-        output.rx = state.rx.slice(-1)[0].toFixed(1);
-        output.tx = state.tx.slice(-1)[0].toFixed(1);
-        state.last = rxtx;
-        state.then = now;
-      }
-      output.graph = {
-        traffic: {
-          type: 'line',
-          data: {
-            labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63],
-            datasets: [
-              { label: 'RX', data: state.rx, borderColor: '#88cce7', backgroundColor: '#88cce7', fill: false, pointRadius: 0 },
-              { label: 'TX', data: state.tx, borderColor: '#41b376', backgroundColor: '#41b376', fill: false, pointRadius: 0 }
-            ]
-          },
-          options: {
-            animation: { duration: 0 },
-            maintainAspectRatio: false,
-            adaptive: true,
-            title: { display: true, text: 'Bandwidth (Mb/s)' },
-            scales: {
-              xAxes: [{
-                display: false
-              }],
-              yAxes: [{
-                ticks: { beginAtZero: true }
-              }]
-            }
-          }
-        }
-      };
-    `,
     minwidth: '400px',
-    template: `{{{graph.traffic}}}`
+    init: `
+      <canvas style="height: 250px;" id="{{ID}}"></canvas>
+      <script>
+        (function(){
+          const chart = new Chart(document.getElementById("{{ID}}").getContext("2d"), {
+            type: 'line',
+            data: {
+              labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63],
+              datasets: [
+                { data: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ], label: 'RX', borderColor: '#88cce7', backgroundColor: '#88cce7', fill: false, pointRadius: 0 },
+                { data: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ], label: 'TX', borderColor: '#41b376', backgroundColor: '#41b376', fill: false, pointRadius: 0 }
+              ]
+            },
+            options: {
+              animation: { duration: 1000, easing: 'linear' },
+              maintainAspectRatio: false,
+              adaptive: true,
+              title: { display: true, text: 'Bandwidth (Mbps)' },
+              scales: {
+                xAxes: [{
+                  display: false
+                }],
+                yAxes: [{
+                  ticks: { beginAtZero: true }
+                }]
+              }
+            }
+          });
+          const state = {
+            last: [ 0, 0 ],
+            then: 0
+          };
+          window.monitor2("{{ID}}", 1, (input) => {
+            const rxtx = input.split(' ');
+            if (rxtx.length == 2) {
+              const now = Date.now() / 1000;
+              rxtx[0] = parseInt(rxtx[0]);
+              rxtx[1] = parseInt(rxtx[1]);
+              let elapse = Math.min(chart.data.datasets[0].data.length, Math.floor(now - state.then));
+              if (elapse > 5) {
+                if (elapse >= chart.data.datasets[0].data.length) {
+                  state.last = rxtx;
+                }
+                for (; elapse > 0; elapse--) {
+                  chart.data.datasets[0].data.shift();
+                  chart.data.datasets[1].data.shift();
+                  chart.data.datasets[0].data.push(0);
+                  chart.data.datasets[1].data.push(0);
+                }
+              }
+              chart.data.datasets[0].data.shift();
+              chart.data.datasets[1].data.shift();
+              chart.data.datasets[0].data.push((rxtx[0] - state.last[0]) * 8 / 1000000 / (now - state.then));
+              chart.data.datasets[1].data.push((rxtx[1] - state.last[1]) * 8 / 1000000 / (now - state.then));
+              state.last = rxtx;
+              state.then = now;
+              chart.update();
+            }
+          });
+        })();
+      </script>
+    `
   }
 }

@@ -149,14 +149,10 @@ async function imageToSkeleton(image) {
         defaultValue: 'home'
       }
     ),
-
     monitor: {
       cmd: '',
-      polling: 0,
-      parser: '',
       minwidth: '200px',
-      header: '',
-      template: ''
+      init: ''
     }
   }
 }

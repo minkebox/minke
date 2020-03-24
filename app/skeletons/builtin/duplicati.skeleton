@@ -70,7 +70,7 @@
     cmd: `curl -s -c /tmp/cj http://localhost:8200 -q -o /dev/null; echo '[['; curl http://localhost:8200/api/v1/serverstate?X-XSRF-Token=$(tail -n1 /tmp/cj | cut -f7); echo '],['; curl http://localhost:8200/api/v1/progressstate?X-XSRF-Token=$(tail -n1 /tmp/cj | cut -f7); echo '],['; curl http://localhost:8200/api/v1/backups?X-XSRF-Token=$(tail -n1 /tmp/cj | cut -f7); echo ']]'`,
     polling: 60,
     parser: `
-      var j = JSON.parse(input.replace(/﻿/g, ''));
+      const j = JSON.parse(input.replace(/﻿/g, ''));
       output.status = j[0][0].SuggestedStatusIcon == 'Active' ? 'Running' : 'Idle';
       output.nrbackups = j[2][0].length;
       output.scheduled = j[0][0].ProposedSchedule.length;
