@@ -65,7 +65,7 @@ function onPageShow() {
         install(msg.image);
         break;
       case 'monitor2.reply':
-        monitorQ[msg.id] && monitorQ[msg.id](msg.reply);
+        monitorQ[msg.id] && monitorQ[msg.id]('reply', msg.reply);
         break;
       default:
         break;
@@ -106,8 +106,7 @@ function onPageShow() {
     }
     else {
       for (let id in monitorQ) {
-        clearTimeout(monitorQ[id].timer);
-        monitorQ[id].q();
+        monitorQ[id]('request');
       }
       if (pendingQ) {
         const p = pendingQ;
@@ -281,30 +280,40 @@ function monitor(id, timeout) {
 }
 
 function monitor2(id, timeout, callback) {
-  const q = () => {
-    if (!pendingQ) {
-      cmd('monitor2.request', id);
+  let timer = null;
+  const fn = (op, arg) => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
     }
-    else {
-      pendingQ.push(() => {
-        cmd('monitor2.request', id);
-      });
+    if (fn === monitorQ[id]) {
+      switch (op) {
+        case 'wait':
+          timer = setTimeout(() => {
+            timer = null;
+            fn('request');
+          }, timeout);
+          break;
+        case 'request':
+          if (document.visibilityState === 'visible') {
+            cmd('monitor2.request', id);
+          }
+          break;
+        case 'reply':
+          try {
+            callback(arg);
+          }
+          catch (_) {
+          }
+          fn('wait');
+          break;
+        default:
+          break;
+      }
     }
-  };
-  const m = (input) => {
-    try {
-      callback(input);
-    }
-    catch (_) {
-    }
-    m.timer = setTimeout(q, timeout);
-  };
-  if (monitorQ[id]) {
-    clearTimeout(monitorQ[id].timer);
   }
-  monitorQ[id] = m;
-  m.q = q;
-  m.timer = setTimeout(q, timeout);
+  monitorQ[id] = fn;
+  fn('wait');
 }
 
 function saveSkeleton() {
