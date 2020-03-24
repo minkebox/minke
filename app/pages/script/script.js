@@ -292,7 +292,7 @@ function monitor2(id, timeout, callback) {
           timer = setTimeout(() => {
             timer = null;
             fn('request');
-          }, timeout);
+          }, timeout * 1000);
           break;
         case 'request':
           if (document.visibilityState === 'visible') {
@@ -313,7 +313,7 @@ function monitor2(id, timeout, callback) {
     }
   }
   monitorQ[id] = fn;
-  fn('wait');
+  fn('request');
 }
 
 function saveSkeleton() {

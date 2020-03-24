@@ -80,7 +80,7 @@
             last: [ 0, 0 ],
             then: 0
           };
-          window.monitor2("{{ID}}", 1000, (input) => {
+          window.monitor2("{{ID}}", 1, (input) => {
             const rxtx = input.split(' ');
             if (rxtx.length == 2) {
               const now = Date.now() / 1000;
