@@ -99,9 +99,7 @@ function onPageShow() {
 
   document.addEventListener("visibilitychange", (event) => {
     if (document.visibilityState === 'visible') {
-      for (let id in monitorQ) {
-        monitorQ[id]('request');
-      }
+      updateMonitors();
     }
   });
 }
@@ -193,6 +191,7 @@ function filter(net) {
     });
   }
   document.getElementsByClassName('list')[0].scrollTo(0, 0);
+  updateMonitors();
 }
 
 let editor = null;
@@ -251,6 +250,12 @@ function addChart(id, chart) {
 
 function toggleHelp() {
   document.head.parentElement.classList.toggle('help-available');
+}
+
+function updateMonitors() {
+  for (let id in monitorQ) {
+    monitorQ[id]('request');
+  }
 }
 
 function monitor(id, timeout, callback) {
