@@ -1,5 +1,6 @@
 let ws = { send: () => {} };
 let pendingQ = null;
+const monitorQ = {};
 
 function onPageShow() {
   ws = new WebSocket(`ws://${location.host}${location.pathname}ws`);
@@ -63,6 +64,9 @@ function onPageShow() {
       case 'skeleton.load':
         install(msg.image);
         break;
+      case 'monitor2.reply':
+        monitorQ[msg.id] && monitorQ[msg.id](msg.reply);
+        break;
       default:
         break;
     }
@@ -101,6 +105,10 @@ function onPageShow() {
       }
     }
     else {
+      for (let id in monitorQ) {
+        clearTimeout(monitorQ[id].timer);
+        monitorQ[id].q();
+      }
       if (pendingQ) {
         const p = pendingQ;
         pendingQ = null;
@@ -270,6 +278,33 @@ function monitor(id, timeout) {
       });
     }
   }, timeout);
+}
+
+function monitor2(id, timeout, callback) {
+  const q = () => {
+    if (!pendingQ) {
+      cmd('monitor2.request', id);
+    }
+    else {
+      pendingQ.push(() => {
+        cmd('monitor2.request', id);
+      });
+    }
+  };
+  const m = (input) => {
+    try {
+      callback(input);
+    }
+    catch (_) {
+    }
+    m.timer = setTimeout(q, timeout);
+  };
+  if (monitorQ[id]) {
+    clearTimeout(monitorQ[id].timer);
+  }
+  monitorQ[id] = m;
+  m.q = q;
+  m.timer = setTimeout(q, timeout);
 }
 
 function saveSkeleton() {

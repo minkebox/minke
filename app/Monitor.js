@@ -104,10 +104,22 @@ function WatchCmd(app, cmd, parser, template, polling) {
   }
 }
 
+function WatchCmd2(app, cmd, init) {
+  this.init = init.replace(/{{ID}}/g, app._id);
+  this.update2 = async () => {
+    return await runCmd(app, cmd);
+  }
+}
+
 const _Monitor = {
 
   create: function(args) {
-    return new WatchCmd(args.app, args.cmd, args.parser, args.template, args.polling);
+    if (args.init) {
+      return new WatchCmd2(args.app, args.cmd, args.init);
+    }
+    else {
+      return new WatchCmd(args.app, args.cmd, args.parser, args.template, args.polling);
+    }
   }
 
 };

@@ -41,7 +41,24 @@ function genApp(app) {
 }
 
 function genAppStatus(acc, app) {
-  if (app._monitor.cmd) {
+  if (app._statusMonitor && app._statusMonitor.init) {
+    acc.push({
+      _id: app._id,
+      name: app._name,
+      init: app._statusMonitor.init,
+      minwidth: app._monitor.minwidth,
+      link: app._forward && app._forward.url,
+      linktarget: app._forward && app._forward.target,
+      running: app._status === 'running',
+      tags: app._tags,
+      tagcolor: tagColor(app._tags[0]),
+      networks: [
+        app._networks.primary === 'host' ? 'home' : app._networks.primary,
+        app._networks.secondary === 'host' ? 'home' : app._networks.secondary
+      ]
+    });
+  }
+  else if (app._monitor.cmd) {
     acc.push({
       _id: app._id,
       name: app._name,
@@ -134,12 +151,23 @@ async function MainPageWS(ctx) {
   }
 
   async function updateMonitor(app) {
-    if (app._statusMonitor) {
+    if (app._statusMonitor && app._statusMonitor.update) {
       const html = await app._statusMonitor.update();
       send({
         type: 'html.update',
         selector: `.application-status-${app._id} .status`,
         html: html
+      });
+    }
+  }
+
+  async function updateMonitor2(app) {
+    if (app._statusMonitor && app._statusMonitor.update2) {
+      const update = await app._statusMonitor.update2();
+      send({
+        type: 'monitor2.reply',
+        id: app._id,
+        reply: update
       });
     }
   }
@@ -211,6 +239,14 @@ async function MainPageWS(ctx) {
           const app = MinkeApp.getAppById(msg.value);
           if (app) {
             updateMonitor(app);
+          }
+          break;
+        }
+        case 'monitor2.request':
+        {
+          const app = MinkeApp.getAppById(msg.value);
+          if (app) {
+            updateMonitor2(app);
           }
           break;
         }

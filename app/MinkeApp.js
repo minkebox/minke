@@ -1308,6 +1308,7 @@ MinkeApp.prototype = {
     return Monitor.create({
       app: this,
       cmd: args.cmd,
+      init: args.init,
       parser: args.parser,
       template: args.template,
       polling: args.polling
