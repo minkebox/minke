@@ -191,6 +191,7 @@ function filter(net) {
     });
   }
   document.getElementsByClassName('list')[0].scrollTo(0, 0);
+  Chart.instances.forEach(chart => chart.resize());
   updateMonitors();
 }
 
