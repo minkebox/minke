@@ -156,9 +156,9 @@
     parser: `
       var now = Math.floor(Date.now() / 1000);
       var lines = input.split('\\n');
-      var times = lines.slice(2).map(line => parseInt(line.split(' ')[0]) - now);
+      var times = lines.slice(2).map(function(line) { return parseInt(line.split(' ')[0]) - now; });
       var range = lines[1].split(/[=,]/);
-      output.active = times.reduce((acc, time) => acc += (time > 0) ? 1 : 0, 0);
+      output.active = times.reduce(function(acc, time) { return acc += (time > 0) ? 1 : 0; }, 0);
       output.from = range[1];
       output.to = range[2];
       output.fixed = lines[0].trim().split(' ')[0];
