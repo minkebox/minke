@@ -86,9 +86,9 @@
     cmd: `tail -1 /var/www/html/data/result.csv`,
     init: `
       <style>
-        .ist-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
+        .ist-o { display: inline-block; width: 220px; padding-top: 20px; float: right; }
         .ist-b { color: grey; text-align: right; padding: 0 5px 10px 0; }
-        .ist-l { display: inline-block; font-size: 24px; color: black; width: 140px; }
+        .ist-l { display: inline-block; font-size: 24px; color: black; width: 200px; }
         .ist-g { padding-bottom: 30px }
       </style>
       <div class='ist-o'>
