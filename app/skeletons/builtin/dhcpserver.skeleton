@@ -166,7 +166,7 @@
         <div class="dhcp-b"><div id="{{ID}}_x" class="dhcp-v">0</div><div>Fixed Addresses</div></div>
       </div>
       <script>
-        window.monitor2("{{ID}}", 600, (input) => {
+        window.monitor("{{ID}}", 600, (input) => {
           const now = Math.floor(Date.now() / 1000);
           const lines = input.split('\\n');
           const times = lines.slice(2).map(function(line) { return parseInt(line.split(' ')[0]) - now; });

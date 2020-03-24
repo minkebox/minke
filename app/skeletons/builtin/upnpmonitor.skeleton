@@ -79,7 +79,7 @@
         <div id="{{ID}}_i" class="up-b"><div class="up-r">0</div><div>Inactive Ports</div></div>
       </div>
       <script>
-        window.monitor2("{{ID}}", 10, (input) => {
+        window.monitor("{{ID}}", 10, (input) => {
           const i = input.split('\\n');
           document.getElementById("{{ID}}_a").firstElementChild.innerText = i[0];
           document.getElementById("{{ID}}_i").firstElementChild.innerText = i[1];

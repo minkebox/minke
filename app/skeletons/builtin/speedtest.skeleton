@@ -98,7 +98,7 @@
         <div id="{{ID}}_u" class='ist-b'><div class='ist-l'>0 Mb/s</div><div>Upload</div></div>
       </div>
       <script>
-        window.monitor2("{{ID}}", 60, (input) => {
+        window.monitor("{{ID}}", 60, (input) => {
           const v = input.split(',');
           document.getElementById("{{ID}}_t").innerText = new Date(parseInt(v[0])).toLocaleTimeString();
           document.getElementById("{{ID}}_p").firstElementChild.innerText = parseFloat(v[1]) + " ms";

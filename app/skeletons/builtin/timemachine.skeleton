@@ -187,7 +187,7 @@
               }
             }
           });
-          window.monitor2("{{ID}}", 3600, (input) => {
+          window.monitor("{{ID}}", 3600, (input) => {
             const lines = input.split('\\n');
             let c = 0;
             for (let i = 0; i < lines.length && lines[i]; i++) {

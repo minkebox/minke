@@ -104,7 +104,7 @@
         <div class="ph-b"><div id="{{ID}}_t"class="ph-r">0</div><div>Domains Being Blocked</div></div>
       </div>
       <script>
-        window.monitor2("{{ID}}", 60, (input) => {
+        window.monitor("{{ID}}", 60, (input) => {
           const output = JSON.parse(input);
           document.getElementById("{{ID}}_b").innerText = output.ads_blocked_today.toLocaleString();
           document.getElementById("{{ID}}_p").innerText = output.ads_percentage_today.toFixed(1) + "%";

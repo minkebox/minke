@@ -1,5 +1,4 @@
 <div {{#if minwidth}}style="min-width:{{minwidth}}"{{/if}} class="application-status filter {{#each tags}} tag-{{nsp this}}{{/each}}{{#each networks}} network-{{this}}{{/each}} tag-color-{{tagcolor}} application-status-{{_id}} link {{#if running}}running{{/if}}" {{#if link}}onclick="openInlinePage('{{link}}','{{linktarget}}')"{{else}}onclick="openInlinePage('configure/{{_id}}/')"{{/if}}>
-  {{{header}}}
-  <div class="status">{{#if init}}{{{init}}}{{/if}}</div>
+  <div class="status">{{{init}}}</div>
   <div class="name">{{name}}</div>
 </div>

@@ -1,5 +1,4 @@
 let ws = { send: () => {} };
-let pendingQ = null;
 const monitorQ = {};
 
 function onPageShow() {
@@ -99,21 +98,9 @@ function onPageShow() {
   });
 
   document.addEventListener("visibilitychange", (event) => {
-    if (document.visibilityState !== 'visible') {
-      if (!pendingQ) {
-        pendingQ = [];
-      }
-    }
-    else {
+    if (document.visibilityState === 'visible') {
       for (let id in monitorQ) {
         monitorQ[id]('request');
-      }
-      if (pendingQ) {
-        const p = pendingQ;
-        pendingQ = null;
-        p.forEach((f) => {
-          f();
-        });
       }
     }
   });
@@ -266,20 +253,7 @@ function toggleHelp() {
   document.head.parentElement.classList.toggle('help-available');
 }
 
-function monitor(id, timeout) {
-  setTimeout(() => {
-    if (!pendingQ) {
-      cmd('app.monitor', id);
-    }
-    else {
-      pendingQ.push(() => {
-        cmd('app.monitor', id);
-      });
-    }
-  }, timeout);
-}
-
-function monitor2(id, timeout, callback) {
+function monitor(id, timeout, callback) {
   let timer = null;
   const fn = (op, arg) => {
     if (timer) {
