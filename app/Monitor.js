@@ -73,6 +73,7 @@ function WatchCmd(app, cmd, parser, template, polling) {
             output = js.pseudoToNative(js.getProperty(js.globalObject, 'output'));
           }
           catch (e) {
+            console.log(`Application: ${app._name}`);
             console.info(e);
             console.info(js.stateStack);
           }
