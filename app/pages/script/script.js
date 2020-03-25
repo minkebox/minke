@@ -100,8 +100,11 @@ function onPageShow() {
       setTimeout(reload, TIMEOUT);
     }
   });
+  ws.addEventListener('open', function() {
+    updateMonitors();
+  });
 
-  document.addEventListener("visibilitychange", (event) => {
+  document.addEventListener('visibilitychange', (event) => {
     if (document.visibilityState === 'visible') {
       updateMonitors();
     }
