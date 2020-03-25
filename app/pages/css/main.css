@@ -269,7 +269,7 @@ background: #fd471f;
 .apps-info-container .application-status.running {
   display: inline-block;
 }
-.apps-info-container:last-child::after {
+.DISABLE-apps-info-container:last-child::after {
   display: inline-block;
   flex: 10000;
   content: ' ';
