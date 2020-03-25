@@ -131,16 +131,23 @@ async function imageToSkeleton(image) {
       }, []),
       // Ports
       Object.keys(info.ContainerConfig.ExposedPorts || {}).map((key) => {
-        return {
+        const r = {
           type: 'Port',
           name: key,
           port: parseInt(key),
           protocol: key.split('/')[1].toUpperCase(),
-          nat: false,
-          web: key === '80/tcp' ? true : false,
-          dns: key === '53/udp' ? true : false,
-          mdns: null
+        };
+        switch (key ) {
+          case '80/tcp':
+            r.web = { type: 'newtab', path: '' };
+            break;
+          case '53/udp':
+            r.dns = true;
+            break;
+          default:
+            break;
         }
+        return r;
       }),
       // Networks
       {
