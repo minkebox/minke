@@ -19,7 +19,7 @@ function onPageShow() {
             eval(se[i].innerHTML);
           }
         });
-        Chart.instances.forEach(chart => chart.resize());
+        refreshCharts();
         break;
       case 'html.replace':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
@@ -32,7 +32,7 @@ function onPageShow() {
             eval(se[i].innerHTML);
           }
         });
-        Chart.instances.forEach(chart => chart.resize());
+        refreshCharts();
         break;
       case 'html.update.attribute':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
@@ -45,13 +45,13 @@ function onPageShow() {
           builder.innerHTML = msg.html;
           elem.appendChild(builder.firstElementChild);
         });
-        Chart.instances.forEach(chart => chart.resize());
+        refreshCharts();
         break;
       case 'html.remove':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
           elem.remove();
         });
-        Chart.instances.forEach(chart => chart.resize());
+        refreshCharts();
         break;
       case 'css.class.add':
         document.querySelectorAll(msg.selector).forEach(function(elem) {
@@ -195,7 +195,7 @@ function filter(net) {
     });
   }
   document.getElementsByClassName('list')[0].scrollTo(0, 0);
-  Chart.instances.forEach(chart => chart.resize());
+  refreshCharts();
   updateMonitors();
 }
 
@@ -242,14 +242,9 @@ function install(app) {
   }));
 }
 
-let charts = {};
-function addChart(id, chart) {
-  charts[id] = chart;
-  for (let oid in charts) {
-    if (!document.getElementById(oid)) {
-      charts[oid].destroy();
-      delete charts[oid];
-    }
+function refreshCharts() {
+  for (let id in Chart.instances) {
+    Chart.instances[id].resize();
   }
 }
 
