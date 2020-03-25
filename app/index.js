@@ -31,7 +31,7 @@ App.use(async (ctx, next) => {
     "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
     "style-src 'self' 'unsafe-inline';" +
     "img-src 'self' data:;" +
-    `connect-src ws://${ctx.headers.host};` +
+    `connect-src 'self' ws://${ctx.headers.host};` +
     "font-src 'none';" +
     "object-src 'none';" +
     "media-src 'none';"
