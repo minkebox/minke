@@ -84,6 +84,7 @@ if (!DEBUG) {
   registerTemplates();
 }
 
+const onlines = {};
 
 async function MainPageHTML(ctx) {
 
@@ -97,6 +98,7 @@ async function MainPageHTML(ctx) {
   const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app), []);
   ctx.body = mainTemplate({ configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME, Advanced: MinkeApp.getAdvancedMode(), tags: tagsToMap(tags), networks: networks, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
+  MinkeApp.getApps().forEach(app => onlines[app._id] = app._status);
 }
 
 async function MainPageWS(ctx) {
@@ -108,8 +110,6 @@ async function MainPageWS(ctx) {
     catch (_) {
     }
   }
-
-  const onlines = {};
 
   function updateStatus(event) {
     if (event.status !== onlines[event.app._id]) {
@@ -128,17 +128,6 @@ async function MainPageWS(ctx) {
         });
       }
       onlines[event.app._id] = event.status;
-    }
-  }
-
-  async function updateMonitor(app) {
-    if (app._statusMonitor && app._statusMonitor.update) {
-      const update = await app._statusMonitor.update();
-      send({
-        type: 'monitor2.reply',
-        id: app._id,
-        reply: update
-      });
     }
   }
 
@@ -200,15 +189,19 @@ async function MainPageWS(ctx) {
     });
   }
 
-  ctx.websocket.on('message', (msg) => {
+  ctx.websocket.on('message', async (msg) => {
     try {
       msg = JSON.parse(msg);
       switch (msg.type) {
         case 'monitor2.request':
         {
           const app = MinkeApp.getAppById(msg.value);
-          if (app) {
-            updateMonitor(app);
+          if (app && app._statusMonitor) {
+            send({
+              type: 'monitor2.reply',
+              id: app._id,
+              reply: await app._statusMonitor.update()
+            });
           }
           break;
         }
