@@ -145,30 +145,21 @@
       name: `443/tcp`,
       port: 443,
       protocol: `TCP`,
-      nat: `{{LETS_ENCRYPT}} && {{WEB_NAT}}`,
-      web: false,
-      dns: false,
-      mdns: null
+      nat: `{{LETS_ENCRYPT}} && {{WEB_NAT}}`
     },
     {
       type: `Port`,
       name: `80/tcp`,
       port: 80,
       protocol: `TCP`,
-      nat: `{{WEB_NAT}}`,
-      web: false,
-      dns: false,
-      mdns: null
+      nat: `{{WEB_NAT}}`
     },
     {
       type: `Port`,
       name: `53/udp`,
       port: 53,
       protocol: `UDP`,
-      nat: false,
-      web: false,
-      dns: true,
-      mdns: null
+      dns: true
     },
     {
       type: `Network`,

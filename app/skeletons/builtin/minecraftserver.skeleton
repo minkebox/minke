@@ -496,20 +496,13 @@
       name: `SERVER_PORT`,
       port: `{{SERVER_PORT}}`,
       protocol: `TCP`,
-      nat: `{{PUBLIC_SERVER}}`,
-      web: false,
-      dns: false,
-      mdns: null
+      nat: `{{PUBLIC_SERVER}}`
     },
     {
       type: `Port`,
       name: `25575/tcp`,
       port: 25575,
-      protocol: `TCP`,
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `TCP`
     },
     {
       type: `Network`,

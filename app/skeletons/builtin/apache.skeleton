@@ -54,12 +54,10 @@
       name: `80/tcp`,
       port: 80,
       protocol: `TCP`,
-      nat: false,
       web: {
         type: `newtab`,
         path: ``
       },
-      dns: false,
       mdns: {
         type: `_http._tcp`
       }

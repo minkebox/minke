@@ -111,9 +111,6 @@
       port: `{{SSH_PORT}}`,
       protocol: `TCP`,
       nat: `{{NAT}}`,
-      vpn: true,
-      web: false,
-      dns: false,
       mdns: {
         type: `_sftp-ssh._tcp`
       }

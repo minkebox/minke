@@ -27,23 +27,17 @@
       type: `Port`,
       name: `51826/tcp`,
       port: 51826,
-      protocol: 'TCP',
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: 'TCP'
     },
     {
       type: `Port`,
       name: `80/tcp`,
       port: 80,
       protocol: `TCP`,
-      nat: false,
       web: {
         type: `newtab`,
         path: ``
       },
-      dns: false,
       mdns: {
         type: `_http._tcp`
       }

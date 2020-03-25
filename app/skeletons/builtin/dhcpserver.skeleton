@@ -84,38 +84,26 @@
       type: `Port`,
       name: `1053/tcp`,
       port: 1053,
-      protocol: `TCP`,
-      nat: false,
-      web: false,
-      mdns: null
+      protocol: `TCP`
     },
     {
       type: `Port`,
       name: `1053/udp`,
       port: 1053,
       protocol: `UDP`,
-      nat: false,
-      web: false,
-      dns: true,
-      mdns: null
+      dns: true
     },
     {
       type: `Port`,
       name: `67/udp`,
       port: 67,
-      protocol: `UDP`,
-      nat: false,
-      web: false,
-      mdns: null
+      protocol: `UDP`
     },
     {
       type: `Port`,
       name: `68/udp`,
       port: 68,
-      protocol: `UDP`,
-      nat: false,
-      web: false,
-      mdns: null
+      protocol: `UDP`
     },
     {
       type: `Directory`,

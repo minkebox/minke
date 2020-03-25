@@ -53,9 +53,10 @@
       name: `8200/tcp`,
       port: 8200,
       protocol: `TCP`,
-      nat: false,
-      web: `newtab`,
-      dns: false,
+      web: {
+        type: `newtab`,
+        path: ``
+      },
       mdns: {
         type: `_http._tcp`
       }

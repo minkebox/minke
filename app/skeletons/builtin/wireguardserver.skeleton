@@ -207,10 +207,7 @@
       name: `SELECTED_PORT`,
       port: `{{SELECTED_PORT}}`,
       protocol: `UDP`,
-      nat: true,
-      web: false,
-      dns: false,
-      mdns: null
+      nat: true
     },
     {
       type: `Network`,

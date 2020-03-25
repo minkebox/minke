@@ -52,13 +52,10 @@
       name: `3000/tcp`,
       port: 3000,
       protocol: `TCP`,
-      nat: false,
       web: {
         type: 'newtab',
         path: '/'
-      },
-      dns: false,
-      mdns: null
+      }
     },
     {
       type: `Network`,

@@ -65,9 +65,6 @@
       name: `0/tcp`,
       port: 0,
       protocol: `TCP`,
-      nat: false,
-      web: false,
-      dns: false,
       mdns: {
         type: `_device-info._tcp`,
         txt: {
@@ -80,9 +77,6 @@
       name: `9/tcp`,
       port: 9,
       protocol: `TCP`,
-      nat: false,
-      web: false,
-      dns: false,
       mdns: {
         type: `_adisk._tcp`,
         txt: {
@@ -96,44 +90,25 @@
       type: `Port`,
       name: `137/udp`,
       port: 137,
-      protocol: `UDP`,
-      nat: false,
-      vpn: true,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `UDP`
     },
     {
       type: `Port`,
       name: `138/udp`,
       port: 138,
-      protocol: `UDP`,
-      nat: false,
-      vpn: true,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `UDP`
     },
     {
       type: `Port`,
       name: `139/tcp`,
       port: 139,
-      protocol: `TCP`,
-      nat: false,
-      vpn: true,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `TCP`
     },
     {
       type: `Port`,
       name: `445/tcp`,
       port: 445,
       protocol: `TCP`,
-      nat: false,
-      vpn: true,
-      web: false,
-      dns: false,
       mdns: {
         type: `_smb._tcp`
       }

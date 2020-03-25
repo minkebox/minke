@@ -40,21 +40,17 @@
       type: `Port`,
       name: `443/tcp`,
       port: 443,
-      protocol: 'TCP',
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: 'TCP'
     },
     {
       type: `Port`,
       name: `80/tcp`,
       port: 80,
       protocol: 'TCP',
-      nat: false,
-      web: true,
-      dns: false,
-      mdns: null
+      web: {
+        type: `redirect`,
+        path: ``
+      }
     },
     {
       type: `Network`,

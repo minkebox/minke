@@ -895,9 +895,6 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
       name: '80/tcp',
       port: 80,
       protocol: 'TCP',
-      nat: false,
-      web: false,
-      dns: false,
       mdns: {
         type: '_minke._tcp'
       }
@@ -907,9 +904,6 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
       name: '22/tcp',
       port: 22,
       protocol: 'TCP',
-      nat: false,
-      web: false,
-      dns: false,
       mdns: {
         type: '_ssh._tcp'
       }

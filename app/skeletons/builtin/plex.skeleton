@@ -65,64 +65,41 @@
       type: `Port`,
       name: `1900/udp`,
       port: 1900,
-      protocol: `UDP`,
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `UDP`
     },
     {
       type: `Port`,
       name: `32400/tcp`,
       port: 32400,
       protocol: `TCP`,
-      nat: false,
       web: {
         type: `newtab`,
         path: `/web`
       },
-      dns: false,
-      mdns: null
     },
     {
       type: `Port`,
       name: `32400/udp`,
       port: 32400,
-      protocol: `UDP`,
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `UDP`
     },
     {
       type: `Port`,
       name: `32469/tcp`,
       port: 32469,
-      protocol: `TCP`,
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `TCP`
     },
     {
       type: `Port`,
       name: `32469/udp`,
       port: 32469,
-      protocol: `UDP`,
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `UDP`
     },
     {
       type: `Port`,
       name: `5353/udp`,
       port: 5353,
-      protocol: `UDP`,
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `UDP`
     },
     {
       type: `Network`,

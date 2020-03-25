@@ -40,13 +40,10 @@
       name: `2368/tcp`,
       port: 2368,
       protocol: `TCP`,
-      nat: false,
       web: {
-        type: `url`,
+        type: `newtab`,
         url: `{{url}}`
-      },
-      dns: false,
-      mdns: null
+      }
     },
     {
       type: `Network`,

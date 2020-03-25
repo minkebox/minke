@@ -46,13 +46,10 @@
       name: `8096/tcp`,
       port: 8096,
       protocol: `TCP`,
-      nat: false,
       web: {
         type: `newtab`,
         path: ``
-      },
-      dns: false,
-      mdns: null
+      }
     },
     {
       type: `Network`,

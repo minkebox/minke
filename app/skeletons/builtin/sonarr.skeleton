@@ -100,13 +100,10 @@ but you may want to use a VPN network for extra security and privacy.`
       name: `8989/tcp`,
       port: 8989,
       protocol: `TCP`,
-      nat: false,
       web: {
         type: `newtab`,
         path: `/`
-      },
-      dns: false,
-      mdns: null
+      }
     },
     {
       type: `Network`,

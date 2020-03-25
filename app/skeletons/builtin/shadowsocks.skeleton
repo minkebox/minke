@@ -142,10 +142,7 @@
       name: `SERVER_PORT`,
       port: `{{SERVER_PORT}}`,
       protocol: `TCP`,
-      nat: true,
-      web: false,
-      dns: false,
-      mdns: null
+      nat: true
     },
     {
       type: `Network`,

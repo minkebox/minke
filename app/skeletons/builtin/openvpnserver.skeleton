@@ -116,20 +116,14 @@ using Wi-Fi; use "tun" in this case.`,
       name: `SELECTED_PORT`,
       port: `{{SELECTED_PORT}}`,
       protocol: `UDP`,
-      nat: true,
-      web: false,
-      dns: false,
-      mdns: null
+      nat: true
     },
     {
       type: `Port`,
       name: `SELECTED_PORT+1`,
       port: `{{SELECTED_PORT}}+1`,
       protocol: `UDP`,
-      nat: true,
-      web: false,
-      dns: false,
-      mdns: null
+      nat: true
     },
     {
       type: `Network`,

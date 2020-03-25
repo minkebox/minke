@@ -91,34 +91,23 @@
       type: `Port`,
       name: `80/tcp`,
       port: 80,
-      protocol: `TCP`,
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `TCP`
     },
     {
       type: `Port`,
       name: `443/tcp`,
       port: 443,
-      protocol: `TCP`,
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `TCP`
     },
     {
       type: `Port`,
       name: `53/tcp`,
       port: 53,
       protocol: `UDP`,
-      nat: false,
-      web: false,
       dns: {
         priority: 7,
         delay: 60
-      },
-      mdns: null
+      }
     },
     {
       type: `Network`,

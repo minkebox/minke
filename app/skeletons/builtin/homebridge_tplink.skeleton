@@ -27,11 +27,7 @@
       type: `Port`,
       name: `51826/tcp`,
       port: 51826,
-      protocol: 'TCP',
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: 'TCP'
     },
     {
       type: `Network`,

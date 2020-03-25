@@ -55,24 +55,17 @@
       type: `Port`,
       name: `3012/tcp`,
       port: 3012,
-      protocol: `TCP`,
-      nat: false,
-      web: false,
-      dns: false,
-      mdns: null
+      protocol: `TCP`
     },
     {
       type: `Port`,
       name: `80/tcp`,
       port: 80,
       protocol: `TCP`,
-      nat: false,
       web: {
         type: `newtab`,
         path: `/admin`
-      },
-      dns: false,
-      mdns: null
+      }
     },
     {
       type: `Network`,
