@@ -26,6 +26,16 @@ App.use(async (ctx, next) => {
   const start = Date.now();
   await next();
   const ms = Date.now() - start;
+  ctx.set('Content-Security-Policy',
+    "default-src 'self';" +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
+    "style-src 'self' 'unsafe-inline' 'unsafe-eval';" +
+    "img-src 'self' data:;" +
+    `connect-src ws://${ctx.headers.host};` +
+    "font-src 'none';" +
+    "object-src 'none';" +
+    "media-src 'none';"
+  );
   ctx.set('X-Response-Time', `${ms}ms`);
 });
 
