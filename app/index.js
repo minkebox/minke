@@ -11,7 +11,7 @@ const Config = require('./Config');
 const Pages = require('./pages/pages');
 const MinkeApp = require('./MinkeApp');
 const UPNP = require('./UPNP');
-const DOHServer = require('./DOH');
+//const DOHServer = require('./DOH');
 
 const PORT = Config.WEB_PORT;
 
@@ -19,7 +19,7 @@ const App = Websockify(new Koa());
 global.docker = new Docker({socketPath: '/var/run/docker.sock'});
 
 App.on('error', (err) => {
-  console.log(err);
+  console.error(err);
 });
 
 App.use(async (ctx, next) => {
@@ -29,7 +29,7 @@ App.use(async (ctx, next) => {
   ctx.set('Content-Security-Policy',
     "default-src 'self';" +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
-    "style-src 'self' 'unsafe-inline' 'unsafe-eval';" +
+    "style-src 'self' 'unsafe-inline';" +
     "img-src 'self' data:;" +
     `connect-src ws://${ctx.headers.host};` +
     "font-src 'none';" +
