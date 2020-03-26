@@ -45,7 +45,7 @@
       name: `53/udp`,
       port: 53,
       protocol: `UDP`,
-      dns: { priority: 2 }
+      dns: { priority: 2 },
     },
     {
       type: `Network`,

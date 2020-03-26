@@ -75,7 +75,7 @@
       web: {
         type: `newtab`,
         path: `/web`
-      },
+      }
     },
     {
       type: `Port`,

@@ -74,13 +74,13 @@
       type: `Port`,
       name: `22000/tcp`,
       port: 22000,
-      protocol: `TCP`
+      protocol: `TCP`,
     },
     {
       type: `Port`,
       name: `21027/udp`,
       port: 21027,
-      protocol: `UDP`
+      protocol: `UDP`,
     },
     {
       type: `Network`,

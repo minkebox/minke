@@ -48,7 +48,8 @@
       port: 80,
       protocol: 'TCP',
       web: {
-        type: `redirect`,
+        tab: `newtab`,
+        widget: `embed`,
         path: ``
       }
     },
