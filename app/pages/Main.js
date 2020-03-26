@@ -23,7 +23,7 @@ function tagsToMap(tags) {
 }
 
 function genApp(app) {
-  const link = app.getWebLink();
+  const link = app.getWebLink('tab');
   return {
     _id: app._id,
     name: app._name,
@@ -42,12 +42,13 @@ function genApp(app) {
 
 function genAppStatus(acc, app) {
   if (app._monitor.cmd) {
+    const link = app.getWebLink('widget');
     acc.push({
       _id: app._id,
       name: app._name,
       init: app._statusMonitor && app._statusMonitor.init,
-      link: app._forward && app._forward.url,
-      linktarget: app._forward && app._forward.target,
+      link: link.url,
+      linktarget: link.target,
       running: app._status === 'running',
       tags: app._tags,
       tagcolor: tagColor(app._tags[0]),

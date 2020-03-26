@@ -635,30 +635,63 @@ MinkeApp.prototype = {
       if (this._defaultIP) {
         const webport = ports.find(port => port.web);
         if (webport) {
+
           let web = webport.web;
-          if (this._homeIP) {
-            switch (web.type) {
-              case 'newtab':
-                this._forward = HTTP.createNewTab({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path}` });
-                break;
-              case 'redirect':
-                this._forward = HTTP.createRedirect({ prefix: `/a/${this._id}`, url: `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path}` });
-                break;
-              case 'url':
-                this._forward = HTTP.createNewTab({ prefix: `/a/${this._id}`, url: web.url });
-                break;
-              default:
-                break;
+          let widget = web.widget || 'none';
+          let tab = web.tab || 'none';
+          // If we don't have a homeIP address, the *only* thing we can do is proxy.
+          if (!this._homeIP) {
+            if (widget !== 'none') {
+              widget = 'proxy';
+            }
+            if (tab !== 'none') {
+              tab = 'proxy';
             }
           }
-          else {
-            this._forward = HTTP.createForward({ prefix: `/a/${this._id}`, IP4Address: this._defaultIP, port: webport.port, path: web.path });
+          const url = web.url || `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path || '/'}`;
+          const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}:${webport.port || 80}${webport.path || '/'}`;
+          switch (widget) {
+            case 'newtab':
+              this._widgetOpen = HTTP.createNewTab({ prefix: `/a/w${this._id}`, url: url });
+              break;
+            case 'embed':
+              this._widgetOpen = HTTP.createEmbed({ prefix: `/a/w${this._id}`, url: url });
+              break;
+            case 'proxy':
+              this._widgetOpen = HTTP.createProxy({ prefix: `/a/w${this._id}`, url: urlip });
+              break;
+            case 'none':
+            default:
+              this._widgetOpen = null;
+              break;
           }
-          if (this._forward.http) {
-            koaApp.use(this._forward.http);
+          switch (tab) {
+            case 'newtab':
+              this._tabOpen = HTTP.createNewTab({ prefix: `/a/t${this._id}`, url: url });
+              break;
+            case 'embed':
+              this._tabOpen = HTTP.createEmbed({ prefix: `/a/t${this._id}`, url: url });
+              break;
+            case 'proxy':
+              this._tabOpen = HTTP.createProxy({ prefix: `/a/t${this._id}`, url: urlip });
+              break;
+            case 'none':
+            default:
+              this._tabOpen = null;
+              break;
           }
-          if (this._forward.ws) {
-            koaApp.ws.use(this._forward.ws);
+
+          if (this._widgetOpen) {
+            koaApp.use(this._widgetOpen.http);
+            if (this._widgetOpen.ws) {
+              koaApp.ws.use(this._widgetOpen.ws);
+            }
+          }
+          if (this._tabOpen) {
+            koaApp.use(this._tabOpen.http);
+            if (this._tabOpen.ws) {
+              koaApp.ws.use(this._tabOpen.ws);
+            }
           }
         }
       }
@@ -666,7 +699,7 @@ MinkeApp.prototype = {
       if (this._homeIP) {
         const dnsport = ports.find(port => port.dns);
         if (dnsport) {
-          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: this._homeIP, port: dnsport.port, options: typeof dnsport.dns === 'object' ? dnsport.dns : null });
+          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: this._homeIP, port: dnsport.port, options: dnsport.dns });
         }
       }
 
@@ -813,20 +846,24 @@ MinkeApp.prototype = {
       this._dns = null;
     }
 
-    if (this._forward) {
-      if (this._forward.http) {
-        const idx = koaApp.middleware.indexOf(this._forward.http);
+    function removeMiddleware(m) {
+      if (m) {
+        const idx = koaApp.middleware.indexOf(m);
         if (idx !== -1) {
           koaApp.middleware.splice(idx, 1);
         }
       }
-      if (this._forward.ws) {
-        const widx = koaApp.ws.middleware.indexOf(this._forward.ws);
-        if (widx !== -1) {
-          koaApp.ws.middleware.splice(widx, 1);
-        }
-      }
-      this._forward = null;
+    }
+
+    if (this._widgetOpen) {
+      removeMiddleware(this._widgetOpen.http);
+      removeMiddleware(this._widgetOpen.ws);
+      this._widgetOpen = null;
+    }
+    if (this._tabOpen) {
+      removeMiddleware(this._tabOpen.http);
+      removeMiddleware(this._tabOpen.ws);
+      this._tabOpen = null;
     }
 
     if (this._homeIP) {
@@ -1078,16 +1115,26 @@ MinkeApp.prototype = {
     return Network.generateSLAACAddress(this._primaryMacAddress());
   },
 
-  getWebLink: function() {
-    if (this._forward) {
-      return { url: this._forward.url, target: this._forward.target };
-    }
-    const port = this._ports.map(port => this.expandPort(port)).find(port => port.web);
-    if (!port) {
-      return {};
-    }
-    if (this._networks.primary === 'home' || this._networks.secondary === 'home') {
-      return { url: `/a/${this._id}`, target: port.web === 'newtab' ? '_blank' : null };
+  getWebLink: function(type) {
+    switch (type) {
+      case 'tab':
+      case 'config':
+      default:
+        if (this._tabOpen) {
+          return {
+            url: this._tabOpen.url,
+            target: this._tabOpen.target
+          };
+        }
+        break;
+      case 'widget':
+        if (this._widgetOpen) {
+          return {
+            url: this._widgetOpen.url,
+            target: this._widgetOpen.target
+          };
+        }
+        break;
     }
     return {};
   },
@@ -1139,54 +1186,43 @@ MinkeApp.prototype = {
   },
 
   expandPort: function(port) {
-    let web = port.web;
-    if (web === null || web === undefined || web === false) {
-      web = null;
-    }
-    else if (web === true) {
+    let web;
+    if (typeof port.web === 'object' && port.web !== null) {
       web = {
-        type: 'redirect', // newtab, redirect, url
-        path: ''
+        tab: port.web.tab || 'newtab',
+        widget: port.web.widget || port.web.type
       };
-    }
-    else if (typeof web === 'string') {
-      web = {
-        type: web,
-        path: ''
+      if (port.web.path) {
+        web.path = this.expand(port.web.path);
       }
-    }
-    else if (typeof web === 'object') {
-      switch (web.type) {
-        case 'url':
-          web = {
-            type: web.type,
-            url: this.expand(web.url)
-          };
-          break;
-        case 'redirect':
-        case 'newtab':
-          web = {
-            type: web.type,
-            path: this.expand(web.path)
-          };
-          break;
-        default:
-          break;
+      if (port.web.url) {
+        web.url = this.expand(port.web.url);
       }
     }
     else {
       web = null;
     }
-    const nport = {
+
+    let dns;
+    if (typeof port.dns === 'object') {
+      dns = port.dns;
+    }
+    else if (typeof port.dns === 'string') {
+      dns = this._expandBool(port.dns);
+    }
+    else {
+      dns = !!port.dns ? {} : null;
+    }
+
+    return {
       target: port.name,
       port: this._expandNumber(port.port, port.defaultPort || 0),
       protocol: port.protocol,
       web: web,
-      dns: this._expandBool(port.dns),
-      nat: this._expandBool(port.nat),
-      mdns: port.mdns
+      dns: dns,
+      nat: this._expandBool(port.nat || false),
+      mdns: port.mdns || null
     };
-    return nport;
   },
 
   _expandNumber: function(val, alt) {

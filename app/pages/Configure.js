@@ -356,7 +356,7 @@ async function ConfigurePageHTML(ctx) {
     })
   }
   const advanced = MinkeApp.getAdvancedMode();
-  const link = app.getWebLink();
+  const link = app.getWebLink('config');
   ctx.body = template({
     minkeConfig: minkeConfig,
     Advanced: advanced,

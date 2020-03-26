@@ -5,7 +5,7 @@ const WebSocket = require('ws');
 
 function Forward(args) {
   this._prefix = args.prefix;
-  const target = `${args.port === 443 ? 'https' : 'http'}://${args.IP4Address || 'localhost'}:${args.port || 80}${args.path || ''}/`;
+  const target = args.url;
   this._router = Router({
     prefix: args.prefix
   });
@@ -44,7 +44,7 @@ function Forward(args) {
       }
     }
   });
-  const wstarget = `${args.port === 443 ? 'wss' : 'ws'}://${args.IP4Address || 'localhost'}:${args.port || 80}${args.path || ''}/`;
+  const wstarget = args.url.replace(/^http/, 'ws');
   this._wsrouter = Router({
     prefix: args.prefix
   });
@@ -91,7 +91,7 @@ function Redirect(args) {
 
 const HTTP = {
 
-  createForward: function(args) {
+  createProxy: function(args) {
     const f = new Forward(args);
     return {
       url: f._prefix,
@@ -100,20 +100,20 @@ const HTTP = {
     };
   },
 
-  createRedirect: function(args) {
-    const f = new Redirect(args);
-    return {
-      url: f._prefix,
-      http: f._router.middleware(),
-      ws: null
-    };
-  },
-
   createNewTab: function(args) {
     const f = new Redirect(args);
     return {
       url: f._prefix,
       target: '_blank',
+      http: f._router.middleware(),
+      ws: null
+    };
+  },
+
+  createEmbed: function(args) {
+    const f = new Redirect(args);
+    return {
+      url: f._prefix,
       http: f._router.middleware(),
       ws: null
     };
