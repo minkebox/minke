@@ -681,15 +681,9 @@ MinkeApp.prototype = {
 
           if (this._widgetOpen) {
             koaApp.use(this._widgetOpen.http);
-            if (this._widgetOpen.ws) {
-              koaApp.ws.use(this._widgetOpen.ws);
-            }
           }
           if (this._tabOpen) {
             koaApp.use(this._tabOpen.http);
-            if (this._tabOpen.ws) {
-              koaApp.ws.use(this._tabOpen.ws);
-            }
           }
         }
       }
@@ -845,22 +839,21 @@ MinkeApp.prototype = {
     }
 
     function removeMiddleware(m) {
-      if (m) {
-        const idx = koaApp.middleware.indexOf(m);
-        if (idx !== -1) {
-          koaApp.middleware.splice(idx, 1);
-        }
+      const idx = koaApp.middleware.indexOf(m.http);
+      if (idx !== -1) {
+        koaApp.middleware.splice(idx, 1);
+      }
+      if (m.close) {
+        m.close();
       }
     }
 
     if (this._widgetOpen) {
-      removeMiddleware(this._widgetOpen.http);
-      removeMiddleware(this._widgetOpen.ws);
+      removeMiddleware(this._widgetOpen);
       this._widgetOpen = null;
     }
     if (this._tabOpen) {
-      removeMiddleware(this._tabOpen.http);
-      removeMiddleware(this._tabOpen.ws);
+      removeMiddleware(this._tabOpen);
       this._tabOpen = null;
     }
 
@@ -1115,9 +1108,15 @@ MinkeApp.prototype = {
 
   getWebLink: function(type) {
     switch (type) {
-      case 'tab':
       case 'config':
       default:
+        if (this._tabOpen || this._widgetOpen) {
+          return {
+            url: (this._tabOpen || this._widgetOpen).url,
+            target: '_blank'
+          };
+        }
+      case 'tab':
         if (this._tabOpen) {
           return {
             url: this._tabOpen.url,
