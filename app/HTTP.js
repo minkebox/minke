@@ -5,14 +5,16 @@ const KoaProxy = require('koa-proxy');
 
 function makeProxy(target) {
   const app = new Koa();
-  app.use(async (ctx, next) => {
-    await next();
-    ctx.remove('Content-Security-Policy');
-    ctx.remove('X-Frame-Options');
-    ctx.set('X-MinkeBox-Proxy', 'true');
-  });
   app.use(KoaProxy({
-    host: target.origin
+    host: target.origin,
+    jar: true, // Send cookies
+    overrideResponseHeaders: {
+      'X-MinkeBox-Proxy': 'true'
+    },
+    suppressResponseHeaders: [
+      'content-security-policy',
+      'x-frame-options'
+    ]
   }));
   const server = app.listen();
   return new Promise(resolve => {
