@@ -647,7 +647,7 @@ MinkeApp.prototype = {
             }
           }
           const url = web.url || `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path || '/'}`;
-          const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}:${webport.port || 80}${webport.path || '/'}`;
+          const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}:${webport.port || 80}${web.path || '/'}`;
           switch (widget) {
             case 'newtab':
               this._widgetOpen = HTTP.createNewTab({ prefix: `/a/w${this._id}`, url: url });
