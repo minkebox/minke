@@ -63,7 +63,7 @@
       port: 80,
       protocol: `TCP`,
       web: {
-        type: `newtab`,
+        tab: `proxy`,
         path: `/admin`
       }
     },

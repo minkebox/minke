@@ -63,7 +63,7 @@
       port: 8384,
       protocol: `TCP`,
       web: {
-        type: `newtab`,
+        tab: `proxy`,
         path: `/`
       },
       mdns: {
