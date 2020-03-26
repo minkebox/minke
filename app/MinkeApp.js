@@ -302,15 +302,13 @@ MinkeApp.prototype = {
         }
         case 'Port':
         {
-          target._ports.push({
+          const port = {
             target: prop.name,
             port: prop.port,
             protocol: prop.protocol,
-            web: prop.web,
-            dns: prop.dns,
-            nat: prop.nat,
-            mdns: prop.mdns
-          });
+          };
+          [ 'web', 'dns', 'nat', 'mdns' ].forEach(type => prop[type] && (port[type] = prop[type]));
+          target._ports.push(port);
           break;
         }
         default:
