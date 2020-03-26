@@ -5,9 +5,21 @@ const KoaProxy = require('koa-proxy');
 
 function makeProxy(target) {
   const app = new Koa();
+  app.use(async (ctx, next) => {
+    // We transform location redirects ourselves because the proxy doesn't handle this. The proxy will
+    // do redirect internally but if we let that happen then redirects from /aaa to /aaa/ aren't seen
+    // by the browser which can break some apps (e.g. PiHole).
+    const requestOrigin = ctx.request.origin;
+    await next();
+    const location = ctx.response.get('location');
+    if (location && location.indexOf(target.origin) === 0) {
+      ctx.response.set('Location', `${requestOrigin}${location.substring(target.origin.length)}`);
+    }
+  });
   app.use(KoaProxy({
     host: target.origin,
     jar: true, // Send cookies
+    followRedirect: false, // Handle redirects by hand (see above))
     overrideResponseHeaders: {
       'X-MinkeBox-Proxy': 'true'
     },

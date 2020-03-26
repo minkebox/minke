@@ -65,8 +65,9 @@
       port: 80,
       protocol: `TCP`,
       web: {
-        type: `newtab`,
-        path: `/admin`
+        tab: `proxy`,
+        widget: `proxy`,
+        path: `/admin/`
       }
     },
     {
