@@ -65,6 +65,8 @@
       new Sortable(document.getElementById('app-insertion-point'), {
         forceFallback: true,
         fallbackTolerance: 5,
+        delay: 500,
+        delayOnTouchOnly: true,
         onEnd: (evt) => {
           const m = evt.item.className.match(/ application-(.*?) /);
           if (m) {
@@ -75,6 +77,8 @@
       new Sortable(document.getElementById('appstatus-insertion-point'), {
         forceFallback: true,
         fallbackTolerance: 5,
+        delay: 500,
+        delayOnTouchOnly: true,
         onEnd: (evt) => {
           const m = evt.item.className.match(/ application-status-(.*?) /);
           if (m) {
