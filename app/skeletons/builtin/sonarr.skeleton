@@ -19,7 +19,8 @@
     {
       type: `Text`,
       text: `<a href="https://sonaar.tv">Sonarr</a> is a smart PVR client which simplifies finding and downloading TV show.
-This application is bundled with the <a href="https://transmissionbt.com/">Transmission</a> bit torrent client and the <a href="https://nzbget.net/">NZBGet</a> Usenet client.`
+This application is bundled with the <a href="https://transmissionbt.com/">Transmission</a> bit torrent client and the <a href="https://nzbget.net/">NZBGet</a> Usenet client.
+They can be access using the buttons above.`
     },
     {
       type: `Header`,
@@ -29,18 +30,6 @@ This application is bundled with the <a href="https://transmissionbt.com/">Trans
       type: `SelectDirectory`,
       name: `/tv`,
       description: `Select the folder where we save your TV shows`
-    },
-    {
-      type: `Header`,
-      title: `Configure Client`
-    },
-    {
-      type: `Text`,
-      text: `You can configure the Transmission client <a href="http://{{__HOMEIP}}:9091/" target="_blank">here</a>.`
-    },
-    {
-      type: `Text`,
-      text: `You can configure the NZBGet client <a href="http://{{__HOMEIP}}:6789/" target="_blank">here</a> (login: nzbget, password: tegbzn6789).`
     },
     {
       type: `Header`,
@@ -158,6 +147,12 @@ but you may want to use a VPN network for extra security and privacy.`
           type: `Directory`,
           name: `/downloads`,
           style: `parent`
+        },
+        {
+          type: `File`,
+          name: `/config/custom-cont-init.d/disable-password`,
+          mode: 0o777,
+          defaultValue: `sed -i "s/ControlPassword=.*/ControlPassword=/" /config/nzbget.conf`
         }
       ]
     }
