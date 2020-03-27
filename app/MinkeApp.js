@@ -672,9 +672,6 @@ MinkeApp.prototype = {
             case 'inline':
               this._tabOpen = HTTP.createProxy(this, `/a/t${this._id}`, web.path, urlip);
               break;
-            case 'config':
-              this._tabOpen = HTTP.createUrl(`/configure/${this._id}/`);
-              break;
             case 'none':
             default:
               this._tabOpen = null;
