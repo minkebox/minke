@@ -23,15 +23,80 @@
   ],
   properties: [
     {
+      type: `Feature`,
+      name: `localtime`
+    },
+    {
       type: `Directory`,
       name: `/folders`,
       style: `store`,
       backup: true
     },
     {
+      type: `Port`,
+      name: `80/tcp`,
+      port: 80,
+      protocol: 'TCP',
+      web: {
+        tab: `proxy`,
+        widget: `proxy`,
+        path: ``
+      }
+    },
+    {
       type: `Network`,
       name: `primary`,
-      defaultValue: `host`
+      defaultValue: `home`
     }
-  ]
+  ],
+  monitor: {
+    cmd: `cd /folders;du -d0 *`,
+    init: `
+      <div style="min-width: 400px; height: 250px">
+        <canvas style="position: absolute" id="{{ID}}"></canvas>
+      </div>
+      <script>
+        (function(){
+          const chart = new Chart(document.getElementById("{{ID}}").getContext("2d"), {
+            type: 'horizontalBar',
+            data: {
+              datasets: [{
+                backgroundColor: [ '#fd0a1a', '#ffd73e', '#278b30', '#b12427', '#808020', '#fd471f', '#41b376', '#fd1a91', '#88cce7', '#19196b', '#efad5a', '#d85452' ],
+                data: []
+              }],
+              labels: [],
+            },
+            options: {
+              animation: { duration: 1000, easing: 'linear' },
+              maintainAspectRatio: false,
+              adaptive: true,
+              legend: { display: false },
+              title: { display: true, text: 'File Usage (GB)' },
+              scales: {
+                xAxes: [{
+                  ticks: {
+                    precision: 2,
+                    beginAtZero: true
+                  }
+                }]
+              }
+            }
+          });
+          window.monitor("{{ID}}", 3600, (input) => {
+            const lines = input.split('\\n');
+            let c = 0;
+            for (let i = 0; i < lines.length && lines[i]; i++) {
+              const p = lines[i].split(/\\t+/);
+              chart.data.labels[c] = p[1];
+              chart.data.datasets[0].data[c] = parseInt(p[0]) / 1000000;
+              c++;
+            }
+            chart.data.labels.length = c;
+            chart.data.datasets[0].data.length = c;
+            chart.update();
+          });
+        })();
+      </script>
+    `
+  }
 }
