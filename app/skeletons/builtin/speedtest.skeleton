@@ -48,8 +48,8 @@
       port: 80,
       protocol: 'TCP',
       web: {
-        tab: `newtab`,
-        widget: `embed`,
+        tab: `proxy`,
+        widget: `proxy`,
         path: ``
       }
     },
