@@ -9,12 +9,12 @@
     {
       type: `NavButton`,
       name: `Transmission`,
-      url: `http://{{__HOSTNAME}}.{{__DOMAINNAME}}:9091/`
+      url: `http://{{__HOMEIP}}:9091/`
     },
     {
       type: `NavButton`,
       name: `NZBGet`,
-      url: `http://{{__HOSTNAME}}.{{__DOMAINNAME}}:6789/`
+      url: `http://{{__HOMEIP}}:6789/`
     },
     {
       type: `Text`,
