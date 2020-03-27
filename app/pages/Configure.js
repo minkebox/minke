@@ -367,13 +367,6 @@ async function ConfigurePageHTML(ctx) {
   }
   const advanced = MinkeApp.getAdvancedMode();
   const link = app.getWebLink('config');
-  if (link.url) {
-    navbuttons.push({
-      name: 'App',
-      link: expand(link.url),
-      linktarget: link.target
-    });
-  }
   ctx.body = template({
     minkeConfig: minkeConfig,
     Advanced: advanced,
