@@ -84,6 +84,7 @@
           if (m) {
             cmd('app.move.widget', { id: m[1], from: evt.oldIndex, to: evt.newIndex });
           }
+          refreshCharts();
         }
       });
     </script>
