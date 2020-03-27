@@ -65,8 +65,8 @@
       port: 80,
       protocol: `TCP`,
       web: {
-        tab: `proxy`,
-        widget: `proxy`,
+        tab: `inline`,
+        widget: `inline`,
         path: `/admin/`
       }
     },

@@ -86,15 +86,23 @@ const HTTP = {
     return {
       url: f._prefix,
       target: '_blank',
-      http: f._router.middleware(),
+      http: f._router.middleware()
     };
   },
 
-  createEmbed: function(args) {
-    const f = new Redirect(args);
+  createNewTabProxy: function(args) {
+    const f = new Proxy(args);
     return {
       url: f._prefix,
+      target: '_blank',
       http: f._router.middleware(),
+      shutdown: () => f.shutdown()
+    };
+  },
+
+  createUrl: function(args) {
+    return {
+      url: args.url
     };
   }
 

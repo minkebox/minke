@@ -63,7 +63,7 @@
       port: 80,
       protocol: `TCP`,
       web: {
-        tab: `proxy`,
+        tab: `inline`,
         path: `/admin`
       }
     },

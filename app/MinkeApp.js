@@ -638,43 +638,42 @@ MinkeApp.prototype = {
         if (webport) {
 
           let web = webport.web;
-          let widget = web.widget || 'none';
-          let tab = web.tab || 'none';
-          // If we don't have a homeIP address, the *only* thing we can do is proxy.
-          if (!this._homeIP) {
-            if (widget !== 'none') {
-              widget = 'proxy';
-            }
-            if (tab !== 'none') {
-              tab = 'proxy';
-            }
-          }
           const url = web.url || `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path || '/'}`;
           const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}:${webport.port || 80}${web.path || '/'}`;
-          switch (widget) {
+          switch (web.widget || 'none') {
             case 'newtab':
-              this._widgetOpen = HTTP.createNewTab({ prefix: `/a/w${this._id}`, url: url });
+              if (this._homeIP) {
+                this._widgetOpen = HTTP.createNewTab({ prefix: `/a/w${this._id}`, url: url });
+              }
+              else {
+                this._widgetOpen = HTTP.createNewTabProxy({ prefix: `/a/w${this._id}`, url: urlip });
+              }
               break;
-            case 'embed':
-              this._widgetOpen = HTTP.createEmbed({ prefix: `/a/w${this._id}`, url: url });
-              break;
-            case 'proxy':
+            case 'inline':
               this._widgetOpen = HTTP.createProxy({ prefix: `/a/w${this._id}`, url: urlip });
+              break;
+            case 'config':
+              this._widgetOpen = HTTP.createUrl({ url: `/configure/${this._id}/` });
               break;
             case 'none':
             default:
               this._widgetOpen = null;
               break;
           }
-          switch (tab) {
+          switch (web.tab || 'none') {
             case 'newtab':
-              this._tabOpen = HTTP.createNewTab({ prefix: `/a/t${this._id}`, url: url });
+              if (this._homeIP) {
+                this._tabOpen = HTTP.createNewTab({ prefix: `/a/t${this._id}`, url: url });
+              }
+              else {
+                this._tabOpen = HTTP.createNewTabProxy({ prefix: `/a/t${this._id}`, url: urlip });
+              }
               break;
-            case 'embed':
-              this._tabOpen = HTTP.createEmbed({ prefix: `/a/t${this._id}`, url: url });
-              break;
-            case 'proxy':
+            case 'inline':
               this._tabOpen = HTTP.createProxy({ prefix: `/a/t${this._id}`, url: urlip });
+              break;
+            case 'config':
+              this._tabOpen = HTTP.createUrl({ url: `/configure/${this._id}/` });
               break;
             case 'none':
             default:
@@ -682,10 +681,10 @@ MinkeApp.prototype = {
               break;
           }
 
-          if (this._widgetOpen) {
+          if (this._widgetOpen && this._widgetOpen.http) {
             koaApp.use(this._widgetOpen.http);
           }
-          if (this._tabOpen) {
+          if (this._tabOpen && this._tabOpen.http) {
             koaApp.use(this._tabOpen.http);
           }
         }
@@ -842,9 +841,11 @@ MinkeApp.prototype = {
     }
 
     function removeMiddleware(m) {
-      const idx = koaApp.middleware.indexOf(m.http);
-      if (idx !== -1) {
-        koaApp.middleware.splice(idx, 1);
+      if (m.http) {
+        const idx = koaApp.middleware.indexOf(m.http);
+        if (idx !== -1) {
+          koaApp.middleware.splice(idx, 1);
+        }
       }
       if (m.close) {
         m.close();
