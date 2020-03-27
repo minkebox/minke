@@ -22,6 +22,11 @@ function pages(root, wsroot) {
     ctx.type = 'text/javascript';
     ctx.cacheControl = { maxAge: CACHE_MAXAGE };
   });
+  root.get('/js/sortable.js', async (ctx) => {
+    ctx.body = FS.readFileSync(`${__dirname}/../node_modules/sortablejs/${DEBUG ? 'Sortable.js' : 'Sortable.min.js'}`, { encoding: 'utf8' });
+    ctx.type = 'text/javascript';
+    ctx.cacheControl = { maxAge: CACHE_MAXAGE };
+  });
   root.get('/js/:script', async (ctx) => {
     ctx.body = FS.readFileSync(`${__dirname}/script/${ctx.params.script}`, { encoding: 'utf8' });
     ctx.type = 'text/javascript';

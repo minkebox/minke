@@ -71,6 +71,7 @@ function MinkeSetup(savedConfig, config) {
   this._homeIP = this._env.IPADDRESS.value;
   this._globalId = this._env.GLOBALID.value;
   this._tags = [ 'All' ];
+  this._position = { tab: getEnv('POSITION').value, widget: 0 };
 }
 
 MinkeSetup.prototype = {
@@ -225,6 +226,7 @@ MinkeSetup.prototype = {
     }
     config.HOSTNAME = this._name;
     config.REMOTEMANAGEMENT = this._networks.primary;
+    config.POSITION = this._position.tab;
     config._id = this._id;
     await Database.saveConfig(config);
   },

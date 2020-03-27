@@ -25,6 +25,7 @@
     "node-fetch": "^2.6.0",
     "node-ssdp": "^4.0.0",
     "purecss": "^1.0.1",
+    "sortablejs": "^1.10.2",
     "tar-stream": "^2.1.1",
     "uuid": "^3.4.0",
     "ws": "^6.2.1",

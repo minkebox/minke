@@ -53,6 +53,7 @@ MinkeApp.prototype = {
     this._backups = app.backups || [];
     this._networks = app.networks;
     this._bootcount = app.bootcount;
+    this._position = app.position || { tab: 0, widget: 0 };
     this._secondary = (app.secondary || []).map(secondary => {
       return {
         _image: secondary.image,
@@ -99,6 +100,7 @@ MinkeApp.prototype = {
       backups: this._backups,
       networks: this._networks,
       bootcount: this._bootcount,
+      position: this._position,
       secondary: this._secondary.map(secondary => {
         return {
           image: secondary._image,
@@ -127,6 +129,7 @@ MinkeApp.prototype = {
     this._globalId = UUID();
     this._backups = [];
     this._bootcount = 0;
+    this._position = { tab: 0, widget: 0 };
 
     this.updateFromSkeleton(skel, {});
 
@@ -1563,7 +1566,8 @@ MinkeApp.startApps = async function(app, config) {
     TIMEZONE: Moment.tz.guess(),
     ADMINMODE: 'DISABLED',
     GLOBALID: UUID(),
-    UPDATETIME: '03:00'
+    UPDATETIME: '03:00',
+    POSITION: 0
   });
   applications.unshift(setup);
 
@@ -1630,7 +1634,6 @@ MinkeApp.startApps = async function(app, config) {
           console.error(e);
         }
       }));
-      await app.save();
     }
   }));
 
@@ -1721,8 +1724,8 @@ MinkeApp.shutdown = async function(config) {
       // can inherit them when on a restart.
       if (!config.inherit) {
         await app.stop();
-        await app.save();
       }
+      await app.save();
     }
   }));
 }

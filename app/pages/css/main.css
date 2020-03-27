@@ -256,6 +256,7 @@ background: #fd471f;
 }
 
 .apps-info-container .application-status {
+  position: relative;
   flex: 1;
   display: none;
   margin: 10px;
