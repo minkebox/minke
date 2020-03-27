@@ -639,21 +639,21 @@ MinkeApp.prototype = {
 
           let web = webport.web;
           const url = web.url || `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path || '/'}`;
-          const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}:${webport.port || 80}${web.path || '/'}`;
+          const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}:${webport.port || 80}`;
           switch (web.widget || 'none') {
             case 'newtab':
               if (this._homeIP) {
-                this._widgetOpen = HTTP.createNewTab({ prefix: `/a/w${this._id}`, url: url });
+                this._widgetOpen = HTTP.createNewTab(this, `/a/w${this._id}`, url);
               }
               else {
-                this._widgetOpen = HTTP.createNewTabProxy({ prefix: `/a/w${this._id}`, url: urlip });
+                this._widgetOpen = HTTP.createNewTabProxy(this, `/a/w${this._id}`, web.path, urlip);
               }
               break;
             case 'inline':
-              this._widgetOpen = HTTP.createProxy({ prefix: `/a/w${this._id}`, url: urlip });
+              this._widgetOpen = HTTP.createProxy(this, `/a/w${this._id}`, web.path, urlip);
               break;
             case 'config':
-              this._widgetOpen = HTTP.createUrl({ url: `/configure/${this._id}/` });
+              this._widgetOpen = HTTP.createUrl(`/configure/${this._id}/`);
               break;
             case 'none':
             default:
@@ -663,17 +663,17 @@ MinkeApp.prototype = {
           switch (web.tab || 'none') {
             case 'newtab':
               if (this._homeIP) {
-                this._tabOpen = HTTP.createNewTab({ prefix: `/a/t${this._id}`, url: url });
+                this._tabOpen = HTTP.createNewTab(this, `/a/t${this._id}`,url);
               }
               else {
-                this._tabOpen = HTTP.createNewTabProxy({ prefix: `/a/t${this._id}`, url: urlip });
+                this._tabOpen = HTTP.createNewTabProxy(this, `/a/t${this._id}`, web.path, urlip);
               }
               break;
             case 'inline':
-              this._tabOpen = HTTP.createProxy({ prefix: `/a/t${this._id}`, url: urlip });
+              this._tabOpen = HTTP.createProxy(this, `/a/t${this._id}`, web.path, urlip);
               break;
             case 'config':
-              this._tabOpen = HTTP.createUrl({ url: `/configure/${this._id}/` });
+              this._tabOpen = HTTP.createUrl(`/configure/${this._id}/`);
               break;
             case 'none':
             default:
@@ -847,9 +847,6 @@ MinkeApp.prototype = {
           koaApp.middleware.splice(idx, 1);
         }
       }
-      if (m.close) {
-        m.close();
-      }
     }
 
     if (this._widgetOpen) {
@@ -859,6 +856,10 @@ MinkeApp.prototype = {
     if (this._tabOpen) {
       removeMiddleware(this._tabOpen);
       this._tabOpen = null;
+    }
+    if (this._webProxy) {
+      this._webProxy.close();
+      this._webProxy = null;
     }
 
     if (this._homeIP) {
