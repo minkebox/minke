@@ -7,6 +7,16 @@
   ],
   actions: [
     {
+      type: `NavButton`,
+      name: `Transmission`,
+      url: `http://{{__HOSTNAME}}.{{__DOMAINNAME}}:9091/`
+    },
+    {
+      type: `NavButton`,
+      name: `NZBGet`,
+      url: `http://{{__HOSTNAME}}.{{__DOMAINNAME}}:6789/`
+    },
+    {
       type: `Text`,
       text: `<a href="https://radarr.video/">Radarr</a> simplifies finding and downloading Movies.
 This application is bundled with the <a href="https://transmissionbt.com/">Transmission</a> bit torrent client and the <a href="https://nzbget.net/">NZBGet</a> Usenet client.`
@@ -26,11 +36,11 @@ This application is bundled with the <a href="https://transmissionbt.com/">Trans
     },
     {
       type: `Text`,
-      text: `You can configure the Transmission client <a href="http://{{__HOMEIP}}:9091/" target="_blank">here</a>.`
+      text: `You can configure the Transmission client <a href="http://{{__HOSTNAME}}.{{__DOMAINNAME}}:9091/" target="_blank">here</a>.`
     },
     {
       type: `Text`,
-      text: `You can configure the NZBGet client <a href="http://{{__HOMEIP}}:6789/" target="_blank">here</a> (login: nzbget, password: tegbzn6789).`
+      text: `You can configure the NZBGet client <a href="http://{{__HOSTNAME}}.{{__DOMAINNAME}}:6789/" target="_blank">here</a> (login: nzbget, password: tegbzn6789).`
     },
     {
       type: `Header`,
