@@ -1165,6 +1165,7 @@ MinkeApp.prototype = {
       }
       const env = Object.assign({
         __APPNAME: { value: this._name },
+        __HOSTNAME: { value: this._safeName() },
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
         __HOMEIP: { value: this._homeIP || '<none>' },
         __HOMEIP6: { value: this.getSLAACAddress() || '<none>' },
