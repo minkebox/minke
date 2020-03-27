@@ -7,6 +7,16 @@
   ],
   actions: [
     {
+      type: `NavButton`,
+      name: `Transmission`,
+      url: `http://{{__HOSTNAME}}.{{__DOMAINNAME}}:9091/`
+    },
+    {
+      type: `NavButton`,
+      name: `NZBGet`,
+      url: `http://{{__HOSTNAME}}.{{__DOMAINNAME}}:6789/`
+    },
+    {
       type: `Text`,
       text: `<a href="https://sonaar.tv">Sonarr</a> is a smart PVR client which simplifies finding and downloading TV show.
 This application is bundled with the <a href="https://transmissionbt.com/">Transmission</a> bit torrent client and the <a href="https://nzbget.net/">NZBGet</a> Usenet client.`
