@@ -71,6 +71,7 @@ async function ConfigurePageHTML(ctx) {
     UPnPAvailable: UPNP.available()
   };
   let help = false;
+  const navbuttons = [];
   const nskeleton = {
     name: skeleton.name,
     value: app._name,
@@ -96,6 +97,15 @@ async function ConfigurePageHTML(ctx) {
           {
             help = true;
             return Object.assign({}, action, { text: expand(action.text) });
+          }
+        case 'NavButton':
+          {
+            navbuttons.push({
+              name: action.name,
+              link: expand(action.url),
+              linktarget: '_blank'
+            });
+            return action;
           }
         case 'EditEnvironment':
           {
@@ -357,6 +367,13 @@ async function ConfigurePageHTML(ctx) {
   }
   const advanced = MinkeApp.getAdvancedMode();
   const link = app.getWebLink('config');
+  if (link.url) {
+    navbuttons.push({
+      name: 'App',
+      link: expand(link.url),
+      linktarget: link.target
+    });
+  }
   ctx.body = template({
     minkeConfig: minkeConfig,
     Advanced: advanced,
@@ -364,8 +381,7 @@ async function ConfigurePageHTML(ctx) {
     skeletonType: advanced && !minkeConfig ? skel.type : null,
     properties: JSON.stringify(properties),
     skeletonAsText: Skeletons.toString(skeleton),
-    link: link.url,
-    linktarget: link.target,
+    navbuttons: navbuttons,
     firstUse: app._bootcount == 0,
     help: help,
     changes: '[' + Object.keys(visibles).map((key) => {
