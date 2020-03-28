@@ -328,7 +328,11 @@ MinkeSetup.prototype = {
   },
 
   systemRestart: async function(reason) {
-    FS.writeFileSync(RESTART_REASON, reason);
+    try {
+      FS.writeFileSync(RESTART_REASON, reason);
+    }
+    catch (_) {
+    }
     switch (reason) {
       case 'restart':
       case 'update':
