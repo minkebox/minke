@@ -177,6 +177,7 @@ MinkeApp.prototype = {
 
     this._parseProperties(this, '', skel.properties, defs);
     if (skel.secondary) {
+      const defssecondary = defs.secondary || [];
       this._secondary = skel.secondary.map((secondary, idx) => {
         const secondaryApp = {
           _image: secondary.image,
@@ -184,7 +185,7 @@ MinkeApp.prototype = {
           _backups: [],
           _delay: secondary.delay || 0
         };
-        this._parseProperties(secondaryApp, `${idx}`, secondary.properties, defs.secondary[idx] || {});
+        this._parseProperties(secondaryApp, `${idx}`, secondary.properties, defssecondary[idx] || {});
         return secondaryApp;
       });
     }
