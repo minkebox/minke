@@ -51,6 +51,9 @@ body {
   text-transform: uppercase;
   font-size: 85%;
 }
+.sidebar nav a[disabled] {
+  border: 2px solid rgb(176, 202, 219);
+}
 .sidebar nav a:hover,
 .sidebar nav a:focus {
   border: 2px solid rgb(61, 146, 201);

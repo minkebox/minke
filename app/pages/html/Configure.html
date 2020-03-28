@@ -26,7 +26,7 @@
             <a class="pure-button" data-popbox-target="halt">Power Off</a>
             {{else}}
             {{#each ../navbuttons}}
-            <a class="pure-button" href="{{link}}" target="{{linktarget}}">Open {{name}}</a>
+            <a class="pure-button" href="{{link}}" target="{{linktarget}}" {{#if ../../firstUse}}disabled{{/if}}>Open {{name}}</a>
             {{/each}}
             <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
             {{#if ../help}}<a class="pure-button" onclick="toggleHelp()">Help</a>{{/if}}
