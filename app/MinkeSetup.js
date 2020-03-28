@@ -1,6 +1,7 @@
 const FS = require('fs');
 const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
+const Config = require('./Config');
 const Images = require('./Images');
 const DNS = require('./DNS');
 const Network = require('./Network');
@@ -30,7 +31,7 @@ function MinkeSetup(savedConfig, config) {
   this._features = {};
   this._binds = [];
   this._files = [{
-    src: '/minke/minkebox.config',
+    src: `${Config.ROOT}/minkebox.config`,
     target: '/minkebox.config',
     data: '',
     mode: 0o600,

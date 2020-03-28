@@ -1,10 +1,11 @@
+const Config = require('./Config');
 const FS = require('fs');
 const Database = require('./Database');
 const Images = require('./Images');
 let MinkeApp;
 
 const VERSION = 1;
-const BACKUP_PATH = `/minke/minkebox.config`;
+const BACKUP_PATH = `${Config.ROOT}/minkebox.config`;
 
 const ConfigBackup = {
 

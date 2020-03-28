@@ -1,7 +1,8 @@
+const Config = require('./Config');
 const DB = require('nedb');
 const FS = require('fs');
 
-const DB_PATH = '/minke/db';
+const DB_PATH = `${Config.ROOT}/db`;
 
 function _wrap(fn) {
   return async function(db, ...args) {
@@ -20,7 +21,7 @@ function _wrap(fn) {
 }
 
 const Database = {
-  
+
   init: async function() {
     const DB_APPS = `${DB_PATH}/apps.db`;
     const DB_CONFIG = `${DB_PATH}/config.db`;

@@ -1,4 +1,5 @@
 module.exports = {
+  ROOT: '/minke',
   CONFIG_NAME: 'Production',
   WEB_PORT: 80,
   REGISTRY_HOST: 'registry.minkebox.net',
