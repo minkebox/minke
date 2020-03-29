@@ -52,7 +52,7 @@ to change this to a fixed IP address. Any change to the network configuration re
       type: 'Header',
       title: 'Wifi',
       visible: 'property.WifiAvailable',
-      enabled: `property['EditEnvironmentAsCheckbox#DHCP'] == 'false'`
+      enabled: `!property['EditEnvironmentAsCheckbox#DHCP']`
     },
     {
       type: 'Help',
