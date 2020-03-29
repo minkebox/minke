@@ -3,12 +3,15 @@
 # Static IP assigned to MinkeBox
 IP=$1
 
+# MinkeBox storage
+VOL=$2
+
 if [ "$(whoami)" != "root" ]; then
   echo "Please run as root"
   exit 1
 fi
-if [ "${IP}" = "" ]; then
-  echo "Please specify an IP address to assign to MinkeBox"
+if [ "${IP}" = "" -o "${VOL}" = "" ]; then
+  echo "Usage: minkebox <ip address> <directory for storage>"
   exit 1
 fi
 
@@ -43,7 +46,7 @@ docker network create --driver=macvlan --subnet=${host}/24 --gateway=${gw} -o "c
 docker container rm minke
 docker run --name minke -d --privileged \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /minke:/minke \
+  -v ${VOL}:/minke \
   --network=home \
   --ip=${IP} \
   ${MINKEBOX} > /dev/null
