@@ -1,17 +1,22 @@
 
-#
-# Network setup assumed already created a bridge on the host
-#
-#docker network create --driver=bridge --subnet=192.168.51.0/24 --gateway=192.168.51.15 -o "com.docker.network.bridge.name=br0" -o "com.docker.network.bridge.enable_ip_masquerade=false" --aux-address="DefaultGatewayIPv4=192.168.51.1" home
-#
+# Static IP assigned to MinkeBox
+IP=192.168.51.14
 
-#docker build --network host -t registry.minkebox.net/minkebox/minke .
+# MinkeBox runs onto of it's own network called 'home'. This is bridge to the host network and will be created if
+# it doesn't exist.
+if [ "$(docker network inspect home 2> /dev/null)" = "[]" ]; then
+  default_route=$(ip route get 1.1.1.1 | head -1)
+  gw=$(echo $default_route | cut -d' ' -f3)
+  dev=$(echo $default_route | cut -d' ' -f5)
+  host=$(echo $default_route | cut -d' ' -f7)
+  docker network create --driver=bridge --subnet=${host}/24 --gateway=${host} -o "com.docker.network.bridge.name=${dev}" -o "com.docker.network.bridge.enable_ip_masquerade=false" --aux-address="DefaultGatewayIPv4=${gw}" home
+fi
 
-MINKE_IP=192.168.51.14
-docker container rm minke
+docker container rm minke 2> /dev/null
 docker run --name minke -d --privileged \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  --mount type=bind,source=/minke,target=/minke,bind-propagation=rshared \
-  --network=home --ip=${MINKE_IP} \
+  -v /minke:/minke \
+  --network=home \
+  --ip=${IP} \
   registry.minkebox.net/minkebox/minke
 
