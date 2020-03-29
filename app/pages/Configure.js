@@ -354,7 +354,7 @@ async function ConfigurePageHTML(ctx) {
                   percentage: disk.size === 0 ? 0 : (disk.used / disk.size * 100).toFixed(1),
                   tenth: parseInt(disk.size === 0 ? 0 : (disk.used / disk.size * 10)),
                   status: disk.status,
-                  format: !havestore && disk.root !== '/minke'
+                  format: SYSTEM && !havestore && disk.root !== '/minke'
                 }
               })
             };
