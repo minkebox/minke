@@ -1,7 +1,7 @@
 FROM alpine:3.10
 
 EXPOSE 53/tcp 53/udp 80/tcp
-VOLUME /minke/db /minke/apps /app/skeletons/local /app/skeletons/internal
+VOLUME /minke
 
 LABEL net.minkebox.system="true"
 
