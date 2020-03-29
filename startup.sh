@@ -2,7 +2,11 @@
 
 # Setup timezone
 if [ ! -s /etc/timezone ]; then
-  echo 'America/Los_Angeles' > /etc/timezone
+  if [ "${TZ}" != "" ]; then
+    echo ${TZ} > /etc/timezone
+  else
+    echo 'America/Los_Angeles' > /etc/timezone
+  fi
 fi
 cp /usr/share/zoneinfo/$(cat /etc/timezone) /etc/localtime
 
@@ -10,7 +14,7 @@ cp /usr/share/zoneinfo/$(cat /etc/timezone) /etc/localtime
 echo "servers pool.ntp.org" > /etc/ntpd.conf
 (sleep 60 ; ntpd -s -f /etc/ntpd.conf) &
 
-# Minke
+# MinkeBox
 /usr/bin/node --expose-gc /app/index.js
 # Restart if testing (so we can debug inside the docker container)
 while [ -f /tmp/minke-testing ]; do
