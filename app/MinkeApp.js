@@ -17,7 +17,7 @@ const Images = require('./Images');
 const Updater = require('./Updater');
 const Disks = require('./Disks');
 const UPNP = require('./UPNP');
-const Skeletons = require('./skeletons/Skeletons');
+const Skeletons = require('./Skeletons');
 const ConfigBackup = require('./ConfigBackup');
 
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;

@@ -3,7 +3,7 @@ const Path = require('path');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
-const Skeletons = require('../skeletons/Skeletons');
+const Skeletons = require('../Skeletons');
 const Network = require('../Network');
 const Disks = require('../Disks');
 const ConfigBackup = require('../ConfigBackup');
@@ -62,13 +62,15 @@ async function ConfigurePageHTML(ctx) {
   }
 
   let nextid = 100;
+
   const visibles = {};
   const enabled = {};
   const properties = {
     Advanced: MinkeApp.getAdvancedMode(),
     FirstUse: app._bootcount == 0,
-    WifiAvailable: minkeConfig ? (await Network.wifiAvailable()) : false,
-    UPnPAvailable: UPNP.available()
+    WifiAvailable: minkeConfig && SYSTEM ? (await Network.wifiAvailable()) : false,
+    UPnPAvailable: UPNP.available(),
+    NoSystemControl: !SYSTEM
   };
   let help = false;
   const navbuttons = [];
@@ -366,7 +368,6 @@ async function ConfigurePageHTML(ctx) {
     })
   }
   const advanced = MinkeApp.getAdvancedMode();
-  const link = app.getWebLink('config');
   ctx.body = template({
     minkeConfig: minkeConfig,
     Advanced: advanced,
@@ -375,7 +376,8 @@ async function ConfigurePageHTML(ctx) {
     properties: JSON.stringify(properties),
     skeletonAsText: Skeletons.toString(skeleton),
     navbuttons: navbuttons,
-    firstUse: app._bootcount == 0,
+    firstUse: properties.FirstUse,
+    NoSystemControl: properties.NoSystemControl,
     help: help,
     changes: '[' + Object.keys(visibles).map((key) => {
       return `function(){try{const c=document.getElementById("${key}").classList;if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){}}`;

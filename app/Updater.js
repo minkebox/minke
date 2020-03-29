@@ -1,7 +1,7 @@
 const FS = require('fs');
 const Images = require('./Images');
 const Pull = require('./Pull');
-const Skeletons = require('./skeletons/Skeletons');
+const Skeletons = require('./Skeletons');
 
 const TRACER_OUTPUT = '/tmp/tracer.out';
 const DEFAULT_TIME = { hour: 3, minute: 0 }; // 3am

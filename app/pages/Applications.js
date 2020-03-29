@@ -3,7 +3,7 @@ const Handlebars = require('./HB');
 const Pull = require('../Pull');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
-const Skeletons = require('../skeletons/Skeletons');
+const Skeletons = require('../Skeletons');
 
 const NRTAGS = 20;
 

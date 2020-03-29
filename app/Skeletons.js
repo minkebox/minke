@@ -3,12 +3,25 @@ const Path = require('path');
 const Glob = require('fast-glob');
 const VM = require('vm');
 const Tar = require('tar-stream');
+const Config = require('./Config');
 
-const LOCALS_DIR   = `${__dirname}/local`;
-const BUILTINS_DIR = `${__dirname}/builtin`;
-const INTERNAL_DIR = `${__dirname}/internal`;
+const BUILTINS_DIR = `${__dirname}/skeletons/builtin`;
+const LOCALS_DIR   = `${Config.ROOT}/skeletons/local`;
+const INTERNAL_DIR = `${Config.ROOT}/skeletons/internal`;
 
 const Builtins = {};
+
+FS.readdirSync(BUILTINS_DIR).forEach((file) => {
+  if (Path.extname(file) === '.skeleton') {
+    const str = FS.readFileSync(`${BUILTINS_DIR}/${file}`, { encoding: 'utf8' });
+    const skeleton = stringToSkeleton(str);
+    if (skeleton) {
+      Builtins[skeleton.image] = skeleton;
+    }
+  }
+});
+FS.mkdirSync(LOCALS_DIR, { recursive: true });
+FS.mkdirSync(INTERNAL_DIR, { recursive: true });
 
 function selectImage(skeleton) {
   if (skeleton.images && (process.arch in skeleton.images)) {
@@ -25,16 +38,6 @@ function selectImage(skeleton) {
     return r && second.image;
   }, skeleton.image);
 }
-
-FS.readdirSync(BUILTINS_DIR).forEach((file) => {
-  if (Path.extname(file) === '.skeleton') {
-    const str = FS.readFileSync(`${BUILTINS_DIR}/${file}`, { encoding: 'utf8' });
-    const skeleton = stringToSkeleton(str);
-    if (skeleton) {
-      Builtins[skeleton.image] = skeleton;
-    }
-  }
-});
 
 async function findImageInternalSkeleton(image) {
   const container = await docker.createContainer({
