@@ -70,6 +70,7 @@ function MinkeSetup(savedConfig, config) {
   };
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
+  this._defaultIP = this._homeIP;
   this._globalId = this._env.GLOBALID.value;
   this._tags = [ 'All' ];
   this._position = { tab: getEnv('POSITION').value, widget: 0 };
