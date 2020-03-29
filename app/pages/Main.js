@@ -2,6 +2,7 @@ const FS = require('fs');
 const Config = require('../Config');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
+const Images = require('../Images');
 
 const NRTAGS = 20;
 
@@ -131,7 +132,7 @@ async function MainPageWS(ctx) {
   }
 
   function updateStatus(event) {
-    if (event.status !== onlines[event.app._id]) {
+    if (event.status !== onlines[event.app._id] || event.app._image === Images.MINKE) {
       const html = appTemplate(genApp(event.app));
       send({
         type: 'html.replace',
