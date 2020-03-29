@@ -8,24 +8,10 @@
 #docker build --network host -t registry.minkebox.net/minkebox/minke .
 
 MINKE_IP=192.168.51.14
-RESTART_STATUS=/tmp/minke-restart-reason
-TRACER_OUT=/tmp/tracer.out
-MINKE_CONFIG=/minke/minkebox.config
-touch ${RESTART_STATUS} ${TRACER_OUT} ${MINKE_CONFIG}
 docker container rm minke
-docker run --init --name minke -d --privileged \
-  -v /tmp/timezone:/etc/timezone \
-  -v ${RESTART_STATUS}:${RESTART_STATUS} \
-  -v ${TRACER_OUT}:${TRACER_OUT} \
+docker run --name minke -d --privileged \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  --mount type=bind,source=/minke/apps,target=/minke/apps,bind-propagation=rshared \
-  --mount type=bind,source=/minke/db,target=/minke/db,bind-propagation=rshared \
-  --mount type=bind,source=${PWD}/app/skeletons/local,target=/app/skeletons/local,bind-propagation=rshared \
-  --mount type=bind,source=${PWD}/app/skeletons/internal,target=/app/skeletons/internal,bind-propagation=rshared \
-  --mount type=bind,source=${MINKE_CONFIG},target=${MINKE_CONFIG},bind-propagation=rshared \
+  --mount type=bind,source=/minke,target=/minke,bind-propagation=rshared \
   --network=home --ip=${MINKE_IP} \
-  --log-driver json-file --log-opt max-size=110k --log-opt max-file=1 \
-  -e RESTART_REASON=$(cat ${RESTART_STATUS}) \
-  -e DEBUG=1 \
   registry.minkebox.net/minkebox/minke
 

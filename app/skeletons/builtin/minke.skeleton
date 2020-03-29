@@ -7,7 +7,8 @@
   actions: [
     {
       type: 'Header',
-      title: 'Name and Address'
+      title: 'Name and Address',
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'Help',
@@ -45,7 +46,7 @@ to change this to a fixed IP address. Any change to the network configuration re
     {
       type: 'EditEnvironmentAsCheckbox',
       name: 'DHCP',
-      description: 'Use DHCP to set address'
+      description: 'Use DHCP to set address',
     },
     {
       type: 'Header',
@@ -86,16 +87,19 @@ which is given the recovery address of <b>192.168.1.200</b>.
     },
     {
       type: 'Text',
-      text: 'IPv6 application support. Changes will not take effect until you reboot.'
+      text: 'IPv6 application support. Changes will not take effect until you reboot.',
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'EditEnvironmentAsCheckbox',
       name: 'IP6',
-      description: 'IPv6 enabled'
+      description: 'IPv6 enabled',
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'Text',
-      text: ''
+      text: '',
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'Text',

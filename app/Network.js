@@ -17,6 +17,7 @@ const BRIDGE_NETWORK = 'br0';
 const WIRED_NETWORKS = 'en* eth*';
 const WLAN_NETWORK = 'wlan0';
 const WIRED_NETWORK_FALLBACK = "192.168.1.200/24";
+const FALLBACK_NETWORK = 'eth0';
 
 const networks = {};
 let wifiAvailable = null;
@@ -44,9 +45,11 @@ const Network = {
             if (iface) {
               net = FS.readFileSync(BRIDGE_NETWORK_FILE, { encoding: 'utf8' });
             }
-            if (DEBUG && !iface) {
-              iface = list.find(item => item.name === 'eth0');
-              net = FS.readFileSync(BRIDGE_NETWORK_FILE, { encoding: 'utf8' });
+            else {
+              iface = list.find(item => item.name === FALLBACK_NETWORK);
+              if (iface) {
+                net = '';
+              }
             }
           }
         }

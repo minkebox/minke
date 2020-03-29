@@ -1,6 +1,7 @@
 #! /usr/bin/node
 
 global.DEBUG = !!process.env.DEBUG;
+global.SYSTEM = !!process.env.SYSTEM;
 
 const Koa = require('koa');
 const Router = require('koa-router');
@@ -57,7 +58,7 @@ App.ws.use(async (ctx, next) => {
   }
 });
 
-MinkeApp.startApps(App, { inherit: process.env.RESTART_REASON === 'restart' || process.env.RESTART_REASON === 'update', port: PORT });
+MinkeApp.startApps(App, { inherit: !process.env.RESTART_REASON || process.env.RESTART_REASON === 'restart' || process.env.RESTART_REASON === 'update', port: PORT });
 
 // DNS-over-HTTPS server
 //DOHServer();
