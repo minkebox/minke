@@ -6,7 +6,7 @@ IP=$1
 # MinkeBox storage
 VOL=$2
 if [ "$3" != "" ]; then
-  EXTRA_VOL="-v $3:/mnt/store"
+  EXTRA_VOL="-v \"$3:/mnt/store\""
 fi
 
 if [ "$(whoami)" != "root" ]; then
@@ -50,22 +50,25 @@ if [ ! -e /sys/class/net/home ]; then
 fi
 
 # Recreate the docker network
-docker network rm home 2> /dev/null
-docker network create --driver=macvlan --subnet=${host}/24 --gateway=${gw} -o "com.docker.network.bridge.enable_ip_masquerade=false" -o "parent=home" home
+docker network rm home > /dev/null
+docker network create --driver=macvlan --subnet=${host}/24 --gateway=${gw} -o "parent=home" home > /dev/null
 
-while true; do
-  rm -f ${VOL}/minke-restart-reason
+run() {
+  while true; do
+    rm -f "${VOL}/minke-restart-reason"
 
-  docker run --name minke --privileged --rm \
-    -e TZ=${TZ} \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v ${VOL}:/minke \
-    ${EXTRA_VOL} \
-    --network=home \
-    --ip=${IP} \
-    ${MINKEBOX} > /dev/null
+    docker run --name minke --privileged --rm \
+      -e TZ="${TZ}" \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v "${VOL}:/minke" \
+      ${EXTRA_VOL} \
+      --network=home \
+      --ip=${IP} \
+      ${MINKEBOX} > /dev/null
 
-  if [ ! -e ${VOL}/minke-restart-reason -o "$(cat ${VOL}/minke-restart-reason)" = "halt" ]; then
-    break;
-  fi
-done
+    if [ ! -e "${VOL}/minke-restart-reason" -o "$(cat ${VOL}/minke-restart-reason)" = "halt" ]; then
+      break;
+    fi
+  done
+}
+run &
