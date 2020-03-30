@@ -198,7 +198,9 @@ const Filesystem = {
     const info = await MinkeApp._container.inspect();
     info.HostConfig.Binds.forEach(bind => {
       const native2local = bind.split(':');
-      Filesystem._mappings[native2local[1]] = native2local[0];
+      if (native2local[0] != native2local[1]) {
+        Filesystem._mappings[native2local[1]] = native2local[0];
+      }
     });
   },
 
