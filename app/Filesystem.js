@@ -196,9 +196,9 @@ const Filesystem = {
   init: async function() {
     MinkeApp = MinkeApp || require('./MinkeApp');
     const info = await MinkeApp._container.inspect();
-    info.HostConfig.Mounts.forEach(mount => {
-      if (mount.Type === 'bind' && mount.Target !== mount.Source) {
-        Filesystem._mappings[mount.Target] = mount.Source;
+    info.Mounts.forEach(mount => {
+      if (mount.Type === 'bind' && mount.Destination !== mount.Source) {
+        Filesystem._mappings[mount.Destination] = mount.Source;
       }
     });
   },
