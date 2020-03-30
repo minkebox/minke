@@ -7,46 +7,52 @@
   actions: [
     {
       type: 'Header',
-      title: 'Name and Address',
-      visible: `!property.NoSystemControl`
+      title: 'General'
     },
     {
       type: 'Help',
       text: `By default, MinkeBox acquires its IP address from your network's DHCP server. However, because many services provided by MinkeBox require your client's DNS to be configured to use it, it probably make sense
-to change this to a fixed IP address. Any change to the network configuration requires a reboot for it to take effect.`
+to change this to a fixed IP address. Any change to the network configuration requires a reboot for it to take effect.`,
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'Text',
-      text: 'Set the IP address, netmask, gateway and the local domain name for this device. Set the hostname by changing the name at the top/right.'
+      text: 'Set the IP address, netmask, gateway and the local domain name for this device. Set the hostname by changing the name at the top/right.',
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'Text',
-      text: 'Changes to the IP address, netmask and gateway will not take effect until you reboot.'
+      text: 'Changes to the IP address, netmask and gateway will not take effect until you reboot.',
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'EditEnvironment',
       name: 'IPADDRESS',
-      description: 'IP Address'
+      description: 'IP Address',
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'EditEnvironment',
       name: 'NETMASK',
-      description: 'Netmask'
+      description: 'Netmask',
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'EditEnvironment',
       name: 'GATEWAY',
-      description: 'Gateway'
-    },
-    {
-      type: 'EditEnvironment',
-      name: 'LOCALDOMAIN',
-      description: 'Local domain name'
+      description: 'Gateway',
+      visible: `!property.NoSystemControl`
     },
     {
       type: 'EditEnvironmentAsCheckbox',
       name: 'DHCP',
       description: 'Use DHCP to set address',
+      visible: `!property.NoSystemControl`
+    },
+    {
+      type: 'EditEnvironment',
+      name: 'LOCALDOMAIN',
+      description: 'Local domain name'
     },
     {
       type: 'Header',
