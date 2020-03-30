@@ -196,10 +196,9 @@ const Filesystem = {
   init: async function() {
     MinkeApp = MinkeApp || require('./MinkeApp');
     const info = await MinkeApp._container.inspect();
-    info.HostConfig.Binds.forEach(bind => {
-      const native2local = bind.split(':');
-      if (native2local[0] != native2local[1]) {
-        Filesystem._mappings[native2local[1]] = native2local[0];
+    info.HostConfig.Mounts.forEach(mount => {
+      if (mount.Type === 'bind' && mount.Target !== mount.Source) {
+        Filesystem._mappings[mount.Target] = mount.Source;
       }
     });
   },
