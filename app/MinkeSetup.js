@@ -12,7 +12,7 @@ const MinkeApp = require('./MinkeApp');
 const Updater = require('./Updater');
 const DDNS = require('./DDNS');
 
-const RESTART_REASON = '/tmp/minke-restart-reason';
+const RESTART_REASON = `${Config.ROOT}/minke-restart-reason`;
 
 
 function MinkeSetup(savedConfig, config) {
