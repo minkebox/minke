@@ -40,7 +40,8 @@
       web: {
         tab: `inline`,
         widget: `inline`,
-        path: ``
+        path: ``,
+        private: true
       }
     },
     {
