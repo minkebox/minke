@@ -5,13 +5,16 @@ IP=$1
 
 # MinkeBox storage
 VOL=$2
+if [ "$3" != "" ]; then
+  EXTRA_VOL="-v $3:/mnt/store"
+fi
 
 if [ "$(whoami)" != "root" ]; then
   echo "Please run as root"
   exit 1
 fi
 if [ "${IP}" = "" -o "${VOL}" = "" ]; then
-  echo "Usage: minkebox <ip address> <directory for storage>"
+  echo "Usage: minkebox <ip address> <directory for root storage> [<directory for bulk storage>]"
   exit 1
 fi
 
@@ -22,32 +25,42 @@ if [ "$(docker image ls -q ${MINKEBOX})" = "" ];then
   docker pull ${MINKEBOX}
 fi
 
-# Create a macvlan network called 'home' to use as MinkeBox's home network. There's a little mucking
-# around to make sure MinkeBox can talk to the docker host.
+# Extract information about the host network
 default_route=$(ip route get 1.1.1.1 | head -1)
 gw=$(echo $default_route | cut -d' ' -f3)
 dev=$(echo $default_route | cut -d' ' -f5)
 host=$(echo $default_route | cut -d' ' -f7)
 
-ip link add home link ${dev} type macvlan mode bridge
-ip addr add ${host} dev home
-ip link set home up
-route=$(ip route | grep ${dev} | grep -v default)
-cidr=$(echo $route | cut -d' ' -f1)
-if [ "${route}" != "" ]; then
-  ip route del $(echo $route)
-  ip route add ${cidr} dev home
+# Create a macvlan network called 'home' to use as MinkeBox's home network. There's a little mucking
+# around to make sure MinkeBox can talk to the docker host.
+if [ ! -e /sys/class/net/home ]; then
+  ip link add home link ${dev} type macvlan mode bridge
+  ip addr add ${host} dev home
+  ip link set home up
+  route=$(ip route | grep ${dev} | grep -v default)
+  cidr=$(echo $route | cut -d' ' -f1)
+  if [ "${route}" != "" ]; then
+    ip route del $(echo $route)
+    ip route add ${cidr} dev home
+  fi
 fi
 
 # Recreate the docker network
-docker network rm home
+docker network rm home 2> /dev/null
 docker network create --driver=macvlan --subnet=${host}/24 --gateway=${gw} -o "com.docker.network.bridge.enable_ip_masquerade=false" -o "parent=home" home
 
-docker container rm minke
-docker run --name minke -d --privileged \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v ${VOL}:/minke \
-  --network=home \
-  --ip=${IP} \
-  ${MINKEBOX} > /dev/null
-docker ps
+while true; do
+  rm -f ${VOL}/minke-restart-reason
+
+  docker run --name minke --privileged --rm \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v ${VOL}:/minke \
+    ${EXTRA_VOL} \
+    --network=home \
+    --ip=${IP} \
+    ${MINKEBOX} > /dev/null
+
+  if [ ! -e ${VOL}/minke-restart-reason -o "$(cat ${VOL}/minke-restart-reason)" = "halt" ]; then
+    break;
+  fi
+done
