@@ -4,6 +4,9 @@
 if [ "${TZ}" != "" ]; then
   echo ${TZ} > /etc/timezone
 fi
+if [ ! -e /etc/timezone ]; then
+  echo 'America/Los_Angeles' > /etc/timezone
+fi
 cp /usr/share/zoneinfo/$(cat /etc/timezone) /etc/localtime
 
 # Start syncing time. Delay this for 60 seconds to give the MinkeBox DNS time to startup.
