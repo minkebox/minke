@@ -210,7 +210,7 @@ const UPNP = {
   },
 
   _sendRequest: async function(url, service, action, args) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       args = args || [];
       const body = `<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:${action} xmlns:u="${service}">${args.map(arg => '<' + arg[0] + '>' + (arg.length === 1 ? '' : arg[1]) + '</' + arg[0] + '>').join('')}</u:${action}></s:Body></s:Envelope>`;
       const req = HTTP.request(url, {
