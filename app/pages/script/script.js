@@ -246,8 +246,10 @@ function install(app) {
 }
 
 function refreshCharts() {
-  for (let id in Chart.instances) {
-    Chart.instances[id].resize();
+  if (window.Chart) {
+    for (let id in Chart.instances) {
+      Chart.instances[id].resize();
+    }
   }
 }
 
