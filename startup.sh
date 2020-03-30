@@ -1,12 +1,8 @@
 #! /bin/sh
 
 # Setup timezone
-if [ ! -s /etc/timezone ]; then
-  if [ "${TZ}" != "" ]; then
-    echo ${TZ} > /etc/timezone
-  else
-    echo 'America/Los_Angeles' > /etc/timezone
-  fi
+if [ "${TZ}" != "" ]; then
+  echo ${TZ} > /etc/timezone
 fi
 cp /usr/share/zoneinfo/$(cat /etc/timezone) /etc/localtime
 

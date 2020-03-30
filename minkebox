@@ -25,6 +25,10 @@ if [ "$(docker image ls -q ${MINKEBOX})" = "" ];then
   docker pull ${MINKEBOX}
 fi
 
+if [ "${TZ}" = "" -a -e /etc/timezone ]; then
+  TZ=$(cat /etc/timezone)
+fi
+
 # Extract information about the host network
 default_route=$(ip route get 1.1.1.1 | head -1)
 gw=$(echo $default_route | cut -d' ' -f3)
@@ -53,6 +57,7 @@ while true; do
   rm -f ${VOL}/minke-restart-reason
 
   docker run --name minke --privileged --rm \
+    -e TZ=${TZ} \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v ${VOL}:/minke \
     ${EXTRA_VOL} \
