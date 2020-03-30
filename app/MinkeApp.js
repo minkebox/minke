@@ -1525,6 +1525,9 @@ MinkeApp.startApps = async function(app, config) {
     }
   });
 
+  // Setup the filesystem
+  await Filesystem.init();
+
   // Get our IP
   MinkeApp._network = await Network.getActiveInterface();
 

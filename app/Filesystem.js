@@ -9,8 +9,6 @@ process.umask(0);
 
 function _Filesystem(app) {
   this._app = app;
-
-  MinkeApp = MinkeApp || require('./MinkeApp');
 }
 
 _Filesystem.prototype = {
@@ -59,7 +57,7 @@ _Filesystem.prototype = {
     if (bind.src) {
       binds.push({
         Type: 'bind',
-        Source: bind.src,
+        Source: Filesystem.mapFilenameToNative(bind.src),
         Target: this._expand(bind.target),
         BindOptions: {
           Propagation: 'rshared'
@@ -71,7 +69,7 @@ _Filesystem.prototype = {
       if (share.src && MinkeApp.getAppById(share.src.replace(/^.*apps\/([^/]+).*$/,'$1')) && FS.existsSync(share.src)) {
         binds.push({
           Type: 'bind',
-          Source: share.src,
+          Source: Filesystem.mapFilenameToNative(share.src),
           Target: Path.normalize(this._expand(`${bind.target}/${share.name}`)),
           BindOptions: {
             Propagation: 'rshared'
@@ -88,7 +86,7 @@ _Filesystem.prototype = {
     FS.writeFileSync(file.src, file.data, { mode: ('mode' in file ? file.mode : 0o666) });
     return {
       Type: 'bind',
-      Source: file.src,
+      Source: Filesystem.mapFilenameToNative(file.src),
       Target: this._expand(file.target),
       BindOptions: {
         Propagation: 'rshared'
@@ -111,7 +109,7 @@ _Filesystem.prototype = {
           if (bind.backup) {
             backups.push({
               Type: 'bind',
-              Source: bind.src,
+              Source: Filesystem.mapFilenameToNative(bind.src),
               Target: Path.normalize(this._expand(`${backup.target}/${name}${ext}/${bind.target}`)),
               BindOptions: {
                 Propagation: 'rshared'
@@ -124,7 +122,7 @@ _Filesystem.prototype = {
           if (bind.backup) {
             backups.push({
               Type: 'bind',
-              Source: bind.src,
+              Source: Filesystem.mapFilenameToNative(bind.src),
               Target: Path.normalize(this._expand(`${backup.target}/${name}${ext}/${bind.target}`)),
               BindOptions: {
                 Propagation: 'rshared'
@@ -193,6 +191,17 @@ _Filesystem.prototype = {
 
 const Filesystem = {
 
+  _mappings: {},
+
+  init: async function() {
+    MinkeApp = MinkeApp || require('./MinkeApp');
+    const info = await MinkeApp._container.inspect();
+    info.HostConfig.Binds.forEach(bind => {
+      const native2local = bind.split(':');
+      Filesystem._mappings[native2local[1]] = native2local[0];
+    });
+  },
+
   create: function(app) {
     return new _Filesystem(app);
   },
@@ -200,6 +209,15 @@ const Filesystem = {
   getNativePath: function(appid, id, path) {
     return Path.normalize(`${Disks.getRoot(id)}/apps/${appid}/${path}`);
   },
+
+  mapFilenameToNative: function(filename) {
+    for (let prefix in Filesystem._mappings) {
+      if (filename.indexOf(prefix) === 0) {
+        return `${Filesystem._mappings[prefix]}${filename.substring(prefix.length)}`;
+      }
+    }
+    return filename;
+  }
 
 };
 
