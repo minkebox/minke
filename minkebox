@@ -9,12 +9,8 @@ if [ "$3" != "" ]; then
   EXTRA_VOL="-v \"$3:/mnt/store\""
 fi
 
-if [ "$(whoami)" != "root" ]; then
-  echo "Please run as root"
-  exit 1
-fi
-if [ "${IP}" = "" -o "${VOL}" = "" ]; then
-  echo "Usage: minkebox <ip address> <directory for root storage> [<directory for bulk storage>]"
+if [ "$(whoami)" != "root" -o "${IP}" = "" -o "${VOL}" = "" ]; then
+  echo "Usage: sudo $0 <ip address> <directory for root storage> [<directory for bulk storage>]"
   exit 1
 fi
 
