@@ -24,18 +24,38 @@ const DISKS = [
   STORE_PATH, [ 'sdb', 'sdc', 'sdd', 'sde', 'mmcblk1', 'mmcblk2' ]
 ];
 const PART = 1;
-
+const NOSYSTEM = {
+  BOOT_PATH: {
+    name: BOOT_PATH,
+    size: 0,
+    used: 0,
+    root: BOOT_PATH,
+    status: 'ready',
+  },
+  STORE_PATH: {
+    name: STORE_PATH,
+    size: 0,
+    used: 0,
+    root: STORE_PATH,
+    status: 'ready'
+  }
+};
 
 const Disks = {
 
   _diskinfo: {},
   _timer: null,
 
-  init: async function(disks) {
+  init: async function() {
     this._timer = setInterval(async () => {
       await this._update();
     }, TICK);
-    this._initDisks(disks);
+    if (SYSTEM) {
+      this._initDisks();
+    }
+    else {
+      await this._initNoSystemDisks();
+    }
     await this._update();
   },
 
@@ -76,6 +96,17 @@ const Disks = {
           this._diskinfo[diskid] = info;
           break;
         }
+      }
+    }
+  },
+
+  _initNoSystemDisks: async function() {
+    for (let id in NOSYSTEM) {
+      try {
+        await DF.file(NOSYSTEM[id].root);
+        this._diskinfo[id] = NOSYSTEM[id];
+      }
+      catch (_) {
       }
     }
   },
