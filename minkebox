@@ -5,8 +5,12 @@ IP=$1
 
 # MinkeBox storage
 VOL=$2
-if [ "$3" != "" ]; then
-  EXTRA_VOL="-v \"$3:/mnt/store\""
+VOL2=$3
+
+# Overrides
+
+if [ "${VOL2}" != "" ]; then
+  EXTRA_VOL="-v \"${VOL2}:/mnt/store\""
 fi
 
 if [ "$(whoami)" != "root" -o "${IP}" = "" -o "${VOL}" = "" ]; then
@@ -17,8 +21,9 @@ fi
 MINKEBOX="registry.minkebox.net/minkebox/minke"
 
 # Fetch MinkeBox if not already downloaded
-if [ "$(docker image ls -q ${MINKEBOX})" = "" ];then
+if [ "$(docker image ls -q ${MINKEBOX})" = "" -o  "$(docker image ls -q ${MINKEBOX}-helper)" = "" ];then
   docker pull ${MINKEBOX}
+  docker pull ${MINKEBOX}-helper
 fi
 
 if [ "${TZ}" = "" -a -e /etc/timezone ]; then
@@ -62,8 +67,10 @@ run() {
       --ip=${IP} \
       ${MINKEBOX} > /dev/null
 
-    if [ ! -e "${VOL}/minke-restart-reason" -o "$(cat ${VOL}/minke-restart-reason)" = "halt" ]; then
-      break;
+    if [ ! -e "${VOL}/minke-restart-reason" ]; then
+      break
+    elif [ "$(cat ${VOL}/minke-restart-reason)" = "halt" ]; then
+      break
     fi
   done
 }
