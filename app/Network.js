@@ -21,6 +21,7 @@ const FALLBACK_NETWORK = 'eth0';
 
 const networks = {};
 let wifiAvailable = null;
+let MinkeApp = null;
 
 const Network = {
 
@@ -47,9 +48,6 @@ const Network = {
             }
             else {
               iface = list.find(item => item.name === FALLBACK_NETWORK);
-              if (iface) {
-                net = '';
-              }
             }
           }
         }
@@ -214,24 +212,35 @@ const Network = {
   getHomeNetwork: Barrier(async function() {
     let net = networks[HOME_NETWORK_NAME];
     if (!net) {
-      const iface = await Network.getActiveInterface();
-      net = await this._getNetwork({
-        Name: HOME_NETWORK_NAME,
-        Driver: 'bridge',
-        IPAM: {
-          Config: [{
-            Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
-            Gateway: iface.network.ip_address, // Dont use gateway_ip - set that using aux. This (re)sets the host IP address.
-            AuxiliaryAddresses: {
-              DefaultGatewayIPv4: iface.network.gateway_ip
-            }
-          }]
-        },
-        Options: {
-          'com.docker.network.bridge.name': BRIDGE_NETWORK,
-          'com.docker.network.bridge.enable_ip_masquerade': 'false'
-        }
-      });
+      if (SYSTEM) {
+        const iface = await Network.getActiveInterface();
+        net = await this._getNetwork({
+          Name: HOME_NETWORK_NAME,
+          Driver: 'bridge',
+          IPAM: {
+            Config: [{
+              Subnet: `${iface.netmask.base}/${iface.netmask.bitmask}`,
+              Gateway: iface.network.ip_address, // Dont use gateway_ip - set that using aux. This (re)sets the host IP address.
+              AuxiliaryAddresses: {
+                DefaultGatewayIPv4: iface.network.gateway_ip
+              }
+            }]
+          },
+          Options: {
+            'com.docker.network.bridge.name': BRIDGE_NETWORK,
+            'com.docker.network.bridge.enable_ip_masquerade': 'false'
+          }
+        });
+      }
+      else {
+        // Non-system run - locate whatever network we're connected to as the home network
+        MinkeApp = MinkeApp || require('./MinkeApp');
+        const info = await MinkeApp._container.inspect();
+        const name = Object.keys(info.NetworkSettings.Networks)[0];
+        net = docker.getNetwork(name);
+        net.info = await net.inspect();
+        networks[HOME_NETWORK_NAME] = net;
+      }
     }
     return net;
   }),
