@@ -42,7 +42,7 @@ if [ ! -e /sys/class/net/home ]; then
   ip link add home link ${dev} type macvlan mode bridge
   ip addr add ${host} dev home
   ip link set home up
-  route=$(ip route | grep ${dev} | grep -v default)
+  route=$(ip route | grep "dev ${dev} " | grep -v default)
   cidr=$(echo $route | cut -d' ' -f1)
   if [ "${route}" != "" ]; then
     ip route del $(echo $route)
