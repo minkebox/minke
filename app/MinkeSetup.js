@@ -11,6 +11,8 @@ const UPNP = require('./UPNP');
 const MinkeApp = require('./MinkeApp');
 const Updater = require('./Updater');
 const DDNS = require('./DDNS');
+const Filesystem = require('./Filesystem');
+const Pull = require('./Pull');
 
 const RESTART_REASON = `${Config.ROOT}/minke-restart-reason`;
 
@@ -340,7 +342,39 @@ MinkeSetup.prototype = {
       case 'update':
       case 'update-native':
         await MinkeApp.shutdown({ inherit: true });
-        process.exit();
+        if (!SYSTEM) {
+          // Without a system, we have to restart ourselves to apply the update. We do this by launching an
+          // update helper which will wait for us to terminate and then relaunch us.
+          const e = (t) => t.replace(/(\s)/g, '\\ ');
+          const img = Images.withTag(Images.MINKE_UPDATER);
+          await Pull.updateImage(img);
+          const maps = Filesystem.getNativeMappings();
+          const vols = Object.keys(maps).map(dest => `-v ${e(maps[dest])}:${e(dest)}:rshared`).join(' ');
+          const net = await Network.getHomeNetwork();
+          const info = await MinkeApp._container.inspect();
+          const cmdline = `-d --name ${e(info.Name || 'minke')} --privileged -e TZ=${this._env.TIMEZONE.value} --network=${e(net.id)} --ip=${this._env.IPADDRESS.value} ${vols} ${Images.MINKE}`;
+          const id = MinkeApp._container.id.substring(0, 12);
+          docker.run(
+            img,
+            [ '/bin/sh', '-c', '/startup.sh' ],
+            process.out,
+            {
+              Env: [ `ID=${id}`, `CMD=${cmdline}` ],
+              HostConfig: {
+                AutoRemove: true,
+                Binds: [
+                  '/var/run/docker.sock:/var/run/docker.sock'
+                ]
+              }
+            },
+            () => {}
+          ).on('start', () => {
+            process.exit();
+          });
+        }
+        else {
+          process.exit();
+        }
         break;
 
       case 'restore':

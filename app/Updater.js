@@ -48,7 +48,7 @@ const Updater = {
           if (this._checkNativeUpdates()) {
             this._getApps().find(app => app._image === Images.MINKE).restart('update-native');
           }
-          else if (updateMinke && SYSTEM) {
+          else if (updateMinke) {
             updateMinke.restart('update');
           }
         }

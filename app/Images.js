@@ -4,6 +4,7 @@ module.exports = {
 
   MINKE: `${Config.REGISTRY_HOST}/minkebox/minke`,
   MINKE_HELPER: `${Config.REGISTRY_HOST}/minkebox/minke-helper`,
+  MINKE_UPDATER: `${Config.REGISTRY_HOST}/minkebox/minke-updater`,
   MINKE_PRIVATE_NETWORK: `${Config.REGISTRY_HOST}/minkebox/privatenetwork`,
 
   withTag: function (name) {
