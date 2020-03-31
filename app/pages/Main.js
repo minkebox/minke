@@ -102,8 +102,6 @@ if (!DEBUG) {
   registerTemplates();
 }
 
-const onlines = {};
-
 async function MainPageHTML(ctx) {
 
   if (DEBUG) {
@@ -118,10 +116,12 @@ async function MainPageHTML(ctx) {
   sortAndRenumber(statuses, 'widget');
   ctx.body = mainTemplate({ configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME, Advanced: MinkeApp.getAdvancedMode(), tags: tagsToMap(tags), networks: networks, apps: apps, statuses: statuses });
   ctx.type = 'text/html';
-  MinkeApp.getApps().forEach(app => onlines[app._id] = app._status);
 }
 
 async function MainPageWS(ctx) {
+
+  const onlines = {};
+  MinkeApp.getApps().forEach(app => onlines[app._id] = app._status);
 
   function send(msg) {
     try {
