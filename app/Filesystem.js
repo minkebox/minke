@@ -198,7 +198,7 @@ const Filesystem = {
     const info = await MinkeApp._container.inspect();
     info.Mounts.forEach(mount => {
       if (mount.Type === 'bind') {
-        Filesystem._mappings[mount.Destination] = mount.Source;
+        Filesystem._mappings[mount.Destination] = { src: mount.Source, propagation: mount.Propagation };
       }
     });
   },
@@ -214,7 +214,7 @@ const Filesystem = {
   mapFilenameToNative: function(filename) {
     for (let prefix in Filesystem._mappings) {
       if (filename.indexOf(prefix) === 0) {
-        return `${Filesystem._mappings[prefix]}${filename.substring(prefix.length)}`;
+        return `${Filesystem._mappings[prefix].src}${filename.substring(prefix.length)}`;
       }
     }
     return filename;

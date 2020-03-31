@@ -349,7 +349,7 @@ MinkeSetup.prototype = {
           const img = Images.withTag(Images.MINKE_UPDATER);
           await Pull.updateImage(img);
           const maps = Filesystem.getNativeMappings();
-          const vols = Object.keys(maps).map(dest => `-v ${e(maps[dest])}:${e(dest)}:rshared`).join(' ');
+          const vols = Object.keys(maps).map(dest => `--mount type=bind,source=${e(maps[dest].src)},target=${e(dest)},bind-propagation=${maps[dest].propagation}`).join(' ');
           const net = await Network.getHomeNetwork();
           const info = await MinkeApp._container.inspect();
           const cmdline = `-d --name ${e(info.Name || 'minke')} --privileged -e TZ=${this._env.TIMEZONE.value} --network=${e(net.id)} --ip=${this._env.IPADDRESS.value} ${vols} ${Images.MINKE}`;
