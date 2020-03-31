@@ -745,8 +745,8 @@ async function ConfigurePageWS(ctx) {
       if (changed || app._status === 'stopped' || forceRestart) {
         const uapp = app;
         if ((changed & SKELCHANGE) !== 0) {
-          uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image, false).skeleton, uapp.toJSON());
-          ConfigBackup.save();
+          await uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image, false).skeleton, uapp.toJSON());
+          await ConfigBackup.save();
           app = null;
           send({
             type: 'page.reload'
@@ -770,29 +770,29 @@ async function ConfigurePageWS(ctx) {
           break;
         case 'app.restart':
           if (app) {
-            save(true);
+            await save(true);
           }
           break;
         case 'app.save':
           if (app) {
-            save();
+            await save();
           }
           break;
         case 'app.reboot':
           if (app) {
-            app.restart('reboot');
+            await app.restart('reboot');
           }
           break;
         case 'app.halt':
           if (app) {
-            app.restart('halt');
+            await app.restart('halt');
           }
           break;
         case 'app.delete':
           changes = {};
-          app.uninstall();
+          await app.uninstall();
           app = null;
-          ConfigBackup.save();
+          await ConfigBackup.save();
           break;
         case 'app.format-disk':
           if (app._image === Images.MINKE) {
