@@ -724,7 +724,7 @@ MinkeApp.prototype = {
           Source: '/usr/share/zoneinfo',
           Target: '/usr/share/zoneinfo',
           BindOptions: {
-            Propagation: 'rshared'
+            Propagation: 'private'
           },
           ReadOnly: true
         });
