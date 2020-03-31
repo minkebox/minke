@@ -13,11 +13,11 @@ function _Filesystem(app) {
 
 _Filesystem.prototype = {
 
-  getAllMounts: function(app) {
+  getAllMounts: async function(app) {
     const mounts = Flatten([
-      app._binds.map(map => this._makeMount(map)),
-      app._files.map(file => this.makeFile(file)),
-      app._backups.map(backup => this._makeBackups(backup))
+      await Promise.all(app._binds.map(async map => await this._makeMount(map))),
+      await Promise.all(app._files.map(async file => await this.makeFile(file))),
+      await Promise.all(app._backups.map(async backup => await this._makeBackups(backup)))
     ]);
 
     // Remove any internal child mounts
@@ -31,9 +31,9 @@ _Filesystem.prototype = {
   // Docker should remove any mounts as it shuts down a container. However, if there's any mount-in-mount going
   // on it has a habit of not tidying things up properly. Do that here.
   //
-  unmountAll: function(mounts) {
+  unmountAll: async function(mounts) {
     // Get list of mount targets
-    const paths = mounts.map(mount => this.mapFilenameToLocal(mount.Target)).filter(v => v);
+    const paths = (await Promise.all(mounts.map(async mount => await this._mapFilenameToLocal(mount.Target)))).filter(v => v);
     // Sort longest to shortest
     paths.sort((a, b) => b.length - a.length);
     //console.log('unmountAll', paths);
@@ -46,7 +46,7 @@ _Filesystem.prototype = {
     });
   },
 
-  _makeMount: function(bind) {
+  _makeMount: async function(bind) {
     //console.log('_makeMount', bind);
     if (bind.src) {
       FS.mkdirSync(bind.src, { recursive: true, mode: 0o777 });
@@ -58,36 +58,36 @@ _Filesystem.prototype = {
       binds.push({
         Type: 'bind',
         Source: Filesystem.mapFilenameToNative(bind.src),
-        Target: this._expand(bind.target),
+        Target: await this._expand(bind.target),
         BindOptions: {
           Propagation: 'rshared'
         }
       });
     }
-    bind.shares.forEach(share => {
+    await Promise.all(bind.shares.map(async share => {
       // If share has a source which exists, bind it.
       if (share.src && MinkeApp.getAppById(share.src.replace(/^.*apps\/([^/]+).*$/,'$1')) && FS.existsSync(share.src)) {
         binds.push({
           Type: 'bind',
           Source: Filesystem.mapFilenameToNative(share.src),
-          Target: Path.normalize(this._expand(`${bind.target}/${share.name}`)),
+          Target: Path.normalize(await this._expand(`${bind.target}/${share.name}`)),
           BindOptions: {
             Propagation: 'rshared'
           }
         });
       }
-    });
+    }));
     return binds;
   },
 
-  makeFile: function(file) {
+  makeFile: async function(file) {
     //console.log('makeFile', file);
     FS.mkdirSync(Path.dirname(file.src), { recursive: true, mode: 0o777 });
     FS.writeFileSync(file.src, file.data, { mode: ('mode' in file ? file.mode : 0o666) });
     return {
       Type: 'bind',
       Source: Filesystem.mapFilenameToNative(file.src),
-      Target: this._expand(file.target),
+      Target: await this._expand(file.target),
       BindOptions: {
         Propagation: 'rshared'
       }
@@ -99,41 +99,41 @@ _Filesystem.prototype = {
     file.data = FS.readFileSync(file.src, { encoding: 'utf8' });
   },
 
-  _makeBackups: function(backup) {
+  _makeBackups: async function(backup) {
     const backups = [];
     const mainApp = MinkeApp.getAppById(backup.appid);
     if (mainApp) {
       const name = mainApp._safeName();
-      const addBackups = (app, ext) => {
-        app._binds.forEach(bind => {
+      const addBackups = async (app, ext) => {
+        await Promise.all(app._binds.map(async bind => {
           if (bind.backup) {
             backups.push({
               Type: 'bind',
               Source: Filesystem.mapFilenameToNative(bind.src),
-              Target: Path.normalize(this._expand(`${backup.target}/${name}${ext}/${bind.target}`)),
+              Target: Path.normalize(await this._expand(`${backup.target}/${name}${ext}/${bind.target}`)),
               BindOptions: {
                 Propagation: 'rshared'
               },
               ReadOnly: true
             });
           }
-        });
-        app._files.forEach(bind => {
+        }));
+        await Promise.all(app._files.map(async bind => {
           if (bind.backup) {
             backups.push({
               Type: 'bind',
               Source: Filesystem.mapFilenameToNative(bind.src),
-              Target: Path.normalize(this._expand(`${backup.target}/${name}${ext}/${bind.target}`)),
+              Target: Path.normalize(await this._expand(`${backup.target}/${name}${ext}/${bind.target}`)),
               BindOptions: {
                 Propagation: 'rshared'
               },
               ReadOnly: true
             });
           }
-        });
+        }));
       }
-      addBackups(mainApp, '');
-      mainApp._secondary.forEach((secondary, idx) => addBackups(secondary, `__${idx}`));
+      await addBackups(mainApp, '');
+      await Promise.all(mainApp._secondary.map(async (secondary, idx) => await addBackups(secondary, `__${idx}`)));
     }
     return backups;
   },
@@ -156,10 +156,10 @@ _Filesystem.prototype = {
     return valid;
   },
 
-  mapFilenameToLocal: function(filename) {
+  _mapFilenameToLocal: async function(filename) {
     for (let i = 0; i < this._app._binds.length; i++) {
       const bind = this._app._binds[i];
-      const target = this._expand(bind.target);
+      const target = await this._expand(bind.target);
       if (filename.startsWith(target)) {
         return Path.normalize(`${bind.src}/${filename.substring(target.length)}`);
       }
@@ -183,8 +183,8 @@ _Filesystem.prototype = {
     FS.writeFileSync(`${root}/stderr.txt`, stderr);
   },
 
-  _expand: function(path) {
-    return this._app.expand(path);
+  _expand: async function(path) {
+    return await this._app.expand(path);
   }
 
 }

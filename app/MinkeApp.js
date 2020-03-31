@@ -116,7 +116,7 @@ MinkeApp.prototype = {
     }
   },
 
-  createFromSkeleton: function(skel) {
+  createFromSkeleton: async function(skel) {
     for (let i = 0; ; i++) {
       const name = (i === 0 ? skel.name : `${skel.name} ${i}`);
       if (!applications.find(app => name === app._name)) {
@@ -131,14 +131,14 @@ MinkeApp.prototype = {
     this._bootcount = 0;
     this._position = { tab: 0, widget: 0 };
 
-    this.updateFromSkeleton(skel, {});
+    await this.updateFromSkeleton(skel, {});
 
     this._setStatus('stopped');
 
     return this;
   },
 
-  updateFromSkeleton: function(skel, defs) {
+  updateFromSkeleton: async function(skel, defs) {
 
     this._description = skel.description;
     this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue;
@@ -175,19 +175,19 @@ MinkeApp.prototype = {
       this._networks.secondary = 'none';
     }
 
-    this._parseProperties(this, '', skel.properties, defs);
+    await this._parseProperties(this, '', skel.properties, defs);
     if (skel.secondary) {
       const defssecondary = defs.secondary || [];
-      this._secondary = skel.secondary.map((secondary, idx) => {
+      await Promise.all(this._secondary = skel.secondary.map(async (secondary, idx) => {
         const secondaryApp = {
           _image: secondary.image,
           _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
           _backups: [],
           _delay: secondary.delay || 0
         };
-        this._parseProperties(secondaryApp, `${idx}`, secondary.properties, defssecondary[idx] || {});
+        await this._parseProperties(secondaryApp, `${idx}`, secondary.properties, defssecondary[idx] || {});
         return secondaryApp;
-      });
+      }));
     }
     else {
       this._secondary = [];
@@ -199,13 +199,13 @@ MinkeApp.prototype = {
     return this;
   },
 
-  _parseProperties: function(target, ext, properties, defs) {
+  _parseProperties: async function(target, ext, properties, defs) {
     target._env = {};
     target._features = {};
     target._ports = [];
     target._binds = [];
     target._files = [];
-    properties.forEach(prop => {
+    await Promise.all(properties.map(async prop => {
       switch (prop.type) {
         case 'Environment':
         {
@@ -217,13 +217,13 @@ MinkeApp.prototype = {
             }
           }
           else if ('defaultValue' in prop) {
-            target._env[prop.name] = { value: this.expand(prop.defaultValue) };
+            target._env[prop.name] = { value: await this.expand(prop.defaultValue) };
           }
           else {
             target._env[prop.name] = { value: '' };
           }
           if ('defaultAltValue' in prop) {
-            target._env[prop.name].altValue = this.expand(prop.defaultAltValue);
+            target._env[prop.name].altValue = await this.expand(prop.defaultAltValue);
           }
           break;
         }
@@ -318,16 +318,16 @@ MinkeApp.prototype = {
         default:
           break;
       }
-    });
+    }));
   },
 
-  _updateIfBuiltin: function() {
+  _updateIfBuiltin: async function() {
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (!skel || skel.type !== 'builtin') {
       return false;
     }
     const before = this.toJSON();
-    this.updateFromSkeleton(skel.skeleton, before);
+    await this.updateFromSkeleton(skel.skeleton, before);
     if (JSON.stringify(before) == JSON.stringify(this.toJSON())) {
       return false;
     }
@@ -349,7 +349,7 @@ MinkeApp.prototype = {
       inherit = inherit || {};
 
       this._fs = Filesystem.create(this);
-      this._allmounts = this._fs.getAllMounts(this);
+      this._allmounts = await this._fs.getAllMounts(this);
 
       const config = {
         name: `${this._safeName()}__${this._id}`,
@@ -512,7 +512,7 @@ MinkeApp.prototype = {
             Sysctls: {}
           },
           MacAddress: config.MacAddress,
-          Env: Object.keys(this._env).map(key => `${key}=${this.expandEnv(this._env[key].value)}`).concat(configEnv)
+          Env: (await Promise.all(Object.keys(this._env).map(async key => `${key}=${await this.expand(this._env[key].value)}`))).concat(configEnv)
         };
 
         if (this._networks.primary === 'home' || this._networks.secondary === 'home') {
@@ -527,13 +527,13 @@ MinkeApp.prototype = {
         }
 
         this._ddns = this._features.ddns || false;
-        const nat = this._ports.reduce((acc, port) => {
-          port = this.expandPort(port);
+        const nat = [];
+        await Promise.all(this._ports.map(async port => {
+          port = await this.expandPort(port);
           if (port.nat) {
-            acc.push(`${port.port}:${port.protocol}`);
+            nat.push(`${port.port}:${port.protocol}`);
           }
-          return acc;
-        }, []);
+        }));
         if (nat.length) {
           helperConfig.Env.push(`ENABLE_NAT=${nat.join(' ')}`);
           this._ddns = true;
@@ -633,7 +633,7 @@ MinkeApp.prototype = {
 
       }
 
-      const ports = this._ports.map(port => this.expandPort(port));
+      const ports = await Promise.all(this._ports.map(async port => await this.expandPort(port)));
       if (this._defaultIP) {
         const webport = ports.find(port => port.web);
         if (webport) {
@@ -714,7 +714,7 @@ MinkeApp.prototype = {
         }));
       }
 
-      config.Env = Object.keys(this._env).map(key => `${key}=${this.expandEnv(this._env[key].value)}`).concat(configEnv);
+      config.Env = (await Promise.all(Object.keys(this._env).map(async key => `${key}=${await this.expand(this._env[key].value)}`))).concat(configEnv);
       this._fullEnv = config.Env;
 
       // Setup timezone
@@ -748,7 +748,7 @@ MinkeApp.prototype = {
           this._secondaryContainers = [];
           for (let c = 0; c < this._secondary.length; c++) {
             const secondary = this._secondary[c];
-            const secondaryMounts = this._fs.getAllMounts(secondary);
+            const secondaryMounts = await this._fs.getAllMounts(secondary);
             this._allmounts = this._allmounts.concat(secondaryMounts);
             const sconfig = {
               name: `${this._safeName()}__${this._id}__${c}`,
@@ -762,7 +762,7 @@ MinkeApp.prototype = {
                 LogConfig: config.LogConfig,
                 NetworkMode: `container:${this._helperContainer.id}`
               },
-              Env: Object.keys(secondary._env).map(key => `${key}=${this.expandEnv(secondary._env[key].value)}`)
+              Env: await Promise.all(Object.keys(secondary._env).map(async key => `${key}=${await this.expand(secondary._env[key].value)}`))
             };
             this._secondaryContainers[c] = await docker.createContainer(sconfig);
             startup.push({ delay: secondary._delay, container: this._secondaryContainers[c] });
@@ -967,7 +967,7 @@ MinkeApp.prototype = {
     await Promise.all(removing.map(rm => rm.catch(e => console.log(e)))); // Ignore exceptions
 
     if (this._fs && this._allmounts) {
-      this._fs.unmountAll(this._allmounts);
+      await this._fs.unmountAll(this._allmounts);
     }
     this._fs = null;
 
@@ -1040,7 +1040,8 @@ MinkeApp.prototype = {
   },
 
   getAvailableShareables: function() {
-    return applications.reduce((acc, app) => {
+    const acc = [];
+    applications.map(app => {
       if (app !== this) {
         const shares = [];
         function update(src) {
@@ -1061,12 +1062,13 @@ MinkeApp.prototype = {
           });
         }
       }
-      return acc;
-    }, []);
+    });
+    return acc;
   },
 
   getAvailableBackups: function() {
-    return applications.reduce((acc, app) => {
+    const acc = [];
+    applications.map(app => {
       let backups = false;
       function backup(src) {
         src._binds.forEach(bind => backups |= bind.backup);
@@ -1078,23 +1080,25 @@ MinkeApp.prototype = {
       if (backups) {
         acc.push({ app: app });
       }
-      return acc;
-    }, []);
+    });
+    return acc;
   },
 
-  getAvailableWebsites: function(network) {
-    return applications.reduce((acc, app) => {
+  getAvailableWebsites: async function(network) {
+    const acc = [];
+    await Promise.all(applications.map(async app => {
       if (app !== this && network === app._networks.primary) {
-        const webport = app._ports.find(port => this.expandPort(port).web);
-        if (webport) {
+        const ports = await Promise.all(app._ports.map(async port => await this.expandPort(port)));
+        const webport = ports.find(port => port.web);
+        if (webport && !webport.web.private) {
           acc.push({
             app: app,
-            port: this.expandPort(webport)
+            port: await this.expandPort(webport)
           });
         }
       }
-      return acc;
-    }, []);
+    }));
+    return acc;
   },
 
   getIP6: function() {
@@ -1143,7 +1147,7 @@ MinkeApp.prototype = {
     return setup ? setup.getTimezone() : 'UTC';
   },
 
-  expand: function(txt) {
+  expand: async function(txt) {
     if (typeof txt ==='string' && txt.indexOf('{{') !== -1) {
       let addresses = '<none>';
       if (this._homeIP) {
@@ -1158,9 +1162,7 @@ MinkeApp.prototype = {
       // only do this if we need to. We make sure 3 consequtive ports are available.
       let natPort = null;
       if (txt.indexOf('{{__RANDOMPORT}}') !== -1) {
-        this._allocateRandomNatPorts(3).then(port => natPort = port);
-        // This method is currently sync, while fetching a random nat port isn't ... so we have to do this for now.
-        require('deasync').loopWhile(() => natPort === null);
+        natPort = await this._allocateRandomNatPorts(3);
       }
       const env = Object.assign({
         __APPNAME: { value: this._name },
@@ -1182,11 +1184,7 @@ MinkeApp.prototype = {
     return txt;
   },
 
-  expandEnv: function(val) {
-    return this.expand(val);
-  },
-
-  expandPort: function(port) {
+  expandPort: async function(port) {
     let web;
     if (typeof port.web === 'object' && port.web !== null) {
       web = {
@@ -1194,10 +1192,13 @@ MinkeApp.prototype = {
         widget: port.web.widget || port.web.type
       };
       if (port.web.path) {
-        web.path = this.expand(port.web.path);
+        web.path = await this.expand(port.web.path);
       }
       if (port.web.url) {
-        web.url = this.expand(port.web.url);
+        web.url = await this.expand(port.web.url);
+      }
+      if (port.web.private) {
+        web.private = true;
       }
     }
     else {
@@ -1209,30 +1210,30 @@ MinkeApp.prototype = {
       dns = port.dns;
     }
     else if (typeof port.dns === 'string') {
-      dns = this._expandBool(port.dns);
+      dns = await this._expandBool(port.dns);
     }
     else {
       dns = !!port.dns ? {} : null;
     }
 
     return {
-      target: port.name,
-      port: this._expandNumber(port.port, port.defaultPort || 0),
+      target: port.name || port.target,
+      port: await this._expandNumber(port.port, port.defaultPort || 0),
       protocol: port.protocol,
       web: web,
       dns: dns,
-      nat: this._expandBool(port.nat || false),
+      nat: await this._expandBool(port.nat || false),
       mdns: port.mdns || null
     };
   },
 
-  _expandNumber: function(val, alt) {
+  _expandNumber: async function(val, alt) {
     if (typeof val === 'number') {
       return val;
     }
     if (typeof val === 'string') {
       try {
-        val = this._eval(this.expand(val));
+        val = this._eval(await this.expand(val));
         if (typeof val === 'number' && !isNaN(val)) {
           return val;
         }
@@ -1243,12 +1244,12 @@ MinkeApp.prototype = {
     return alt;
   },
 
-  _expandBool: function(val) {
+  _expandBool: async function(val) {
     if (typeof val !== 'string') {
       return !!val;
     }
     try {
-      val = this._eval(this.expand(val));
+      val = this._eval(await this.expand(val));
       if (!val) {
         return false;
       }
@@ -1606,7 +1607,7 @@ MinkeApp.startApps = async function(app, config) {
       inherit.secondary.push(docker.getContainer(running[sidx].Id));
     }
     // We can only inherit under specific circumstances
-    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._networks.primary === 'host')) && inherit.secondary.length === app._secondary.length && app._updateIfBuiltin() === false) {
+    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._networks.primary === 'host')) && inherit.secondary.length === app._secondary.length && await app._updateIfBuiltin() === false) {
       console.log(`Inheriting ${app._name}`);
       inheritables[app._id] = inherit;
     }
@@ -1735,7 +1736,7 @@ MinkeApp.shutdown = async function(config) {
 }
 
 MinkeApp.create = async function(image) {
-  const app = new MinkeApp().createFromSkeleton((await Skeletons.loadSkeleton(image, true)).skeleton);
+  const app = await new MinkeApp().createFromSkeleton((await Skeletons.loadSkeleton(image, true)).skeleton);
   applications.push(app);
   if (app._willCreateNetwork()) {
     MinkeApp.emit('net.create', { app: app });

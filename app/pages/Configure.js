@@ -57,8 +57,8 @@ async function ConfigurePageHTML(ctx) {
   const skeleton = skel.skeleton;
   const minkeConfig = app._image == Images.MINKE;
 
-  function expand(text) {
-    return app.expand(text);
+  async function expand(text) {
+    return await app.expand(text);
   }
 
   let nextid = 100;
@@ -77,8 +77,8 @@ async function ConfigurePageHTML(ctx) {
   const nskeleton = {
     name: skeleton.name,
     value: app._name,
-    description: expand(skeleton.description),
-    actions: skeleton.actions.map((action) => {
+    description: await expand(skeleton.description),
+    actions: await Promise.all(skeleton.actions.map(async action => {
       if ('visible' in action || 'enabled' in action) {
         const id = action.id || `x${++nextid}`;
         if ('visible' in action) {
@@ -93,18 +93,18 @@ async function ConfigurePageHTML(ctx) {
       switch (action.type) {
         case 'Text':
           {
-            return Object.assign({}, action, { text: expand(action.text) });
+            return Object.assign({}, action, { text: await expand(action.text) });
           }
         case 'Help':
           {
             help = true;
-            return Object.assign({}, action, { text: expand(action.text) });
+            return Object.assign({}, action, { text: await expand(action.text) });
           }
         case 'NavButton':
           {
             navbuttons.push({
               name: action.name,
-              link: expand(action.url),
+              link: await expand(action.url),
               linktarget: '_blank'
             });
             return action;
@@ -113,13 +113,13 @@ async function ConfigurePageHTML(ctx) {
           {
             const env = app._env[action.name];
             properties[`${action.type}#${action.name}`] = env ? env.value : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: env ? env.value : '', options: action.options }, action, { description: expand(action.description) });
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: env ? env.value : '', options: action.options }, action, { description: await expand(action.description) });
           }
         case 'EditEnvironmentAsCheckbox':
           {
             const env = app._env[action.name];
             properties[`${action.type}#${action.name}`] = env ? env.value : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: env ? env.value : '' }, action, { description: expand(action.description) });
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: env ? env.value : '' }, action, { description: await expand(action.description) });
           }
         case 'EditEnvironmentAsTable':
           {
@@ -139,7 +139,7 @@ async function ConfigurePageHTML(ctx) {
               catch (_) {
               }
             }
-            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: expand(action.description) });
+            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: await expand(action.description) });
           }
         case 'SelectWebsites':
           {
@@ -153,7 +153,7 @@ async function ConfigurePageHTML(ctx) {
               catch (_) {
               }
             }
-            const websites = app.getAvailableWebsites(app._networks.primary).map((site) => {
+            const websites = (await app.getAvailableWebsites(app._networks.primary)).map((site) => {
               const match = currentSites.find(cs => cs[0] === site.app._id);
               return {
                 appid: site.app._id,
@@ -164,7 +164,7 @@ async function ConfigurePageHTML(ctx) {
                 published: match ? !!match[4] : false
               };
             });
-            return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action, { description: expand(action.description) });
+            return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action, { description: await expand(action.description) });
           }
         case 'SelectNetwork':
           {
@@ -180,7 +180,7 @@ async function ConfigurePageHTML(ctx) {
               action: `window.action('${action.type}#${action.name}',this.value)` + reload,
               networks: networks,
               value: network
-            }, action, { description: expand(action.description) });
+            }, action, { description: await expand(action.description) });
           }
         case 'ShowFileAsTable':
           {
@@ -194,7 +194,7 @@ async function ConfigurePageHTML(ctx) {
             }
             catch (_) {
             }
-            return Object.assign({ value: value }, action, { description: expand(action.description) });
+            return Object.assign({ value: value }, action, { description: await expand(action.description) });
           }
         case 'ShowFile':
           {
@@ -202,7 +202,7 @@ async function ConfigurePageHTML(ctx) {
             if (file && app._fs) {
               app._fs.readFile(file);
             }
-            return Object.assign({ value: file ? file.data : '' }, action, { description: expand(action.description) });
+            return Object.assign({ value: file ? file.data : '' }, action, { description: await expand(action.description) });
           }
         case 'DownloadFile':
           {
@@ -211,7 +211,7 @@ async function ConfigurePageHTML(ctx) {
               app._fs.readFile(file);
             }
             const value = file ? file.data : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action, { description: expand(action.description) });
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action, { description: await expand(action.description) });
           }
         case 'EditFile':
           {
@@ -220,7 +220,7 @@ async function ConfigurePageHTML(ctx) {
               app._fs.readFile(file);
             }
             const value = file ? file.data : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action, { description: expand(action.description) });
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action, { description: await expand(action.description) });
           }
         case 'EditFileAsTable':
           {
@@ -239,39 +239,42 @@ async function ConfigurePageHTML(ctx) {
               catch (_) {
               }
             }
-            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: expand(action.description) });
+            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: await expand(action.description) });
           }
         case 'SelectDirectory':
           {
             const allShares = app.getAvailableShareables();
             allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
             let found = false;
-            const shareables = allShares.map((shareable) => {
-              return {
-                app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
-                  bind.shares.forEach((share) => {
-                    const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
-                    const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
-                    const selected = !!app._binds.find(abind => abind.src === src);
-                    found |= selected;
-                    shares.push({
-                      name: target,
-                      src: src,
-                      description: expand(share.description),
-                      value: selected
-                    });
+            const shareables = await Promise.all(allShares.map(async shareable => {
+              const shares = [];
+              await Promise.all(shareable.shares.map(async bind => {
+                await Promise.all(bind.shares.map(async share => {
+                  const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
+                  const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
+                  const selected = !!app._binds.find(abind => abind.src === src);
+                  found |= selected;
+                  shares.push({
+                    name: target,
+                    src: src,
+                    description: await expand(share.description),
+                    value: selected
                   });
-                  return shares;
-                }, [])
+                }));
+                return shares;
+              }));
+              return {
+                app: shareable.app,
+                shares: shares
               };
-            });
+            }));
             const prop = skeleton.properties.find(prop => prop.name === action.name);
             if (prop) {
               shareables.unshift({
                 app: app, shares: [{ name: 'Local', src: Filesystem.getNativePath(app._id, prop.style, `/dir/${action.name}`), description: 'Local', value: !found }]
               });
             }
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action, { description: expand(action.description) });
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action, { description: await expand(action.description) });
           }
         case 'EditShares':
           {
@@ -289,34 +292,36 @@ async function ConfigurePageHTML(ctx) {
                   empty: empty
                 };
               })
-            }, action, { description: expand(action.description) });
+            }, action, { description: await expand(action.description) });
           }
         case 'SelectShares':
           {
             const binding = app._binds.find(bind => bind.target === action.name) || { shares: [] };
             const allShares = app.getAvailableShareables();
             allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
-            const shareables = allShares.map(shareable => {
-              return {
-                app: shareable.app, shares: shareable.shares.reduce((shares, bind) => {
-                  bind.shares.forEach((share) => {
-                    const defaultName = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
-                    const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
-                    const ashare = binding.shares.find(ashare => ashare.src === src);
-                    const altName = ashare ? ashare.name : '';
-                    shares.push({
-                      name: defaultName,
-                      altname: altName != defaultName ? altName : null,
-                      description: expand(share.description),
-                      action: `window.share('${action.type}#${shareable.app._id}#${src}#${action.name}#${defaultName}',this)`,
-                      value: !!ashare
-                    });
+            const shareables = await Promise.all(allShares.map(async shareable => {
+              const shares = [];
+              await Promise.all(shareable.shares.map(async bind => {
+                await Promise.all(bind.shares.map(async share => {
+                  const defaultName = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
+                  const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
+                  const ashare = binding.shares.find(ashare => ashare.src === src);
+                  const altName = ashare ? ashare.name : '';
+                  shares.push({
+                    name: defaultName,
+                    altname: altName != defaultName ? altName : null,
+                    description: await expand(share.description),
+                    action: `window.share('${action.type}#${shareable.app._id}#${src}#${action.name}#${defaultName}',this)`,
+                    value: !!ashare
                   });
-                  return shares;
-                }, [])
+                }));
+              }));
+              return {
+                app: shareable.app,
+                shares: shares
               };
-            });
-            return Object.assign({ shareables: shareables }, action, { description: expand(action.description) });
+            }));
+            return Object.assign({ shareables: shareables }, action, { description: await expand(action.description) });
           }
         case 'SelectBackups':
           {
@@ -336,7 +341,7 @@ async function ConfigurePageHTML(ctx) {
               config.name = `${config.name} (Configuration)`;
               backups.unshift(config);
             }
-            return Object.assign({ backups: backups }, action, { description: expand(action.description) });
+            return Object.assign({ backups: backups }, action, { description: await expand(action.description) });
           }
         case '__Disks':
           {
@@ -365,7 +370,7 @@ async function ConfigurePageHTML(ctx) {
         default:
           return action;
       }
-    })
+    }))
   }
   const advanced = MinkeApp.getAdvancedMode();
   ctx.body = template({
@@ -407,13 +412,13 @@ async function ConfigurePageWS(ctx) {
   const SHARECHANGE = 4;
   const BACKUPCHANGE = 8;
 
-  function getTableValue(value, format) {
+  async function getTableValue(value, format) {
     try {
       const table = JSON.parse(value);
       const headers = (format && format.headers) || [];
       const pattern = (format && format.pattern) || '{{0}}';
       value = [];
-      table.forEach((row) => {
+      await Promise.all(table.map(async row => {
         let line = pattern;
         for (let i = 0; i < row.length; i++) {
           const header = headers[i] || {};
@@ -423,8 +428,8 @@ async function ConfigurePageWS(ctx) {
           }
           line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), rowval);
         }
-        value.push(app.expandEnv(line));
-      });
+        value.push(await app.expand(line));
+      }));
       return value.join('join' in format ? format.join : '\n');
     }
     catch (e) {
@@ -435,7 +440,7 @@ async function ConfigurePageWS(ctx) {
 
   const patterns = [
     {
-      p: /^Name$/, f: (value, match) => {
+      p: /^Name$/, f: async (value, match) => {
         if (app._name != value) {
           app._name = value;
           return APPCHANGE;
@@ -444,7 +449,7 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^EditEnvironment#(.+)$/, f: (value, match) => {
+      p: /^EditEnvironment#(.+)$/, f: async (value, match) => {
         const key = match[1];
         let change = NOCHANGE;
 
@@ -464,7 +469,7 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^EditEnvironmentAsCheckbox#(.+)$/, f: (value, match) => {
+      p: /^EditEnvironmentAsCheckbox#(.+)$/, f: async (value, match) => {
         const key = match[1];
         let change = NOCHANGE;
 
@@ -484,9 +489,9 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^EditEnvironmentAsTable#(.+)$/, f: (value, match) => {
+      p: /^EditEnvironmentAsTable#(.+)$/, f: async (value, match) => {
         const key = match[1];
-        const tableValue = getTableValue(value, skeleton.actions.find(action => action.name === key));
+        const tableValue = await getTableValue(value, skeleton.actions.find(action => action.name === key));
         let change = NOCHANGE;
 
         function update(r) {
@@ -511,9 +516,9 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^SelectWebsites#(.+)$/, f: (value, match) => {
+      p: /^SelectWebsites#(.+)$/, f: async (value, match) => {
         const key = match[1];
-        const tableValue = getTableValue(value, skeleton.actions.find(action => action.name === key));
+        const tableValue = await getTableValue(value, skeleton.actions.find(action => action.name === key));
         let change = NOCHANGE;
 
         function update(r) {
@@ -538,7 +543,7 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^SelectNetwork#(.+)$/, f: (value, match) => {
+      p: /^SelectNetwork#(.+)$/, f: async (value, match) => {
         const network = match[1];
         const ovalue = app._networks[network];
         if ((network in app._networks) && ovalue !== value) {
@@ -549,7 +554,7 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^SelectDirectory#(.+)$/, f: (value, match) => {
+      p: /^SelectDirectory#(.+)$/, f: async (value, match) => {
         const target = match[1];
         let change = NOCHANGE;
 
@@ -568,34 +573,34 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^EditFile#(.+)$/, f: (value, match) => {
+      p: /^EditFile#(.+)$/, f: async (value, match) => {
         const filename = match[1];
         let change = NOCHANGE;
 
-        function update(files) {
+        async function update(files) {
           const file = files.find(file => file.target == filename)
           if (file && file.data !== value) {
             file.data = value;
             if (app._fs) {
-              app._fs.makeFile(file);
+              await app._fs.makeFile(file);
             }
             change = APPCHANGE;
           }
         }
 
-        update(app._files);
-        app._secondary.forEach(secondary => update(secondary._files));
+        await update(app._files);
+        await Promise.all(app._secondary.map(async secondary => update(secondary._files)));
 
         return change;
       }
     },
     {
-      p: /^EditFileAsTable#(.+)$/, f: (value, match) => {
+      p: /^EditFileAsTable#(.+)$/, f: async (value, match) => {
         const filename = match[1];
-        const tableValue = getTableValue(value, skeleton.actions.find(action => action.name === filename));
+        const tableValue = await getTableValue(value, skeleton.actions.find(action => action.name === filename));
         let change = NOCHANGE;
 
-        function update(files) {
+        async function update(files) {
           const file = files.find(file => file.target == filename)
           if (file && (file.data !== tableValue || file.altData !== value)) {
             if (tableValue !== null) {
@@ -606,20 +611,20 @@ async function ConfigurePageWS(ctx) {
             }
             file.data = tableValue;
             if (app._fs) {
-              app._fs.makeFile(file);
+              await app._fs.makeFile(file);
             }
             change = APPCHANGE;
           }
         }
 
-        update(app._files);
-        app._secondary.forEach(secondary => update(secondary._files));
+        await update(app._files);
+        await Promise.all(app._secondary.map(async secondary => update(secondary._files)));
 
         return change;
       }
     },
     {
-      p: /^SelectShares#(.*)#(.*)#(.*)#(.*)$/, f: (value, match) => {
+      p: /^SelectShares#(.*)#(.*)#(.*)#(.*)$/, f: async (value, match) => {
         const sharesrc = match[2]; // Absolute path of directory we're sharing
         const target = match[3]; // Path of the parent directory we're sharing onto
         const name = value.target.replace(/\//, '.') || match[4]; // The directory name in the parent
@@ -663,7 +668,7 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^EditShares#(.+)$/, f: (value, match) => {
+      p: /^EditShares#(.+)$/, f: async (value, match) => {
         const target = match[1];
         const shares = JSON.parse(value).map(row => {
           return { name: Path.normalize(row[0]) };
@@ -694,7 +699,7 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^SelectBackups#(.+)#(.*)/, f: (value, match) => {
+      p: /^SelectBackups#(.+)#(.*)/, f: async (value, match) => {
         const backup = {
           appid: match[1],
           target: match[2]
@@ -712,7 +717,7 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^__EditSkeleton$/, f: (value, match) => {
+      p: /^__EditSkeleton$/, f: async (value, match) => {
         const skel = Skeletons.parse(value);
         if (skel) {
           Skeletons.saveLocalSkeleton(skel);
@@ -728,14 +733,12 @@ async function ConfigurePageWS(ctx) {
     try {
       let changed = 0;
       for (let property in changes) {
-        patterns.find(pattern => {
-          const match = property.match(pattern.p);
+        for (let i = 0; i < patterns.length; i++) {
+          const match = property.match(patterns[i].p);
           if (match) {
-            changed |= pattern.f(changes[property], match);
-            return true;
+            changed |= await patterns[i].f(changes[property], match);
           }
-          return false;
-        });
+        }
       }
       changes = {};
 
@@ -758,7 +761,7 @@ async function ConfigurePageWS(ctx) {
     }
   }
 
-  ctx.websocket.on('message', (msg) => {
+  ctx.websocket.on('message', async (msg) => {
     try {
       msg = JSON.parse(msg);
       switch (msg.type) {
@@ -827,7 +830,7 @@ async function ConfigurePageWS(ctx) {
         case 'app.update-websites':
           {
             const primary = msg.value;
-            const websites = app.getAvailableWebsites(primary).map((site) => {
+            const websites = (await app.getAvailableWebsites(primary)).map((site) => {
               return {
                 appid: site.app._id,
                 name: site.app._name,

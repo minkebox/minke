@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 
 EXPOSE 53/tcp 53/udp 80/tcp
 VOLUME /minke
