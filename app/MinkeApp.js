@@ -178,7 +178,7 @@ MinkeApp.prototype = {
     await this._parseProperties(this, '', skel.properties, defs);
     if (skel.secondary) {
       const defssecondary = defs.secondary || [];
-      await Promise.all(this._secondary = skel.secondary.map(async (secondary, idx) => {
+      this._secondary = await Promise.all(skel.secondary.map(async (secondary, idx) => {
         const secondaryApp = {
           _image: secondary.image,
           _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
@@ -622,8 +622,7 @@ MinkeApp.prototype = {
         if (this._homeIP) {
           const homeip6 = this.getSLAACAddress();
           Network.registerIP(this._homeIP);
-          DNS.registerHostIP(this._safeName(), this._homeIP, homeip6);
-          DNS.registerGlobalIP(`${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
+          DNS.registerHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
         }
 
         // If we need to be accessed remotely, register with DDNS
@@ -861,8 +860,7 @@ MinkeApp.prototype = {
     }
 
     if (this._homeIP) {
-      DNS.unregisterHostIP(this._safeName());
-      DNS.unregisterGlobalIP(`${this._globalId}${GLOBALDOMAIN}`);
+      DNS.unregisterHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`);
       if (this._ddns) {
         DDNS.unregister(this);
       }
