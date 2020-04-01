@@ -128,7 +128,14 @@ const LocalDNS = {
 
 const CachingDNS = {
 
-  _ttl: 60,
+  _defaultTTL: 60,
+  _maxTTL: 60 * 60,
+  _qHighWater: 50,
+  _qLowWater: 30,
+
+  _q: [],
+  _qTrim: null,
+
   A: {},
   AAAAA: {},
   CNAME: {},
@@ -146,11 +153,25 @@ const CachingDNS = {
       {
         const name = answer.name.toLowerCase();
         const R = this[answer.type][name] || (this[answer.type][name] = {});
-        R[answer.data.toLowerCase()] = { name: answer.name, expires: Math.floor(Date.now() / 1000 + (answer.ttl || this._ttl)), data: answer.data };
+        const key = answer.data.toLowerCase();
+        const rec = { name: answer.name, type: answer.type, expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (answer.ttl || this._defaultTTL))), data: answer.data };
+        if (R[key]) {
+          R[key].expires = rec.expires;
+        }
+        else {
+          R[key] = rec;
+          this._q.push(rec);
+        }
         break;
       }
       default:
         break;
+    }
+
+    if (this._q.length > this._qHighWater && !this._qTrim) {
+      this._qTrim = setTimeout(() => {
+        this._trimAnswers();
+      }, 0);
     }
   },
 
@@ -167,10 +188,7 @@ const CachingDNS = {
           for (let key in R) {
             const rec = R[key];
             if (rec.expires > now) {
-              answers.push({ name: rec.name, type: type, ttl: rec.expires - now, data: rec.data });
-            }
-            else {
-              delete R[key];
+              answers.push({ name: rec.name, type: rec.type, ttl: rec.expires - now, data: rec.data });
             }
           }
         }
@@ -180,6 +198,35 @@ const CachingDNS = {
         break;
     }
     return answers;
+  },
+
+  _trimAnswers: function() {
+    const diff = this._q.length - this._qLowWater;
+    //console.log(`Flushing ${diff}`)
+    if (diff > 0) {
+      this._q.sort((a, b) => a.expires - b.expires);
+      const candidates = this._q.splice(0, diff);
+      candidates.forEach(candidate => {
+        const name = candidate.name.toLowerCase();
+        const R = this[candidate.type][name];
+        if (R) {
+          const key = candidate.data.toLowerCase();
+          if (R[key]) {
+            delete R[key];
+          }
+          else {
+            console.log('Missing trim entry', candidate);
+          }
+          if (Object.keys(R).length === 0) {
+            delete this[candidate.type][name];
+          }
+        }
+        else {
+          console.log('Missing trim list', candidate);
+        }
+      });
+    }
+    this._qTrim = null;
   },
 
   query: async function(request, response, rinfo) {
@@ -197,14 +244,14 @@ const CachingDNS = {
         // If that fails, look for a CNAME
         const cname = this._findAnswer('CNAME', question.name);
         if (cname.length) {
-          response.answers.push.apply(response.answers, cname);
           // See if we have a cached A for the CNAME
           const ac = this._findAnswer('A', cname[0].data);
           if (ac.length) {
+            response.answers.push.apply(response.answers, cname);
             response.answers.push.apply(response.answers, ac);
+            response.flags = DnsPkt.RECURSION_AVAILABLE;
+            return true;
           }
-          response.flags = DnsPkt.RECURSION_AVAILABLE;
-          return true;
         }
         break;
       }
@@ -314,7 +361,7 @@ const DNS = {
     return new Promise(resolve => {
       this._udp = UDP.createSocket('udp4');
       this._udp.on('message', async (msgin, rinfo) => {
-        console.log(msgin, rinfo);
+        //console.log(msgin, rinfo);
         const response = {
           id: 0,
           type: 'response',
@@ -332,14 +379,14 @@ const DNS = {
           response.id = request.id;
           response.flags = request.flags;
           response.questions = request.questions;
-          console.log('request', JSON.stringify(request, null, 2));
+          //console.log('request', JSON.stringify(request, null, 2));
           await this._resolve(request, response, rinfo);
         }
         catch (e) {
           console.log(e);
           response.flags = (response.flags & 0xF0) | 2; // SERVFAIL
         }
-        console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+        //console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
         this._udp.send(DnsPkt.encode(response), rinfo.port, rinfo.address, err => {
           if (err) {
             console.error(err);
@@ -417,7 +464,7 @@ const DNS = {
     }
     for (let i = 0; i < this._proxies.length; i++) {
       const proxy = this._proxies[i];
-      console.log(`Trying ${proxy.id}`);
+      //console.log(`Trying ${proxy.id}`);
       if (await proxy.srv.query(request, response, rinfo)) {
         // Cache answers which don't come from Local or Caching
         if (proxy.prio >= SYSTEM_DNS_OFFSET) {
