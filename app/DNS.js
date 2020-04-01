@@ -5,7 +5,7 @@ const Config = require('./Config');
 const Network = require('./Network');
 const Flatten = require('./utils/Flatten');
 
-//const DNS2 = require('./DNS2');
+const DNS2 = require('./DNS2');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const DNSMASQ = '/usr/sbin/dnsmasq';
@@ -39,7 +39,7 @@ const DNS = {
     this.setDomainName(config.domainname);
     this.setHostname(config.hostname, config.ip);
     this.setDefaultResolver(config.resolvers[0], config.resolvers[1], config.secure[0], config.secure[1]);
-    //DNS2.start(50000);
+    DNS2.start(50000);
   },
 
   stop: async function() {
@@ -115,7 +115,7 @@ const DNS = {
     this._updateSecureConfig();
     this._reloadDNS();
     this._restartDNSC();
-    //DNS2.setDefaultResolver(resolver1, resolver2);
+    DNS2.setDefaultResolver(resolver1, resolver2);
   },
 
   createForward: function(args) {
@@ -140,7 +140,7 @@ const DNS = {
       this._updateResolvServers();
       this._reloadDNS();
     }
-    //DNS2.addDNSServer(args);
+    DNS2.addDNSServer(args);
     return resolve;
   },
 
@@ -169,13 +169,13 @@ const DNS = {
         this._registerHostIP(hostname, hosts[hostname].ip, hosts[hostname].ip6, hosts[hostname].ext);
       }
     }
-    //DNS2.setDomainName(domainName);
+    DNS2.setDomainName(domainName);
   },
 
   registerHost: function(localname, globalname, ip, ip6) {
     this._registerHostIP(localname, ip, ip6, 'h/');
     this._registerHostIP(globalname, ip, ip6, 'g/');
-    //DNS2.registerHost(localname, globalname, ip, ip6);
+    DNS2.registerHost(localname, globalname, ip, ip6);
   },
 
   registerHostIP: function(hostname, ip, ip6) {
@@ -205,7 +205,7 @@ const DNS = {
   unregisterHost: function(localname, globalname) {
     this._unregisterHostIP(localname, 'h/');
     this._unregisterHostIP(globalname, 'g/');
-    //DNS2.unregisterHost(localname);
+    DNS2.unregisterHost(localname);
   },
 
   unregisterHostIP: function(hostname) {
