@@ -141,34 +141,6 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
     },
     {
       type: 'Header',
-      title: 'Secure DNS',
-      visible: false
-    },
-    {
-      type: 'Text',
-      text: 'Secure DNS provides secure and authenticated DNS queries for non local addresses.'
-    },
-    {
-      type: 'Help',
-      text: `Secure DNS uses the <a target="_blank" href="https://dnscrypt.info/public-servers">DNSCrypt</a> to secure remote address lookups.
-  The primary and secondary servers can be configured using either a DNSCrypt name, a DNS-over-HTTPS https://... style url, or a SDNS sdns://... hash.`
-    },
-    {
-      type: 'EditEnvironment',
-      name: 'DNSSECURE1',
-      description: 'Primary'
-    },
-    {
-      type: 'EditEnvironment',
-      name: 'DNSSECURE2',
-      description: 'Secondary'
-    },
-    {
-      type: 'Text',
-      text: ''
-    },
-    {
-      type: 'Header',
       title: 'Disks'
     },
     {
