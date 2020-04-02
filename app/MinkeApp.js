@@ -521,6 +521,7 @@ MinkeApp.prototype = {
           MacAddress: config.MacAddress,
           Env: (await Promise.all(Object.keys(this._env).map(async key => `${key}=${await this.expand(this._env[key].value)}`))).concat(configEnv)
         };
+        helperConfig.Env.push(`__MINKENAME=${MinkeApp.getMinkeName() || 'minkebox'}`);
 
         if (pNetwork === 'home' || sNetwork === 'home') {
           const ip6 = this.getSLAACAddress();
@@ -1750,6 +1751,10 @@ MinkeApp.getAdvancedMode = function() {
 
 MinkeApp.getLocalDomainName = function() {
   return setup ? setup.getLocalDomainName() : '';
+}
+
+MinkeApp.getMinkeName = function() {
+  return setup ? setup._safeName() : '';
 }
 
 MinkeApp.shutdown = async function(config) {
