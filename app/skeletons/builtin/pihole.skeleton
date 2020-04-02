@@ -9,6 +9,10 @@
   ],
   properties: [
     {
+      type: `Feature`,
+      name: `localtime`,
+    },
+    {
       type: `Directory`,
       name: `/etc/pihole`,
       style: `store`
@@ -49,6 +53,11 @@
       name: `53/tcp`,
       port: 53,
       protocol: `TCP`
+    },
+    {
+      type: `Environment`,
+      name: `VIRTUAL_HOST`,
+      defaultValue: `{{__HOSTIP}}`
     },
     {
       type: `Port`,
