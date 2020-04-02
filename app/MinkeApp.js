@@ -1556,12 +1556,18 @@ MinkeApp.startApps = async function(app, config) {
 
   // Startup the DNS network and attach to it
   const dnsNet = await Network.getDNSNetwork();
-  await dnsNet.connect({
-    Container: MinkeApp._container.id
-  });
-  // We have to put back the original default route. There really must be a better way ...
-  ChildProcess.spawnSync('/sbin/ip', [ 'route', 'del', 'default' ]);
-  ChildProcess.spawnSync('/sbin/ip', [ 'route', 'add', 'default', 'via', MinkeApp._network.network.gateway_ip ]);
+  try {
+    await dnsNet.connect({
+      Container: MinkeApp._container.id
+    });
+    // We have to put back the original default route. There really must be a better way ...
+    ChildProcess.spawnSync('/sbin/ip', [ 'route', 'del', 'default' ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'route', 'add', 'default', 'via', MinkeApp._network.network.gateway_ip ]);
+  }
+  catch (e) {
+    console.error('Failed to connect to DNS network');
+    console.error(e);
+  }
 
   // See if we have wifi (in background)
   Network.wifiAvailable();
