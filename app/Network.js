@@ -14,6 +14,7 @@ const WLAN_NETWORK_FILE = `${ETC}systemd/network/wlan.network`;
 const WPA_SUPPLICANT_FILE = `${ETC}wpa_supplicant.conf`;
 const HOME_NETWORK_NAME = 'home';
 const BRIDGE_NETWORK = 'br0';
+const DNS_NETWORK = 'dns0';
 const WIRED_NETWORKS = 'en* eth*';
 const WLAN_NETWORK = 'wlan0';
 const WIRED_NETWORK_FALLBACK = "192.168.1.200/24";
@@ -134,14 +135,18 @@ const Network = {
   }),
 
   getDNSNetwork: Barrier(async function() {
+    const options = {
+      'com.docker.network.bridge.enable_ip_masquerade': 'false',
+      'com.docker.network.driver.mtu': '1400'
+    };
+    if (SYSTEM) {
+      options['com.docker.network.bridge.name'] = DNS_NETWORK;
+    }
     return await this._getNetwork({
       Name: 'dns',
       CheckDuplicate: true,
       Driver: 'bridge',
-      Options: {
-        'com.docker.network.bridge.enable_ip_masquerade': 'false',
-        'com.docker.network.driver.mtu': '1400'
-      }
+      Options: options
     });
   }),
 
