@@ -10,6 +10,7 @@ const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
 const HOSTNAME = '/bin/hostname';
 const SYSTEM_DNS_OFFSET = 10;
+const DNS_NETWORK = (SYSTEM ? 'dns0' : 'eth1');
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
 
@@ -444,7 +445,7 @@ const LocalDNSSingleton = {
     const subnet = this._network.info.IPAM.Config[0].Subnet;
     const base = subnet.split('/')[0].split('.');
     this._bits = 24;
-    this._dev = 'eth1';
+    this._dev = DNS_NETWORK;
 
     const state = (await Database.getConfig('localdns')) || { map: [] };
     for (let i = 0; i < state.map.length; i++) {
