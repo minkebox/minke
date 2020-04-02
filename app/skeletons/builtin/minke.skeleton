@@ -141,7 +141,8 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
     },
     {
       type: 'Header',
-      title: 'Secure DNS'
+      title: 'Secure DNS',
+      visible: false
     },
     {
       type: 'Text',
