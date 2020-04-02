@@ -355,7 +355,6 @@ GlobalDNS.prototype = {
         this._pending[request.id] = {
           callback: (message) => {
             const pkt = DnsPkt.decode(message);
-            console.log('global', pkt);
             if (pkt.rcode === 'NOERROR') {
               response.flags = pkt.flags;
               response.answers = pkt.answers;
@@ -631,14 +630,14 @@ const DNS = {
           response.id = request.id;
           response.flags = request.flags;
           response.questions = request.questions;
-          console.log('request', JSON.stringify(request, null, 2));
+          //console.log('request', JSON.stringify(request, null, 2));
           await this.query(request, response, rinfo);
         }
         catch (e) {
-          console.log(e);
+          console.error(e);
           response.flags = (response.flags & 0xF0) | 2; // SERVFAIL
         }
-        console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+        //console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
         this._udp.send(DnsPkt.encode(response), rinfo.port, rinfo.address, err => {
           if (err) {
             console.error(err);
@@ -730,7 +729,7 @@ const DNS = {
     }
     for (let i = 0; i < this._proxies.length; i++) {
       const proxy = this._proxies[i];
-      console.log(`Trying ${proxy.id}`);
+      //console.log(`Trying ${proxy.id}`);
       if (await proxy.srv.query(request, response, rinfo)) {
         // Cache answers which don't come from Local or Caching
         if (proxy.prio >= SYSTEM_DNS_OFFSET) {
