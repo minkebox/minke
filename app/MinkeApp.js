@@ -1187,6 +1187,7 @@ MinkeApp.prototype = {
         __APPNAME: { value: this._name },
         __HOSTNAME: { value: this._safeName() },
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
+        __HOSTIP: { value: MinkeApp._network.network.ip_address },
         __HOMEIP: { value: this._homeIP || '<none>' },
         __HOMEIP6: { value: this.getSLAACAddress() || '<none>' },
         __IPV6ENABLED: { value : this.getSLAACAddress() ? 'true' : 'false' },
