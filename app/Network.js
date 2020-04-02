@@ -133,6 +133,18 @@ const Network = {
     });
   }),
 
+  getDNSNetwork: Barrier(async function() {
+    return await this._getNetwork({
+      Name: 'dns',
+      CheckDuplicate: true,
+      Driver: 'bridge',
+      Options: {
+        'com.docker.network.bridge.enable_ip_masquerade': 'false',
+        'com.docker.network.driver.mtu': '1400'
+      }
+    });
+  }),
+
   setHomeNetwork: function(config) {
     if (DEBUG) {
       return false;
