@@ -15,7 +15,7 @@ const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*).in-addr.arpa/;
 //
 const PrivateDNS = {
 
-  _ttl: 60,
+  _ttl: 600, // 10 minutes
   _hostname2ip4: {},
   _hostname2ip6: {},
   _ip2localname: {},
@@ -136,8 +136,8 @@ const PrivateDNS = {
 //
 const CachingDNS = {
 
-  _defaultTTL: 60,
-  _maxTTL: 60 * 60,
+  _defaultTTL: 600, // 10 minutes
+  _maxTTL: 3600, // 1 hour
   _qHighWater: 1000,
   _qLowWater: 900,
 
@@ -599,7 +599,7 @@ const MapDNS = {
 const DNS = {
 
   _proxies: [
-    { id: 'map',   srv: MapDNS, prio: 0 },
+    { id: 'map',   srv: MapDNS,     prio: 0 },
     { id: 'local', srv: PrivateDNS, prio: 1 },
     { id: 'cache', srv: CachingDNS, prio: 2 },
   ],
