@@ -110,7 +110,7 @@ const PrivateDNS = {
   },
 
   setDomainName: function(name) {
-    this._domainName = name;
+    this._domainName = name.toLowerCase();
   },
 
   registerHost: function(localname, globalname, ip, ip6) {
