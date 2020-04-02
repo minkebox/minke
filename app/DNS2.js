@@ -1,15 +1,19 @@
 const UDP = require('dgram');
 const ChildProcess = require('child_process');
+const FS = require('fs');
 const DnsPkt = require('dns-packet');
 const Network = require('./Network');
 
+const ETC = (DEBUG ? '/tmp/' : '/etc/');
+const HOSTNAME_FILE = `${ETC}hostname`;
+const HOSTNAME = '/bin/hostname';
 const SYSTEM_DNS_OFFSET = 10;
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*).in-addr.arpa/;
 
 //
-// LocalDNS provides mappings for locally hosted services.
+// PrivateDNS provides mappings for locally hosted services.
 //
-const LocalDNS = {
+const PrivateDNS = {
 
   _ttl: 60,
   _hostname2ip4: {},
@@ -93,16 +97,20 @@ const LocalDNS = {
 
   registerHost: function(localname, globalname, ip, ip6) {
     const kLocalname = localname.toLowerCase();
-    const kGlobalname = localname.toLowerCase();
     this._hostname2ip4[kLocalname] = ip;
-    this._hostname2ip4[kGlobalname] = ip;
     this._ip2localname[ip] = localname;
-    this._ip2globalname[ip] = globalname;
     if (ip6) {
       this._hostname2ip6[kLocalname] = ip6;
-      this._hostname2ip6[kGlobalname] = ip6;
       this._ip2localname[ip6] = localname;
-      this._ip2globalname[ip6] = globalname;
+    }
+    if (globalname) {
+      const kGlobalname = globalname.toLowerCase();
+      this._hostname2ip4[kGlobalname] = ip;
+      this._ip2globalname[ip] = globalname;
+      if (ip6) {
+        this._hostname2ip6[kGlobalname] = ip6;
+        this._ip2globalname[ip6] = globalname;
+      }
     }
   },
 
@@ -130,15 +138,17 @@ const CachingDNS = {
 
   _defaultTTL: 60,
   _maxTTL: 60 * 60,
-  _qHighWater: 50,
-  _qLowWater: 30,
+  _qHighWater: 1000,
+  _qLowWater: 900,
 
   _q: [],
   _qTrim: null,
 
-  A: {},
-  AAAA: {},
-  CNAME: {},
+  _cache: {
+    A: {},
+    AAAA: {},
+    CNAME: {}
+  },
 
   add: function(response) {
     response.answers.forEach(answer => this._addAnswer(answer));
@@ -152,7 +162,7 @@ const CachingDNS = {
       case 'CNAME':
       {
         const name = answer.name.toLowerCase();
-        const R = this[answer.type][name] || (this[answer.type][name] = {});
+        const R = this._cache[answer.type][name] || (this._cache[answer.type][name] = {});
         const key = answer.data.toLowerCase();
         const rec = { name: answer.name, type: answer.type, expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (answer.ttl || this._defaultTTL))), data: answer.data };
         if (R[key]) {
@@ -182,7 +192,7 @@ const CachingDNS = {
       case 'AAAA':
       case 'CNAME':
       {
-        const R = this[type][name.toLowerCase()];
+        const R = this._cache[type][name.toLowerCase()];
         const now = Math.floor(Date.now() / 1000);
         if (R) {
           for (let key in R) {
@@ -208,7 +218,7 @@ const CachingDNS = {
       const candidates = this._q.splice(0, diff);
       candidates.forEach(candidate => {
         const name = candidate.name.toLowerCase();
-        const R = this[candidate.type][name];
+        const R = this._cache[candidate.type][name];
         if (R) {
           const key = candidate.data.toLowerCase();
           if (R[key]) {
@@ -218,7 +228,7 @@ const CachingDNS = {
             console.error('Missing trim entry', candidate);
           }
           if (Object.keys(R).length === 0) {
-            delete this[candidate.type][name];
+            delete this._cache[candidate.type][name];
           }
         }
         else {
@@ -227,6 +237,17 @@ const CachingDNS = {
       });
     }
     this._qTrim = null;
+  },
+
+  flush: function() {
+    if (this._qTrim) {
+      clearTimeout(this._qTrim);
+      this._qTrim = null;
+    }
+    this._q = [];
+    for (let key in this._cache) {
+      this._cache[key] = {};
+    }
   },
 
   query: async function(request, response, rinfo) {
@@ -334,6 +355,7 @@ GlobalDNS.prototype = {
         this._pending[request.id] = {
           callback: (message) => {
             const pkt = DnsPkt.decode(message);
+            console.log('global', pkt);
             if (pkt.rcode === 'NOERROR') {
               response.flags = pkt.flags;
               response.answers = pkt.answers;
@@ -579,11 +601,15 @@ const DNS = {
 
   _proxies: [
     { id: 'map',   srv: MapDNS, prio: 0 },
-    { id: 'local', srv: LocalDNS, prio: 1 },
+    { id: 'local', srv: PrivateDNS, prio: 1 },
     { id: 'cache', srv: CachingDNS, prio: 2 },
   ],
 
-  start: async function(port) {
+  start: async function(config) {
+    this.setDomainName(config.domainname);
+    this.setHostname(config.hostname, config.ip);
+    this.setDefaultResolver(config.resolvers[0], config.resolvers[1]);
+
     await new Promise(resolve => {
       this._udp = UDP.createSocket('udp4');
       this._udp.on('message', async (msgin, rinfo) => {
@@ -605,23 +631,27 @@ const DNS = {
           response.id = request.id;
           response.flags = request.flags;
           response.questions = request.questions;
-          //console.log('request', JSON.stringify(request, null, 2));
+          console.log('request', JSON.stringify(request, null, 2));
           await this.query(request, response, rinfo);
         }
         catch (e) {
           console.log(e);
           response.flags = (response.flags & 0xF0) | 2; // SERVFAIL
         }
-        //console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+        console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
         this._udp.send(DnsPkt.encode(response), rinfo.port, rinfo.address, err => {
           if (err) {
             console.error(err);
           }
         });
       });
-      this._udp.bind(port, resolve);
+      this._udp.bind(config.port, resolve);
     });
     await LocalDNSSingleton.start();
+  },
+
+  stop: async function() {
+    this._udp.close();
   },
 
   setDefaultResolver: function(resolver1, resolver2) {
@@ -643,9 +673,14 @@ const DNS = {
       IP4Address: args.IP4Address,
       Port: args.port || 53,
       priority: (args.options && args.options.priority) || 5,
-      delay: (args.options && args.options.delay) || 0
+      delay: (args.options && args.options.delay) || 0,
+      dnsNetwork: args.dnsNetwork,
+      timeout: args.timeout || 5000
     };
-    this._addDNSProxy(resolve._id, new LocalDNS(resolve.IP4Address, resolve.Port, 5000), SYSTEM_DNS_OFFSET + resolve.priority);
+    const proxy = resolve.dnsNetwork ?
+      new LocalDNS(resolve.IP4Address, resolve.Port, resolve.timeout) :
+      new GlobalDNS(resolve.IP4Address, resolve.Port, resolve.timeout);
+    this._addDNSProxy(resolve._id, proxy, SYSTEM_DNS_OFFSET + resolve.priority);
     return resolve;
   },
 
@@ -654,27 +689,38 @@ const DNS = {
       this._proxies.push({ id: id, srv: proxy, prio: priority });
       this._proxies.sort((a, b) => a.prio - b.prio);
     });
+    CachingDNS.flush();
   },
 
   removeDNSServer: function(args) {
     for (let i = 0; i < this._proxies.length; i++) {
       if (this._proxies[i].id === args._id) {
-        this._proxies.splice(i, 1)[0].stop();
+        this._proxies.splice(i, 1)[0].srv.stop();
+        CachingDNS.flush();
         break;
       }
     }
   },
 
+  setHostname: function(hostname, ip) {
+    hostname = hostname || 'MinkeBox';
+    if (!DEBUG) {
+      FS.writeFileSync(HOSTNAME_FILE, `${hostname}\n`);
+      ChildProcess.spawnSync(HOSTNAME, [ '-F', HOSTNAME_FILE ]);
+    }
+    this.registerHost(hostname, null, ip, Network.getSLAACAddress());
+  },
+
   setDomainName: function(domain) {
-    LocalDNS.setDomainName(domain);
+    PrivateDNS.setDomainName(domain);
   },
 
   registerHost: function(localname, globalname, ip, ip6) {
-    LocalDNS.registerHost(localname, globalname, ip, ip6);
+    PrivateDNS.registerHost(localname, globalname, ip, ip6);
   },
 
   unregisterHost: function(localname) {
-    LocalDNS.unregisterHost(localname);
+    PrivateDNS.unregisterHost(localname);
   },
 
   query: async function(request, response, rinfo) {
@@ -684,7 +730,7 @@ const DNS = {
     }
     for (let i = 0; i < this._proxies.length; i++) {
       const proxy = this._proxies[i];
-      //console.log(`Trying ${proxy.id}`);
+      console.log(`Trying ${proxy.id}`);
       if (await proxy.srv.query(request, response, rinfo)) {
         // Cache answers which don't come from Local or Caching
         if (proxy.prio >= SYSTEM_DNS_OFFSET) {

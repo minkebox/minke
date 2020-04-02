@@ -1,12 +1,13 @@
 const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
 const Path = require('path');
+const ChildProcess = require('child_process');
 const Moment = require('moment-timezone');
 const UUID = require('uuid/v4');
 const JSInterpreter = require('js-interpreter');
 const Config = require('./Config');
 const HTTP = require('./HTTP');
-const DNS = require('./DNS');
+const DNS2 = require('./DNS2');
 const DDNS = require('./DDNS');
 const MDNS = require('./MDNS');
 const Network = require('./Network');
@@ -335,7 +336,6 @@ MinkeApp.prototype = {
   },
 
   start: async function(inherit) {
-
     try {
       this._setStatus('starting');
 
@@ -350,6 +350,7 @@ MinkeApp.prototype = {
 
       this._fs = Filesystem.create(this);
       this._allmounts = await this._fs.getAllMounts(this);
+      const ports = await Promise.all(this._ports.map(async port => await this.expandPort(port)));
 
       const config = {
         name: `${this._safeName()}__${this._id}`,
@@ -376,8 +377,10 @@ MinkeApp.prototype = {
 
       // Create network environment
       const netEnv = {};
-      if (this._networks.primary !== 'none') {
-        switch (this._networks.primary) {
+      const pNetwork = this._networks.primary;
+      const sNetwork = this._networks.secondary;
+      if (pNetwork !== 'none') {
+        switch (pNetwork) {
           case 'home':
             netEnv.DHCP_INTERFACE = 0;
             netEnv.NAT_INTERFACE = 0;
@@ -392,12 +395,16 @@ MinkeApp.prototype = {
             netEnv.DEFAULT_INTERFACE = 0;
             break;
         }
-        if (this._networks.secondary !== 'none') {
-          switch (this._networks.secondary) {
+        if (sNetwork !== 'none') {
+          switch (sNetwork) {
             case 'home':
               netEnv.SECONDARY_INTERFACE = 1;
               netEnv.DHCP_INTERFACE = 1;
               netEnv.NAT_INTERFACE = 1;
+              break;
+            case 'dns':
+              netEnv.SECONDARY_INTERFACE = 1;
+              netEnv.DNS_INTERFACE = 1;
               break;
             default:
               netEnv.SECONDARY_INTERFACE = 1;
@@ -410,7 +417,7 @@ MinkeApp.prototype = {
         configEnv.push(`__${eth}=eth${netEnv[eth]}`);
       }
 
-      switch (this._networks.primary) {
+      switch (pNetwork) {
         case 'none':
           config.HostConfig.NetworkMode = 'none';
           break;
@@ -448,7 +455,7 @@ MinkeApp.prototype = {
           // If we're using a private network as primary, then we also select the X.X.X.2
           // address as both the default gateway and the dns server. The server at X.X.X.2
           // should be the creator (e.g. VPN client/server) for this network.
-          const vpn = await Network.getPrivateNetwork(this._networks.primary);
+          const vpn = await Network.getPrivateNetwork(pNetwork);
           config.HostConfig.NetworkMode = vpn.id;
           const dns = vpn.info.IPAM.Config[0].Gateway.replace(/\.\d$/,'.2');
           configEnv.push(`__DNSSERVER=${dns}`);
@@ -458,7 +465,7 @@ MinkeApp.prototype = {
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
           // When we start a new app which is attached to a private network, we must restart the
           // private network so it can inform the peer about the new app.
-          const napp = MinkeApp.getAppById(this._networks.primary);
+          const napp = MinkeApp.getAppById(pNetwork);
           if (napp && napp._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
             napp._needRestart = true;
           }
@@ -491,12 +498,12 @@ MinkeApp.prototype = {
 
       [ '-SETPCAP','-MKNOD','-AUDIT_WRITE','-CHOWN','-NET_RAW','-DAC_OVERRIDE','-FOWNER','-FSETID','-KILL','-SETGID',
         '-SETUID','-NET_BIND_SERVICE','-SYS_CHROOT','-SETFCAP' ].forEach(cap => {
-          if (this._features[cap]) {
-            config.HostConfig.CapDrop.push(cap.substring(1));
-          }
-        });
+        if (this._features[cap]) {
+          config.HostConfig.CapDrop.push(cap.substring(1));
+        }
+      });
 
-      if (this._networks.primary !== 'host') {
+      if (pNetwork !== 'host') {
 
         const helperConfig = {
           name: `helper-${this._safeName()}__${this._id}`,
@@ -515,7 +522,7 @@ MinkeApp.prototype = {
           Env: (await Promise.all(Object.keys(this._env).map(async key => `${key}=${await this.expand(this._env[key].value)}`))).concat(configEnv)
         };
 
-        if (this._networks.primary === 'home' || this._networks.secondary === 'home') {
+        if (pNetwork === 'home' || sNetwork === 'home') {
           const ip6 = this.getSLAACAddress();
           if (ip6) {
             helperConfig.Env.push(`__HOSTIP6=${ip6}`);
@@ -540,8 +547,8 @@ MinkeApp.prototype = {
 
           // If we're opening the NAT, and we're not on the home network, we need to find
           // the actual remote endpoint so we can create global network addresses.
-          if ((netEnv.NAT_INTERFACE === 0 && this._networks.primary != 'home') ||
-              (netEnv.NAT_INTERFACE === 1 && this._networks.secondary != 'home')) {
+          if ((netEnv.NAT_INTERFACE === 0 && pNetwork != 'home') ||
+              (netEnv.NAT_INTERFACE === 1 && sNetwork != 'home')) {
             helperConfig.Env.push(`FETCH_REMOTE_IP=true`);
           }
         }
@@ -572,8 +579,8 @@ MinkeApp.prototype = {
           }
 
           // Attach new helper to secondary network if necessary
-          if (this._networks.primary != 'none') {
-            switch (this._networks.secondary) {
+          if (pNetwork !== 'none') {
+            switch (sNetwork) {
               case 'none':
                 break;
               case 'home':
@@ -592,9 +599,23 @@ MinkeApp.prototype = {
                 }
                 break;
               }
+              case 'dns':
+              {
+                try {
+                  const dnsnet = await Network.getDNSNetwork();
+                  await dnsnet.connect({
+                    Container: this._helperContainer.id
+                  });
+                }
+                catch (e) {
+                  console.error('Error connecting dns network');
+                  console.error(e);
+                }
+                break;
+              }
               default:
               {
-                const vpn = await Network.getPrivateNetwork(this._networks.secondary);
+                const vpn = await Network.getPrivateNetwork(sNetwork);
                 try {
                   await vpn.connect({
                     Container: this._helperContainer.id
@@ -622,7 +643,7 @@ MinkeApp.prototype = {
         if (this._homeIP) {
           const homeip6 = this.getSLAACAddress();
           Network.registerIP(this._homeIP);
-          DNS.registerHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
+          DNS2.registerHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
         }
 
         // If we need to be accessed remotely, register with DDNS
@@ -632,7 +653,6 @@ MinkeApp.prototype = {
 
       }
 
-      const ports = await Promise.all(this._ports.map(async port => await this.expandPort(port)));
       if (this._defaultIP) {
         const webport = ports.find(port => port.web);
         if (webport) {
@@ -690,7 +710,7 @@ MinkeApp.prototype = {
       if (this._homeIP) {
         const dnsport = ports.find(port => port.dns);
         if (dnsport) {
-          this._dns = DNS.createForward({ _id: this._id, name: this._name, IP4Address: this._homeIP, port: dnsport.port, options: dnsport.dns });
+          this._dns = DNS2.addDNSServer({ _id: this._id, name: this._name, IP4Address: this._homeIP, port: dnsport.port, options: dnsport.dns, dnsNetwork: sNetwork === 'dns' });
         }
       }
 
@@ -833,7 +853,7 @@ MinkeApp.prototype = {
     }
 
     if (this._dns) {
-      DNS.removeForward(this._dns);
+      DNS2.removeDNSServer(this._dns);
       this._dns = null;
     }
 
@@ -860,7 +880,7 @@ MinkeApp.prototype = {
     }
 
     if (this._homeIP) {
-      DNS.unregisterHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`);
+      DNS2.unregisterHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`);
       if (this._ddns) {
         DDNS.unregister(this);
       }
@@ -1533,6 +1553,15 @@ MinkeApp.startApps = async function(app, config) {
   // Startup home network early (in background)
   Network.getHomeNetwork();
 
+  // Startup the DNS network and attach to it
+  const dnsNet = await Network.getDNSNetwork();
+  await dnsNet.connect({
+    Container: MinkeApp._container.id
+  });
+  // We have to put back the original default route. There really must be a better way ...
+  ChildProcess.spawnSync('/sbin/ip', [ 'route', 'del', 'default' ]);
+  ChildProcess.spawnSync('/sbin/ip', [ 'route', 'add', 'default', 'via', MinkeApp._network.network.gateway_ip ]);
+
   // See if we have wifi (in background)
   Network.wifiAvailable();
 
@@ -1686,7 +1715,7 @@ MinkeApp.getStartupOrder = function() {
   // Now with the base networks (or none), add applications which depend on already existing networks.
   // If apps create networks, they are added after any neworks they depend on.
   const networks = {
-    none: true, host: true, home: true
+    none: true, host: true, home: true, dns: true
   };
   let len;
   do {
@@ -1708,6 +1737,9 @@ MinkeApp.getStartupOrder = function() {
   } while (list.length < len);
   // Repeat as long as the list gets shorted. Once it stops we either have ordered everything, or somehow have applications
   // which are dependent on things that don't exist. Let's not start those.
+  if (list.length) {
+    console.error(`Failed to order apps: ${list.map(app => app._name)}`);
+  }
 
   return order;
 }

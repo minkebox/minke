@@ -3,7 +3,7 @@ const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
 const Config = require('./Config');
 const Images = require('./Images');
-const DNS = require('./DNS');
+const DNS2 = require('./DNS2');
 const Network = require('./Network');
 const Database = require('./Database');
 const MDNS = require('./MDNS');
@@ -85,12 +85,12 @@ MinkeSetup.prototype = {
     this._setTimezone();
     this._setUpdateTime();
 
-    DNS.start({
+    DNS2.start({
       hostname: this._name,
       domainname: this.getLocalDomainName(),
       ip: this._env.IPADDRESS.value,
-      resolvers: [ this._env.DNSSERVER1.value, this._env.DNSSERVER2.value ],
-      secure: [ this._env.DNSSECURE1.value, this._env.DNSSECURE2.value ]
+      port: 53,
+      resolvers: [ this._env.DNSSERVER1.value, this._env.DNSSERVER2.value ]
     });
     DDNS.start(this._globalId);
     await UPNP.start({
@@ -134,7 +134,7 @@ MinkeSetup.prototype = {
     this.emit('update.status', { app: this, status: this._status });
     await MDNS.stop();
     await UPNP.stop();
-    await DNS.stop();
+    await DNS2.stop();
   },
 
   restart: async function(reason) {
@@ -168,14 +168,12 @@ MinkeSetup.prototype = {
       txt: []
     });
     UPNP.update({ hostname: this._name });
-    DNS.setHostname(this._name);
-    DNS.setDefaultResolver(
+    DNS2.setHostname(this._name);
+    DNS2.setDefaultResolver(
       this._env.DNSSERVER1.value,
-      this._env.DNSSERVER2.value,
-      this._env.DNSSECURE1.value,
-      this._env.DNSSECURE2.value
+      this._env.DNSSERVER2.value
     );
-    DNS.setDomainName(this.getLocalDomainName());
+    DNS2.setDomainName(this.getLocalDomainName());
     Network.setHomeNetwork({
       enable: !this._env.WIFIENABLED.value,
       address: this._env.DHCP.value ? 'dhcp' : this._env.IPADDRESS.value,
@@ -282,14 +280,6 @@ MinkeSetup.prototype = {
   },
 
   expand: function(txt) {
-    if (typeof txt ==='string' && txt.indexOf('{{') !== -1) {
-      const env = Object.assign({
-        __DOH: { value: DNS.getSDNS() || '<none>' }
-      }, this._env);
-      for (let key in env) {
-        txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
-      }
-    }
     return txt;
   },
 
