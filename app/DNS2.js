@@ -720,7 +720,8 @@ const DNS = {
           }
         });
       });
-      this._udp.bind(config.port, resolve);
+      this._udp.on('error', (e) => console.error(e));
+      this._udp.bind(config.port, config.ip, resolve);
     });
     await LocalDNSSingleton.start();
   },
