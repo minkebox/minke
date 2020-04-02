@@ -51,11 +51,6 @@
       type: `Network`,
       name: `primary`,
       defaultValue: `home`
-    },
-    {
-      type: `Network`,
-      name: `secondary`,
-      defaultValue: `dns`
     }
   ]
 }
