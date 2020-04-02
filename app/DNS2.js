@@ -4,6 +4,7 @@ const FS = require('fs');
 const DnsPkt = require('dns-packet');
 const Network = require('./Network');
 const Database = require('./Database');
+const MDNS = require('./MDNS');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
@@ -305,6 +306,37 @@ const CachingDNS = {
 };
 
 //
+// MulticastDNS
+//
+const MulticastDNS = {
+
+  _defaultTTL: 60, // 1 minute
+
+  query: async function(request, response, rinfo) {
+    const question = request.questions[0];
+    switch (question.type) {
+      case 'A':
+      {
+        const name = question.name.split('.');
+        if (name[1] !== 'local') {
+          break;
+        }
+        const ip = MDNS.getAddrByHostname(name[0]);
+        if (!ip) {
+          break;
+        }
+        response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, data: ip });
+        return true;
+      }
+      default:
+        break;
+    }
+    return false;
+  }
+
+};
+
+//
 // GlobalDNS proxies DNS servers on the Internet.
 //
 const GlobalDNS = function(resolve, port, timeout) {
@@ -412,7 +444,7 @@ const LocalDNSSingleton = {
     }
 
     this._available = [];
-    for (let i = 254; i > 64; i--) {
+    for (let i = 254; i > 32; i--) {
       const dnsAddress = `${base[0]}.${base[1]}.${base[2]}.${i}`;
       if (!this._backwardCache[dnsAddress]) {
         this._available.push(dnsAddress);
@@ -628,9 +660,10 @@ const MapDNS = {
 const DNS = {
 
   _proxies: [
-    { id: 'map',   srv: MapDNS,     prio: 0 },
-    { id: 'local', srv: PrivateDNS, prio: 1 },
-    { id: 'cache', srv: CachingDNS, prio: 2 },
+    { id: 'local', srv: PrivateDNS,   prio: 0, cache: false },
+    { id: 'mdns',  srv: MulticastDNS, prio: 1, cache: false },
+    { id: 'map',   srv: MapDNS,       prio: 2, cache: false },
+    { id: 'cache', srv: CachingDNS,   prio: 3, cache: false }
   ],
 
   start: async function(config) {
@@ -687,11 +720,11 @@ const DNS = {
     this.removeDNSServer({ _id: 'global1' });
     this.removeDNSServer({ _id: 'global2' });
     if (resolver1) {
-      this._addDNSProxy('global1', new GlobalDNS(resolver1, 53, 5000), Number.MAX_SAFE_INTEGER - 1);
+      this._addDNSProxy('global1', new GlobalDNS(resolver1, 53, 5000), Number.MAX_SAFE_INTEGER - 1, true);
 
     }
     if (resolver2) {
-      this._addDNSProxy('global2', new GlobalDNS(resolver2, 53, 5000), Number.MAX_SAFE_INTEGER );
+      this._addDNSProxy('global2', new GlobalDNS(resolver2, 53, 5000), Number.MAX_SAFE_INTEGER, true);
     }
   },
 
@@ -709,13 +742,13 @@ const DNS = {
     const proxy = resolve.dnsNetwork ?
       new LocalDNS(resolve.IP4Address, resolve.Port, resolve.timeout) :
       new GlobalDNS(resolve.IP4Address, resolve.Port, resolve.timeout);
-    this._addDNSProxy(resolve._id, proxy, SYSTEM_DNS_OFFSET + resolve.priority);
+    this._addDNSProxy(resolve._id, proxy, SYSTEM_DNS_OFFSET + resolve.priority, true);
     return resolve;
   },
 
-  _addDNSProxy: function(id, proxy, priority) {
+  _addDNSProxy: function(id, proxy, priority, cache) {
     proxy.start().then(() => {
-      this._proxies.push({ id: id, srv: proxy, prio: priority });
+      this._proxies.push({ id: id, srv: proxy, prio: priority, cache: cache });
       this._proxies.sort((a, b) => a.prio - b.prio);
     });
     CachingDNS.flush();
@@ -761,8 +794,7 @@ const DNS = {
       const proxy = this._proxies[i];
       //console.log(`Trying ${proxy.id}`);
       if (await proxy.srv.query(request, response, rinfo)) {
-        // Cache answers which don't come from Local or Caching
-        if (proxy.prio >= SYSTEM_DNS_OFFSET) {
+        if (proxy.cache) {
           CachingDNS.add(response);
         }
         return true;

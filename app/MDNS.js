@@ -50,6 +50,14 @@ MDNS.prototype = {
     }
   },
 
+  getAddrByHostname: function(hostname) {
+    const rec = this._records.find(r => eq(r.hostname, hostname));
+    if (!rec) {
+      return null;
+    }
+    return rec.ip;
+  },
+
   _create: async function(ip) {
     return new Promise((resolve) => {
       this._socket = Dgram.createSocket({
