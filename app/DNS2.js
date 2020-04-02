@@ -1,9 +1,14 @@
 const UDP = require('dgram');
+const ChildProcess = require('child_process');
 const DnsPkt = require('dns-packet');
+const Network = require('./Network');
 
 const SYSTEM_DNS_OFFSET = 10;
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*).in-addr.arpa/;
 
+//
+// LocalDNS provides mappings for locally hosted services.
+//
 const LocalDNS = {
 
   _ttl: 60,
@@ -62,7 +67,7 @@ const LocalDNS = {
       case 'PTR':
       {
         const name = request.questions[0].name;
-        const m4 = REGEXP_PTR_IP4.exec(name.toLowerCase());
+        const m4 = REGEXP_PTR_IP4.exec(name);
         if (m4) {
           const ip = `${m4[4]}.${m4[3]}.${m4[2]}.${m4[1]}`;
           const localname = this._ip2localname[ip];
@@ -76,14 +81,6 @@ const LocalDNS = {
         }
         break;
       }
-      case 'CNAME':
-      case 'MX':
-      case 'NS':
-      case 'SOA':
-      case 'SRV':
-      case 'TXT':
-      case 'ANY':
-      case 'NAPTR':
       default:
         break;
     }
@@ -126,6 +123,9 @@ const LocalDNS = {
   },
 };
 
+//
+// CachingDNS caches lookups from external DNS servers to speed things up.
+//
 const CachingDNS = {
 
   _defaultTTL: 60,
@@ -137,7 +137,7 @@ const CachingDNS = {
   _qTrim: null,
 
   A: {},
-  AAAAA: {},
+  AAAA: {},
   CNAME: {},
 
   add: function(response) {
@@ -215,14 +215,14 @@ const CachingDNS = {
             delete R[key];
           }
           else {
-            console.log('Missing trim entry', candidate);
+            console.error('Missing trim entry', candidate);
           }
           if (Object.keys(R).length === 0) {
             delete this[candidate.type][name];
           }
         }
         else {
-          console.log('Missing trim list', candidate);
+          console.error('Missing trim list', candidate);
         }
       });
     }
@@ -282,14 +282,17 @@ const CachingDNS = {
 
 };
 
-const ProxyDNS = function(resolve, port, timeout) {
+//
+// GlobalDNS proxies DNS servers on the Internet.
+//
+const GlobalDNS = function(resolve, port, timeout) {
   this._address = resolve;
   this._port = port;
   this._timeout = timeout;
   this._pending = {};
 }
 
-ProxyDNS.prototype = {
+GlobalDNS.prototype = {
 
   start: async function() {
     return new Promise((resolve, reject) => {
@@ -319,6 +322,10 @@ ProxyDNS.prototype = {
   },
 
   query: async function(request, response, rinfo) {
+    // Dont send a query back to a server it came from.
+    if (rinfo.address === this._address) {
+      return false;
+    }
     return new Promise((resolve, reject) => {
       try {
         while (this._pending[request.id]) {
@@ -327,11 +334,16 @@ ProxyDNS.prototype = {
         this._pending[request.id] = {
           callback: (message) => {
             const pkt = DnsPkt.decode(message);
-            response.flags = pkt.flags;
-            response.answers = pkt.answers;
-            response.additionals = pkt.additionals;
-            response.authorities = pkt.authorities;
-            resolve(pkt.rcode === 'NOERROR');
+            if (pkt.rcode === 'NOERROR') {
+              response.flags = pkt.flags;
+              response.answers = pkt.answers;
+              response.additionals = pkt.additionals;
+              response.authorities = pkt.authorities;
+              resolve(true);
+            }
+            else {
+              resolve(false);
+            }
           },
           timeout: setTimeout(() => {
             if (this._pending[request.id]) {
@@ -350,15 +362,229 @@ ProxyDNS.prototype = {
 
 };
 
+const LocalDNSSingleton = {
+
+  _qHighWater: 50,
+  _qLowWater: 20,
+  _forwardCache: {},
+  _backwardCache: {},
+  _pending: {},
+
+  start: async function() {
+    this._network = await Network.getDNSNetwork();
+    const subnet = this._network.info.IPAM.Config[0].Subnet;
+    const base = subnet.split('/')[0].split('.');
+    this._available = [];
+    for (let i = 254; i > 64; i--) {
+      this._available.push(`${base[0]}.${base[1]}.${base[2]}.${i}`);
+    }
+    this._bits = 24;
+    this._dev = 'eth1';
+  },
+
+  _allocAddress: function() {
+    const address = this._available.shift();
+    if (this._available.length < this._qLowWater && !this._qPrune) {
+      this._qPrune = setTimeout(() => {
+        this._pruneAddresses();
+      }, 0);
+    }
+    return address;
+  },
+
+  _releaseAddress: function(address) {
+    if (this._available.indexOf(address) !== -1) {
+      console.error('Releasing address again', address);
+    }
+    else {
+      this._available.push(address);
+    }
+  },
+
+  _bindInterface: function(address) {
+    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${address}/${this._bits}`, 'dev', this._dev ]);
+  },
+
+  _unbindInterface: function(address) {
+    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'del', `${address}/${this._bits}`, 'dev', this._dev ]);
+  },
+
+  _pruneAddresses: function() {
+    const diff = this._qHighWater - this._available.length;
+    if (diff > 0) {
+      const active = Object.values(this._forwardCache);
+      active.sort((a, b) => a.lastUse - b.lastUse);
+      for (let i = 0; i < diff; i++) {
+        const entry = active[i];
+        delete this._forwardCache[entry.address];
+        delete this._backwardCache[entry.daddress];
+        this._unbindInterface(entry.daddress);
+        this._releaseAddress(entry.daddress);
+      }
+    }
+    this._qPrune = null;
+  },
+
+  getSocket: async function(rinfo) {
+    const entry = this._forwardCache[rinfo.address];
+    if (entry) {
+      entry.lastUse = Date.now();
+      return entry.socket;
+    }
+    return new Promise((resolve, reject) => {
+      const socket = UDP.createSocket('udp4');
+      const daddress = this._allocAddress();
+      this._bindInterface(daddress);
+      socket.bind(0, daddress);
+      socket.once('error', () => reject(new Error()));
+      socket.once('listening', () => {
+        socket.on('message', (message, { port, address }) => {
+          if (message.length < 2) {
+            return;
+          }
+          const id = message.readUInt16BE(0);
+          const pending = this._pending[id];
+          if (pending && pending.port === port && pending.address === address) {
+            delete this._pending[id];
+            clearTimeout(pending.timeout);
+            pending.callback(message);
+          }
+        });
+        const newEntry = {
+          socket: socket,
+          lastUse: Date.now(),
+          address: rinfo.address,
+          dnsAddress: daddress
+        };
+        this._forwardCache[rinfo.address] = newEntry;
+        this._backwardCache[daddress] = newEntry;
+        resolve(newEntry.socket);
+      });
+    });
+  },
+
+  query: async function(request, response, rinfo, tinfo) {
+    return new Promise((resolve, reject) => {
+      try {
+        while (this._pending[request.id]) {
+          request.id = Math.floor(Math.random() * 65536);
+        }
+        this._pending[request.id] = {
+          port: tinfo._port,
+          address: tinfo._address,
+          callback: (message) => {
+            const pkt = DnsPkt.decode(message);
+            if (pkt.rcode === 'NOERROR') {
+              response.flags = pkt.flags;
+              response.answers = pkt.answers;
+              response.additionals = pkt.additionals;
+              response.authorities = pkt.authorities;
+              resolve(true);
+            }
+            else {
+              resolve(false);
+            }
+          },
+          timeout: setTimeout(() => {
+            if (this._pending[request.id]) {
+              delete this._pending[request.id];
+              resolve(false);
+            }
+          }, tinfo._timeout)
+        };
+        this.getSocket(rinfo).then(socket => socket.send(DnsPkt.encode(request), tinfo._port, tinfo._address));
+      }
+      catch (e) {
+        reject(e);
+      }
+    });
+  },
+
+  translateDNSNetworkAddress: function(address) {
+    const entry = this._backwardCache[address];
+    if (entry) {
+      return entry.address;
+    }
+    return null;
+  }
+}
+
+//
+// LocalDNS proxies DNS servers on the DNS network.
+//
+const LocalDNS = function(resolve, port, timeout) {
+  this._address = resolve;
+  this._port = port;
+  this._timeout = timeout;
+}
+
+LocalDNS.prototype = {
+
+  start: async function() {
+  },
+
+  stop: function() {
+  },
+
+  query: async function(request, response, rinfo) {
+    // Dont send a query back to a server it came from.
+    if (rinfo.address === this._address) {
+      return false;
+    }
+    return await LocalDNSSingleton.query(request, response, rinfo, this);
+  }
+};
+
+//
+// MapDNS maps addresses which are from the DNS network back to their original values, does the lookup,
+// and then send the answers back to the original caller.
+//
+const MapDNS = {
+
+  query: async function(request, response, rinfo) {
+    const qname = request.questions[0].name;
+    if (request.questions[0].type !== 'PTR') {
+      return false;
+    }
+    const m4 = REGEXP_PTR_IP4.exec(qname);
+    if (!m4) {
+      return false;
+    }
+    const address = LocalDNSSingleton.translateDNSNetworkAddress(`${m4[4]}.${m4[3]}.${m4[2]}.${m4[1]}`);
+    if (!address) {
+      return false;
+    }
+    const i4 = address.split('.');
+    if (i4.length !== 4) {
+      return false;
+    }
+    const nname = `${i4[3]}.${i4[2]}.${i4[1]}.${i4[0]}.in-addr.arpa`;
+    request.questions[0].name = nname;
+    const success = await DNS.query(request, response, rinfo);
+    if (success) {
+      response.answers.forEach(answer => {
+        if (answer.name === nname) {
+          answer.name = qname;
+        }
+      });
+    }
+    request.questions[0].name = qname;
+    return success;
+  }
+
+}
+
+
 const DNS = {
 
   _proxies: [
-    { id: 'local', srv: LocalDNS, prio: 0 },
-    { id: 'cache', srv: CachingDNS, prio: 1 },
+    { id: 'map',   srv: MapDNS, prio: 0 },
+    { id: 'local', srv: LocalDNS, prio: 1 },
+    { id: 'cache', srv: CachingDNS, prio: 2 },
   ],
 
   start: async function(port) {
-    return new Promise(resolve => {
+    await new Promise(resolve => {
       this._udp = UDP.createSocket('udp4');
       this._udp.on('message', async (msgin, rinfo) => {
         //console.log(msgin, rinfo);
@@ -380,7 +606,7 @@ const DNS = {
           response.flags = request.flags;
           response.questions = request.questions;
           //console.log('request', JSON.stringify(request, null, 2));
-          await this._resolve(request, response, rinfo);
+          await this.query(request, response, rinfo);
         }
         catch (e) {
           console.log(e);
@@ -395,16 +621,18 @@ const DNS = {
       });
       this._udp.bind(port, resolve);
     });
+    await LocalDNSSingleton.start();
   },
 
   setDefaultResolver: function(resolver1, resolver2) {
     this.removeDNSServer({ _id: 'global1' });
     this.removeDNSServer({ _id: 'global2' });
     if (resolver1) {
-      this._addDNSProxy('global1', resolver1, 53, Number.MAX_SAFE_INTEGER - 1, 5000);
+      this._addDNSProxy('global1', new GlobalDNS(resolver1, 53, 5000), Number.MAX_SAFE_INTEGER - 1);
+
     }
     if (resolver2) {
-      this._addDNSProxy('global2', resolver2, 53, Number.MAX_SAFE_INTEGER, 5000);
+      this._addDNSProxy('global2', new GlobalDNS(resolver2, 53, 5000), Number.MAX_SAFE_INTEGER );
     }
   },
 
@@ -417,19 +645,11 @@ const DNS = {
       priority: (args.options && args.options.priority) || 5,
       delay: (args.options && args.options.delay) || 0
     };
-    if (resolve.delay) {
-      setTimeout(() => {
-        this._addDNSProxy(resolve._id, resolve.IP4Address, resolve.Port, SYSTEM_DNS_OFFSET + resolve.priority, 5000);
-      }, options.delay * 1000);
-    }
-    else {
-      this._addDNSProxy(resolve._id, resolve.IP4Address, resolve.Port, SYSTEM_DNS_OFFSET + resolve.priority, 5000);
-    }
+    this._addDNSProxy(resolve._id, new LocalDNS(resolve.IP4Address, resolve.Port, 5000), SYSTEM_DNS_OFFSET + resolve.priority);
     return resolve;
   },
 
-  _addDNSProxy: function(id, IP4Address, port, priority, timeout) {
-    const proxy = new ProxyDNS(IP4Address, port, timeout);
+  _addDNSProxy: function(id, proxy, priority) {
     proxy.start().then(() => {
       this._proxies.push({ id: id, srv: proxy, prio: priority });
       this._proxies.sort((a, b) => a.prio - b.prio);
@@ -457,7 +677,7 @@ const DNS = {
     LocalDNS.unregisterHost(localname);
   },
 
-  _resolve: async function(request, response, rinfo) {
+  query: async function(request, response, rinfo) {
     const question = request.questions[0];
     if (!question) {
       throw new Error('Missing question');
@@ -470,10 +690,11 @@ const DNS = {
         if (proxy.prio >= SYSTEM_DNS_OFFSET) {
           CachingDNS.add(response);
         }
-        return;
+        return true;
       }
     }
     response.flags = (response.flags & 0xF0) | 3; // NOTFOUND
+    return false;
   }
 
 };
