@@ -687,7 +687,10 @@ const DNS = {
     this.setDefaultResolver(config.resolvers[0], config.resolvers[1]);
 
     await new Promise(resolve => {
-      this._udp = UDP.createSocket('udp4');
+      this._udp = UDP.createSocket({
+        type: 'udp4',
+        reuseAddr: true
+      });
       this._udp.on('message', async (msgin, rinfo) => {
         //console.log(msgin, rinfo);
         const response = {
@@ -722,7 +725,7 @@ const DNS = {
         });
       });
       this._udp.on('error', (e) => console.error(e));
-      this._udp.bind(config.port, config.ip, resolve);
+      this._udp.bind(config.port, resolve);
     });
     await LocalDNSSingleton.start();
   },
