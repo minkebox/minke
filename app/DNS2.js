@@ -3,6 +3,7 @@ const ChildProcess = require('child_process');
 const FS = require('fs');
 const DnsPkt = require('dns-packet');
 const Network = require('./Network');
+const Database = require('./Database');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
@@ -395,22 +396,57 @@ const LocalDNSSingleton = {
     this._network = await Network.getDNSNetwork();
     const subnet = this._network.info.IPAM.Config[0].Subnet;
     const base = subnet.split('/')[0].split('.');
-    this._available = [];
-    for (let i = 254; i > 64; i--) {
-      this._available.push(`${base[0]}.${base[1]}.${base[2]}.${i}`);
-    }
     this._bits = 24;
     this._dev = 'eth1';
+
+    const state = (await Database.getConfig('localdns')) || { map: {} };
+    for (let i = 0; i < state.map; i++) {
+      const newEntry = {
+        socket: null,
+        lastUse: Date.now(),
+        address: state.map[i].address,
+        dnsAddress: state.map[i].dnsAddress
+      };
+      this._forwardCache[newEntry.address] = newEntry;
+      this._backwardCache[newEntry.dnsAddress] = newEntry;
+    }
+
+    this._available = [];
+    for (let i = 254; i > 64; i--) {
+      const dnsAddress = `${base[0]}.${base[1]}.${base[2]}.${i}`;
+      if (!this._backwardCache[dnsAddress]) {
+        this._available.push(dnsAddress);
+      }
+    }
   },
 
-  _allocAddress: function() {
-    const address = this._available.shift();
+  stop: async function() {
+    const state = {
+      _id: 'localdns',
+      map: []
+    };
+    for (let address in this._forwardCache) {
+      state.map.push({ address: address, dnsAddress: this._forwardCache[address].dnsAddress });
+    }
+    await Database.saveConfig(state);
+  },
+
+  _allocAddress: function(address) {
+    const daddress = this._available.shift();
     if (this._available.length < this._qLowWater && !this._qPrune) {
       this._qPrune = setTimeout(() => {
         this._pruneAddresses();
       }, 0);
     }
-    return address;
+    const newEntry = {
+      socket: null,
+      lastUse: Date.now(),
+      address: address,
+      dnsAddress: daddress
+    };
+    this._forwardCache[newEntry.address] = newEntry;
+    this._backwardCache[newEntry.dnsAddress] = newEntry;
+    return newEntry;
   },
 
   _releaseAddress: function(address) {
@@ -441,6 +477,7 @@ const LocalDNSSingleton = {
         delete this._backwardCache[entry.daddress];
         this._unbindInterface(entry.daddress);
         this._releaseAddress(entry.daddress);
+        entry.socket.close();
       }
     }
     this._qPrune = null;
@@ -453,13 +490,13 @@ const LocalDNSSingleton = {
       return entry.socket;
     }
     return new Promise((resolve, reject) => {
-      const socket = UDP.createSocket('udp4');
-      const daddress = this._allocAddress();
-      this._bindInterface(daddress);
-      socket.bind(0, daddress);
-      socket.once('error', () => reject(new Error()));
-      socket.once('listening', () => {
-        socket.on('message', (message, { port, address }) => {
+      const newEntry = this._allocAddress(rinfo.address);
+      newEntry.socket = UDP.createSocket('udp4');
+      this._bindInterface(newEntry.dnsAddress);
+      newEntry.socket.bind(0, newEntry.dnsAddress);
+      newEntry.socket.once('error', () => reject(new Error()));
+      newEntry.socket.once('listening', () => {
+        newEntry.socket.on('message', (message, { port, address }) => {
           if (message.length < 2) {
             return;
           }
@@ -471,14 +508,6 @@ const LocalDNSSingleton = {
             pending.callback(message);
           }
         });
-        const newEntry = {
-          socket: socket,
-          lastUse: Date.now(),
-          address: rinfo.address,
-          dnsAddress: daddress
-        };
-        this._forwardCache[rinfo.address] = newEntry;
-        this._backwardCache[daddress] = newEntry;
         resolve(newEntry.socket);
       });
     });
@@ -651,6 +680,7 @@ const DNS = {
 
   stop: async function() {
     this._udp.close();
+    await LocalDNSSingleton.stop();
   },
 
   setDefaultResolver: function(resolver1, resolver2) {
