@@ -10,7 +10,8 @@ const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
 const HOSTNAME = '/bin/hostname';
 const SYSTEM_DNS_OFFSET = 10;
-const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*).in-addr.arpa/;
+const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
+const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
 
 //
 // PrivateDNS provides mappings for locally hosted services.
@@ -83,6 +84,20 @@ const PrivateDNS = {
             );
             response.flags = DnsPkt.AUTHORITATIVE_ANSWER | DnsPkt.RECURSION_AVAILABLE;
             return true;
+          }
+        }
+        else {
+          const m6 = REGEXP_PTR_IP6.exec(name);
+          if (m6) {
+            const ip6 = `${m6[32]}${m6[31]}${m6[30]}${m6[29]}:${m6[28]}${m6[27]}${m6[26]}${m6[25]}:${m6[24]}${m6[23]}${m6[22]}${m6[21]}:${m6[20]}${m6[19]}${m6[18]}${m6[17]}:${m6[16]}${m6[15]}${m6[14]}${m6[13]}:${m6[12]}${m6[11]}${m6[10]}${m6[9]}:${m6[8]}${m6[7]}${m6[6]}${m6[5]}:${m6[4]}${m6[3]}${m6[2]}${m6[1]}`;
+            const localname = this._ip2localname[ip6];
+            if (localname) {
+              response.answers.push(
+                { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}.${this._domainName}` }
+              );
+              response.flags = DnsPkt.AUTHORITATIVE_ANSWER | DnsPkt.RECURSION_AVAILABLE;
+              return true;
+            }
           }
         }
         break;
@@ -516,19 +531,18 @@ const LocalDNSSingleton = {
   },
 
   getSocket: async function(rinfo) {
-    const entry = this._forwardCache[rinfo.address];
-    if (entry) {
+    const entry = this._forwardCache[rinfo.address] || this._allocAddress(rinfo.address);
+    if (entry.socket) {
       entry.lastUse = Date.now();
       return entry.socket;
     }
     return new Promise((resolve, reject) => {
-      const newEntry = this._allocAddress(rinfo.address);
-      newEntry.socket = UDP.createSocket('udp4');
-      this._bindInterface(newEntry.dnsAddress);
-      newEntry.socket.bind(0, newEntry.dnsAddress);
-      newEntry.socket.once('error', () => reject(new Error()));
-      newEntry.socket.once('listening', () => {
-        newEntry.socket.on('message', (message, { port, address }) => {
+      entry.socket = UDP.createSocket('udp4');
+      this._bindInterface(entry.dnsAddress);
+      entry.socket.bind(0, entry.dnsAddress);
+      entry.socket.once('error', () => reject(new Error()));
+      entry.socket.once('listening', () => {
+        entry.socket.on('message', (message, { port, address }) => {
           if (message.length < 2) {
             return;
           }
@@ -540,7 +554,7 @@ const LocalDNSSingleton = {
             pending.callback(message);
           }
         });
-        resolve(newEntry.socket);
+        resolve(entry.socket);
       });
     });
   },
