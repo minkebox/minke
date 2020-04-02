@@ -431,8 +431,8 @@ const LocalDNSSingleton = {
     this._bits = 24;
     this._dev = 'eth1';
 
-    const state = (await Database.getConfig('localdns')) || { map: {} };
-    for (let i = 0; i < state.map; i++) {
+    const state = (await Database.getConfig('localdns')) || { map: [] };
+    for (let i = 0; i < state.map.length; i++) {
       const newEntry = {
         socket: null,
         lastUse: Date.now(),
