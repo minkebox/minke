@@ -1,21 +1,29 @@
 const URL = require('url');
+const FS = require('fs');
 const Koa = require('koa');
 const KoaRouter = require('koa-router');
 const KoaProxy = require('koa-proxy');
 
 const TEMPORARY_REDIRECT = 307;
+const INTERNAL_SERVER_ERROR = 500;
 
 function makeProxy(to) {
   const app = new Koa();
   app.use(async (ctx, next) => {
-    // We transform location redirects ourselves because the proxy doesn't handle this. The proxy will
-    // do redirect internally but if we let that happen then redirects from /aaa to /aaa/ aren't seen
-    // by the browser which can break some apps (e.g. PiHole).
-    const requestOrigin = ctx.request.origin;
-    await next();
-    const location = ctx.response.get('location');
-    if (location && location.indexOf(to) === 0) {
-      ctx.response.set('Location', `${requestOrigin}${location.substring(to.length)}`);
+    try {
+      // We transform location redirects ourselves because the proxy doesn't handle this. The proxy will
+      // do redirect internally but if we let that happen then redirects from /aaa to /aaa/ aren't seen
+      // by the browser which can break some apps (e.g. PiHole).
+      const requestOrigin = ctx.request.origin;
+      await next();
+      const location = ctx.response.get('location');
+      if (location && location.indexOf(to) === 0) {
+        ctx.response.set('Location', `${requestOrigin}${location.substring(to.length)}`);
+      }
+    }
+    catch (e) {
+      ctx.type = 'text/html';
+      ctx.body = FS.readFileSync(`${__dirname}/pages/html/ProxyFail.html`);
     }
   });
   app.use(KoaProxy({
