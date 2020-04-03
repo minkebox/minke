@@ -121,7 +121,8 @@ async function ConfigurePageHTML(ctx) {
               app._env[action.name] = { value: value };
             }
             properties[`${action.type}#${action.name}`] = value;
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, options: action.options }, action, { description: await expand(action.description) });
+            const placeholder = await expand((skeleton.properties.find(prop => prop.type === 'Environment' && prop.name === action.name) || {}).defaultValue);
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, placeholder: placeholder, options: action.options }, action, { description: await expand(action.description) });
           }
         case 'EditEnvironmentAsCheckbox':
           {
