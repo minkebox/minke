@@ -1,0 +1,155 @@
+{
+  name: `MinIO`,
+  description: `High Performance Object Storage compatible with Amazon's S3.`,
+  image: `minio/minio`,
+  tags: [
+    `Storage`
+  ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure`
+    },
+    {
+      type: `SelectDirectory`,
+      name: `/data`,
+      description: `Select storage directory`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `MINIO_ACCESS_KEY`,
+      description: `Access Key (3 or more characters)`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `MINIO_SECRET_KEY`,
+      description: `Secret Key (8 or more characters)`
+    },
+    {
+      type: `Header`,
+      title: `Network`
+    },
+    {
+      type: `Text`,
+      text: `Select which network this application will use. You probably want <b>home</b> unless this application is being used on a private network.`
+    },
+    {
+      type: `SelectNetwork`,
+      name: `primary`,
+      description: `Select network`
+    }
+  ],
+  properties: [
+    {
+      type: `Arguments`,
+      defaultValue: [
+        `server`,
+        `/data`
+      ]
+    },
+    {
+      type: `Directory`,
+      name: `/data`,
+      style: `store`
+    },
+    {
+      type: `Environment`,
+      name: `MINIO_ACCESS_KEY`
+    },
+    {
+      type: `Environment`,
+      name: `MINIO_SECRET_KEY`
+    },
+    {
+      type: `Environment`,
+      name: `MINIO_UPDATE`,
+      defaultValue: `off`
+    },
+    {
+      type: `Environment`,
+      name: `MINIO_ACCESS_KEY_FILE`,
+      defaultValue: `access_key`
+    },
+    {
+      type: `Environment`,
+      name: `MINIO_SECRET_KEY_FILE`,
+      defaultValue: `secret_key`
+    },
+    {
+      type: `Environment`,
+      name: `MINIO_KMS_MASTER_KEY_FILE`,
+      defaultValue: `kms_master_key`
+    },
+    {
+      type: `Environment`,
+      name: `MINIO_SSE_MASTER_KEY_FILE`,
+      defaultValue: `sse_master_key`
+    },
+    {
+      type: `Port`,
+      name: `9000/tcp`,
+      port: 9000,
+      protocol: `TCP`,
+      web: {
+        tab: `inline`,
+        widget: `inline`,
+        path: `/`
+      }
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  monitor: {
+    cmd: `cd /data;du -d0 *`,
+    init: `
+      <div style="min-width: 400px; height: 250px">
+        <canvas style="position: absolute" id="{{ID}}"></canvas>
+      </div>
+      <script>
+        (function(){
+          const chart = new Chart(document.getElementById("{{ID}}").getContext("2d"), {
+            type: 'horizontalBar',
+            data: {
+              datasets: [{
+                backgroundColor: [ '#fd0a1a', '#ffd73e', '#278b30', '#b12427', '#808020', '#fd471f', '#41b376', '#fd1a91', '#88cce7', '#19196b', '#efad5a', '#d85452' ],
+                data: []
+              }],
+              labels: [],
+            },
+            options: {
+              animation: { duration: 1000, easing: 'linear' },
+              maintainAspectRatio: false,
+              adaptive: true,
+              legend: { display: false },
+              title: { display: true, text: 'Bucket Sizes (GB)' },
+              scales: {
+                xAxes: [{
+                  ticks: {
+                    precision: 2,
+                    beginAtZero: true
+                  }
+                }]
+              }
+            }
+          });
+          window.monitor("{{ID}}", 3600, (input) => {
+            const lines = input.split('\\n');
+            let c = 0;
+            for (let i = 0; i < lines.length && lines[i]; i++) {
+              const p = lines[i].split(/\\t+/);
+              chart.data.labels[c] = p[1];
+              chart.data.datasets[0].data[c] = parseInt(p[0]) / 1000000;
+              c++;
+            }
+            chart.data.labels.length = c;
+            chart.data.datasets[0].data.length = c;
+            chart.update();
+          });
+        })();
+      </script>
+    `
+  }
+}
