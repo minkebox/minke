@@ -334,15 +334,15 @@ const MulticastDNS = {
       case 'A':
       {
         const name = question.name.split('.');
-        if (name[1] !== 'local') {
-          break;
+        if (name[1] === 'local') {
+          const ip = MDNS.getAddrByHostname(name[0]);
+          if (ip) {
+            response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, data: ip });
+          }
+          // Return true regardless of a match to stop the query process. We don't look for 'local' anywhere else.
+          return true;
         }
-        const ip = MDNS.getAddrByHostname(name[0]);
-        if (!ip) {
-          break;
-        }
-        response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, data: ip });
-        return true;
+        break;
       }
       default:
         break;
@@ -680,10 +680,10 @@ const MapDNS = {
 const DNS = {
 
   _proxies: [
-    { id: 'local', srv: PrivateDNS,   prio: 0, cache: false },
-    { id: 'mdns',  srv: MulticastDNS, prio: 1, cache: false },
-    { id: 'map',   srv: MapDNS,       prio: 2, cache: false },
-    { id: 'cache', srv: CachingDNS,   prio: 3, cache: false }
+    { id: 'private', srv: PrivateDNS,   prio: 0, cache: false },
+    { id: 'mdns',    srv: MulticastDNS, prio: 1, cache: false },
+    { id: 'map',     srv: MapDNS,       prio: 2, cache: false },
+    { id: 'cache',   srv: CachingDNS,   prio: 3, cache: false }
   ],
 
   start: async function(config) {
@@ -717,6 +717,10 @@ const DNS = {
           response.questions = request.questions;
           //console.log('request', JSON.stringify(request, null, 2));
           await this.query(request, response, rinfo);
+          // If we got no answers, and no error code set, we set notfound
+          if (response.answers.length === 0 && (response.flags & 0xF0) === 0) {
+            response.flags = (response.flags & 0xF0) | 3; // NOTFOUND
+          }
         }
         catch (e) {
           console.error(e);
