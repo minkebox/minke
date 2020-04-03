@@ -148,6 +148,10 @@ async function ConfigurePageHTML(ctx) {
             if (!value && firstUse && action.initValue) {
               value = await expand(action.initValue);
               app._env[action.name] = { value: value };
+              const altValue = action.initAltValue;
+              if (altValue) {
+                app._env[action.name].altValue = await expand(altValue);
+              }
             }
             properties[`${action.type}#${action.name}`] = value;
             let avalue = [];
@@ -249,9 +253,23 @@ async function ConfigurePageHTML(ctx) {
           }
         case 'EditFileAsTable':
           {
+            let value = null;
             const file = app._files.find(file => file.target === action.name);
-            let value = [];
             if (file && file.altData) {
+              try {
+                value = JSON.parse(file.altData);
+              }
+              catch (_) {
+              }
+            }
+            else if (firstUse && action.initValue) {
+              try {
+                value = JSON.parse(await expand(action.initValue));
+              }
+              catch (_) {
+              }
+            }
+            if (value) {
               try {
                 value = JSON.parse(file.altData);
                 const hlen = action.headers.length;
@@ -263,6 +281,9 @@ async function ConfigurePageHTML(ctx) {
               }
               catch (_) {
               }
+            }
+            else {
+              value = [];
             }
             return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: await expand(action.description) });
           }

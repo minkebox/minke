@@ -281,20 +281,9 @@ MinkeApp.prototype = {
             mode: prop.mode || 0o666,
             backup: prop.backup
           };
-          if (file.data) {
-            f.data = file.data;
-          }
-          else if ('defaultValue' in prop) {
-            f.data = prop.defaultValue;
-          }
-          else {
-            f.data = '';
-          }
+          f.data = file.data || '';
           if (file.altData) {
             f.altData = file.altData;
-          }
-          else if ('defaultAltValue' in prop) {
-            f.altData = prop.defaultAltValue;
           }
           target._files.push(f);
           break;
