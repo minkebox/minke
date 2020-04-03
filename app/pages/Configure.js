@@ -62,12 +62,12 @@ async function ConfigurePageHTML(ctx) {
   }
 
   let nextid = 100;
-
+  const firstUse = (app._bootcount === 0);
   const visibles = {};
   const enabled = {};
   const properties = {
     Advanced: MinkeApp.getAdvancedMode(),
-    FirstUse: app._bootcount == 0,
+    FirstUse: firstUse,
     WifiAvailable: minkeConfig && SYSTEM ? (await Network.wifiAvailable()) : false,
     UPnPAvailable: UPNP.available(),
     NoSystemControl: !SYSTEM
@@ -111,26 +111,47 @@ async function ConfigurePageHTML(ctx) {
           }
         case 'EditEnvironment':
           {
+            let value = '';
             const env = app._env[action.name];
-            properties[`${action.type}#${action.name}`] = env ? env.value : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: env ? env.value : '', options: action.options }, action, { description: await expand(action.description) });
+            if (env) {
+              value = env.value;
+            }
+            if (!value && firstUse && action.initValue) {
+              value = await expand(action.initValue);
+            }
+            properties[`${action.type}#${action.name}`] = value;
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, options: action.options }, action, { description: await expand(action.description) });
           }
         case 'EditEnvironmentAsCheckbox':
           {
+            let value = '';
             const env = app._env[action.name];
-            properties[`${action.type}#${action.name}`] = env ? env.value : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: env ? env.value : '' }, action, { description: await expand(action.description) });
+            if (env) {
+              value = env.value;
+            }
+            if (!value && firstUse && action.initValue) {
+              value = await expand(action.initValue);
+            }
+            properties[`${action.type}#${action.name}`] = value;
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: value }, action, { description: await expand(action.description) });
           }
         case 'EditEnvironmentAsTable':
           {
+            let value = '';
             const env = app._env[action.name];
-            properties[`${action.type}#${action.name}`] = env ? env.value : '';
-            let value = [];
+            if (env) {
+              value = env.value;
+            }
+            if (!value && firstUse && action.initValue) {
+              value = await expand(action.initValue);
+            }
+            properties[`${action.type}#${action.name}`] = value;
+            let avalue = [];
             if (env && env.altValue) {
               try {
-                value = JSON.parse(env.altValue);
+                avalue = JSON.parse(env.altValue);
                 const hlen = action.headers.length;
-                value.forEach((v) => {
+                avalue.forEach(v => {
                   while (v.length < hlen) {
                     v.push('');
                   }
@@ -139,7 +160,7 @@ async function ConfigurePageHTML(ctx) {
               catch (_) {
               }
             }
-            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: await expand(action.description) });
+            return Object.assign({ action: `${action.type}#${action.name}`, value: avalue, controls: true }, action, { description: await expand(action.description) });
           }
         case 'SelectWebsites':
           {

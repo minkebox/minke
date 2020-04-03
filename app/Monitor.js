@@ -5,7 +5,7 @@ async function runCmd(app, cmd) {
     AttachStdout: true,
     AttachStderr: false,
     Tty: false,
-    Env: app._fullEnv,
+    Env: Object.keys(app._fullEnv).map(key => `${key}=${app._fullEnv[key].value}`),
     Cmd: [ 'sh', '-c', cmd ]
   });
   const stream = await exec.start();

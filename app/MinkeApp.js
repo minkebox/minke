@@ -70,11 +70,13 @@ MinkeApp.prototype = {
 
     const skel = Skeletons.loadSkeleton(this._image, false);
     if (skel) {
+      this._skeleton = skel.skeleton;
       this._monitor = skel.skeleton.monitor || {};
       this._delay = skel.skeleton.delay || 0;
       this._tags = (skel.skeleton.tags || []).concat([ 'All' ]);
     }
     else {
+      this._skeleton = null;
       this._monitor = {};
       this._delay = 0;
       this._tags = [ 'All' ];
@@ -131,6 +133,7 @@ MinkeApp.prototype = {
     this._backups = [];
     this._bootcount = 0;
     this._position = { tab: 0, widget: 0 };
+    this._skeleton = skel;
 
     await this.updateFromSkeleton(skel, {});
 
@@ -193,6 +196,7 @@ MinkeApp.prototype = {
     else {
       this._secondary = [];
     }
+    this._skeleton = skel;
     this._monitor = skel.monitor || {};
     this._delay = skel.delay || 0;
     this._tags = (skel.tags || []).concat([ 'All' ]);
@@ -206,25 +210,20 @@ MinkeApp.prototype = {
     target._ports = [];
     target._binds = [];
     target._files = [];
+    const defsenv = defs.env || {};
     await Promise.all(properties.map(async prop => {
       switch (prop.type) {
         case 'Environment':
         {
-          const found = (defs.env || {})[prop.name];
+          const found = defsenv[prop.name];
           if (found) {
             target._env[prop.name] = { value: found.value };
             if ('altValue' in found) {
               target._env[prop.name].altValue = found.altValue;
             }
           }
-          else if ('defaultValue' in prop) {
-            target._env[prop.name] = { value: await this.expand(prop.defaultValue) };
-          }
           else {
             target._env[prop.name] = { value: '' };
-          }
-          if ('defaultAltValue' in prop) {
-            target._env[prop.name].altValue = await this.expand(prop.defaultAltValue);
           }
           break;
         }
@@ -350,7 +349,6 @@ MinkeApp.prototype = {
 
       this._fs = Filesystem.create(this);
       this._allmounts = await this._fs.getAllMounts(this);
-      const ports = await Promise.all(this._ports.map(async port => await this.expandPort(port)));
 
       const config = {
         name: `${this._safeName()}__${this._id}`,
@@ -519,7 +517,7 @@ MinkeApp.prototype = {
             Sysctls: {}
           },
           MacAddress: config.MacAddress,
-          Env: (await Promise.all(Object.keys(this._env).map(async key => `${key}=${await this.expand(this._env[key].value)}`))).concat(configEnv)
+          Env: [].concat(configEnv) // Helper doesn't get any of the application environment
         };
         helperConfig.Env.push(`__MINKENAME=${MinkeApp.getMinkeName() || 'minkebox'}`);
 
@@ -533,6 +531,9 @@ MinkeApp.prototype = {
         if (this._willCreateNetwork()) {
           helperConfig.HostConfig.Sysctls["net.ipv4.ip_forward"] = "1";
         }
+
+        // Expand the environment before selecting ports as this could effect their values
+        await this._expandEnvironment();
 
         this._ddns = this._features.ddns || false;
         const nat = [];
@@ -654,6 +655,12 @@ MinkeApp.prototype = {
 
       }
 
+      // Expand environment (again) after the helper has set some variables
+      await this._expandEnvironment();
+
+      config.Env = Object.keys(this._fullEnv).map(key => `${key}=${this._fullEnv[key].value}`).concat(configEnv);
+
+      const ports = await Promise.all(this._ports.map(async port => await this.expandPort(port)));
       if (this._defaultIP) {
         const webport = ports.find(port => port.web);
         if (webport) {
@@ -733,9 +740,6 @@ MinkeApp.prototype = {
           }
         }));
       }
-
-      config.Env = (await Promise.all(Object.keys(this._env).map(async key => `${key}=${await this.expand(this._env[key].value)}`))).concat(configEnv);
-      this._fullEnv = config.Env;
 
       // Setup timezone
       if (this._features.localtime) {
@@ -1187,16 +1191,20 @@ MinkeApp.prototype = {
         __APPNAME: { value: this._name },
         __HOSTNAME: { value: this._safeName() },
         __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
+        __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
+
         __HOSTIP: { value: MinkeApp._network.network.ip_address },
         __HOMEIP: { value: this._homeIP || '<none>' },
         __HOMEIP6: { value: this.getSLAACAddress() || '<none>' },
-        __IPV6ENABLED: { value : this.getSLAACAddress() ? 'true' : 'false' },
         __HOMEADDRESSES: { value: addresses },
-        __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
-        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() },
         __DNSSERVER: { value: MinkeApp._network.network.ip_address },
+        __DEFAULTIP: { value: this._defaultIP || '<none>' },
+        __SECONDARYIP: { value: this._secondaryIP || '<none>' },
+
+        __IPV6ENABLED: { value : this.getSLAACAddress() ? 'true' : 'false' },
+        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() },
         __RANDOMPORT: { value: natPort }
-      }, this._env);
+      }, this._fullEnv);
       for (let key in env) {
         txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
       }
@@ -1287,6 +1295,30 @@ MinkeApp.prototype = {
     return true;
   },
 
+  _expandEnvironment: async function() {
+    this._fullEnv = {};
+    let skelenv = null;
+    for (let key in this._env) {
+      const val = this._env[key].value;
+      if (val) {
+        this._fullEnv[key] = this._env[key];
+      }
+      else if (this._skeleton) {
+        if (!skelenv) {
+          skelenv = {};
+          const properties = this._skeleton.properties;
+          for (let i = 0; i < properties.length; i++) {
+            const prop = properties[i];
+            if (prop.type === 'Environment' && prop.defaultValue) {
+              skelenv[prop.name] = await this.expand(prop.defaultValue);
+            }
+          }
+        }
+        this._fullEnv[key] = { value: skelenv[key] || '' };
+      }
+    }
+  },
+
   _eval: function(val) {
     const js = new JSInterpreter(val);
     for (let i = 0; i < JSINTERPRETER_STEPS && js.step(); i++)
@@ -1316,6 +1348,10 @@ MinkeApp.prototype = {
           idx = data.indexOf('MINKE:DEFAULT:IP ');
           if (idx !== -1) {
             this._defaultIP = data.replace(/.*MINKE:DEFAULT:IP (.*)\n.*/, '$1');
+          }
+          idx = data.indexOf('MINKE:SECONDARY:IP ');
+          if (idx !== -1) {
+            this._secondaryIP = data.replace(/.*MINKE:SECONDARY:IP (.*)\n.*/, '$1');
           }
           idx = data.indexOf('MINKE:REMOTE:IP ');
           if (idx !== -1) {
