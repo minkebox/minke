@@ -24,7 +24,8 @@
       pattern: `dhcp-range={{0}},{{1}},{{2}}
 `,
       join: ``,
-      controls: false
+      controls: false,
+      initValue: `[["","","1h"]]`
     },
     {
       type: `Header`,
@@ -123,9 +124,7 @@
     {
       type: `File`,
       name: `/etc/dnsmasq.d/dhcp-ranges.conf`,
-      style: 'boot',
-      defaultAltValue: `[["","","1h"]]`,
-      defaultValue: ``
+      style: 'boot'
     },
     {
       type: `Network`,
