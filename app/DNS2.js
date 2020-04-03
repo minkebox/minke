@@ -355,11 +355,18 @@ const MulticastDNS = {
 //
 // GlobalDNS proxies DNS servers on the Internet.
 //
-const GlobalDNS = function(resolve, port, timeout) {
-  this._address = resolve;
+const GlobalDNS = function(address, port, timeout) {
+  this._address = address;
   this._port = port;
   this._timeout = timeout;
   this._pending = {};
+  // Identify local or global forwarding addresses. We don't forward local domain lookups to global addresses.
+  if (/(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/.exec(address)) {
+    this._global = false;
+  }
+  else {
+    this._global = true;
+  }
 }
 
 GlobalDNS.prototype = {
@@ -395,6 +402,14 @@ GlobalDNS.prototype = {
     // Dont send a query back to a server it came from.
     if (rinfo.address === this._address) {
       return false;
+    }
+    // Check we're not trying to looking up local addresses globally
+    if (this._global && request.questions[0].type === 'A' || request.questions[0].type === 'AAAA') {
+      const name = request.questions[0].name.split('.');
+      const domain = name[name.length - 1].toLowerCase();
+      if (domain === 'local' || domain === PrivateDNS._domainName) {
+        return false;
+      }
     }
     return new Promise((resolve, reject) => {
       try {
