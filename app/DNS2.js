@@ -449,16 +449,18 @@ GlobalDNS.prototype = {
 
 const LocalDNSSingleton = {
 
+  _TIMEOUT: 1000 * 60 * 60 * 24,
   _qHighWater: 50,
   _qLowWater: 20,
   _forwardCache: {},
   _backwardCache: {},
   _pending: {},
+  _available: [],
 
   start: async function() {
     this._network = await Network.getDNSNetwork();
     const subnet = this._network.info.IPAM.Config[0].Subnet;
-    const base = subnet.split('/')[0].split('.');
+    this._base = subnet.split('/')[0].split('.');
     this._bits = 24;
     this._dev = DNS_NETWORK;
 
@@ -474,9 +476,8 @@ const LocalDNSSingleton = {
       this._backwardCache[newEntry.dnsAddress] = newEntry;
     }
 
-    this._available = [];
     for (let i = 254; i > 32; i--) {
-      const dnsAddress = `${base[0]}.${base[1]}.${base[2]}.${i}`;
+      const dnsAddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${i}`;
       if (!this._backwardCache[dnsAddress]) {
         this._available.push(dnsAddress);
       }
@@ -495,7 +496,31 @@ const LocalDNSSingleton = {
   },
 
   _allocAddress: function(address) {
-    const daddress = this._available.shift();
+    const now = Date.now();
+    // Attempt to find a usable address where the last bit matches ... just to make it easier to debug.
+    const saddress = address.split('.');
+    let daddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${saddress[3]}`;
+    const matchEntry = this._backwardCache[daddress];
+    if (matchEntry && now > matchEntry.lastUsed + this._TIMEOUT) {
+      // Found an entry. We can use as it's expired.
+      this._unbindInterface(daddress);
+      this._releaseAddress(daddress);
+      matchEntry.socket.close();
+      matchEntry.socket = null;
+      matchEntry.lastUse = now;
+      matchEntry.address = address;
+      matchEntry.dnsAddress = daddress;
+      return matchEntry;
+    }
+    // Now see if we can just sneak the address from those available.
+    const idx = this._available.indexOf(daddress);
+    if (idx !== -1) {
+      this._available.splice(idx, 1);
+    }
+    // But if not, we just get the next available
+    else {
+      daddress = this._available.shift();
+    }
     if (this._available.length < this._qLowWater && !this._qPrune) {
       this._qPrune = setTimeout(() => {
         this._pruneAddresses();
@@ -503,7 +528,7 @@ const LocalDNSSingleton = {
     }
     const newEntry = {
       socket: null,
-      lastUse: Date.now(),
+      lastUse: now,
       address: address,
       dnsAddress: daddress
     };
