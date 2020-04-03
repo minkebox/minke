@@ -211,8 +211,8 @@ const CachingDNS = {
       case 'CNAME':
       {
         const R = this._cache[type][name.toLowerCase()];
-        const now = Math.floor(Date.now() / 1000);
         if (R) {
+          const now = Math.floor(Date.now() / 1000);
           for (let key in R) {
             const rec = R[key];
             if (rec.expires > now) {
@@ -671,7 +671,12 @@ const MapDNS = {
 
 }
 
-
+//
+// DNS
+// The main DNS system. This fields request and then tries to answer them by walking though a prioritized list of DNS servers.
+// By default these handle local names, mulitcast names, address maps, and caching. We can also add global dns servers (which are
+// references to DNS services on the physical network) as well as local dns servers (which are dns servers on our internal DNS network).
+//
 const DNS = {
 
   _proxies: [
