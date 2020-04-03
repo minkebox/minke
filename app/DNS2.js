@@ -334,7 +334,7 @@ const MulticastDNS = {
       case 'A':
       {
         const name = question.name.split('.');
-        if (name[name.length - 1] === 'local') {
+        if (name[name.length - 1].toLowerCase() === 'local') {
           const ip = MDNS.getAddrByHostname(name[0]);
           if (ip && name.length === 2) {
             response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, data: ip });
