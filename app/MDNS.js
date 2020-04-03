@@ -54,7 +54,6 @@ MDNS.prototype = {
 
   getAddrByHostname: function(hostname) {
     hostname = hostname.toLowerCase();
-    console.log(hostname);
     const rec = this._records.find(r => eq(r.hostname, hostname));
     if (rec) {
       return rec.ip;
