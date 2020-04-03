@@ -334,9 +334,9 @@ const MulticastDNS = {
       case 'A':
       {
         const name = question.name.split('.');
-        if (name[1] === 'local') {
+        if (name[name.length - 1] === 'local') {
           const ip = MDNS.getAddrByHostname(name[0]);
-          if (ip) {
+          if (ip && name.length === 2) {
             response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, data: ip });
           }
           // Return true regardless of a match to stop the query process. We don't look for 'local' anywhere else.
