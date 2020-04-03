@@ -118,6 +118,7 @@ async function ConfigurePageHTML(ctx) {
             }
             if (!value && firstUse && action.initValue) {
               value = await expand(action.initValue);
+              app._env[action.name] = { value: value };
             }
             properties[`${action.type}#${action.name}`] = value;
             return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, options: action.options }, action, { description: await expand(action.description) });
@@ -131,6 +132,7 @@ async function ConfigurePageHTML(ctx) {
             }
             if (!value && firstUse && action.initValue) {
               value = await expand(action.initValue);
+              app._env[action.name] = { value: value };
             }
             properties[`${action.type}#${action.name}`] = value;
             return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: value }, action, { description: await expand(action.description) });
@@ -144,6 +146,7 @@ async function ConfigurePageHTML(ctx) {
             }
             if (!value && firstUse && action.initValue) {
               value = await expand(action.initValue);
+              app._env[action.name] = { value: value };
             }
             properties[`${action.type}#${action.name}`] = value;
             let avalue = [];
