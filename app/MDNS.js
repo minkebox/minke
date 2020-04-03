@@ -4,6 +4,7 @@ const Dgram = require('dgram');
 const MCAST_ADDRESS = '224.0.0.251';
 const PORT = 5353;
 const SERVICES = '_services._dns-sd._udp';
+const DEFAULT_TTL = 120; // 2 minutes
 
 function eq(a, b) {
   return a.localeCompare(b, 'en', { sensitivity: 'base' }) == 0;
@@ -12,6 +13,7 @@ function eq(a, b) {
 function MDNS() {
   this._network = null;
   this._records = [];
+  this._A = [];
 }
 
 MDNS.prototype = {
@@ -51,15 +53,24 @@ MDNS.prototype = {
   },
 
   getAddrByHostname: function(hostname) {
+    hostname = hostname.toLowerCase();
+    console.log(hostname);
     const rec = this._records.find(r => eq(r.hostname, hostname));
-    if (!rec) {
-      return null;
+    if (rec) {
+      return rec.ip;
     }
-    return rec.ip;
+    const answer = this._A[hostname];
+    if (answer) {
+      if (answer.expires > Date.now() / 1000) {
+        return answer.ip;
+      }
+      delete this._A[hostname];
+    }
+    return null;
   },
 
   _create: async function(ip) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this._socket = Dgram.createSocket({
         type: 'udp4',
         reuseAddr: true
@@ -79,7 +90,7 @@ MDNS.prototype = {
   _incoming: function(msg) {
     const pkt = DnsPacket.decode(msg);
     if (pkt.type === 'query') {
-      pkt.questions.forEach((q) => {
+      pkt.questions.forEach(q => {
         if (q.name.toLowerCase().startsWith(SERVICES)) {
           const domain = q.name.split('.').slice(-1);
           this._answer(Object.values(this._records.reduce((acc, rec) => {
@@ -113,6 +124,17 @@ MDNS.prototype = {
                 this._answer(panswers);
               }
             }
+          }
+        }
+      });
+    }
+    else if (pkt.type === 'response') {
+      const now = Math.floor(Date.now() / 1000);
+      pkt.answers.forEach(answer => {
+        if (answer.type === 'A') {
+          const name = answer.name.split('.');
+          if (name.length === 2 && name[1] === 'local') {
+            this._A[name[0].toLowerCase()] = { name: answer.name, ip: answer.data, expires: (answer.ttl || DEFAULT_TTL) + now };
           }
         }
       });
