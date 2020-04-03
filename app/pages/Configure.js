@@ -814,8 +814,9 @@ async function ConfigurePageWS(ctx) {
           break;
         case 'app.delete':
           changes = {};
-          await app.uninstall();
+          const tapp = app;
           app = null;
+          await tapp.uninstall();
           await ConfigBackup.save();
           break;
         case 'app.format-disk':
