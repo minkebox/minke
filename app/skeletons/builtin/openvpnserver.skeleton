@@ -39,7 +39,8 @@ using Wi-Fi; use "tun" in this case.`,
       description: `Select the UDP port number for the VPN`,
       validate: `\\d*`,
       visible: `property.Advanced`,
-      enabled: `property.FirstUse`
+      enabled: `property.FirstUse`,
+      initValue: `{{__RANDOMPORT}}`
     },
     {
       type: `Text`,
@@ -92,8 +93,7 @@ using Wi-Fi; use "tun" in this case.`,
     },
     {
       type: `Environment`,
-      name: `SELECTED_PORT`,
-      defaultValue: `{{__RANDOMPORT}}`
+      name: `SELECTED_PORT`
     },
     {
       type: `Directory`,
