@@ -1200,6 +1200,14 @@ MinkeApp.prototype = {
       for (let key in env) {
         txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
       }
+      // Support optional complex expression on strings
+      if (txt.indexOf('{{EVAL ') === 0 && txt.indexOf('}}') === txt.length - 2) {
+        try {
+          txt = this._eval(txt.substring(7, txt.length -2));
+        }
+        catch (_) {
+        }
+      }
     }
     return txt;
   },
