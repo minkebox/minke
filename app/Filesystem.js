@@ -66,7 +66,7 @@ _Filesystem.prototype = {
         }
       });
     }
-    const native = (Filesystem.getNativeDirectory() || {}).src;
+    const natives = Filesystem.getNativeDirectories();
     await Promise.all(bind.shares.map(async share => {
       // If share has a source which exists, bind it.
       if (share.src) {
@@ -80,7 +80,7 @@ _Filesystem.prototype = {
             }
           });
         }
-        else if (share.src === native) {
+        else if (natives.find(native => native.src === share.src)) {
           binds.push({
             Type: 'bind',
             Source: share.src,
@@ -207,13 +207,17 @@ _Filesystem.prototype = {
 const Filesystem = {
 
   _mappings: {},
+  _natives: [],
 
   init: async function() {
     MinkeApp = MinkeApp || require('./MinkeApp');
     const info = await MinkeApp._container.inspect();
     info.Mounts.forEach(mount => {
       if (mount.Type === 'bind') {
-        Filesystem._mappings[mount.Destination] = { src: mount.Source, propagation: mount.Propagation };
+        this._mappings[mount.Destination] = { src: mount.Source, dst: mount.Destination, propagation: mount.Propagation };
+        if (mount.Destination.indexOf(NATIVE_DIR) === 0) {
+          this._natives.push(this._mappings[mount.Destination]);
+        }
       }
     });
   },
@@ -239,8 +243,8 @@ const Filesystem = {
     return Filesystem._mappings;
   },
 
-  getNativeDirectory: function() {
-    return this._mappings[NATIVE_DIR];
+  getNativeDirectories: function() {
+    return this._natives;
   }
 
 };

@@ -314,12 +314,18 @@ async function ConfigurePageHTML(ctx) {
                 shares: shares
               };
             }));
-            const nativedir = Filesystem.getNativeDirectory();
-            if (nativedir) {
-              const selected = !!app._binds.find(abind => abind.src === nativedir.src);
-              found |= selected;
+            const nativedirs = Filesystem.getNativeDirectories();
+            if (nativedirs.length) {
               shareables.push({
-                app: { _id: 'native', _name: 'Native' }, shares: [{ name: 'Native', src: nativedir.src, description: 'Native files', value: selected }]
+                app: {
+                  _id: 'native',
+                  _name: 'Native'
+                },
+                shares: nativedirs.map(dir => {
+                  const selected = !!app._binds.find(abind => abind.src === dir.src);
+                  found |= selected;
+                  return { name: Path.basename(dir.src), src: dir.src, description: dir.src, value: selected }
+                })
               });
             }
             const prop = skeleton.properties.find(prop => prop.name === action.name);
@@ -375,19 +381,21 @@ async function ConfigurePageHTML(ctx) {
                 shares: shares
               };
             }));
-            const nativedir = Filesystem.getNativeDirectory();
-            if (nativedir) {
-              const ashare = binding.shares.find(ashare => ashare.src === nativedir.src);
-              const altName = ashare ? ashare.name : '';
+            const nativedirs = Filesystem.getNativeDirectories();
+            if (nativedirs.length) {
               shareables.push({
                 app: { _id: 'native', _name: 'Native' },
-                shares: [{
-                  name: 'Native',
-                  altname: altName,
-                  description: 'Native files',
-                  action: `window.share('${action.type}#native#${nativedir.src}#${action.name}#native',this)`,
-                  value: !!ashare
-                }]
+                shares: nativedirs.map(dir => {
+                  const defaultName = Path.basename(dir.src);
+                  const ashare = binding.shares.find(ashare => ashare.src === dir.src);
+                  return {
+                    name: defaultName,
+                    altname: ashare ? ashare.name : '',
+                    description: dir.src,
+                    action: `window.share('${action.type}#native#${dir.src}#${action.name}#${defaultName}',this)`,
+                    value: !!ashare
+                  }
+                })
               });
             }
             return Object.assign({ shareables: shareables }, action, { description: await expand(action.description) });

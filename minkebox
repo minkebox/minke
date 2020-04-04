@@ -9,12 +9,17 @@ VOL2=$3
 
 # Overrides
 
-if [ "${VOL2}" != "" ]; then
+if [ "${VOL2}" != "" -a "${VOL2}" != "-" ]; then
   EXTRA_VOL="--mount type=bind,source=${VOL2},target=/mnt/store,bind-propagation=rshared"
 fi
+for i in $4 $5 $6 $7 $8; do
+  if [ "${i}" ]; then
+    EXTRA_VOL="${EXTRA_VOL} --mount type=bind,source=${i},target=/mnt/native/$(basename ${i}),bind-propagation=rshared"
+  fi
+done
 
 if [ "$(whoami)" != "root" -o "${IP}" = "" -o "${VOL}" = "" ]; then
-  echo "Usage: sudo $0 <ip address> <directory for root storage> [<directory for bulk storage>]"
+  echo "Usage: sudo $0 <ip address> <directory for root storage> [<directory for bulk storage> | -] [<native access> ...]"
   exit 1
 fi
 
@@ -55,7 +60,7 @@ docker network rm home > /dev/null
 docker network create --driver=macvlan --subnet=${host}/24 --gateway=${gw} -o "parent=home" home > /dev/null
 
 docker container rm minke 2> /dev/null
-docker run -d --name minke --privileged --rm \
+docker run -d --name minke --privileged \
   -e TZ="${TZ}" \
   --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
   --mount type=bind,source=${VOL},target=/minke,bind-propagation=rshared \
