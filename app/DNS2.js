@@ -44,7 +44,7 @@ const PrivateDNS = {
                 { name: fullname, ttl: this._ttl, type: 'AAAA', data: ip6 }
               );
             }
-            response.flags |= DnsPkt.AUTHORITATIVE_ANSWER | DnsPkt.RECURSION_AVAILABLE;
+            response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
           }
         }
@@ -66,7 +66,7 @@ const PrivateDNS = {
                 { name: fullname, ttl: this._ttl, type: 'A', data: ip }
               );
             }
-            response.flags = DnsPkt.AUTHORITATIVE_ANSWER | DnsPkt.RECURSION_AVAILABLE;
+            response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
           }
         }
@@ -83,7 +83,7 @@ const PrivateDNS = {
             response.answers.push(
               { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}.${this._domainName}` }
             );
-            response.flags = DnsPkt.AUTHORITATIVE_ANSWER | DnsPkt.RECURSION_AVAILABLE;
+            response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
           }
         }
@@ -96,7 +96,7 @@ const PrivateDNS = {
               response.answers.push(
                 { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}.${this._domainName}` }
               );
-              response.flags = DnsPkt.AUTHORITATIVE_ANSWER | DnsPkt.RECURSION_AVAILABLE;
+              response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
               return true;
             }
           }
@@ -277,7 +277,6 @@ const CachingDNS = {
         const a = this._findAnswer('A', question.name);
         if (a.length) {
           response.answers.push.apply(response.answers, a);
-          response.flags = DnsPkt.RECURSION_AVAILABLE;
           return true;
         }
         // If that fails, look for a CNAME
@@ -288,7 +287,6 @@ const CachingDNS = {
           if (ac.length) {
             response.answers.push.apply(response.answers, cname);
             response.answers.push.apply(response.answers, ac);
-            response.flags = DnsPkt.RECURSION_AVAILABLE;
             return true;
           }
         }
@@ -308,7 +306,6 @@ const CachingDNS = {
           if (aaaa.length) {
             response.additionals.push.apply(response.additionals, aaaa);
           }
-          response.flags = DnsPkt.RECURSION_AVAILABLE;
           return true;
         }
         break;
@@ -771,17 +768,20 @@ const DNS = {
           const request = DnsPkt.decode(msgin);
           response.id = request.id;
           response.flags = request.flags;
+          if ((response.flags & DnsPkt.RECURSION_DESIRED) !== 0) {
+            response.flags |= DnsPkt.RECURSION_AVAILABLE;
+          }
           response.questions = request.questions;
           //console.log('request', JSON.stringify(request, null, 2));
           await this.query(request, response, rinfo);
           // If we got no answers, and no error code set, we set notfound
-          if (response.answers.length === 0 && (response.flags & 0xF0) === 0) {
-            response.flags = (response.flags & 0xF0) | 3; // NOTFOUND
+          if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
+            response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
           }
         }
         catch (e) {
           console.error(e);
-          response.flags = (response.flags & 0xF0) | 2; // SERVFAIL
+          response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
         }
         //console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
         this._udp.send(DnsPkt.encode(response), rinfo.port, rinfo.address, err => {
@@ -885,7 +885,7 @@ const DNS = {
         return true;
       }
     }
-    response.flags = (response.flags & 0xF0) | 3; // NOTFOUND
+    response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
     return false;
   }
 
