@@ -314,6 +314,14 @@ async function ConfigurePageHTML(ctx) {
                 shares: shares
               };
             }));
+            const nativedir = Filesystem.getNativeDirectory();
+            if (nativedir) {
+              const selected = !!app._binds.find(abind => abind.src === nativedir.src);
+              found |= selected;
+              shareables.push({
+                app: { _id: 'native', _name: 'Native' }, shares: [{ name: 'Native', src: nativedir.src, description: 'Native files', value: selected }]
+              });
+            }
             const prop = skeleton.properties.find(prop => prop.name === action.name);
             if (prop) {
               shareables.unshift({
@@ -367,6 +375,21 @@ async function ConfigurePageHTML(ctx) {
                 shares: shares
               };
             }));
+            const nativedir = Filesystem.getNativeDirectory();
+            if (nativedir) {
+              const ashare = binding.shares.find(ashare => ashare.src === nativedir.src);
+              const altName = ashare ? ashare.name : '';
+              shareables.push({
+                app: { _id: 'native', _name: 'Native' },
+                shares: [{
+                  name: 'Native',
+                  altname: altName,
+                  description: 'Native files',
+                  action: `window.share('${action.type}#native#${nativedir.src}#${action.name}#native',this)`,
+                  value: !!ashare
+                }]
+              });
+            }
             return Object.assign({ shareables: shareables }, action, { description: await expand(action.description) });
           }
         case 'SelectBackups':

@@ -5,6 +5,8 @@ const Disks = require('./Disks');
 const Flatten = require('./utils/Flatten');
 let MinkeApp;
 
+const NATIVE_DIR = '/mnt/native';
+
 process.umask(0);
 
 function _Filesystem(app) {
@@ -64,17 +66,30 @@ _Filesystem.prototype = {
         }
       });
     }
+    const native = (Filesystem.getNativeDirectory() || {}).src;
     await Promise.all(bind.shares.map(async share => {
       // If share has a source which exists, bind it.
-      if (share.src && MinkeApp.getAppById(share.src.replace(/^.*apps\/([^/]+).*$/,'$1')) && FS.existsSync(share.src)) {
-        binds.push({
-          Type: 'bind',
-          Source: Filesystem.mapFilenameToNative(share.src),
-          Target: Path.normalize(await this._expand(`${bind.target}/${share.name}`)),
-          BindOptions: {
-            Propagation: 'rshared'
-          }
-        });
+      if (share.src) {
+        if (MinkeApp.getAppById(share.src.replace(/^.*apps\/([^/]+).*$/,'$1')) && FS.existsSync(share.src)) {
+          binds.push({
+            Type: 'bind',
+            Source: Filesystem.mapFilenameToNative(share.src),
+            Target: Path.normalize(await this._expand(`${bind.target}/${share.name}`)),
+            BindOptions: {
+              Propagation: 'rshared'
+            }
+          });
+        }
+        else if (share.src === native) {
+          binds.push({
+            Type: 'bind',
+            Source: share.src,
+            Target: Path.normalize(await this._expand(`${bind.target}/${share.name}`)),
+            BindOptions: {
+              Propagation: 'rshared'
+            }
+          });
+        }
       }
     }));
     return binds;
@@ -222,6 +237,10 @@ const Filesystem = {
 
   getNativeMappings: function() {
     return Filesystem._mappings;
+  },
+
+  getNativeDirectory: function() {
+    return this._mappings[NATIVE_DIR];
   }
 
 };
