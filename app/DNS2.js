@@ -458,26 +458,42 @@ const LocalDNSSingleton = {
   _available: [],
 
   start: async function() {
-    this._network = await Network.getDNSNetwork();
-    const subnet = this._network.info.IPAM.Config[0].Subnet;
-    this._base = subnet.split('/')[0].split('.');
     this._bits = 24;
     this._dev = DNS_NETWORK;
+    this._network = await Network.getDNSNetwork();
 
-    const state = (await Database.getConfig('localdns')) || { map: [] };
-    for (let i = 0; i < state.map.length; i++) {
-      const newEntry = {
-        socket: null,
-        lastUse: Date.now(),
-        address: state.map[i].address,
-        dnsAddress: state.map[i].dnsAddress
-      };
-      this._forwardCache[newEntry.address] = newEntry;
-      this._backwardCache[newEntry.dnsAddress] = newEntry;
+    const cidr = this._network.info.IPAM.Config[0].Subnet.split('/');
+    const base = cidr[0].split('.');
+    const basebits = parseInt(cidr[1]);
+    let start = 1;
+    let end = 254;
+    // Assuming we get a /16, we allocate a full /24 for our dns mapping
+    if (basebits === 16) {
+      this._base = `${base[0]}.${base[1]}.250`;
+    }
+    // Otherwise we just use the high-end of it as Docker wont use that in preference.
+    else {
+      this._base = `${base[0]}.${base[1]}.${base[2]}`;
+      start = 32;
     }
 
-    for (let i = 254; i > 32; i--) {
-      const dnsAddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${i}`;
+    const state = Object.assign({ map: [], dnsBase: '' }, (await Database.getConfig('localdns')));
+    // Setup store entries as long as we're using the same dns network range.
+    if (state.dnsBase === this._base) {
+      for (let i = 0; i < state.map.length; i++) {
+        const newEntry = {
+          socket: null,
+          lastUse: Date.now(),
+          address: state.map[i].address,
+          dnsAddress: state.map[i].dnsAddress
+        };
+        this._forwardCache[newEntry.address] = newEntry;
+        this._backwardCache[newEntry.dnsAddress] = newEntry;
+      }
+    }
+
+    for (let i = end; i >= start; i--) {
+      const dnsAddress = `${this._base}.${i}`;
       if (!this._backwardCache[dnsAddress]) {
         this._available.push(dnsAddress);
       }
@@ -487,7 +503,8 @@ const LocalDNSSingleton = {
   stop: async function() {
     const state = {
       _id: 'localdns',
-      map: []
+      dnsBase: this._base,
+      map: [],
     };
     for (let address in this._forwardCache) {
       state.map.push({ address: address, dnsAddress: this._forwardCache[address].dnsAddress });
@@ -499,7 +516,7 @@ const LocalDNSSingleton = {
     const now = Date.now();
     // Attempt to find a usable address where the last bit matches ... just to make it easier to debug.
     const saddress = address.split('.');
-    let daddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${saddress[3]}`;
+    let daddress = `${this._base}.${saddress[3]}`;
     const matchEntry = this._backwardCache[daddress];
     if (matchEntry && now > matchEntry.lastUsed + this._TIMEOUT) {
       // Found an entry. We can use as it's expired.
