@@ -42,7 +42,12 @@
       name: `DNS2`,
       defaultValue: `127.0.0.1`
     },
-     {
+    {
+      type: `Environment`,
+      name: `VIRTUAL_HOST`,
+      defaultValue: `{{__HOSTIP}}`
+    },
+    {
       type: `Environment`,
       name: `CONDITIONAL_FORWARDING`,
       defaultValue: `True`
@@ -73,11 +78,6 @@
       name: `53/tcp`,
       port: 53,
       protocol: `TCP`
-    },
-    {
-      type: `Environment`,
-      name: `VIRTUAL_HOST`,
-      defaultValue: `{{__HOSTIP}}`
     },
     {
       type: `Port`,
