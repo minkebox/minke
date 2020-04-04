@@ -5,7 +5,6 @@ const KoaRouter = require('koa-router');
 const KoaProxy = require('koa-proxy');
 
 const TEMPORARY_REDIRECT = 307;
-const INTERNAL_SERVER_ERROR = 500;
 
 function makeProxy(to) {
   const app = new Koa();
@@ -22,6 +21,7 @@ function makeProxy(to) {
       }
     }
     catch (e) {
+      console.log(e);
       ctx.type = 'text/html';
       ctx.body = FS.readFileSync(`${__dirname}/pages/html/ProxyFail.html`);
     }
@@ -30,6 +30,9 @@ function makeProxy(to) {
     host: to,
     jar: true, // Send cookies
     followRedirect: false, // Handle redirects by hand (see above))
+    suppressRequestHeaders: [
+      'origin'
+    ],
     overrideResponseHeaders: {
       'X-MinkeBox-Proxy': 'true'
     },
