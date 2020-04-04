@@ -1804,8 +1804,9 @@ MinkeApp.shutdown = async function(config) {
   await Promise.all(applications.map(async (app) => {
     if (app.isRunning()) {
       // If we shutdown with 'inherit' set, we leave the children running so we
-      // can inherit them when on a restart.
-      if (!config.inherit) {
+      // can inherit them when on a restart. But we're always stopping Minke itself
+      // so make sure we do that regardless.
+      if (!config.inherit || app._image === Images.MINKE) {
         await app.stop();
       }
       await app.save();
