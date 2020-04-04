@@ -292,6 +292,27 @@ const CachingDNS = {
         }
         break;
       }
+      case 'AAAA':
+      {
+        // Look for a cached AAAA record
+        const a = this._findAnswer('AAAA', question.name);
+        if (a.length) {
+          response.answers.push.apply(response.answers, a);
+          return true;
+        }
+        // If that fails, look for a CNAME
+        const cname = this._findAnswer('CNAME', question.name);
+        if (cname.length) {
+          // See if we have a cached AAAA for the CNAME
+          const ac = this._findAnswer('AAAA', cname[0].data);
+          if (ac.length) {
+            response.answers.push.apply(response.answers, cname);
+            response.answers.push.apply(response.answers, ac);
+            return true;
+          }
+        }
+        break;
+      }
       case 'CNAME':
       {
         const cname = this._findAnswer('CNAME', question.name);
