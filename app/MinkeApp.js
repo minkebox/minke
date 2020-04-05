@@ -707,7 +707,7 @@ MinkeApp.prototype = {
       if (this._homeIP) {
         const dnsport = ports.find(port => port.dns);
         if (dnsport) {
-          this._dns = DNS2.addDNSServer({ _id: this._id, name: this._name, IP4Address: this._homeIP, port: dnsport.port, options: dnsport.dns, dnsNetwork: sNetwork === 'dns' });
+          this._dns = DNS2.addDNSServer(this, { port: dnsport.port, dnsNetwork: sNetwork === 'dns' });
         }
       }
 
@@ -847,7 +847,7 @@ MinkeApp.prototype = {
     }
 
     if (this._dns) {
-      DNS2.removeDNSServer(this._dns);
+      DNS2.removeDNSServer(this);
       this._dns = null;
     }
 
@@ -1864,6 +1864,13 @@ MinkeApp.needRestart = function() {
     }
     return acc;
   }, []);
+}
+
+MinkeApp.tabsReordered = function() {
+  DNS2.reorder();
+}
+
+MinkeApp.widgetsReordered = function() {
 }
 
 module.exports = MinkeApp;

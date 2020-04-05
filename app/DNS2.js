@@ -9,10 +9,11 @@ const MDNS = require('./MDNS');
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
 const HOSTNAME = '/bin/hostname';
-const SYSTEM_DNS_OFFSET = 10;
 const DNS_NETWORK = (SYSTEM ? 'dns0' : 'eth1');
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
+const GLOBAL1 = { _name: 'global1', _position: { tab: Number.MAX_SAFE_INTEGER - 1 } };
+const GLOBAL2 = { _name: 'global2', _position: { tab: Number.MAX_SAFE_INTEGER } };
 
 const DEBUG_QUERY = 0;
 
@@ -863,13 +864,13 @@ const MapDNS = {
 // By default these handle local names, mulitcast names, address maps, and caching. We can also add global dns servers (which are
 // references to DNS services on the physical network) as well as local dns servers (which are dns servers on our internal DNS network).
 //
-const DNS = {
+const DNS = { // { app: app, srv: proxy, cache: cache }
 
   _proxies: [
-    { id: 'private', srv: PrivateDNS,   prio: 0, cache: false },
-    { id: 'mdns',    srv: MulticastDNS, prio: 1, cache: false },
-    { id: 'map',     srv: MapDNS,       prio: 2, cache: false },
-    { id: 'cache',   srv: CachingDNS,   prio: 3, cache: false }
+    { app: { _name: 'private', _position: { tab: -9 } }, srv: PrivateDNS,   cache: false },
+    { app: { _name: 'mdns',    _position: { tab: -8 } }, srv: MulticastDNS, cache: false },
+    { app: { _name: 'map',     _position: { tab: -7 } }, srv: MapDNS,       cache: false },
+    { app: { _name: 'cache',   _position: { tab: -6 } }, srv: CachingDNS,   cache: false }
   ],
 
   start: async function(config) {
@@ -934,46 +935,44 @@ const DNS = {
   },
 
   setDefaultResolver: function(resolver1, resolver2) {
-    this.removeDNSServer({ _id: 'global1' });
-    this.removeDNSServer({ _id: 'global2' });
+    this.removeDNSServer(GLOBAL1);
+    this.removeDNSServer(GLOBAL2);
     if (resolver1) {
-      this._addDNSProxy('global1', new GlobalDNS(resolver1, 53, 5000), Number.MAX_SAFE_INTEGER - 1, true);
+      this._addDNSProxy(GLOBAL1, new GlobalDNS(resolver1, 53, 5000), Number.MAX_SAFE_INTEGER - 1, true);
 
     }
     if (resolver2) {
-      this._addDNSProxy('global2', new GlobalDNS(resolver2, 53, 5000), Number.MAX_SAFE_INTEGER, true);
+      this._addDNSProxy(GLOBAL2, new GlobalDNS(resolver2, 53, 5000), Number.MAX_SAFE_INTEGER, true);
     }
   },
 
-  addDNSServer: function(args) {
+  addDNSServer: function(app, args) {
     const resolve = {
-      _id: args._id,
-      name: args.name,
-      IP4Address: args.IP4Address,
+      _id: app._id,
+      name: app._name,
+      IP4Address: app._homeIP,
       Port: args.port || 53,
-      priority: (args.options && args.options.priority) || 5,
-      delay: (args.options && args.options.delay) || 0,
       dnsNetwork: args.dnsNetwork,
       timeout: args.timeout || 5000
     };
     const proxy = resolve.dnsNetwork ?
       new LocalDNS(resolve.IP4Address, resolve.Port, resolve.timeout) :
       new GlobalDNS(resolve.IP4Address, resolve.Port, resolve.timeout);
-    this._addDNSProxy(resolve._id, proxy, SYSTEM_DNS_OFFSET + resolve.priority, true);
+    this._addDNSProxy(app, proxy, true);
     return resolve;
   },
 
-  _addDNSProxy: function(id, proxy, priority, cache) {
+  _addDNSProxy: function(app, proxy, cache) {
     proxy.start().then(() => {
-      this._proxies.push({ id: id, srv: proxy, prio: priority, cache: cache });
-      this._proxies.sort((a, b) => a.prio - b.prio);
+      this._proxies.push({ app: app, srv: proxy, cache: cache });
+      this._proxies.sort((a, b) => a.app._position.tab - b.app._position.tab);
     });
     CachingDNS.flush();
   },
 
-  removeDNSServer: function(args) {
+  removeDNSServer: function(app) {
     for (let i = 0; i < this._proxies.length; i++) {
-      if (this._proxies[i].id === args._id) {
+      if (this._proxies[i].app === app) {
         this._proxies.splice(i, 1)[0].srv.stop();
         CachingDNS.flush();
         break;
@@ -1009,7 +1008,7 @@ const DNS = {
     }
     for (let i = 0; i < this._proxies.length; i++) {
       const proxy = this._proxies[i];
-      DEBUG_QUERY && console.log(`Trying ${proxy.id}`);
+      DEBUG_QUERY && console.log(`Trying ${proxy._name}`);
       if (await proxy.srv.query(request, response, rinfo)) {
         DEBUG_QUERY && console.log('Found');
         if (proxy.cache) {
@@ -1024,6 +1023,10 @@ const DNS = {
     }
     response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
     return false;
+  },
+
+  reorder: function() {
+    this._proxies.sort((a, b) => a.app._position.tab - b.app._position.tab);
   }
 
 };

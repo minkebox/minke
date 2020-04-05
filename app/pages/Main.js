@@ -272,6 +272,7 @@ async function MainPageWS(ctx) {
               });
             }
             move._position.tab = to;
+            MinkeApp.tabsReordered();
           }
           break;
         }
@@ -297,6 +298,7 @@ async function MainPageWS(ctx) {
               });
             }
             move._position.widget = to;
+            MinkeApp.widgetsReordered();
           }
           break;
         }
