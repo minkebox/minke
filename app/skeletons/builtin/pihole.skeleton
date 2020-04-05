@@ -3,7 +3,7 @@
   description: `Network-wide Ad Blocking`,
   image: `pihole/pihole`,
   tags: [
-    `Ad Blocking`, `Networking`
+    `Ad Blocking`, `Networking`, `Dns`
   ],
   actions: [
   ],
@@ -84,9 +84,7 @@
       name: `53/udp`,
       port: 53,
       protocol: `UDP`,
-      dns: {
-        priority: 7
-      }
+      dns: true
     },
     {
       type: `Port`,

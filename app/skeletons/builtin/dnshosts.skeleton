@@ -2,7 +2,7 @@
   name: `Hostnames`,
   description: `Create simple mappings between fully qualified hostnames and IP addresses`,
   image: `registry.minkebox.net/minkebox/dnshosts`,
-  tags: [ 'Networking' ],
+  tags: [ 'Networking', `Dns` ],
   actions: [
     {
       type: `Header`,
@@ -45,7 +45,7 @@
       name: `53/udp`,
       port: 53,
       protocol: `UDP`,
-      dns: { priority: 2 },
+      dns: true
     },
     {
       type: `Network`,

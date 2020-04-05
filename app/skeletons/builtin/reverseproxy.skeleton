@@ -2,7 +2,7 @@
   name: `Website Proxy`,
   description: `Make your websites available to the outside world using HTTP or HTTPS`,
   image: `registry.minkebox.net/minkebox/reverseproxy`,
-  tags: [ 'Web' ],
+  tags: [ 'Web', `Dns` ],
   actions: [
     {
       type: `Header`,

@@ -2,7 +2,7 @@
   name: `DHCP`,
   description: `DHCP Server to provide IP addresses to things on the network which need them`,
   image: `registry.minkebox.net/minkebox/dhcpserver`,
-  tags: [ 'Networking' ],
+  tags: [ 'Networking', `Dns` ],
   actions: [
     {
       type: `Header`,

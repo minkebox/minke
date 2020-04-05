@@ -4,7 +4,7 @@
   images: {
     x64: `lancachenet/monolithic`
   },
-  tags: [ 'Caches' ],
+  tags: [ 'Caches', `Dns` ],
   actions: [
     {
       type: `Header`,
@@ -104,10 +104,7 @@
       name: `53/tcp`,
       port: 53,
       protocol: `UDP`,
-      dns: {
-        priority: 7,
-        delay: 60
-      }
+      dns: true
     },
     {
       type: `Network`,
