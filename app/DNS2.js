@@ -223,21 +223,15 @@ const CachingDNS = {
         const name = answer.name.toLowerCase();
         const R = this._cache[answer.type][name] || (this._cache[answer.type][name] = {});
         const key = answer.data.toLowerCase();
-        const rec = { key: key, name: answer.name, type: answer.type, expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (answer.ttl || this._defaultTTL))), data: answer.data };
+        const expires = Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (answer.ttl || this._defaultTTL)));
         if (R[key]) {
-          R[key].expires = rec.expires;
+          R[key].expires = expires;
         }
         else {
           if (R.negative) {
-            const idx = this._q.indexOf(R.negative);
-            if (idx !== -1) {
-              this._q.splice(idx, 1);
-            }
-            else {
-              console.error('Failed to find negative', R.negative);
-            }
-            delete R.negative;
+            R.negative.expires = 0;
           }
+          const rec = { key: key, name: answer.name, type: answer.type, expires: expires, data: answer.data };
           R[key] = rec;
           this._q.push(rec);
         }
@@ -264,9 +258,12 @@ const CachingDNS = {
         if (soa) {
           const name = question.name.toLowerCase();
           const R = this._cache[question.type][name] || (this._cache[question.type][name] = {});
-          // Only add a negative cache entry if we don't already have one
-          if (!R.negative) {
-            const rec = { key: 'negative', name: question.name, type: question.type, expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, soa.data.minimum)) };
+          const expires = Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (soa.data.minimum || this._defaultTTL)));
+          if (R.negative) {
+            R.negative.expires = expires;
+          }
+          else {
+            const rec = { key: 'negative', name: question.name, type: question.type, expires: expires };
             R.negative = rec;
             this._q.push(rec);
           }
@@ -286,10 +283,10 @@ const CachingDNS = {
       {
         const R = this._cache[type][name.toLowerCase()];
         if (R) {
-          if (R.negative) {
+          const now = Math.floor(Date.now() / 1000);
+          if (R.negative && R.negative.expires > now) {
             break;
           }
-          const now = Math.floor(Date.now() / 1000);
           for (let key in R) {
             const rec = R[key];
             if (rec.expires > now) {
@@ -313,7 +310,7 @@ const CachingDNS = {
       case 'CNAME':
       {
         const R = this._cache[type][name.toLowerCase()];
-        if (R && R.negative) {
+        if (R && R.negative && R.negative.expires > Math.floor(Date.now() / 1000)) {
           return true;
         }
         break;
