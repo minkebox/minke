@@ -14,6 +14,8 @@ const DNS_NETWORK = (SYSTEM ? 'dns0' : 'eth1');
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
 
+const DEBUG_QUERY = 0;
+
 //
 // PrivateDNS provides mappings for locally hosted services.
 //
@@ -25,6 +27,7 @@ const PrivateDNS = {
   _ip2localname: {},
   _ip2globalname: {},
   _domainName: '',
+  _soa: null,
 
   query: async function(request, response, rinfo) {
     switch (request.questions[0].type) {
@@ -43,6 +46,9 @@ const PrivateDNS = {
               response.additionals.push(
                 { name: fullname, ttl: this._ttl, type: 'AAAA', data: ip6 }
               );
+            }
+            if (this._soa) {
+              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
@@ -65,6 +71,8 @@ const PrivateDNS = {
               response.additionals.push(
                 { name: fullname, ttl: this._ttl, type: 'A', data: ip }
               );
+            }if (this._soa) {
+              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
@@ -83,6 +91,9 @@ const PrivateDNS = {
             response.answers.push(
               { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}.${this._domainName}` }
             );
+            if (this._soa) {
+              response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', data: this._soa });
+            }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
           }
@@ -96,10 +107,24 @@ const PrivateDNS = {
               response.answers.push(
                 { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}.${this._domainName}` }
               );
+              if (this._soa) {
+                response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', data: this._soa });
+              }
               response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
               return true;
             }
           }
+        }
+        break;
+      }
+      case 'SOA':
+      {
+        const fullname = request.questions[0].name;
+        const name = fullname.split('.');
+        if (name.length === 2 && name[1].toLowerCase() === this._domainName && this._soa) {
+          response.answers.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
+          response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
+          return true;
         }
         break;
       }
@@ -111,6 +136,15 @@ const PrivateDNS = {
 
   setDomainName: function(name) {
     this._domainName = name.toLowerCase();
+    this._soa = {
+      mname: this._domainName,
+      rname: `dns-admin.${this._domainName}`,
+      serial: 1,
+      refresh: this._ttl, // Time before secondary should refresh
+      retry: this._ttl, // Time before secondary should retry
+      expire: this._ttl * 2, // Time secondary should consider its copy authorative
+      minimum: Math.floor(this._ttl / 10) // Time to cache a negative lookup
+    };
   },
 
   registerHost: function(localname, globalname, ip, ip6) {
@@ -165,12 +199,19 @@ const CachingDNS = {
   _cache: {
     A: {},
     AAAA: {},
-    CNAME: {}
+    CNAME: {},
+    SOA: {}
   },
 
   add: function(response) {
+    response.authorities.forEach(authority => this._addSOA(authority));
     response.answers.forEach(answer => this._addAnswer(answer));
     response.additionals.forEach(answer => this._addAnswer(answer));
+    // If we didn't answer the question, create a negative entry
+    const question = response.questions[0];
+    if (!response.answers.find(answer => answer.type === question.type)) {
+      this._addNegative(question)
+    }
   },
 
   _addAnswer: function(answer) {
@@ -182,11 +223,21 @@ const CachingDNS = {
         const name = answer.name.toLowerCase();
         const R = this._cache[answer.type][name] || (this._cache[answer.type][name] = {});
         const key = answer.data.toLowerCase();
-        const rec = { name: answer.name, type: answer.type, expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (answer.ttl || this._defaultTTL))), data: answer.data };
+        const rec = { key: key, name: answer.name, type: answer.type, expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (answer.ttl || this._defaultTTL))), data: answer.data };
         if (R[key]) {
           R[key].expires = rec.expires;
         }
         else {
+          if (R.negative) {
+            const idx = this._q.indexOf(R.negative);
+            if (idx !== -1) {
+              this._q.splice(idx, 1);
+            }
+            else {
+              console.error('Failed to find negative', R.negative);
+            }
+            delete R.negative;
+          }
           R[key] = rec;
           this._q.push(rec);
         }
@@ -203,6 +254,29 @@ const CachingDNS = {
     }
   },
 
+  _addNegative: function(question) {
+    switch (question.type) {
+      case 'A':
+      case 'AAAA':
+      case 'CNAME':
+        // Need SOA information to set the TTL of the negative cache entry
+        const soa = this._findSOA(question.name);
+        if (soa) {
+          const name = question.name.toLowerCase();
+          const R = this._cache[question.type][name] || (this._cache[question.type][name] = {});
+          // Only add a negative cache entry if we don't already have one
+          if (!R.negative) {
+            const rec = { key: 'negative', name: question.name, type: question.type, expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, soa.data.minimum)) };
+            R.negative = rec;
+            this._q.push(rec);
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  },
+
   _findAnswer: function(type, name) {
     const answers = [];
     switch (type) {
@@ -212,6 +286,9 @@ const CachingDNS = {
       {
         const R = this._cache[type][name.toLowerCase()];
         if (R) {
+          if (R.negative) {
+            break;
+          }
           const now = Math.floor(Date.now() / 1000);
           for (let key in R) {
             const rec = R[key];
@@ -219,13 +296,60 @@ const CachingDNS = {
               answers.push({ name: rec.name, type: rec.type, ttl: rec.expires - now, data: rec.data });
             }
           }
+          break;
         }
         break;
       }
       default:
         break;
     }
-    return answers;
+    return answers.length ? answers : null;
+  },
+
+  _findNegative: function(type, name) {
+    switch (type) {
+      case 'A':
+      case 'AAAA':
+      case 'CNAME':
+      {
+        const R = this._cache[type][name.toLowerCase()];
+        if (R && R.negative) {
+          return true;
+        }
+        break;
+      }
+    }
+    return false;
+  },
+
+  _addSOA: function(soa) {
+    const key = soa.name.toLowerCase();
+    const entry = this._cache.SOA[key];
+    if (!entry) {
+      const rec = { key: 'soa', name: soa.name, type: 'SOA', expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (soa.ttl || this._defaultTTL))), data: soa.data };
+      this._cache.SOA[key] = { soa: rec };
+      this._q.push(rec);
+    }
+  },
+
+  _findSOA: function(name) {
+    const sname = name.toLowerCase().split('.');
+    for (let i = 0; i < sname.length; i++) {
+      const soa = this._cache.SOA[sname.slice(i).join('.')];
+      if (soa) {
+        return soa.soa;
+      }
+    }
+    return null;
+  },
+
+  _soa: function(name, response) {
+    const soa = this._findSOA(name);
+    if (soa) {
+      response.authorities.push(soa);
+      return true;
+    }
+    return false;
   },
 
   _trimAnswers: function() {
@@ -238,7 +362,7 @@ const CachingDNS = {
         const name = candidate.name.toLowerCase();
         const R = this._cache[candidate.type][name];
         if (R) {
-          const key = candidate.data.toLowerCase();
+          const key = candidate.key;
           if (R[key]) {
             delete R[key];
           }
@@ -272,69 +396,59 @@ const CachingDNS = {
     const question = request.questions[0];
     switch (question.type) {
       case 'A':
-      {
-        // Look for a cached A record
-        const a = this._findAnswer('A', question.name);
-        if (a.length) {
-          response.answers.push.apply(response.answers, a);
-          return true;
-        }
-        // If that fails, look for a CNAME
-        const cname = this._findAnswer('CNAME', question.name);
-        if (cname.length) {
-          // See if we have a cached A for the CNAME
-          const ac = this._findAnswer('A', cname[0].data);
-          if (ac.length) {
-            response.answers.push.apply(response.answers, cname);
-            response.answers.push.apply(response.answers, ac);
-            return true;
-          }
-        }
-        break;
-      }
       case 'AAAA':
       {
-        // Look for a cached AAAA record
-        const a = this._findAnswer('AAAA', question.name);
-        if (a.length) {
+        // Look for a cached A/AAAA record
+        const a = this._findAnswer(question.type, question.name);
+        if (a) {
           response.answers.push.apply(response.answers, a);
           return true;
         }
-        // If that fails, look for a CNAME
         const cname = this._findAnswer('CNAME', question.name);
-        if (cname.length) {
-          // See if we have a cached AAAA for the CNAME
-          const ac = this._findAnswer('AAAA', cname[0].data);
-          if (ac.length) {
+        if (cname) {
+          const ac = this._findAnswer(question.type, cname[0].data);
+          if (ac) {
             response.answers.push.apply(response.answers, cname);
             response.answers.push.apply(response.answers, ac);
             return true;
           }
         }
-        break;
+
+        if (!this._findNegative(question.type, question.name)) {
+          return false;
+        }
+
+        const soa = this._findSOA(question.name);
+        if (soa) {
+          response.answers.push.apply(response.answers, cname);
+          response.authorities.push(soa);
+          return true;
+        }
+
+        return false;
       }
       case 'CNAME':
       {
         const cname = this._findAnswer('CNAME', question.name);
-        if (cname.length) {
-          response.answers.push.apply(response.answers, a);
+        if (cname) {
+          response.answers.push.apply(response.answers, cname);
           // See if we have a cached A/AAAA for the CNAME
           const a = this._findAnswer('A', cname[0].data);
-          if (a.length) {
-            response.additionals.push.apply(response.additionals, cname);
+          if (a) {
+            response.additionals.push.apply(response.additionals, a);
           }
           const aaaa = this._findAnswer('AAAA', cname[0].data);
-          if (aaaa.length) {
+          if (aaaa) {
             response.additionals.push.apply(response.additionals, aaaa);
           }
           return true;
         }
-        break;
+
+        return false;
       }
       default:
-        break;
+        return false;
     }
-    return false;
   }
 
 };
@@ -793,7 +907,7 @@ const DNS = {
             response.flags |= DnsPkt.RECURSION_AVAILABLE;
           }
           response.questions = request.questions;
-          //console.log('request', JSON.stringify(request, null, 2));
+          DEBUG_QUERY && console.log('request', JSON.stringify(request, null, 2));
           await this.query(request, response, rinfo);
           // If we got no answers, and no error code set, we set notfound
           if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
@@ -804,7 +918,7 @@ const DNS = {
           console.error(e);
           response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
         }
-        //console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+        DEBUG_QUERY && console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
         this._udp.send(DnsPkt.encode(response), rinfo.port, rinfo.address, err => {
           if (err) {
             console.error(err);
@@ -898,13 +1012,18 @@ const DNS = {
     }
     for (let i = 0; i < this._proxies.length; i++) {
       const proxy = this._proxies[i];
-      //console.log(`Trying ${proxy.id}`);
+      DEBUG_QUERY && console.log(`Trying ${proxy.id}`);
       if (await proxy.srv.query(request, response, rinfo)) {
+        DEBUG_QUERY && console.log('Found');
         if (proxy.cache) {
           CachingDNS.add(response);
         }
         return true;
       }
+    }
+    DEBUG_QUERY && console.log('Not found');
+    if (response.authorities.length) {
+      CachingDNS.add(response);
     }
     response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
     return false;
