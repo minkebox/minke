@@ -927,6 +927,17 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
       this._udp.bind(config.port, resolve);
     });
     await LocalDNSSingleton.start();
+
+    // DNS order determined by app order in the tabs. If that changes we re-order DNS.
+    // We flush the cache if the reordering is material to the DNS.
+    Root.on('apps.tabs.reorder', () => {
+      const order = this._proxies.reduce((t, a) => `${t},${a.app._name}`, '');
+      this._proxies.sort((a, b) => a.app._position.tab - b.app._position.tab);
+      const norder = this._proxies.reduce((t, a) => `${t},${a.app._name}`, '');
+      if (order !== norder) {
+        CachingDNS.flush();
+      }
+    });
   },
 
   stop: async function() {
@@ -1023,10 +1034,6 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     }
     response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
     return false;
-  },
-
-  reorder: function() {
-    this._proxies.sort((a, b) => a.app._position.tab - b.app._position.tab);
   }
 
 };

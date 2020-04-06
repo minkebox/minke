@@ -1,4 +1,3 @@
-const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
 const Path = require('path');
 const ChildProcess = require('child_process');
@@ -20,6 +19,8 @@ const Disks = require('./Disks');
 const UPNP = require('./UPNP');
 const Skeletons = require('./Skeletons');
 const ConfigBackup = require('./ConfigBackup');
+const Events = require('./utils/Events');
+const System = require('./utils/System');
 
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
 
@@ -32,8 +33,9 @@ let koaApp = null;
 let setup = null;
 
 function MinkeApp() {
-  EventEmitter.call(this);
-  this._setupUpdateListeners();
+  //EventEmitter.call(this);
+  //this._setupUpdateListeners();
+  Events.call(this);
 }
 
 MinkeApp.prototype = {
@@ -328,7 +330,7 @@ MinkeApp.prototype = {
       this._setStatus('starting');
 
       if (this._willCreateNetwork()) {
-        MinkeApp.emit('net.create', { app: this });
+        Root.emit('net.create', { app: this });
       }
 
       this._bootcount++;
@@ -966,7 +968,7 @@ MinkeApp.prototype = {
     this._setStatus('stopped');
 
     if (this._willCreateNetwork()) {
-      MinkeApp.emit('net.create', { app: this });
+      Root.emit('net.create', { app: this });
     }
 
     return this;
@@ -1021,9 +1023,9 @@ MinkeApp.prototype = {
 
     await Database.removeApp(this._id);
 
-    MinkeApp.emit('app.remove', { app: this });
+    Root.emit('app.remove', { app: this });
     if (this._willCreateNetwork()) {
-      MinkeApp.emit('net.remove', { network: { _id: this._id, name: this._name } });
+      Root.emit('net.remove', { network: { _id: this._id, name: this._name } });
     }
   },
 
@@ -1356,7 +1358,7 @@ MinkeApp.prototype = {
     }
     //DEBUG && console.log(`${this._name}/${this._id}: ${this._status} -> ${status}`);
     this._status = status;
-    this._emit('update.status', { status: status });
+    this.emit('update.status', { app: this, status: status });
   },
 
   isRunning: function() {
@@ -1394,48 +1396,12 @@ MinkeApp.prototype = {
       port = (port + count) % nrPorts;
     }
     return minPort + port;
-  },
-
-  _setupUpdateListeners: function() {
-
-    this._eventState = {};
-
-    this.on('newListener', async (event, listener) => {
-      const state = this._eventState[event];
-      if (state) {
-        if (this.listenerCount(event) === 0 && state.start) {
-          await state.start();
-        }
-        if (state.data) {
-          listener(state.data);
-        }
-      }
-    });
-
-    this.on('removeListener', async (event, listener) => {
-      const state = this._eventState[event];
-      if (state) {
-        if (this.listenerCount(event) === 0 && state.stop) {
-          await state.stop();
-        }
-      }
-    });
-  },
-
-  _emit: function(event, data) {
-    if (!this._eventState[event]) {
-      this._eventState[event] = {};
-    }
-    data.app = this;
-    this._eventState[event].data = data;
-    this.emit(event, data);
   }
-
 }
-Util.inherits(MinkeApp, EventEmitter);
+Util.inherits(MinkeApp, Events);
 
 Object.assign(MinkeApp, {
-  _events: new EventEmitter(),
+  _events: new Events(),
   on: (evt, listener) => { return MinkeApp._events.on(evt, listener); },
   off: (evt, listener) => { return MinkeApp._events.off(evt, listener); },
   emit: (evt, data) => { return MinkeApp._events.emit(evt, data); },
@@ -1556,6 +1522,9 @@ MinkeApp.startApps = async function(app, config) {
 
   // Monitor docker events
   MinkeApp._monitorEvents();
+
+  // Monitor host system
+  System.start();
 
   const running = await docker.listContainers({ all: true });
   const runningNames = running.map(container => container.Names[0]);
@@ -1763,10 +1732,10 @@ MinkeApp.create = async function(image) {
   const app = await new MinkeApp().createFromSkeleton((await Skeletons.loadSkeleton(image, true)).skeleton);
   applications.push(app);
   if (app._willCreateNetwork()) {
-    MinkeApp.emit('net.create', { app: app });
+    Root.emit('net.create', { app: app });
   }
   await app.save();
-  MinkeApp.emit('app.create', { app: app });
+  Root.emit('app.create', { app: app });
 
   return app;
 }
@@ -1813,9 +1782,6 @@ MinkeApp.needRestart = function() {
 
 MinkeApp.tabsReordered = function() {
   DNS2.reorder();
-}
-
-MinkeApp.widgetsReordered = function() {
 }
 
 module.exports = MinkeApp;

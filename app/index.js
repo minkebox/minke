@@ -9,10 +9,13 @@ const Websockify = require('koa-websocket');
 const CacheControl = require('koa-cache-control');
 const Docker = require('dockerode');
 const Config = require('./Config');
+const Events = require('./utils/Events');
+
+global.Root = new Events(); // System events
+
 const Pages = require('./pages/pages');
 const MinkeApp = require('./MinkeApp');
 const UPNP = require('./UPNP');
-//const DOHServer = require('./DOH');
 
 const PORT = Config.WEB_PORT;
 
@@ -59,9 +62,6 @@ App.ws.use(async (ctx, next) => {
 });
 
 MinkeApp.startApps(App, { inherit: !process.env.RESTART_REASON || process.env.RESTART_REASON === 'restart' || process.env.RESTART_REASON === 'update', port: PORT });
-
-// DNS-over-HTTPS server
-//DOHServer();
 
 process.on('uncaughtException', (e) => {
   console.error(e)

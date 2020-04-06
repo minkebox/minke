@@ -3,10 +3,8 @@ const Config = require('../Config');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
-const System = require('../utils/System');
 
 const NRTAGS = 20;
-const OPERATIONAL_TIMER = 10; // seconds
 
 function _strhash(str) {
   let hash = 5381;
@@ -119,10 +117,6 @@ async function MainPageHTML(ctx) {
   ctx.body = mainTemplate({
     configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME,
     Advanced: MinkeApp.getAdvancedMode(),
-    operational: {
-      mem: System.getUsedMemory(),
-      cpu: System.getCpuLoad()
-    },
     tags: tagsToMap(tags),
     networks: networks,
     apps: apps,
@@ -247,13 +241,13 @@ async function MainPageWS(ctx) {
     });
   }
 
-  const operationalTimer = setInterval(() => {
+  function updateOperational(data) {
     send({
       type: 'html.update',
       selector: '.main .operational',
-      html: `CPU: ${System.getCpuLoad()}%&nbsp;&nbsp;&nbsp;Memory: ${System.getUsedMemory()}%`
+      html: `CPU: ${data.cpuLoad}%&nbsp;&nbsp;&nbsp;Memory: ${data.memoryUsed}%`
     });
-  }, OPERATIONAL_TIMER * 1000);
+  }
 
   ctx.websocket.on('message', async (msg) => {
     try {
@@ -293,7 +287,7 @@ async function MainPageWS(ctx) {
               });
             }
             move._position.tab = to;
-            MinkeApp.tabsReordered();
+            Root.emit('apps.tabs.reorder');
           }
           break;
         }
@@ -319,7 +313,7 @@ async function MainPageWS(ctx) {
               });
             }
             move._position.widget = to;
-            MinkeApp.widgetsReordered();
+            Root.emit('apps.widgets.reorder');
           }
           break;
         }
@@ -333,9 +327,10 @@ async function MainPageWS(ctx) {
 
   ctx.websocket.on('close', () => {
     MinkeApp.getApps().forEach(app => offline(app));
-    MinkeApp.off('app.create', createApp);
-    MinkeApp.off('app.remove', removeApp);
-    MinkeApp.off('net.create', updateNetworks);
+    Root.off('app.create', createApp);
+    Root.off('app.remove', removeApp);
+    Root.off('net.create', updateNetworks);
+    Root.off('system.stats', updateOperational);
   });
 
   ctx.websocket.on('error', () => {
@@ -344,9 +339,10 @@ async function MainPageWS(ctx) {
   });
 
   MinkeApp.getApps().forEach(app => online(app));
-  MinkeApp.on('app.create', createApp);
-  MinkeApp.on('app.remove', removeApp);
-  MinkeApp.on('net.create', updateNetworks);
+  Root.on('app.create', createApp);
+  Root.on('app.remove', removeApp);
+  Root.on('net.create', updateNetworks);
+  Root.on('system.stats', updateOperational);
 }
 
 module.exports = {
