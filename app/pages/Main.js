@@ -1,9 +1,9 @@
 const FS = require('fs');
-const OS = require('os');
 const Config = require('../Config');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
+const System = require('../utils/System');
 
 const NRTAGS = 20;
 const OPERATIONAL_TIMER = 10; // seconds
@@ -120,8 +120,8 @@ async function MainPageHTML(ctx) {
     configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME,
     Advanced: MinkeApp.getAdvancedMode(),
     operational: {
-      freemem: Math.floor(OS.freemem() / OS.totalmem() * 100),
-      loadavg: OS.loadavg()[0].toFixed(2)
+      mem: System.getUsedMemory(),
+      cpu: System.getCpuLoad()
     },
     tags: tagsToMap(tags),
     networks: networks,
@@ -248,12 +248,10 @@ async function MainPageWS(ctx) {
   }
 
   const operationalTimer = setInterval(() => {
-    const freemem = Math.floor(OS.freemem() / OS.totalmem() * 100);
-    const loadavg = OS.loadavg()[0].toFixed(2);
     send({
       type: 'html.update',
       selector: '.main .operational',
-      html: `Load: ${loadavg}&nbsp;&nbsp;&nbsp;Free mem: ${freemem}%`
+      html: `CPU: ${System.getCpuLoad()}%&nbsp;&nbsp;&nbsp;Mem: ${System.getUsedMemory()}%`
     });
   }, OPERATIONAL_TIMER * 1000);
 
