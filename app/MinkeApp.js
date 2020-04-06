@@ -450,12 +450,6 @@ MinkeApp.prototype = {
           config.HostConfig.Dns = [ dns ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
-          // When we start a new app which is attached to a private network, we must restart the
-          // private network so it can inform the peer about the new app.
-          const napp = MinkeApp.getAppById(pNetwork);
-          if (napp && napp._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
-            napp._needRestart = true;
-          }
           break;
         }
       }
@@ -802,11 +796,6 @@ MinkeApp.prototype = {
         }
       }
 
-      if (this._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
-        this._monitorNetwork();
-        this.on('update.network.status', this._updateNetworkStatus);
-      }
-
       if (this._monitor.cmd) {
         this._statusMonitor = this._createMonitor(this._monitor);
       }
@@ -829,15 +818,6 @@ MinkeApp.prototype = {
     this._setStatus('stopping');
 
     this._statusMonitor = null;
-    try {
-      if (this._networkMonitor) {
-        this._networkMonitor = null;
-        this.off('update.network.status', this._updateNetworkStatus);
-      }
-    }
-    catch (e) {
-      console.error(e);
-    }
 
     if (this._mdns) {
       await Promise.all(this._mdnsRecords.map(rec => MDNS.removeRecord(rec)));
@@ -1362,39 +1342,6 @@ MinkeApp.prototype = {
     }
   },
 
-  _monitorNetwork: function() {
-    this._networkMonitor = this._createMonitor({
-      event: 'update.network.status',
-      polling: 60,
-      cmd: 'cat /etc/status/forwardports.txt'
-    });
-  },
-
-  _updateNetworkStatus: async function(status) {
-    await Promise.all(this._netRecords.map(rec => MDNS.removeRecord(rec)));
-    this._netRecords = [];
-    await Promise.all(status.data.split(' ').map(async (port) => {
-      port = port.split(':'); // ip:port:proto:mdns
-      if (port[3]) {
-        const mdns = JSON.parse(Buffer.from(port[3], 'base64').toString('utf8'));
-        this._netRecords.push(await MDNS.addRecord({
-          hostname: this._safeName(),
-          domainname: 'local',
-          ip: this._homeIP,
-          service: mdns.type,
-          port: parseInt(port[1]),
-          txt: !mdns.txt ? [] : Object.keys(mdns.txt).map((key) => {
-            return `${key}=${mdns.txt[key]}`;
-          })
-        }));
-        if (mdns.type === '_minke._tcp') {
-          // Remotely managed MinkeBox
-          // ...
-        }
-      }
-    }));
-  },
-
   _createMonitor: function(args) {
     return Monitor.create({
       app: this,
@@ -1450,8 +1397,6 @@ MinkeApp.prototype = {
   },
 
   _setupUpdateListeners: function() {
-
-    this._updateNetworkStatus = this._updateNetworkStatus.bind(this);
 
     this._eventState = {};
 

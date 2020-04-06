@@ -234,12 +234,7 @@ MinkeSetup.prototype = {
   },
 
   getAvailableNetworks: function() {
-    return MinkeApp.getApps().reduce((acc, app) => {
-      if (app._image === Images.withTag(Images.MINKE_PRIVATE_NETWORK)) {
-        acc.push({ _id: app._id, name: app._name });
-      }
-      return acc;
-    }, []);
+    return [];
   },
 
   getWebLink: function() {
