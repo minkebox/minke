@@ -158,14 +158,6 @@ async function MainPageWS(ctx) {
     }
   }
 
-  function online(app) {
-    app.on('update.status', updateStatus);
-  }
-
-  function offline(app) {
-    app.off('update.status', updateStatus);
-  }
-
   function createApp(status) {
     const tags = MinkeApp.getTags();
     const html = appTemplate(genApp(status.app));
@@ -174,7 +166,6 @@ async function MainPageWS(ctx) {
       selector: `#app-insertion-point`,
       html: html
     });
-    online(status.app);
     const appstatus = genAppStatus([], status.app);
     if (appstatus.length) {
       send({
@@ -214,7 +205,6 @@ async function MainPageWS(ctx) {
       selector: '#tag-insertion-point',
       html: tagsTemplate({ tags: tagsToMap(MinkeApp.getTags()) })
     });
-    offline(status.app);
 
     // Remove app from tabs.
     // App has already been removed.
@@ -326,7 +316,7 @@ async function MainPageWS(ctx) {
   });
 
   ctx.websocket.on('close', () => {
-    MinkeApp.getApps().forEach(app => offline(app));
+    Root.off('app.status.update', updateStatus);
     Root.off('app.create', createApp);
     Root.off('app.remove', removeApp);
     Root.off('net.create', updateNetworks);
@@ -338,7 +328,7 @@ async function MainPageWS(ctx) {
     clearInterval(operationalTimer);
   });
 
-  MinkeApp.getApps().forEach(app => online(app));
+  Root.on('app.status.update', updateStatus);
   Root.on('app.create', createApp);
   Root.on('app.remove', removeApp);
   Root.on('net.create', updateNetworks);

@@ -1,4 +1,3 @@
-const Util = require('util');
 const Path = require('path');
 const ChildProcess = require('child_process');
 const Moment = require('moment-timezone');
@@ -1358,7 +1357,7 @@ MinkeApp.prototype = {
     }
     //DEBUG && console.log(`${this._name}/${this._id}: ${this._status} -> ${status}`);
     this._status = status;
-    this.emit('update.status', { app: this, status: status });
+    Root.emit('app.status.update', { app: this, status: status });
   },
 
   isRunning: function() {
@@ -1398,7 +1397,6 @@ MinkeApp.prototype = {
     return minPort + port;
   }
 }
-Util.inherits(MinkeApp, Events);
 
 Object.assign(MinkeApp, {
   _events: new Events(),

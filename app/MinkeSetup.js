@@ -131,7 +131,7 @@ MinkeSetup.prototype = {
 
   stop: async function() {
     this._status = 'shutting down';
-    this.emit('update.status', { app: this, status: this._status });
+    Root.emit('app.status.update', { app: this, status: this._status });
     await MDNS.stop();
     await UPNP.stop();
     await DNS2.stop();
@@ -200,7 +200,7 @@ MinkeSetup.prototype = {
     this._setTimezone();
     this._setUpdateTime();
     await this.save();
-    this.emit('update.status', { app: this, status: this._status });
+    Root.emit('app.status.update', { app: this, status: this._status });
     if (reason) {
       this.systemRestart(reason);
     }
