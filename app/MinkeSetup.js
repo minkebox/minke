@@ -137,6 +137,10 @@ MinkeSetup.prototype = {
     await DNS2.stop();
   },
 
+  updateAll: function() {
+    Updater.updateAll();
+  },
+
   restart: async function(reason) {
     if (this._hostMdns) {
       await MDNS.removeRecord(this._hostMdns);

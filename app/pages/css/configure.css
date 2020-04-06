@@ -354,7 +354,7 @@ html:not(.advanced-mode) .admin-only, html.advanced-mode .user-only {
   border-radius: 4px;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
-.popbox .button-delete-app, .popbox .button-restart, .popbox .button-reboot, .popbox .button-halt, .popbox .button-format, .popbox .button-restore {
+.popbox .button-delete-app, .popbox .button-restart, .popbox .button-update, .popbox .button-reboot, .popbox .button-halt, .popbox .button-format, .popbox .button-restore {
   background: rgb(202, 60, 60); /* this is a maroon */
   color: white;
   border-radius: 4px;

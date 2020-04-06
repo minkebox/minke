@@ -865,6 +865,11 @@ async function ConfigurePageWS(ctx) {
             await app.restart('halt');
           }
           break;
+        case 'app.update':
+          if (app) {
+            app.updateAll();
+          }
+          break;
         case 'app.delete':
           changes = {};
           const tapp = app;

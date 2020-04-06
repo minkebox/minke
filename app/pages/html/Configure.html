@@ -22,9 +22,11 @@
             {{#if ../minkeConfig}}
             {{#if ../help}}<a class="pure-button" onclick="toggleHelp()">Help</a>{{/if}}
             {{#if ../NoSystemControl}}
+            <a class="pure-button admin-only" data-popbox-target="update">Update</a>
             <a class="pure-button admin-only" data-popbox-target="restart">Restart</a>
             <a class="pure-button" data-popbox-target="halt">Shutdown</a>
             {{else}}
+            <a class="pure-button admin-only" data-popbox-target="update">Update</a>
             <a class="pure-button admin-only" data-popbox-target="restart">Restart</a>
             <a class="pure-button" data-popbox-target="reboot">Reboot</a>
             <a class="pure-button" data-popbox-target="halt">Power Off</a>
@@ -195,6 +197,18 @@
         </div>
       </div>
     </div>
+    <div data-popbox-id="update" class="popbox">
+      <div class="popbox_container">
+        <div class="content-header">Update All</div>
+        <div class="content-text">
+          Are you sure you want to update MinkeBox? Updated applications will be restarted.
+        </div>
+        <div class="spacer">
+          <button class="pure-button button-update" data-popbox-close="update">Update</button>
+          <button class="pure-button button-no" data-popbox-close="restart">No</button>
+        </div>
+      </div>
+    </div>
     <div data-popbox-id="restart" class="popbox">
       <div class="popbox_container">
         <div class="content-header">Restart</div>
@@ -253,6 +267,10 @@
         }
         else if (e.detail.source.classList.contains('button-restart')) {
           cmd('app.restart');
+          window.parent.closeInlinePage();
+        }
+        else if (e.detail.source.classList.contains('button-update')) {
+          cmd('app.update');
           window.parent.closeInlinePage();
         }
         else if (e.detail.source.classList.contains('button-reboot')) {

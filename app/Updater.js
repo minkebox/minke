@@ -14,49 +14,7 @@ const Updater = {
 
   start: function() {
     if (!this._tick) {
-      const update = async () => {
-        try {
-          this._tick = setTimeout(update, this._calcTimeToNextUpdate());
-          await this._pruneNetworks();
-          await this._pruneImages();
-          const updated = await this._updateImages();
-
-          let updateMinke = null;
-          const order = Updater._getRestartOrder();
-          for (let i = 0; i < order.length; i++) {
-            const app = order[i];
-            if (updated.indexOf(app) !== -1) {
-              if (app._image !== Images.MINKE) {
-                try {
-                  const skel = await Skeletons.loadSkeleton(app._image, false);
-                  if (skel && skel.type != 'local') {
-                    app.updateFromSkeleton(skel.skeleton, app.toJSON());
-                  }
-                  await app.restart('update');
-                }
-                catch (e) {
-                  console.error(e);
-                }
-              }
-              else {
-                // Leave to the end
-                updateMinke = app;
-              }
-            }
-          }
-
-          if (this._checkNativeUpdates()) {
-            this._getApps().find(app => app._image === Images.MINKE).restart('update-native');
-          }
-          else if (updateMinke) {
-            updateMinke.restart('update');
-          }
-        }
-        catch (e) {
-          console.error(e);
-        }
-      }
-      this._tick = setTimeout(update, this._calcTimeToNextUpdate());
+      this._tick = setTimeout(() => this.updateAll(), this._calcTimeToNextUpdate());
     }
   },
 
@@ -71,6 +29,51 @@ const Updater = {
     this._updateTimeOfDay.hour = typeof config.hour === 'number' ? config.hour : DEFAULT_TIME.hour;
     this._updateTimeOfDay.minute = typeof config.minute === 'number' ? config.minute : DEFAULT_TIME.minute;
     this.stop();
+    this.start();
+  },
+
+  updateAll: async function() {
+    this.stop();
+    try {
+      await this._pruneNetworks();
+      await this._pruneImages();
+      const updated = await this._updateImages();
+
+      let updateMinke = null;
+      const order = Updater._getRestartOrder();
+      for (let i = 0; i < order.length; i++) {
+        const app = order[i];
+        if (updated.indexOf(app) !== -1) {
+          if (app._image !== Images.MINKE) {
+            try {
+              const skel = await Skeletons.loadSkeleton(app._image, false);
+              if (skel && skel.type != 'local') {
+                app.updateFromSkeleton(skel.skeleton, app.toJSON());
+              }
+              await app.restart('update');
+            }
+            catch (e) {
+              console.error(e);
+            }
+          }
+          else {
+            // Leave to the end
+            updateMinke = app;
+          }
+        }
+      }
+
+      if (this._checkNativeUpdates()) {
+        updateMinke = updateMinke || this._getApps().find(app => app._image === Images.MINKE);
+        updateMinke.restart('update-native');
+      }
+      else if (updateMinke) {
+        updateMinke.restart('update');
+      }
+    }
+    catch (e) {
+      console.error(e);
+    }
     this.start();
   },
 
