@@ -251,7 +251,7 @@ async function MainPageWS(ctx) {
     send({
       type: 'html.update',
       selector: '.main .operational',
-      html: `CPU: ${System.getCpuLoad()}%&nbsp;&nbsp;&nbsp;Mem: ${System.getUsedMemory()}%`
+      html: `CPU: ${System.getCpuLoad()}%&nbsp;&nbsp;&nbsp;Memory: ${System.getUsedMemory()}%`
     });
   }, OPERATIONAL_TIMER * 1000);
 
