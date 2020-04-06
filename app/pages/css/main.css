@@ -63,6 +63,13 @@ body {
   border-radius: 3px;
   margin-right: 0.5em;
 }
+.main .operational {
+  font-size: 9px;
+  color: #ccc;
+}
+.main .operational span {
+  padding: 0px 5px;
+}
 
 .app {
   border-left: 12px solid transparent;

@@ -29,6 +29,7 @@
     <div class="pure-g layout">
       <div class="pure-u nav">
         <div class="title" style="font-family:Futura,Trebuchet MS,Arial,sans-serif">MINKE<span style="color:red">BOX</span></div>
+        {{#with operational}}<div class="operational">Load: {{loadavg}}&nbsp;&nbsp;&nbsp;Free mem: {{freemem}}%</div>{{/with}}
         {{#if configName}}<div class="subtitle">{{configName}}</div>{{/if}}
         <button class="pure-button" onclick="openInlinePage('new/application/')">Install App</button>
         <div class="pure-menu">

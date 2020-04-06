@@ -1,10 +1,12 @@
 const FS = require('fs');
+const OS = require('os');
 const Config = require('../Config');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
 
 const NRTAGS = 20;
+const OPERATIONAL_TIMER = 10; // seconds
 
 function _strhash(str) {
   let hash = 5381;
@@ -114,7 +116,18 @@ async function MainPageHTML(ctx) {
   const statuses = MinkeApp.getApps().reduce((acc, app) => genAppStatus(acc, app), []);
   sortAndRenumber(apps, 'tab');
   sortAndRenumber(statuses, 'widget');
-  ctx.body = mainTemplate({ configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME, Advanced: MinkeApp.getAdvancedMode(), tags: tagsToMap(tags), networks: networks, apps: apps, statuses: statuses });
+  ctx.body = mainTemplate({
+    configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME,
+    Advanced: MinkeApp.getAdvancedMode(),
+    operational: {
+      freemem: Math.floor(OS.freemem() / OS.totalmem() * 100),
+      loadavg: OS.loadavg()[0].toFixed(2)
+    },
+    tags: tagsToMap(tags),
+    networks: networks,
+    apps: apps,
+    statuses: statuses
+  });
   ctx.type = 'text/html';
 }
 
@@ -234,6 +247,16 @@ async function MainPageWS(ctx) {
     });
   }
 
+  const operationalTimer = setInterval(() => {
+    const freemem = Math.floor(OS.freemem() / OS.totalmem() * 100);
+    const loadavg = OS.loadavg()[0].toFixed(2);
+    send({
+      type: 'html.update',
+      selector: '.main .operational',
+      html: `Load: ${loadavg}&nbsp;&nbsp;&nbsp;Free mem: ${freemem}%`
+    });
+  }, OPERATIONAL_TIMER * 1000);
+
   ctx.websocket.on('message', async (msg) => {
     try {
       msg = JSON.parse(msg);
@@ -319,6 +342,7 @@ async function MainPageWS(ctx) {
 
   ctx.websocket.on('error', () => {
     ctx.websocket.close();
+    clearInterval(operationalTimer);
   });
 
   MinkeApp.getApps().forEach(app => online(app));
