@@ -967,7 +967,7 @@ MinkeApp.prototype = {
     this._setStatus('stopped');
 
     if (this._willCreateNetwork()) {
-      Root.emit('net.create', { app: this });
+      Root.emit('net.remove', { app: this });
     }
 
     return this;

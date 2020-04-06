@@ -320,18 +320,19 @@ async function MainPageWS(ctx) {
     Root.off('app.create', createApp);
     Root.off('app.remove', removeApp);
     Root.off('net.create', updateNetworks);
+    Root.off('net.remove', updateNetworks);
     Root.off('system.stats', updateOperational);
   });
 
   ctx.websocket.on('error', () => {
     ctx.websocket.close();
-    clearInterval(operationalTimer);
   });
 
   Root.on('app.status.update', updateStatus);
   Root.on('app.create', createApp);
   Root.on('app.remove', removeApp);
   Root.on('net.create', updateNetworks);
+  Root.on('net.remove', updateNetworks);
   Root.on('system.stats', updateOperational);
 }
 
