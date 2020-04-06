@@ -57,6 +57,8 @@ body {
   background: rgb(55, 60, 90);
 }
 .nav .pure-menu-link span {
+  position: relative;
+  top: -1.5px;
   display: inline-block;
   width: 15px;
   height: 15px;
