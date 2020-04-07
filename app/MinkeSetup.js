@@ -130,18 +130,20 @@ MinkeSetup.prototype = {
   },
 
   stop: async function() {
-    this._status = 'shutting down';
-    Root.emit('app.status.update', { app: this, status: this._status });
+    this._setStatus('shutting down');
     await MDNS.stop();
     await UPNP.stop();
     await DNS2.stop();
   },
 
-  updateAll: function() {
-    Updater.updateAll();
+  updateAll: async function() {
+    this._setStatus('updating');
+    await Updater.updateAll();
+    this._setStatus('running');
   },
 
   restart: async function(reason) {
+    this._setStatus('restarting');
     if (this._hostMdns) {
       await MDNS.removeRecord(this._hostMdns);
     }
@@ -206,7 +208,11 @@ MinkeSetup.prototype = {
     await this.save();
     Root.emit('app.status.update', { app: this, status: this._status });
     if (reason) {
+      this._setStatus('restarting');
       this.systemRestart(reason);
+    }
+    else {
+      this._setStatus('running');
     }
   },
 
@@ -284,6 +290,14 @@ MinkeSetup.prototype = {
 
   getTimezone: function() {
     return this._env.TIMEZONE.value;
+  },
+
+  _setStatus: function(status) {
+    if (this._status === status) {
+      return;
+    }
+    this._status = status;
+    Root.emit('app.status.update', { app: this, status: status });
   },
 
   _setTimezone: function() {
