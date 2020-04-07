@@ -58,13 +58,17 @@ body {
 }
 .nav .pure-menu-link span {
   position: relative;
-  top: -1.5px;
+  top: 2px;
   display: inline-block;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border-radius: 3px;
   margin-right: 0.5em;
 }
+.nav .color-tag {
+  padding: .35em 1em;
+}
+
 .main .operational {
   font-size: 9px;
   color: #ccc;
