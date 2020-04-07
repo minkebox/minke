@@ -1,9 +1,8 @@
 const FS = require('fs');
-const EventEmitter = require('events').EventEmitter;
 const Util = require('util');
 const Config = require('./Config');
 const Images = require('./Images');
-const DNS2 = require('./DNS2');
+const DNS = require('./DNS');
 const Network = require('./Network');
 const Database = require('./Database');
 const MDNS = require('./MDNS');
@@ -18,8 +17,6 @@ const RESTART_REASON = `${Config.ROOT}/minke-restart-reason`;
 
 
 function MinkeSetup(savedConfig, config) {
-
-  EventEmitter.call(this);
 
   savedConfig = savedConfig || {};
 
@@ -85,7 +82,7 @@ MinkeSetup.prototype = {
     this._setTimezone();
     this._setUpdateTime();
 
-    DNS2.start({
+    DNS.start({
       hostname: this._name,
       domainname: this.getLocalDomainName(),
       ip: this._env.IPADDRESS.value,
@@ -133,7 +130,7 @@ MinkeSetup.prototype = {
     this._setStatus('shutting down');
     await MDNS.stop();
     await UPNP.stop();
-    await DNS2.stop();
+    await DNS.stop();
   },
 
   updateAll: async function() {
@@ -174,12 +171,12 @@ MinkeSetup.prototype = {
       txt: []
     });
     UPNP.update({ hostname: this._name });
-    DNS2.setHostname(this._name);
-    DNS2.setDefaultResolver(
+    DNS.setHostname(this._name);
+    DNS.setDefaultResolver(
       this._env.DNSSERVER1.value,
       this._env.DNSSERVER2.value
     );
-    DNS2.setDomainName(this.getLocalDomainName());
+    DNS.setDomainName(this.getLocalDomainName());
     Network.setHomeNetwork({
       enable: !this._env.WIFIENABLED.value,
       address: this._env.DHCP.value ? 'dhcp' : this._env.IPADDRESS.value,
@@ -394,7 +391,5 @@ MinkeSetup.prototype = {
   }
 
 }
-
-Util.inherits(MinkeSetup, EventEmitter);
 
 module.exports = MinkeSetup;

@@ -958,19 +958,11 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
   },
 
   addDNSServer: function(app, args) {
-    const resolve = {
-      _id: app._id,
-      name: app._name,
-      IP4Address: app._homeIP,
-      Port: args.port || 53,
-      dnsNetwork: args.dnsNetwork,
-      timeout: args.timeout || 5000
-    };
-    const proxy = resolve.dnsNetwork ?
-      new LocalDNS(resolve.IP4Address, resolve.Port, resolve.timeout) :
-      new GlobalDNS(resolve.IP4Address, resolve.Port, resolve.timeout);
+    const proxy = args.dnsNetwork ?
+      new LocalDNS(app._homeIP, args.port || 53, args.timeout || 5000) :
+      new GlobalDNS(app._homeIP, args.port || 53, args.timeout || 5000);
     this._addDNSProxy(app, proxy, true);
-    return resolve;
+    return { app: app };
   },
 
   _addDNSProxy: function(app, proxy, cache) {
@@ -981,9 +973,9 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     CachingDNS.flush();
   },
 
-  removeDNSServer: function(app) {
+  removeDNSServer: function(dns) {
     for (let i = 0; i < this._proxies.length; i++) {
-      if (this._proxies[i].app === app) {
+      if (this._proxies[i].app === dns.app) {
         this._proxies.splice(i, 1)[0].srv.stop();
         CachingDNS.flush();
         break;

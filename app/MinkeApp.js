@@ -5,7 +5,7 @@ const UUID = require('uuid/v4');
 const JSInterpreter = require('js-interpreter');
 const Config = require('./Config');
 const HTTP = require('./HTTP');
-const DNS2 = require('./DNS2');
+const DNS = require('./DNS');
 const DDNS = require('./DDNS');
 const MDNS = require('./MDNS');
 const Network = require('./Network');
@@ -629,7 +629,7 @@ MinkeApp.prototype = {
         if (this._homeIP) {
           const homeip6 = this.getSLAACAddress();
           Network.registerIP(this._homeIP);
-          DNS2.registerHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
+          DNS.registerHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
         }
 
         // If we need to be accessed remotely, register with DDNS
@@ -702,7 +702,7 @@ MinkeApp.prototype = {
       if (this._homeIP) {
         const dnsport = ports.find(port => port.dns);
         if (dnsport) {
-          this._dns = DNS2.addDNSServer(this, { port: dnsport.port, dnsNetwork: sNetwork === 'dns' });
+          this._dns = DNS.addDNSServer(this, { port: dnsport.port, dnsNetwork: sNetwork === 'dns' });
         }
       }
 
@@ -828,7 +828,7 @@ MinkeApp.prototype = {
     }
 
     if (this._dns) {
-      DNS2.removeDNSServer(this);
+      DNS.removeDNSServer(this._dns);
       this._dns = null;
     }
 
@@ -855,7 +855,7 @@ MinkeApp.prototype = {
     }
 
     if (this._homeIP) {
-      DNS2.unregisterHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`);
+      DNS.unregisterHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`);
       if (this._ddns) {
         DDNS.unregister(this);
       }
@@ -1775,10 +1775,6 @@ MinkeApp.needRestart = function() {
     }
     return acc;
   }, []);
-}
-
-MinkeApp.tabsReordered = function() {
-  DNS2.reorder();
 }
 
 module.exports = MinkeApp;
