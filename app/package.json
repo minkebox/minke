@@ -1,7 +1,14 @@
 {
+  "name": "MinkeBox",
+  "description": "MinkeBox",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/minkebox/minke.git"
+  },
   "dependencies": {
     "@sindresorhus/df": "^3.1.1",
-    "ace-builds": "^1.4.8",
+    "ace-builds": "^1.4.9",
     "base64url": "^3.0.1",
     "chart.js": "^2.9.3",
     "deasync": "^0.1.19",
@@ -10,8 +17,8 @@
     "dns-packet": "^5.2.1",
     "dockerode": "^2.5.8",
     "fast-glob": "^2.2.7",
-    "handlebars": "^4.7.3",
-    "ip-address": "^6.2.0",
+    "handlebars": "^4.7.6",
+    "ip-address": "^6.3.0",
     "js-interpreter": "^2.2.0",
     "koa": "^2.11.0",
     "koa-cache-control": "^2.0.0",
@@ -26,7 +33,7 @@
     "node-ssdp": "^4.0.0",
     "purecss": "^1.0.1",
     "sortablejs": "^1.10.2",
-    "tar-stream": "^2.1.1",
+    "tar-stream": "^2.1.2",
     "uuid": "^3.4.0",
     "ws": "^6.2.1",
     "xml-js": "^1.6.11"
