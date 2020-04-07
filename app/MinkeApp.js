@@ -1355,7 +1355,6 @@ MinkeApp.prototype = {
     if (this._status === status) {
       return;
     }
-    //DEBUG && console.log(`${this._name}/${this._id}: ${this._status} -> ${status}`);
     this._status = status;
     Root.emit('app.status.update', { app: this, status: status });
   },
