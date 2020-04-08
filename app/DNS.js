@@ -1,4 +1,5 @@
 const UDP = require('dgram');
+const Net = require('net');
 const ChildProcess = require('child_process');
 const FS = require('fs');
 const DnsPkt = require('dns-packet');
@@ -879,46 +880,51 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     this.setHostname(config.hostname, config.ip);
     this.setDefaultResolver(config.resolvers[0], config.resolvers[1]);
 
+    const onMessage = async (msgin, rinfo) => {
+      //console.log(msgin, rinfo);
+      const response = {
+        id: 0,
+        type: 'response',
+        flags: 0,
+        questions: [],
+        answers: [],
+        authorities: [],
+        additionals: []
+      };
+      try {
+        if (msgin.length < 2) {
+          throw Error('Bad length');
+        }
+        const request = DnsPkt.decode(msgin);
+        response.id = request.id;
+        response.flags = request.flags;
+        if ((response.flags & DnsPkt.RECURSION_DESIRED) !== 0) {
+          response.flags |= DnsPkt.RECURSION_AVAILABLE;
+        }
+        response.questions = request.questions;
+        DEBUG_QUERY && console.log('request', rinfo, JSON.stringify(request, null, 2));
+        await this.query(request, response, rinfo);
+        // If we got no answers, and no error code set, we set notfound
+        if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
+          response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
+        }
+      }
+      catch (e) {
+        console.error(e);
+        response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
+      }
+      DEBUG_QUERY && console.log('response', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+      return DnsPkt.encode(response);
+    }
+
     await new Promise(resolve => {
       this._udp = UDP.createSocket({
         type: 'udp4',
         reuseAddr: true
       });
       this._udp.on('message', async (msgin, rinfo) => {
-        //console.log(msgin, rinfo);
-        const response = {
-          id: 0,
-          type: 'response',
-          flags: 0,
-          questions: [],
-          answers: [],
-          authorities: [],
-          additionals: []
-        };
-        try {
-          if (msgin.length < 2) {
-            throw Error('Bad length');
-          }
-          const request = DnsPkt.decode(msgin);
-          response.id = request.id;
-          response.flags = request.flags;
-          if ((response.flags & DnsPkt.RECURSION_DESIRED) !== 0) {
-            response.flags |= DnsPkt.RECURSION_AVAILABLE;
-          }
-          response.questions = request.questions;
-          DEBUG_QUERY && console.log('request', rinfo, JSON.stringify(request, null, 2));
-          await this.query(request, response, rinfo);
-          // If we got no answers, and no error code set, we set notfound
-          if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
-            response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
-          }
-        }
-        catch (e) {
-          console.error(e);
-          response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
-        }
-        DEBUG_QUERY && console.log('response', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
-        this._udp.send(DnsPkt.encode(response), rinfo.port, rinfo.address, err => {
+        const msgout = await onMessage(msgin, rinfo);
+        this._udp.send(msgout, rinfo.port, rinfo.address, err => {
           if (err) {
             console.error(err);
           }
@@ -927,6 +933,38 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
       this._udp.on('error', (e) => console.error(e));
       this._udp.bind(config.port, resolve);
     });
+
+    // Super primitive DNS over TCP handler
+    await new Promise(resolve => {
+      this._tcp = Net.createServer((socket) => {
+        socket.on('data', async (buffer) => {
+          try {
+            if (buffer.length >= 2) {
+              const len = buffer.readUInt16BE();
+              if (buffer.length >= 2 + len) {
+                const msgin = buffer.subarray(2, 2 + len);
+                const msgout = await onMessage(msgin, socket.address());
+                const reply = Buffer.alloc(msgout.length + 2);
+                reply.writeUInt16BE(msgout.length, 0);
+                msgout.copy(reply, 2);
+                socket.write(reply);
+              }
+            }
+          }
+          catch (e) {
+            console.error(e);
+          }
+          socket.close();
+        });
+      });
+      this._tcp.on('error', (e) => {
+        // If we fail to open the dns/tcp socket, report and move on.
+        console.error(e);
+        resolve();
+      });
+      this._tcp.listen(config.port, resolve);
+    });
+
     await LocalDNSSingleton.start();
 
     // DNS order determined by app order in the tabs. If that changes we re-order DNS.
@@ -943,6 +981,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
   stop: async function() {
     this._udp.close();
+    this._tcp.close();
     await LocalDNSSingleton.stop();
   },
 
