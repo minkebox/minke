@@ -68,6 +68,11 @@
       defaultValue: `{{EVAL '{{__SECONDARYIP}}'.split('.').slice(0,3).reverse().join('.') + '.in-addr.arpa'}}`
     },
     {
+      type: `Environment`,
+      name: `DNSMASQ_LISTENING`,
+      defaultValue: `all`
+    },
+    {
       type: `Port`,
       name: `443/tcp`,
       port: 443,
