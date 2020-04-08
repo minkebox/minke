@@ -905,7 +905,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
             response.flags |= DnsPkt.RECURSION_AVAILABLE;
           }
           response.questions = request.questions;
-          DEBUG_QUERY && console.log('request', JSON.stringify(request, null, 2));
+          DEBUG_QUERY && console.log('request', rinfo, JSON.stringify(request, null, 2));
           await this.query(request, response, rinfo);
           // If we got no answers, and no error code set, we set notfound
           if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
@@ -916,7 +916,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           console.error(e);
           response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
         }
-        DEBUG_QUERY && console.log('response', JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+        DEBUG_QUERY && console.log('response', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
         this._udp.send(DnsPkt.encode(response), rinfo.port, rinfo.address, err => {
           if (err) {
             console.error(err);
@@ -959,7 +959,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
   addDNSServer: function(app, args) {
     const proxy = args.dnsNetwork ?
-      new LocalDNS(app._homeIP, args.port || 53, args.timeout || 5000) :
+      new LocalDNS(app._secondaryIP, args.port || 53, args.timeout || 5000) :
       new GlobalDNS(app._homeIP, args.port || 53, args.timeout || 5000);
     this._addDNSProxy(app, proxy, true);
     return { app: app };
@@ -1011,7 +1011,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     }
     for (let i = 0; i < this._proxies.length; i++) {
       const proxy = this._proxies[i];
-      DEBUG_QUERY && console.log(`Trying ${proxy._name}`);
+      DEBUG_QUERY && console.log(`Trying ${proxy.app._name}`);
       if (await proxy.srv.query(request, response, rinfo)) {
         DEBUG_QUERY && console.log('Found');
         if (proxy.cache) {
