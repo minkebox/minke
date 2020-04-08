@@ -16,10 +16,10 @@ const Images = require('./Images');
 const Updater = require('./Updater');
 const Disks = require('./Disks');
 const UPNP = require('./UPNP');
+const System = require('./System');
 const Skeletons = require('./Skeletons');
 const ConfigBackup = require('./ConfigBackup');
 const Events = require('./utils/Events');
-const System = require('./utils/System');
 
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
 
@@ -32,8 +32,6 @@ let koaApp = null;
 let setup = null;
 
 function MinkeApp() {
-  //EventEmitter.call(this);
-  //this._setupUpdateListeners();
   Events.call(this);
 }
 
