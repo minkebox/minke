@@ -796,8 +796,9 @@ const LocalDNSSingleton = {
 //
 // LocalDNS proxies DNS servers on the DNS network.
 //
-const LocalDNS = function(resolve, port, timeout) {
-  this._address = resolve;
+const LocalDNS = function(addresses, port, timeout) {
+  this._address = addresses[0];
+  this._addresses = addresses
   this._port = port;
   this._timeout = timeout;
 }
@@ -812,7 +813,7 @@ LocalDNS.prototype = {
 
   query: async function(request, response, rinfo) {
     // Dont send a query back to a server it came from.
-    if (rinfo.address === this._address) {
+    if (this._addresses.indexOf(rinfo.address) !== -1) {
       return false;
     }
     return await LocalDNSSingleton.query(request, response, rinfo, this);
@@ -959,7 +960,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
   addDNSServer: function(app, args) {
     const proxy = args.dnsNetwork ?
-      new LocalDNS(app._secondaryIP, args.port || 53, args.timeout || 5000) :
+      new LocalDNS([ app._secondaryIP, app._homeIP ], args.port || 53, args.timeout || 5000) :
       new GlobalDNS(app._homeIP, args.port || 53, args.timeout || 5000);
     this._addDNSProxy(app, proxy, true);
     return { app: app };
