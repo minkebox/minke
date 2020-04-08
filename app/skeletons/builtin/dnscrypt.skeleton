@@ -14,7 +14,7 @@
     },
     {
       type: `Header`,
-      title: `Configuration`
+      title: `Configure`
     },
     {
       type: `Text`,
