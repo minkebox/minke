@@ -10,7 +10,7 @@
   actions: [
     {
       type: `Text`,
-      text: `DNSCrypt is a protocol that authenticates communications between a DNS client and a DNS resolver. It prevents DNS spoofing. It uses cryptographic signatures to verify that responses originate from the chosen DNS resolver and haven’t been tampered with.`
+      text: `DNSCrypt is a protocol that authenticates communications between a MinkeBox and a global DNS resolver. It prevents DNS spoofing. It uses cryptographic signatures to verify that responses originate from the chosen DNS resolver and haven’t been tampered with.`
     },
     {
       type: `Header`,
@@ -18,18 +18,21 @@
     },
     {
       type: `Text`,
-      text: `Provide a primary and optional secondary secure DNS server.
-Servers can be specified using either <a href="https://dnscrypt.info/public-servers">sdns://</a> URLs or <a href="https://en.wikipedia.org/wiki/DNS_over_HTTPS">https://</a> URLs.`
+      text: `Provide a primary and optional secondary secure DNS server.<p/>
+Servers can be specified using either <a href="https://dnscrypt.info/public-servers">sdns://</a> URLs or <a href="https://en.wikipedia.org/wiki/DNS_over_HTTPS">https://</a> URLs.<p/>
+https:// is used for DNS-over-HTTPS. A hostname in these URLs can contain only a single period (.) otherwise an IP address should be used.`
     },
     {
       type: `EditEnvironment`,
       name: `SERVER1`,
-      description: `Primary server`
+      description: `Primary URL`,
+      validate: `^(sdns://[a-zA-Z0-0+/]+|https://([a-zA-Z][a-zA-Z0-9]*.[a-zA-Z][a-zA-z0-9]*|[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)(:[0-9]+|)/.*)$`
     },
     {
       type: `EditEnvironment`,
       name: `SERVER2`,
-      description: `Secondary server`
+      description: `Secondary URL`,
+      validate: `^(sdns://[a-zA-Z0-0+/]+|https://([a-zA-Z][a-zA-Z0-9]*.[a-zA-Z][a-zA-z0-9]*|[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)(:[0-9]+|)/.*)$`
     }
   ],
   properties: [
@@ -41,7 +44,7 @@ Servers can be specified using either <a href="https://dnscrypt.info/public-serv
     {
       type: `Environment`,
       name: `SERVER1`,
-      defaultValue: `https://1.1.1.1/dns-query`
+      defaultValue: `https://cloudflare-dns.com/dns-query`
     },
     {
       type: `Environment`,
