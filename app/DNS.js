@@ -582,31 +582,38 @@ const LocalDNSSingleton = {
   _forwardCache: {},
   _backwardCache: {},
   _pending: {},
-  _available: [],
 
   start: async function() {
-    this._bits = 24;
+    const home = await Network.getHomeNetwork();
+    const homecidr = home.info.IPAM.Config[0].Subnet.split('/');
+    this._bits = parseInt(homecidr[1]);
+
     this._dev = DNS_NETWORK;
     this._network = await Network.getDNSNetwork();
 
     const cidr = this._network.info.IPAM.Config[0].Subnet.split('/');
     const base = cidr[0].split('.');
     const basebits = parseInt(cidr[1]);
-    let start = 1;
-    let end = 254;
-    // Assuming we get a /16, we allocate a full /24 for our dns mapping
-    if (basebits === 16) {
-      this._base = `${base[0]}.${base[1]}.250`;
+
+    // We need one more bit in the DNS network compared to the HOME network for simple mapping to be possible.
+    if (basebits < this._bits) {
+      // Simple mapping using mask
+      this._mask = [ 0, 0, 0, 0 ];
+      for (let i = this._bits; i < 32; i++) {
+        this._mask[Math.floor(i / 8)] |= 128 >> (i % 8);
+      }
+      this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), parseInt(base[3]) ];
+      this._base[Math.floor(basebits / 8)] |= 128 >> (basebits % 8);
     }
-    // Otherwise we just use the high-end of it as Docker wont use that in preference.
     else {
-      this._base = `${base[0]}.${base[1]}.${base[2]}`;
-      start = 32;
+      // Complex mapping using available
+      this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), 0 ];
+      this._available = [];
     }
 
     const state = Object.assign({ map: [], dnsBase: '' }, (await Database.getConfig('localdns')));
     // Setup store entries as long as we're using the same dns network range.
-    if (state.dnsBase === this._base) {
+    if (state.dnsBase === JSON.stringify(this._base)) {
       for (let i = 0; i < state.map.length; i++) {
         const newEntry = {
           socket: null,
@@ -619,10 +626,12 @@ const LocalDNSSingleton = {
       }
     }
 
-    for (let i = end; i >= start; i--) {
-      const dnsAddress = `${this._base}.${i}`;
-      if (!this._backwardCache[dnsAddress]) {
-        this._available.push(dnsAddress);
+    if (this._available) {
+      for (let i = 254; i >= 32; i--) {
+        const dnsAddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${i}`;
+        if (!this._backwardCache[dnsAddress]) {
+          this._available.push(dnsAddress);
+        }
       }
     }
   },
@@ -630,7 +639,7 @@ const LocalDNSSingleton = {
   stop: async function() {
     const state = {
       _id: 'localdns',
-      dnsBase: this._base,
+      dnsBase: JSON.stringify(this._base),
       map: [],
     };
     for (let address in this._forwardCache) {
@@ -641,9 +650,16 @@ const LocalDNSSingleton = {
 
   _allocAddress: function(address) {
     const now = Date.now();
-    // Attempt to find a usable address where the last bit matches ... just to make it easier to debug.
+
     const saddress = address.split('.');
-    let daddress = `${this._base}.${saddress[3]}`;
+    let daddress;
+    if (this._mask) {
+      daddress = `${this._base[0] | (this._mask[0] & saddress[0])}.${this._base[1] | (this._mask[1] & saddress[1])}.${this._base[2] | (this._mask[2] & saddress[2])}.${this._base[3] | (this._mask[3] & saddress[3])}`;
+    }
+    else {
+      daddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${saddress[3]}`;
+    }
+
     const matchEntry = this._backwardCache[daddress];
     if (matchEntry && now > matchEntry.lastUsed + this._TIMEOUT) {
       // Found an entry. We can use as it's expired.
@@ -656,20 +672,26 @@ const LocalDNSSingleton = {
       matchEntry.dnsAddress = daddress;
       return matchEntry;
     }
-    // Now see if we can just sneak the address from those available.
-    const idx = this._available.indexOf(daddress);
-    if (idx !== -1) {
-      this._available.splice(idx, 1);
+
+    // For complex allocation, we need to allocate a address which we try to make a close match
+    // but failing that will allocate something.
+    if (this._available) {
+      // Now see if we can just sneak the address from those available.
+      const idx = this._available.indexOf(daddress);
+      if (idx !== -1) {
+        this._available.splice(idx, 1);
+      }
+      // But if not, we just get the next available
+      else {
+        daddress = this._available.shift();
+      }
+      if (this._available.length < this._qLowWater && !this._qPrune) {
+        this._qPrune = setTimeout(() => {
+          this._pruneAddresses();
+        }, 0);
+      }
     }
-    // But if not, we just get the next available
-    else {
-      daddress = this._available.shift();
-    }
-    if (this._available.length < this._qLowWater && !this._qPrune) {
-      this._qPrune = setTimeout(() => {
-        this._pruneAddresses();
-      }, 0);
-    }
+
     const newEntry = {
       socket: null,
       lastUse: now,
