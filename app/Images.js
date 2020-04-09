@@ -6,12 +6,14 @@ module.exports = {
   MINKE_HELPER: `${Config.REGISTRY_HOST}/minkebox/minke-helper`,
   MINKE_UPDATER: `${Config.REGISTRY_HOST}/minkebox/minke-updater`,
 
+  _overrides: Config.REGISTRY_TAG_OVERRIDES || {},
+
   withTag: function (name) {
-    if (name.indexOf(':') === -1) {
-      return `${name}:${Config.REGISTRY_DEFAULT_TAG}`;
+    if (name.indexOf(':') !== -1) {
+      return name;
     }
     else {
-      return name;
+      return `${name}:${this._overrides[name] || Config.REGISTRY_DEFAULT_TAG}`;
     }
   }
 };
