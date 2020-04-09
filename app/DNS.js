@@ -513,12 +513,7 @@ GlobalDNS.prototype = {
             return;
           }
           const id = message.readUInt16BE(0);
-          const pending = this._pending[id];
-          if (pending) {
-            delete this._pending[id];
-            clearTimeout(pending.timeout);
-            pending.callback(message);
-          }
+          this._pending[id] && this._pending[id](message);
         });
         resolve();
       });
@@ -547,30 +542,30 @@ GlobalDNS.prototype = {
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
-        this._pending[request.id] = {
-          callback: (message) => {
+        const timeout = setTimeout(() => {
+          if (this._pending[request.id]) {
+            this._pending[request.id](null);
+          }
+        }, this._timeout);
+        this._pending[request.id] = (message) => {
+          delete this._pending[request.id];
+          clearTimeout(timeout);
+          if (message) {
             const pkt = DnsPkt.decode(message);
             if (pkt.rcode === 'NOERROR') {
               response.flags = pkt.flags;
               response.answers = pkt.answers;
               response.additionals = pkt.additionals;
               response.authorities = pkt.authorities;
-              resolve(true);
+              return resolve(true);
             }
-            else {
-              resolve(false);
-            }
-          },
-          timeout: setTimeout(() => {
-            if (this._pending[request.id]) {
-              delete this._pending[request.id];
-              resolve(false);
-            }
-          }, this._timeout)
+          }
+          resolve(false);
         };
         this._socket.send(DnsPkt.encode(request), this._port, this._address);
       }
       catch (e) {
+        delete this._pending[request.id];
         reject(e);
       }
     });
@@ -736,12 +731,7 @@ const LocalDNSSingleton = {
             return;
           }
           const id = message.readUInt16BE(0);
-          const pending = this._pending[id];
-          if (pending && pending.port === port && pending.address === address) {
-            delete this._pending[id];
-            clearTimeout(pending.timeout);
-            pending.callback(message);
-          }
+          this._pending[id] && this._pending[id](message);
         });
         resolve(entry.socket);
       });
@@ -754,32 +744,30 @@ const LocalDNSSingleton = {
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
-        this._pending[request.id] = {
-          port: tinfo._port,
-          address: tinfo._address,
-          callback: (message) => {
+        const timeout = setTimeout(() => {
+          if (this._pending[request.id]) {
+            this._pending[request.id](null);
+          }
+        }, tinfo._timeout)
+        this._pending[request.id] = (message) => {
+          delete this._pending[request.id];
+          clearTimeout(timeout);
+          if (message) {
             const pkt = DnsPkt.decode(message);
             if (pkt.rcode === 'NOERROR') {
               response.flags = pkt.flags;
               response.answers = pkt.answers;
               response.additionals = pkt.additionals;
               response.authorities = pkt.authorities;
-              resolve(true);
+              return resolve(true);
             }
-            else {
-              resolve(false);
-            }
-          },
-          timeout: setTimeout(() => {
-            if (this._pending[request.id]) {
-              delete this._pending[request.id];
-              resolve(false);
-            }
-          }, tinfo._timeout)
+          }
+          resolve(false);
         };
         this.getSocket(rinfo).then(socket => socket.send(DnsPkt.encode(request), tinfo._port, tinfo._address));
       }
       catch (e) {
+        delete this._pending[request.id];
         reject(e);
       }
     });
