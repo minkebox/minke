@@ -352,7 +352,7 @@ MinkeSetup.prototype = {
           const vols = Object.keys(maps).map(dest => `--mount type=bind,source=${e(maps[dest].src)},target=${e(dest)},bind-propagation=${maps[dest].propagation}`).join(' ');
           const net = await Network.getHomeNetwork();
           const info = await MinkeApp._container.inspect();
-          const cmdline = `-d --name ${e(info.Name || 'minke')} --privileged -e TZ=${this._env.TIMEZONE.value} --network=${e(net.id)} --ip=${this._env.IPADDRESS.value} ${vols} ${Images.MINKE}`;
+          const cmdline = `-d --name ${e(info.Name || 'minke')} --privileged -e TZ=${this._env.TIMEZONE.value} --network=${e(net.id)} --ip=${this._env.IPADDRESS.value} ${vols} ${Images.withTag(Images.MINKE)}`;
           const id = MinkeApp._container.id.substring(0, 12);
           docker.run(
             img,

@@ -67,4 +67,4 @@ docker run -d --name minke --privileged \
   ${EXTRA_VOL} \
   --network=home \
   --ip=${IP} \
-  ${MINKEBOX} > /dev/null
+  ${MINKEBOX}:dev > /dev/null

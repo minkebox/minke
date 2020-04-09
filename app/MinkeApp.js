@@ -1480,7 +1480,7 @@ MinkeApp.startApps = async function(app, config) {
 
   // Find ourself
   (await docker.listContainers({})).forEach((container) => {
-    if (container.Image.endsWith('/minke')) {
+    if (container.Image === Images.MINKE || container.Image === Images.withTag(Images.MINKE)) {
       MinkeApp._container = docker.getContainer(container.Id);
     }
   });
