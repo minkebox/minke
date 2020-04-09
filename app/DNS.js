@@ -192,6 +192,7 @@ const CachingDNS = {
 
   _defaultTTL: 600, // 10 minutes
   _maxTTL: 3600, // 1 hour
+  _defaultNegTTL: 30, // 30 seconds
   _qHighWater: 1000,
   _qLowWater: 900,
 
@@ -255,20 +256,20 @@ const CachingDNS = {
       case 'A':
       case 'AAAA':
       case 'CNAME':
-        // Need SOA information to set the TTL of the negative cache entry
+        // Need SOA information to set the TTL of the negative cache entry. If we don't
+        // have it we'll use a default (which should be quite short).
         const soa = this._findSOA(question.name);
-        if (soa) {
-          const name = question.name.toLowerCase();
-          const R = this._cache[question.type][name] || (this._cache[question.type][name] = {});
-          const expires = Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (soa.data.minimum || this._defaultTTL)));
-          if (R.negative) {
-            R.negative.expires = expires;
-          }
-          else {
-            const rec = { key: 'negative', name: question.name, type: question.type, expires: expires };
-            R.negative = rec;
-            this._q.push(rec);
-          }
+        const ttl = Math.min(this._maxTTL, (soa && soa.data.minimum ? soa.data.minimum : this._defaultNegTTL));
+        const name = question.name.toLowerCase();
+        const R = this._cache[question.type][name] || (this._cache[question.type][name] = {});
+        const expires = Math.floor(Date.now() / 1000 + ttl);
+        if (R.negative) {
+          R.negative.expires = expires;
+        }
+        else {
+          const rec = { key: 'negative', name: question.name, type: question.type, expires: expires };
+          R.negative = rec;
+          this._q.push(rec);
         }
         break;
       default:
