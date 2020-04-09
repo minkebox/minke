@@ -1561,7 +1561,6 @@ MinkeApp.startApps = async function(app, config) {
     host: MinkeApp._network.network.ip_address,
     port: config.port || 80
   });
-  //server.keepAliveTimeout = 0;
 
   // Save current config
   await ConfigBackup.save();
@@ -1586,8 +1585,34 @@ MinkeApp.startApps = async function(app, config) {
       }
       inherit.secondary.push(docker.getContainer(running[sidx].Id));
     }
-    // We can only inherit under specific circumstances
-    if (config.inherit && ((inherit.container && inherit.helperContainer) || (inherit.container && app._networks.primary === 'host')) && inherit.secondary.length === app._secondary.length && await app._updateIfBuiltin() === false) {
+
+    // If we want to inherit, make sure everything is still alive
+    let alive = config.inherit;
+    async function isAlive(container) {
+      if (alive && container && !(await container.inspect()).State.Running) {
+        alive = false;
+      }
+    }
+    await isAlive(inherit.container);
+    await isAlive(inherit.helperContainer);
+    await Promise.all(inherit.secondary.map(async secondary => await isAlive(secondary)));
+
+    // We need a helper unless we're using the host network
+    if (app._networks.primary !== 'host' && !inherit.helperContainer) {
+      alive = false;
+    }
+
+    // Make sure we have all the secondaries
+    if (inherit.secondary.length !== app._secondary.length) {
+      alive = false;
+    }
+
+    // Check if we need to update the app.
+    if (await app._updateIfBuiltin()) {
+      alive = false;
+    }
+
+    if (alive) {
       console.log(`Inheriting ${app._name}`);
       inheritables[app._id] = inherit;
     }

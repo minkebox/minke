@@ -331,6 +331,10 @@ MinkeSetup.prototype = {
     }
   },
 
+  _updateIfBuiltin: async function() {
+    return false;
+  },
+
   systemRestart: async function(reason) {
     try {
       FS.writeFileSync(RESTART_REASON, reason);
