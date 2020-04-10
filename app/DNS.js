@@ -988,7 +988,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           catch (e) {
             console.error(e);
           }
-          socket.close();
+          socket.end();
         });
       });
       this._tcp.on('error', (e) => {
