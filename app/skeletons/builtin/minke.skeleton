@@ -132,12 +132,14 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
     {
       type: 'EditEnvironment',
       name: 'DNSSERVER1',
-      description: 'Primary DNS Server'
+      description: 'Primary DNS Server',
+      initValue: `1.1.1.1`
     },
     {
       type: 'EditEnvironment',
       name: 'DNSSERVER2',
-      description: 'Secondary DNS Server'
+      description: 'Secondary DNS Server',
+      initValue: `1.0.0.1`
     },
     {
       type: 'Header',
