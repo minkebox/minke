@@ -929,20 +929,36 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     }
 
     await new Promise(resolve => {
-      this._udp = UDP.createSocket({
-        type: 'udp4',
-        reuseAddr: true
-      });
-      this._udp.on('message', async (msgin, rinfo) => {
-        const msgout = await onMessage(msgin, rinfo);
-        this._udp.send(msgout, rinfo.port, rinfo.address, err => {
-          if (err) {
-            console.error(err);
-          }
+      const run = (callback) => {
+        this._udp = UDP.createSocket({
+          type: 'udp4',
+          reuseAddr: true
         });
-      });
-      this._udp.on('error', (e) => console.error(e));
-      this._udp.bind(config.port, resolve);
+        this._udp.on('message', async (msgin, rinfo) => {
+          const msgout = await onMessage(msgin, rinfo);
+          this._udp.send(msgout, rinfo.port, rinfo.address, err => {
+            if (err) {
+              console.error(err);
+            }
+          });
+        });
+        this._udp.on('error', (e) => {
+          console.log('DNS socket error - reopening');
+          console.error(e);
+          try {
+            this._udp.close();
+            this._udp = null;
+          }
+          catch (_) {
+          }
+          // Wait a moment before reopening
+          setTimeout(() => {
+            run(() => {});
+          }, 1000);
+        });
+        this._udp.bind(config.port, callback);
+      }
+      run(resolve);
     });
 
     // Super primitive DNS over TCP handler
