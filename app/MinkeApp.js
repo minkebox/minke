@@ -1545,7 +1545,7 @@ MinkeApp.startApps = async function(app, config) {
     WIFIENABLED: false,
     WIFINAME: '',
     WIFIPASSWORD: '',
-    DNSSERVER1: '1.1.1.1',
+    DNSSERVER1: '',
     DNSSERVER2: '',
     DNSSECURE: '',
     TIMEZONE: Moment.tz.guess(),
