@@ -1,4 +1,5 @@
 const UDP = require('dgram');
+const Net = require('net');
 const ChildProcess = require('child_process');
 const FS = require('fs');
 const DnsPkt = require('dns-packet');
@@ -191,6 +192,7 @@ const CachingDNS = {
 
   _defaultTTL: 600, // 10 minutes
   _maxTTL: 3600, // 1 hour
+  _defaultNegTTL: 30, // 30 seconds
   _qHighWater: 1000,
   _qLowWater: 900,
 
@@ -254,20 +256,20 @@ const CachingDNS = {
       case 'A':
       case 'AAAA':
       case 'CNAME':
-        // Need SOA information to set the TTL of the negative cache entry
+        // Need SOA information to set the TTL of the negative cache entry. If we don't
+        // have it we'll use a default (which should be quite short).
         const soa = this._findSOA(question.name);
-        if (soa) {
-          const name = question.name.toLowerCase();
-          const R = this._cache[question.type][name] || (this._cache[question.type][name] = {});
-          const expires = Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (soa.data.minimum || this._defaultTTL)));
-          if (R.negative) {
-            R.negative.expires = expires;
-          }
-          else {
-            const rec = { key: 'negative', name: question.name, type: question.type, expires: expires };
-            R.negative = rec;
-            this._q.push(rec);
-          }
+        const ttl = Math.min(this._maxTTL, (soa && soa.data.minimum ? soa.data.minimum : this._defaultNegTTL));
+        const name = question.name.toLowerCase();
+        const R = this._cache[question.type][name] || (this._cache[question.type][name] = {});
+        const expires = Math.floor(Date.now() / 1000 + ttl);
+        if (R.negative) {
+          R.negative.expires = expires;
+        }
+        else {
+          const rec = { key: 'negative', name: question.name, type: question.type, expires: expires };
+          R.negative = rec;
+          this._q.push(rec);
         }
         break;
       default:
@@ -512,12 +514,7 @@ GlobalDNS.prototype = {
             return;
           }
           const id = message.readUInt16BE(0);
-          const pending = this._pending[id];
-          if (pending) {
-            delete this._pending[id];
-            clearTimeout(pending.timeout);
-            pending.callback(message);
-          }
+          this._pending[id] && this._pending[id](message);
         });
         resolve();
       });
@@ -546,30 +543,30 @@ GlobalDNS.prototype = {
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
-        this._pending[request.id] = {
-          callback: (message) => {
+        const timeout = setTimeout(() => {
+          if (this._pending[request.id]) {
+            this._pending[request.id](null);
+          }
+        }, this._timeout);
+        this._pending[request.id] = (message) => {
+          delete this._pending[request.id];
+          clearTimeout(timeout);
+          if (message) {
             const pkt = DnsPkt.decode(message);
             if (pkt.rcode === 'NOERROR') {
               response.flags = pkt.flags;
               response.answers = pkt.answers;
               response.additionals = pkt.additionals;
               response.authorities = pkt.authorities;
-              resolve(true);
+              return resolve(true);
             }
-            else {
-              resolve(false);
-            }
-          },
-          timeout: setTimeout(() => {
-            if (this._pending[request.id]) {
-              delete this._pending[request.id];
-              resolve(false);
-            }
-          }, this._timeout)
+          }
+          resolve(false);
         };
         this._socket.send(DnsPkt.encode(request), this._port, this._address);
       }
       catch (e) {
+        delete this._pending[request.id];
         reject(e);
       }
     });
@@ -585,31 +582,38 @@ const LocalDNSSingleton = {
   _forwardCache: {},
   _backwardCache: {},
   _pending: {},
-  _available: [],
 
   start: async function() {
-    this._bits = 24;
+    const home = await Network.getHomeNetwork();
+    const homecidr = home.info.IPAM.Config[0].Subnet.split('/');
+    this._bits = parseInt(homecidr[1]);
+
     this._dev = DNS_NETWORK;
     this._network = await Network.getDNSNetwork();
 
     const cidr = this._network.info.IPAM.Config[0].Subnet.split('/');
     const base = cidr[0].split('.');
     const basebits = parseInt(cidr[1]);
-    let start = 1;
-    let end = 254;
-    // Assuming we get a /16, we allocate a full /24 for our dns mapping
-    if (basebits === 16) {
-      this._base = `${base[0]}.${base[1]}.250`;
+
+    // We need one more bit in the DNS network compared to the HOME network for simple mapping to be possible.
+    if (basebits < this._bits) {
+      // Simple mapping using mask
+      this._mask = [ 0, 0, 0, 0 ];
+      for (let i = this._bits; i < 32; i++) {
+        this._mask[Math.floor(i / 8)] |= 128 >> (i % 8);
+      }
+      this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), parseInt(base[3]) ];
+      this._base[Math.floor(basebits / 8)] |= 128 >> (basebits % 8);
     }
-    // Otherwise we just use the high-end of it as Docker wont use that in preference.
     else {
-      this._base = `${base[0]}.${base[1]}.${base[2]}`;
-      start = 32;
+      // Complex mapping using available
+      this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), 0 ];
+      this._available = [];
     }
 
     const state = Object.assign({ map: [], dnsBase: '' }, (await Database.getConfig('localdns')));
     // Setup store entries as long as we're using the same dns network range.
-    if (state.dnsBase === this._base) {
+    if (state.dnsBase === JSON.stringify(this._base)) {
       for (let i = 0; i < state.map.length; i++) {
         const newEntry = {
           socket: null,
@@ -622,10 +626,12 @@ const LocalDNSSingleton = {
       }
     }
 
-    for (let i = end; i >= start; i--) {
-      const dnsAddress = `${this._base}.${i}`;
-      if (!this._backwardCache[dnsAddress]) {
-        this._available.push(dnsAddress);
+    if (this._available) {
+      for (let i = 254; i >= 32; i--) {
+        const dnsAddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${i}`;
+        if (!this._backwardCache[dnsAddress]) {
+          this._available.push(dnsAddress);
+        }
       }
     }
   },
@@ -633,7 +639,7 @@ const LocalDNSSingleton = {
   stop: async function() {
     const state = {
       _id: 'localdns',
-      dnsBase: this._base,
+      dnsBase: JSON.stringify(this._base),
       map: [],
     };
     for (let address in this._forwardCache) {
@@ -644,9 +650,16 @@ const LocalDNSSingleton = {
 
   _allocAddress: function(address) {
     const now = Date.now();
-    // Attempt to find a usable address where the last bit matches ... just to make it easier to debug.
+
     const saddress = address.split('.');
-    let daddress = `${this._base}.${saddress[3]}`;
+    let daddress;
+    if (this._mask) {
+      daddress = `${this._base[0] | (this._mask[0] & saddress[0])}.${this._base[1] | (this._mask[1] & saddress[1])}.${this._base[2] | (this._mask[2] & saddress[2])}.${this._base[3] | (this._mask[3] & saddress[3])}`;
+    }
+    else {
+      daddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${saddress[3]}`;
+    }
+
     const matchEntry = this._backwardCache[daddress];
     if (matchEntry && now > matchEntry.lastUsed + this._TIMEOUT) {
       // Found an entry. We can use as it's expired.
@@ -659,20 +672,26 @@ const LocalDNSSingleton = {
       matchEntry.dnsAddress = daddress;
       return matchEntry;
     }
-    // Now see if we can just sneak the address from those available.
-    const idx = this._available.indexOf(daddress);
-    if (idx !== -1) {
-      this._available.splice(idx, 1);
+
+    // For complex allocation, we need to allocate a address which we try to make a close match
+    // but failing that will allocate something.
+    if (this._available) {
+      // Now see if we can just sneak the address from those available.
+      const idx = this._available.indexOf(daddress);
+      if (idx !== -1) {
+        this._available.splice(idx, 1);
+      }
+      // But if not, we just get the next available
+      else {
+        daddress = this._available.shift();
+      }
+      if (this._available.length < this._qLowWater && !this._qPrune) {
+        this._qPrune = setTimeout(() => {
+          this._pruneAddresses();
+        }, 0);
+      }
     }
-    // But if not, we just get the next available
-    else {
-      daddress = this._available.shift();
-    }
-    if (this._available.length < this._qLowWater && !this._qPrune) {
-      this._qPrune = setTimeout(() => {
-        this._pruneAddresses();
-      }, 0);
-    }
+
     const newEntry = {
       socket: null,
       lastUse: now,
@@ -735,12 +754,7 @@ const LocalDNSSingleton = {
             return;
           }
           const id = message.readUInt16BE(0);
-          const pending = this._pending[id];
-          if (pending && pending.port === port && pending.address === address) {
-            delete this._pending[id];
-            clearTimeout(pending.timeout);
-            pending.callback(message);
-          }
+          this._pending[id] && this._pending[id](message);
         });
         resolve(entry.socket);
       });
@@ -753,32 +767,30 @@ const LocalDNSSingleton = {
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
-        this._pending[request.id] = {
-          port: tinfo._port,
-          address: tinfo._address,
-          callback: (message) => {
+        const timeout = setTimeout(() => {
+          if (this._pending[request.id]) {
+            this._pending[request.id](null);
+          }
+        }, tinfo._timeout)
+        this._pending[request.id] = (message) => {
+          delete this._pending[request.id];
+          clearTimeout(timeout);
+          if (message) {
             const pkt = DnsPkt.decode(message);
             if (pkt.rcode === 'NOERROR') {
               response.flags = pkt.flags;
               response.answers = pkt.answers;
               response.additionals = pkt.additionals;
               response.authorities = pkt.authorities;
-              resolve(true);
+              return resolve(true);
             }
-            else {
-              resolve(false);
-            }
-          },
-          timeout: setTimeout(() => {
-            if (this._pending[request.id]) {
-              delete this._pending[request.id];
-              resolve(false);
-            }
-          }, tinfo._timeout)
+          }
+          resolve(false);
         };
         this.getSocket(rinfo).then(socket => socket.send(DnsPkt.encode(request), tinfo._port, tinfo._address));
       }
       catch (e) {
+        delete this._pending[request.id];
         reject(e);
       }
     });
@@ -879,54 +891,107 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     this.setHostname(config.hostname, config.ip);
     this.setDefaultResolver(config.resolvers[0], config.resolvers[1]);
 
+    const onMessage = async (msgin, rinfo) => {
+      //console.log(msgin, rinfo);
+      const response = {
+        id: 0,
+        type: 'response',
+        flags: 0,
+        questions: [],
+        answers: [],
+        authorities: [],
+        additionals: []
+      };
+      try {
+        if (msgin.length < 2) {
+          throw Error('Bad length');
+        }
+        const request = DnsPkt.decode(msgin);
+        response.id = request.id;
+        response.flags = request.flags;
+        if ((response.flags & DnsPkt.RECURSION_DESIRED) !== 0) {
+          response.flags |= DnsPkt.RECURSION_AVAILABLE;
+        }
+        response.questions = request.questions;
+        DEBUG_QUERY && console.log('request', rinfo, JSON.stringify(request, null, 2));
+        await this.query(request, response, rinfo);
+        // If we got no answers, and no error code set, we set notfound
+        if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
+          response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
+        }
+      }
+      catch (e) {
+        console.error(e);
+        response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
+      }
+      DEBUG_QUERY && console.log('response', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+      return DnsPkt.encode(response);
+    }
+
     await new Promise(resolve => {
-      this._udp = UDP.createSocket({
-        type: 'udp4',
-        reuseAddr: true
-      });
-      this._udp.on('message', async (msgin, rinfo) => {
-        //console.log(msgin, rinfo);
-        const response = {
-          id: 0,
-          type: 'response',
-          flags: 0,
-          questions: [],
-          answers: [],
-          authorities: [],
-          additionals: []
-        };
-        try {
-          if (msgin.length < 2) {
-            throw Error('Bad length');
-          }
-          const request = DnsPkt.decode(msgin);
-          response.id = request.id;
-          response.flags = request.flags;
-          if ((response.flags & DnsPkt.RECURSION_DESIRED) !== 0) {
-            response.flags |= DnsPkt.RECURSION_AVAILABLE;
-          }
-          response.questions = request.questions;
-          DEBUG_QUERY && console.log('request', rinfo, JSON.stringify(request, null, 2));
-          await this.query(request, response, rinfo);
-          // If we got no answers, and no error code set, we set notfound
-          if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
-            response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
-          }
-        }
-        catch (e) {
+      const run = (callback) => {
+        this._udp = UDP.createSocket({
+          type: 'udp4',
+          reuseAddr: true
+        });
+        this._udp.on('message', async (msgin, rinfo) => {
+          const msgout = await onMessage(msgin, rinfo);
+          this._udp.send(msgout, rinfo.port, rinfo.address, err => {
+            if (err) {
+              console.error(err);
+            }
+          });
+        });
+        this._udp.on('error', (e) => {
+          console.log('DNS socket error - reopening');
           console.error(e);
-          response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
-        }
-        DEBUG_QUERY && console.log('response', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
-        this._udp.send(DnsPkt.encode(response), rinfo.port, rinfo.address, err => {
-          if (err) {
-            console.error(err);
+          try {
+            this._udp.close();
+            this._udp = null;
           }
+          catch (_) {
+          }
+          // Wait a moment before reopening
+          setTimeout(() => {
+            run(() => {});
+          }, 1000);
+        });
+        this._udp.bind(config.port, callback);
+      }
+      run(resolve);
+    });
+
+    // Super primitive DNS over TCP handler
+    await new Promise(resolve => {
+      this._tcp = Net.createServer((socket) => {
+        socket.on('data', async (buffer) => {
+          try {
+            if (buffer.length >= 2) {
+              const len = buffer.readUInt16BE();
+              if (buffer.length >= 2 + len) {
+                const msgin = buffer.subarray(2, 2 + len);
+                const msgout = await onMessage(msgin, socket.address());
+                const reply = Buffer.alloc(msgout.length + 2);
+                reply.writeUInt16BE(msgout.length, 0);
+                msgout.copy(reply, 2);
+                socket.write(reply);
+              }
+            }
+          }
+          catch (e) {
+            console.error(e);
+          }
+          socket.close();
         });
       });
-      this._udp.on('error', (e) => console.error(e));
-      this._udp.bind(config.port, resolve);
+      this._tcp.on('error', (e) => {
+        // If we fail to open the dns/tcp socket, report and move on.
+        console.error(e);
+        resolve();
+      });
+      this._tcp.listen(config.port, resolve);
     });
+
     await LocalDNSSingleton.start();
 
     // DNS order determined by app order in the tabs. If that changes we re-order DNS.
@@ -943,6 +1008,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
   stop: async function() {
     this._udp.close();
+    this._tcp.close();
     await LocalDNSSingleton.stop();
   },
 

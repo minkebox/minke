@@ -6,9 +6,5 @@ module.exports = {
   REGISTRY_DEFAULT_TAG: 'latest',
   DDNS_UPDATE: 'https://ddns.minkebox.net/update',
   GLOBALDOMAIN: '.minkebox.net',
-  DEFAULT_FALLBACK_RESOLVER: '1.1.1.1',
-  DOH_SERVER_NAME: 'doh.minkebox.net',
-  DOH_SERVER_PORT: 443,
-  DOH_SERVER_PATH: '/',
-  DOH_SERVER_CERT: 'doh-minkebox-net.pem'
+  DEFAULT_FALLBACK_RESOLVER: '1.1.1.1'
 };
