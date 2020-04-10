@@ -93,19 +93,16 @@ which is given the recovery address of <b>192.168.1.200</b>.
     },
     {
       type: 'Text',
-      text: 'IPv6 application support. Changes will not take effect until you reboot.',
-      visible: `!property.NoSystemControl`
+      text: 'IPv6 application support. Changes will not take effect until you reboot.'
     },
     {
       type: 'EditEnvironmentAsCheckbox',
       name: 'IP6',
-      description: 'IPv6 enabled',
-      visible: `!property.NoSystemControl`
+      description: 'IPv6 enabled'
     },
     {
       type: 'Text',
-      text: '',
-      visible: `!property.NoSystemControl`
+      text: ''
     },
     {
       type: 'Text',
