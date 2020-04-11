@@ -208,6 +208,10 @@ const CachingDNS = {
   },
 
   add: function(response) {
+    // Dont cache truncated response
+    if ((response.flags & DnsPkt.TRUNCATED_RESPONSE) !== 0) {
+      return;
+    }
     response.authorities.forEach(authority => this._addSOA(authority));
     response.answers.forEach(answer => this._addAnswer(answer));
     response.additionals.forEach(answer => this._addAnswer(answer));
@@ -526,11 +530,62 @@ GlobalDNS.prototype = {
     this._socket.close();
   },
 
+  getSocket: function(rinfo) {
+    if (rinfo.tcp) {
+      return (request, callback) => {
+        const message = DnsPkt.encode(request);
+        const msgout = Buffer.alloc(message.length + 2);
+        msgout.writeUInt16BE(message.length);
+        message.copy(msgout, 2);
+        let timeout = setTimeout(() => {
+          if (timeout) {
+            callback(null);
+          }
+        }, this._timeout);
+        const socket = Net.createConnection(this._port, this._address, () => {
+          socket.on('data', (buffer) => {
+            if (buffer.length >= 2) {
+              const len = buffer.readUInt16BE();
+              if (timeout && buffer.length >= 2 + len) {
+                clearTimeout(timeout);
+                timeout = null;
+                callback(DnsPkt.decode(buffer.subarray(2, 2 + len)));
+              }
+            }
+            socket.end();
+          });
+          socket.write(msgout);
+        });
+      }
+    }
+    else {
+      return (request, callback) => {
+        while (this._pending[request.id]) {
+          request.id = Math.floor(Math.random() * 65536);
+        }
+        const id = request.id;
+        const timeout = setTimeout(() => {
+          if (this._pending[id]) {
+            delete this._pending[id];
+            callback(null);
+          }
+        }, this._timeout);
+        this._pending[id] = (message) => {
+          clearTimeout(timeout);
+          delete this._pending[id];
+          callback(DnsPkt.decode(message));
+        };
+        this._socket.send(DnsPkt.encode(request), this._port, this._address);
+      }
+    }
+  },
+
   query: async function(request, response, rinfo) {
     // Dont send a query back to a server it came from.
     if (rinfo.address === this._address) {
       return false;
     }
+
     // Check we're not trying to looking up local addresses globally
     if (this._global && request.questions[0].type === 'A' || request.questions[0].type === 'AAAA') {
       const name = request.questions[0].name.split('.');
@@ -539,37 +594,21 @@ GlobalDNS.prototype = {
         return false;
       }
     }
+
     return new Promise((resolve, reject) => {
-      let id = 'none';
       try {
-        while (this._pending[request.id]) {
-          request.id = Math.floor(Math.random() * 65536);
-        }
-        id = request.id;
-        const timeout = setTimeout(() => {
-          if (this._pending[id]) {
-            this._pending[id](null);
-          }
-        }, this._timeout);
-        this._pending[id] = (message) => {
-          delete this._pending[id];
-          clearTimeout(timeout);
-          if (message) {
-            const pkt = DnsPkt.decode(message);
-            if (pkt.rcode === 'NOERROR') {
-              response.flags = pkt.flags;
-              response.answers = pkt.answers;
-              response.additionals = pkt.additionals;
-              response.authorities = pkt.authorities;
-              return resolve(true);
-            }
+        this.getSocket(rinfo)(request, (pkt) => {
+          if (pkt && pkt.rcode === 'NOERROR') {
+            response.flags = pkt.flags;
+            response.answers = pkt.answers;
+            response.additionals = pkt.additionals;
+            response.authorities = pkt.authorities;
+            return resolve(true);
           }
           resolve(false);
-        };
-        this._socket.send(DnsPkt.encode(request), this._port, this._address);
+        });
       }
       catch (e) {
-        delete this._pending[id];
         reject(e);
       }
     });
@@ -740,62 +779,95 @@ const LocalDNSSingleton = {
     this._qPrune = null;
   },
 
-  getSocket: async function(rinfo) {
-    const entry = this._forwardCache[rinfo.address] || this._allocAddress(rinfo.address);
-    if (entry.socket) {
-      entry.lastUse = Date.now();
-      return entry.socket;
-    }
-    return new Promise((resolve, reject) => {
-      entry.socket = UDP.createSocket('udp4');
-      this._bindInterface(entry.dnsAddress);
-      entry.socket.bind(0, entry.dnsAddress);
-      entry.socket.once('error', () => reject(new Error()));
-      entry.socket.once('listening', () => {
-        entry.socket.on('message', (message, { port, address }) => {
-          if (message.length < 2) {
-            return;
+  getSocket: async function(rinfo, tinfo) {
+    if (rinfo.tcp) {
+      return (request, callback) => {
+        const message = DnsPkt.encode(request);
+        const msgout = Buffer.alloc(message.length + 2);
+        msgout.writeUInt16BE(message.length);
+        message.copy(msgout, 2);
+        let timeout = setTimeout(() => {
+          if (timeout) {
+            callback(null);
           }
-          const id = message.readUInt16BE(0);
-          this._pending[id] && this._pending[id](message);
+        }, tinfo._timeout);
+        const socket = Net.createConnection(tinfo._port, tinfo._address, () => {
+          socket.on('data', (buffer) => {
+            if (buffer.length >= 2) {
+              const len = buffer.readUInt16BE();
+              if (timeout && buffer.length >= 2 + len) {
+                clearTimeout(timeout);
+                timeout = null;
+                const pkt = DnsPkt.decode(buffer.subarray(2, 2 + len));
+                callback(pkt);
+              }
+            }
+            socket.end();
+          });
+          socket.write(msgout);
         });
-        resolve(entry.socket);
+      }
+    }
+    else {
+      const socket = await new Promise((resolve, reject) => {
+        const entry = this._forwardCache[rinfo.address] || this._allocAddress(rinfo.address);
+        if (entry.socket) {
+          entry.lastUse = Date.now();
+          resolve(entry.socket);
+        }
+        else {
+          entry.socket = UDP.createSocket('udp4');
+          this._bindInterface(entry.dnsAddress);
+          entry.socket.bind(0, entry.dnsAddress);
+          entry.socket.once('error', () => reject(new Error()));
+          entry.socket.once('listening', () => {
+            entry.socket.on('message', (message, { port, address }) => {
+              if (message.length < 2) {
+                return;
+              }
+              const id = message.readUInt16BE(0);
+              this._pending[id] && this._pending[id](message);
+            });
+            resolve(entry.socket);
+          });
+        }
       });
-    });
-  },
-
-  query: async function(request, response, rinfo, tinfo) {
-    return new Promise((resolve, reject) => {
-      let id = 'none';
-      try {
+      return (request, callback) => {
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
-        id = request.id;
+        const id = request.id;
         const timeout = setTimeout(() => {
           if (this._pending[id]) {
-            this._pending[id](null);
+            delete this._pending[id];
+            callback(null);
           }
-        }, tinfo._timeout)
+        }, tinfo._timeout);
         this._pending[id] = (message) => {
-          delete this._pending[id];
           clearTimeout(timeout);
-          if (message) {
-            const pkt = DnsPkt.decode(message);
-            if (pkt.rcode === 'NOERROR') {
-              response.flags = pkt.flags;
-              response.answers = pkt.answers;
-              response.additionals = pkt.additionals;
-              response.authorities = pkt.authorities;
-              return resolve(true);
-            }
+          delete this._pending[id];
+          callback(DnsPkt.decode(message));
+        };
+        socket.send(DnsPkt.encode(request), tinfo._port, tinfo._address);
+      }
+    }
+  },
+
+  query: async function(request, response, rinfo, tinfo) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        (await this.getSocket(rinfo, tinfo))(request, (pkt) => {
+          if (pkt && pkt.rcode === 'NOERROR') {
+            response.flags = pkt.flags;
+            response.answers = pkt.answers;
+            response.additionals = pkt.additionals;
+            response.authorities = pkt.authorities;
+            return resolve(true);
           }
           resolve(false);
-        };
-        this.getSocket(rinfo).then(socket => socket.send(DnsPkt.encode(request), tinfo._port, tinfo._address));
+        });
       }
       catch (e) {
-        delete this._pending[id];
         reject(e);
       }
     });
@@ -931,7 +1003,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         console.error(e);
         response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
       }
-      DEBUG_QUERY && console.log('response', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+      DEBUG_QUERY && console.log('response', rinfo.tcp ? 'tcp' : 'udp', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
       return DnsPkt.encode(response);
     }
 
@@ -942,7 +1014,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           reuseAddr: true
         });
         this._udp.on('message', async (msgin, rinfo) => {
-          const msgout = await onMessage(msgin, rinfo);
+          const msgout = await onMessage(msgin, { tcp: false, address: rinfo.address, port: rinfo.address });
           this._udp.send(msgout, rinfo.port, rinfo.address, err => {
             if (err) {
               console.error(err);
@@ -977,7 +1049,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
               const len = buffer.readUInt16BE();
               if (buffer.length >= 2 + len) {
                 const msgin = buffer.subarray(2, 2 + len);
-                const msgout = await onMessage(msgin, socket.address());
+                const msgout = await onMessage(msgin, { tcp: true, address: socket.remoteAddress, port: socket.remotePort });
                 const reply = Buffer.alloc(msgout.length + 2);
                 reply.writeUInt16BE(msgout.length, 0);
                 msgout.copy(reply, 2);
