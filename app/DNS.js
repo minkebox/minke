@@ -1026,7 +1026,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
       }
       DEBUG_QUERY && console.log('response', rinfo.tcp ? 'tcp' : 'udp', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
-      DEBUG_QUERY_TIMING && console.log(`Query time ${response.questions[0].name} ${Date.now() - start}ms`);
+      DEBUG_QUERY_TIMING && console.log(`Query time ${Date.now() - start}ms: ${response.questions[0].name} ${response.questions[0].type}`);
       return DnsPkt.encode(response);
     }
 
@@ -1240,7 +1240,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         const start = DEBUG_QUERY_TIMING && Date.now();
         proxy.srv.query(Object.assign({}, request), presponse, rinfo).then(success => {
           DEBUG_QUERY && console.log(`Reply ${this._proxies[idx].app._name}`, success);
-          DEBUG_QUERY_TIMING && console.log(`Query time ${this._proxies[idx].app._name} ${Date.now() - start}ms`);
+          DEBUG_QUERY_TIMING && console.log(`Query time ${Date.now() - start}ms ${this._proxies[idx].app._name}: ${question.name} ${question.type}`);
           if (!replied) {
             done[idx] = success ? presponse : 'fail';
             for (let k = 0; k < this._proxies.length; k++) {
