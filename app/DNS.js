@@ -539,10 +539,20 @@ GlobalDNS.prototype = {
         message.copy(msgout, 2);
         let timeout = setTimeout(() => {
           if (timeout) {
+            timeout = null;
             callback(null);
           }
         }, this._timeout);
         const socket = Net.createConnection(this._port, this._address, () => {
+          socket.on('error', (e) => {
+            console.error(e);
+            if (timeout) {
+              clearTimeout(timeout);
+              timeout = null;
+              callback(null);
+            }
+            socket.end();
+          });
           socket.on('data', (buffer) => {
             if (buffer.length >= 2) {
               const len = buffer.readUInt16BE();
@@ -788,10 +798,20 @@ const LocalDNSSingleton = {
         message.copy(msgout, 2);
         let timeout = setTimeout(() => {
           if (timeout) {
+            timeout = null;
             callback(null);
           }
         }, tinfo._timeout);
         const socket = Net.createConnection(tinfo._port, tinfo._address, () => {
+          socket.on('error', (e) => {
+            console.error(e);
+            if (timeout) {
+              clearTimeout(timeout);
+              timeout = null;
+              callback(null);
+            }
+            socket.end();
+          });
           socket.on('data', (buffer) => {
             if (buffer.length >= 2) {
               const len = buffer.readUInt16BE();
@@ -1043,6 +1063,10 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     // Super primitive DNS over TCP handler
     await new Promise(resolve => {
       this._tcp = Net.createServer((socket) => {
+        socket.on('error', (e) => {
+          console.error(e);
+          socket.end();
+        });
         socket.on('data', async (buffer) => {
           try {
             if (buffer.length >= 2) {
@@ -1199,7 +1223,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
       let replied = false;
       for(; i < this._proxies.length; i++) {
         const proxy = this._proxies[i];
-        DEBUG_QUERY && console.log(`Trying remote ${proxy.app._name}`);
+        DEBUG_QUERY && console.log(`Trying ${proxy.app._name}`);
         const presponse = {
           id: response.id,
           type: response.type,
