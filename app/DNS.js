@@ -18,6 +18,7 @@ const GLOBAL2 = { _name: 'global2', _position: { tab: Number.MAX_SAFE_INTEGER } 
 
 const PARALLEL_QUERY = 1;
 const DEBUG_QUERY = 0;
+const DEBUG_QUERY_TIMING = 1;
 
 //
 // PrivateDNS provides mappings for locally hosted services.
@@ -551,7 +552,7 @@ GlobalDNS.prototype = {
               timeout = null;
               callback(null);
             }
-            socket.end();
+            socket.destroy();
           });
           socket.on('data', (buffer) => {
             if (buffer.length >= 2) {
@@ -810,7 +811,7 @@ const LocalDNSSingleton = {
               timeout = null;
               callback(null);
             }
-            socket.end();
+            socket.destroy();
           });
           socket.on('data', (buffer) => {
             if (buffer.length >= 2) {
@@ -992,6 +993,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
     const onMessage = async (msgin, rinfo) => {
       //console.log(msgin, rinfo);
+      const start = DEBUG_QUERY_TIMING && Date.now();
       const response = {
         id: 0,
         type: 'response',
@@ -1024,6 +1026,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
       }
       DEBUG_QUERY && console.log('response', rinfo.tcp ? 'tcp' : 'udp', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+      DEBUG_QUERY_TIMING && console.log(`Query time ${response.questions[0].name} ${Date.now() - start}ms`);
       return DnsPkt.encode(response);
     }
 
@@ -1065,7 +1068,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
       this._tcp = Net.createServer((socket) => {
         socket.on('error', (e) => {
           console.error(e);
-          socket.end();
+          socket.destroy();
         });
         socket.on('data', async (buffer) => {
           try {
@@ -1234,8 +1237,10 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           additionals: []
         };
         const idx = i;
+        const start = DEBUG_QUERY_TIMING && Date.now();
         proxy.srv.query(Object.assign({}, request), presponse, rinfo).then(success => {
           DEBUG_QUERY && console.log(`Reply ${this._proxies[idx].app._name}`, success);
+          DEBUG_QUERY_TIMING && console.log(`Query time ${this._proxies[idx].app._name} ${Date.now() - start}ms`);
           if (!replied) {
             done[idx] = success ? presponse : 'fail';
             for (let k = 0; k < this._proxies.length; k++) {
