@@ -18,6 +18,12 @@ const RESTART_REASON = `${Config.ROOT}/minke-restart-reason`;
 
 function MinkeSetup(savedConfig, config) {
 
+  if (savedConfig) {
+    this._bootcount = 1;
+  }
+  else {
+    this._bootcount = 0;
+  }
   savedConfig = savedConfig || {};
 
   function getEnv(name) {
@@ -141,6 +147,7 @@ MinkeSetup.prototype = {
 
   restart: async function(reason) {
     this._setStatus('restarting');
+    this._bootcount = 1;
     if (this._hostMdns) {
       await MDNS.removeRecord(this._hostMdns);
     }

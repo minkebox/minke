@@ -16,6 +16,7 @@ const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(
 const GLOBAL1 = { _name: 'global1', _position: { tab: Number.MAX_SAFE_INTEGER - 1 } };
 const GLOBAL2 = { _name: 'global2', _position: { tab: Number.MAX_SAFE_INTEGER } };
 
+const PARALLEL_QUERY = 1;
 const DEBUG_QUERY = 0;
 
 //
@@ -207,6 +208,10 @@ const CachingDNS = {
   },
 
   add: function(response) {
+    // Dont cache truncated response
+    if ((response.flags & DnsPkt.TRUNCATED_RESPONSE) !== 0) {
+      return;
+    }
     response.authorities.forEach(authority => this._addSOA(authority));
     response.answers.forEach(answer => this._addAnswer(answer));
     response.additionals.forEach(answer => this._addAnswer(answer));
@@ -525,11 +530,62 @@ GlobalDNS.prototype = {
     this._socket.close();
   },
 
+  getSocket: function(rinfo) {
+    if (rinfo.tcp) {
+      return (request, callback) => {
+        const message = DnsPkt.encode(request);
+        const msgout = Buffer.alloc(message.length + 2);
+        msgout.writeUInt16BE(message.length);
+        message.copy(msgout, 2);
+        let timeout = setTimeout(() => {
+          if (timeout) {
+            callback(null);
+          }
+        }, this._timeout);
+        const socket = Net.createConnection(this._port, this._address, () => {
+          socket.on('data', (buffer) => {
+            if (buffer.length >= 2) {
+              const len = buffer.readUInt16BE();
+              if (timeout && buffer.length >= 2 + len) {
+                clearTimeout(timeout);
+                timeout = null;
+                callback(DnsPkt.decode(buffer.subarray(2, 2 + len)));
+              }
+            }
+            socket.end();
+          });
+          socket.write(msgout);
+        });
+      }
+    }
+    else {
+      return (request, callback) => {
+        while (this._pending[request.id]) {
+          request.id = Math.floor(Math.random() * 65536);
+        }
+        const id = request.id;
+        const timeout = setTimeout(() => {
+          if (this._pending[id]) {
+            delete this._pending[id];
+            callback(null);
+          }
+        }, this._timeout);
+        this._pending[id] = (message) => {
+          clearTimeout(timeout);
+          delete this._pending[id];
+          callback(DnsPkt.decode(message));
+        };
+        this._socket.send(DnsPkt.encode(request), this._port, this._address);
+      }
+    }
+  },
+
   query: async function(request, response, rinfo) {
     // Dont send a query back to a server it came from.
     if (rinfo.address === this._address) {
       return false;
     }
+
     // Check we're not trying to looking up local addresses globally
     if (this._global && request.questions[0].type === 'A' || request.questions[0].type === 'AAAA') {
       const name = request.questions[0].name.split('.');
@@ -538,35 +594,21 @@ GlobalDNS.prototype = {
         return false;
       }
     }
+
     return new Promise((resolve, reject) => {
       try {
-        while (this._pending[request.id]) {
-          request.id = Math.floor(Math.random() * 65536);
-        }
-        const timeout = setTimeout(() => {
-          if (this._pending[request.id]) {
-            this._pending[request.id](null);
-          }
-        }, this._timeout);
-        this._pending[request.id] = (message) => {
-          delete this._pending[request.id];
-          clearTimeout(timeout);
-          if (message) {
-            const pkt = DnsPkt.decode(message);
-            if (pkt.rcode === 'NOERROR') {
-              response.flags = pkt.flags;
-              response.answers = pkt.answers;
-              response.additionals = pkt.additionals;
-              response.authorities = pkt.authorities;
-              return resolve(true);
-            }
+        this.getSocket(rinfo)(request, (pkt) => {
+          if (pkt && pkt.rcode === 'NOERROR') {
+            response.flags = pkt.flags;
+            response.answers = pkt.answers;
+            response.additionals = pkt.additionals;
+            response.authorities = pkt.authorities;
+            return resolve(true);
           }
           resolve(false);
-        };
-        this._socket.send(DnsPkt.encode(request), this._port, this._address);
+        });
       }
       catch (e) {
-        delete this._pending[request.id];
         reject(e);
       }
     });
@@ -737,60 +779,95 @@ const LocalDNSSingleton = {
     this._qPrune = null;
   },
 
-  getSocket: async function(rinfo) {
-    const entry = this._forwardCache[rinfo.address] || this._allocAddress(rinfo.address);
-    if (entry.socket) {
-      entry.lastUse = Date.now();
-      return entry.socket;
-    }
-    return new Promise((resolve, reject) => {
-      entry.socket = UDP.createSocket('udp4');
-      this._bindInterface(entry.dnsAddress);
-      entry.socket.bind(0, entry.dnsAddress);
-      entry.socket.once('error', () => reject(new Error()));
-      entry.socket.once('listening', () => {
-        entry.socket.on('message', (message, { port, address }) => {
-          if (message.length < 2) {
-            return;
+  getSocket: async function(rinfo, tinfo) {
+    if (rinfo.tcp) {
+      return (request, callback) => {
+        const message = DnsPkt.encode(request);
+        const msgout = Buffer.alloc(message.length + 2);
+        msgout.writeUInt16BE(message.length);
+        message.copy(msgout, 2);
+        let timeout = setTimeout(() => {
+          if (timeout) {
+            callback(null);
           }
-          const id = message.readUInt16BE(0);
-          this._pending[id] && this._pending[id](message);
+        }, tinfo._timeout);
+        const socket = Net.createConnection(tinfo._port, tinfo._address, () => {
+          socket.on('data', (buffer) => {
+            if (buffer.length >= 2) {
+              const len = buffer.readUInt16BE();
+              if (timeout && buffer.length >= 2 + len) {
+                clearTimeout(timeout);
+                timeout = null;
+                const pkt = DnsPkt.decode(buffer.subarray(2, 2 + len));
+                callback(pkt);
+              }
+            }
+            socket.end();
+          });
+          socket.write(msgout);
         });
-        resolve(entry.socket);
+      }
+    }
+    else {
+      const socket = await new Promise((resolve, reject) => {
+        const entry = this._forwardCache[rinfo.address] || this._allocAddress(rinfo.address);
+        if (entry.socket) {
+          entry.lastUse = Date.now();
+          resolve(entry.socket);
+        }
+        else {
+          entry.socket = UDP.createSocket('udp4');
+          this._bindInterface(entry.dnsAddress);
+          entry.socket.bind(0, entry.dnsAddress);
+          entry.socket.once('error', () => reject(new Error()));
+          entry.socket.once('listening', () => {
+            entry.socket.on('message', (message, { port, address }) => {
+              if (message.length < 2) {
+                return;
+              }
+              const id = message.readUInt16BE(0);
+              this._pending[id] && this._pending[id](message);
+            });
+            resolve(entry.socket);
+          });
+        }
       });
-    });
-  },
-
-  query: async function(request, response, rinfo, tinfo) {
-    return new Promise((resolve, reject) => {
-      try {
+      return (request, callback) => {
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
+        const id = request.id;
         const timeout = setTimeout(() => {
-          if (this._pending[request.id]) {
-            this._pending[request.id](null);
+          if (this._pending[id]) {
+            delete this._pending[id];
+            callback(null);
           }
-        }, tinfo._timeout)
-        this._pending[request.id] = (message) => {
-          delete this._pending[request.id];
+        }, tinfo._timeout);
+        this._pending[id] = (message) => {
           clearTimeout(timeout);
-          if (message) {
-            const pkt = DnsPkt.decode(message);
-            if (pkt.rcode === 'NOERROR') {
-              response.flags = pkt.flags;
-              response.answers = pkt.answers;
-              response.additionals = pkt.additionals;
-              response.authorities = pkt.authorities;
-              return resolve(true);
-            }
+          delete this._pending[id];
+          callback(DnsPkt.decode(message));
+        };
+        socket.send(DnsPkt.encode(request), tinfo._port, tinfo._address);
+      }
+    }
+  },
+
+  query: async function(request, response, rinfo, tinfo) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        (await this.getSocket(rinfo, tinfo))(request, (pkt) => {
+          if (pkt && pkt.rcode === 'NOERROR') {
+            response.flags = pkt.flags;
+            response.answers = pkt.answers;
+            response.additionals = pkt.additionals;
+            response.authorities = pkt.authorities;
+            return resolve(true);
           }
           resolve(false);
-        };
-        this.getSocket(rinfo).then(socket => socket.send(DnsPkt.encode(request), tinfo._port, tinfo._address));
+        });
       }
       catch (e) {
-        delete this._pending[request.id];
         reject(e);
       }
     });
@@ -880,16 +957,18 @@ const MapDNS = {
 const DNS = { // { app: app, srv: proxy, cache: cache }
 
   _proxies: [
-    { app: { _name: 'private', _position: { tab: -9 } }, srv: PrivateDNS,   cache: false },
-    { app: { _name: 'mdns',    _position: { tab: -8 } }, srv: MulticastDNS, cache: false },
-    { app: { _name: 'map',     _position: { tab: -7 } }, srv: MapDNS,       cache: false },
-    { app: { _name: 'cache',   _position: { tab: -6 } }, srv: CachingDNS,   cache: false }
+    { app: { _name: 'private', _position: { tab: -9 } }, srv: PrivateDNS,   cache: false, local: true },
+    { app: { _name: 'mdns',    _position: { tab: -8 } }, srv: MulticastDNS, cache: false, local: true },
+    { app: { _name: 'map',     _position: { tab: -7 } }, srv: MapDNS,       cache: false, local: true },
+    { app: { _name: 'cache',   _position: { tab: -6 } }, srv: CachingDNS,   cache: false, local: true }
   ],
 
   start: async function(config) {
     this.setDomainName(config.domainname);
     this.setHostname(config.hostname, config.ip);
     this.setDefaultResolver(config.resolvers[0], config.resolvers[1]);
+
+    this.query = PARALLEL_QUERY ? this.pquery : this.squery;
 
     const onMessage = async (msgin, rinfo) => {
       //console.log(msgin, rinfo);
@@ -924,7 +1003,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         console.error(e);
         response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
       }
-      DEBUG_QUERY && console.log('response', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+      DEBUG_QUERY && console.log('response', rinfo.tcp ? 'tcp' : 'udp', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
       return DnsPkt.encode(response);
     }
 
@@ -935,7 +1014,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           reuseAddr: true
         });
         this._udp.on('message', async (msgin, rinfo) => {
-          const msgout = await onMessage(msgin, rinfo);
+          const msgout = await onMessage(msgin, { tcp: false, address: rinfo.address, port: rinfo.address });
           this._udp.send(msgout, rinfo.port, rinfo.address, err => {
             if (err) {
               console.error(err);
@@ -970,7 +1049,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
               const len = buffer.readUInt16BE();
               if (buffer.length >= 2 + len) {
                 const msgin = buffer.subarray(2, 2 + len);
-                const msgout = await onMessage(msgin, socket.address());
+                const msgout = await onMessage(msgin, { tcp: true, address: socket.remoteAddress, port: socket.remotePort });
                 const reply = Buffer.alloc(msgout.length + 2);
                 reply.writeUInt16BE(msgout.length, 0);
                 msgout.copy(reply, 2);
@@ -981,7 +1060,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           catch (e) {
             console.error(e);
           }
-          socket.close();
+          socket.end();
         });
       });
       this._tcp.on('error', (e) => {
@@ -1013,14 +1092,13 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
   },
 
   setDefaultResolver: function(resolver1, resolver2) {
-    this.removeDNSServer(GLOBAL1);
-    this.removeDNSServer(GLOBAL2);
+    this.removeDNSServer({ app: GLOBAL1 });
+    this.removeDNSServer({ app: GLOBAL2 });
     if (resolver1) {
-      this._addDNSProxy(GLOBAL1, new GlobalDNS(resolver1, 53, 5000), Number.MAX_SAFE_INTEGER - 1, true);
-
+      this._addDNSProxy(GLOBAL1, new GlobalDNS(resolver1, 53, 5000), true, false);
     }
     if (resolver2) {
-      this._addDNSProxy(GLOBAL2, new GlobalDNS(resolver2, 53, 5000), Number.MAX_SAFE_INTEGER, true);
+      this._addDNSProxy(GLOBAL2, new GlobalDNS(resolver2, 53, 5000), true, false);
     }
   },
 
@@ -1028,13 +1106,13 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     const proxy = args.dnsNetwork ?
       new LocalDNS([ app._secondaryIP, app._homeIP ], args.port || 53, args.timeout || 5000) :
       new GlobalDNS(app._homeIP, args.port || 53, args.timeout || 5000);
-    this._addDNSProxy(app, proxy, true);
+    this._addDNSProxy(app, proxy, true, false);
     return { app: app };
   },
 
-  _addDNSProxy: function(app, proxy, cache) {
+  _addDNSProxy: function(app, proxy, cache, local) {
     proxy.start().then(() => {
-      this._proxies.push({ app: app, srv: proxy, cache: cache });
+      this._proxies.push({ app: app, srv: proxy, cache: cache, local: local });
       this._proxies.sort((a, b) => a.app._position.tab - b.app._position.tab);
     });
     CachingDNS.flush();
@@ -1071,7 +1149,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     PrivateDNS.unregisterHost(localname);
   },
 
-  query: async function(request, response, rinfo) {
+  squery: async function(request, response, rinfo) {
     const question = request.questions[0];
     if (!question) {
       throw new Error('Missing question');
@@ -1093,6 +1171,77 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     }
     response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
     return false;
+  },
+
+  pquery: async function(request, response, rinfo) {
+    const question = request.questions[0];
+    if (!question) {
+      throw new Error('Missing question');
+    }
+    const done = [];
+    let i = 0;
+    for (; i < this._proxies.length; i++) {
+      const proxy = this._proxies[i];
+      if (!proxy.local) {
+        break;
+      }
+      DEBUG_QUERY && console.log(`Trying local ${proxy.app._name}`);
+      if (await proxy.srv.query(request, response, rinfo)) {
+        DEBUG_QUERY && console.log('Found');
+        if (proxy.cache) {
+          CachingDNS.add(response);
+        }
+        return true;
+      }
+      done[i] = 'fail';
+    }
+    const vresponse = await new Promise(resolve => {
+      let replied = false;
+      for(; i < this._proxies.length; i++) {
+        const proxy = this._proxies[i];
+        DEBUG_QUERY && console.log(`Trying remote ${proxy.app._name}`);
+        const presponse = {
+          id: response.id,
+          type: response.type,
+          flags: response.flags,
+          questions: response.questions,
+          answers: [],
+          authorities: [],
+          additionals: []
+        };
+        const idx = i;
+        proxy.srv.query(Object.assign({}, request), presponse, rinfo).then(success => {
+          DEBUG_QUERY && console.log(`Reply ${this._proxies[idx].app._name}`, success);
+          if (!replied) {
+            done[idx] = success ? presponse : 'fail';
+            for (let k = 0; k < this._proxies.length; k++) {
+              if (!done[k]) {
+                // Query pending before we find an answer - need to wait for it to complete
+                return;
+              }
+              else if (done[k] !== 'fail') {
+                // Found an answer after earlier queries failed, go with this.
+                replied = true;
+                DEBUG_QUERY && console.log(`Success ${this._proxies[idx].app._name}`);
+                if (this._proxies[k].cache) {
+                  CachingDNS.add(done[k]);
+                }
+                return resolve(done[k]);
+              }
+            }
+            // Everything failed
+            replied = true;
+            DEBUG_QUERY && console.log('Not found');
+            return resolve(null);
+          }
+        });
+      }
+    });
+    if (!vresponse) {
+      return false;
+    }
+    Object.assign(response, vresponse);
+    return true;
   }
 
 };
