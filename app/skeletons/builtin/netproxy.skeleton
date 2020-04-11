@@ -80,7 +80,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `none`
+      defaultValue: `home`
     },
     {
       type: `Network`,
