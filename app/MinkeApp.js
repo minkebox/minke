@@ -331,7 +331,6 @@ MinkeApp.prototype = {
       }
 
       this._bootcount++;
-      this._needRestart = false;
 
       inherit = inherit || {};
 
@@ -1663,16 +1662,6 @@ MinkeApp.startApps = async function(app, config) {
       console.error(e);
     }
   }
-
-  // Restart any apps which have been marked
-  await Promise.all(MinkeApp.needRestart().map(async (app) => {
-    try {
-      await app.restart();
-    }
-    catch (e) {
-      console.error(e);
-    }
-  }));
 }
 
 MinkeApp.getStartupOrder = function() {
@@ -1789,15 +1778,6 @@ MinkeApp.getTags = function() {
   });
   tags.sort((a, b) => a.localeCompare(b));
   return [ 'All' ].concat(tags);
-}
-
-MinkeApp.needRestart = function() {
-  return applications.reduce((acc, app) => {
-    if (app._needRestart) {
-      acc.push(app);
-    }
-    return acc;
-  }, []);
 }
 
 module.exports = MinkeApp;

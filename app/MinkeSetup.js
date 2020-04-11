@@ -201,12 +201,6 @@ MinkeSetup.prototype = {
       netmask: this._env.NETMASK.value,
       gateway: this._env.GATEWAY.value
     });
-    if (this._networks.primary !== 'none') {
-      const app = MinkeApp.getAppById(this._networks.primary);
-      if (app) {
-        app._needRestart = true;
-      }
-    }
     this._setTimezone();
     this._setUpdateTime();
     await this.save();
