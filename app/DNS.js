@@ -18,7 +18,7 @@ const GLOBAL2 = { _name: 'global2', _position: { tab: Number.MAX_SAFE_INTEGER } 
 
 const PARALLEL_QUERY = 1;
 const DEBUG_QUERY = 0;
-const DEBUG_QUERY_TIMING = 1;
+const DEBUG_QUERY_TIMING = 0;
 
 //
 // PrivateDNS provides mappings for locally hosted services.
