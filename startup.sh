@@ -13,6 +13,9 @@ cp /usr/share/zoneinfo/$(cat /etc/timezone) /etc/localtime
 echo "servers pool.ntp.org" > /etc/ntpd.conf
 (sleep 60 ; ntpd -s -f /etc/ntpd.conf) &
 
+# Use our own DNS
+echo "nameserver 127.0.0.1" > /etc/resolv.conf
+
 # MinkeBox
 /usr/bin/node --expose-gc /app/index.js
 # Restart if testing (so we can debug inside the docker container)

@@ -830,7 +830,6 @@ async function ConfigurePageWS(ctx) {
           });
         }
         await uapp.restart(forceRestart ? 'restart' : null);
-        await Promise.all(MinkeApp.needRestart().map(a => a.restart()));
       }
     }
     catch (e) {

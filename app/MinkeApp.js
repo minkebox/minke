@@ -170,7 +170,7 @@ MinkeApp.prototype = {
     }
     // If we only have one network, must be primary
     if (this._networks.primary === 'none') {
-      this._networks.primary = secondary;
+      this._networks.primary = this._networks.secondary;
       this._networks.secondary = 'none';
     }
     // Remove duplicate secondary
@@ -331,7 +331,6 @@ MinkeApp.prototype = {
       }
 
       this._bootcount++;
-      this._needRestart = false;
 
       inherit = inherit || {};
 
@@ -438,15 +437,16 @@ MinkeApp.prototype = {
         }
         default:
         {
-          // If we're using a private network as primary, then we also select the X.X.X.2
-          // address as both the default gateway and the dns server. The server at X.X.X.2
-          // should be the creator (e.g. VPN client/server) for this network.
+          const vpnapp = MinkeApp.getAppById(pNetwork);
+          if (!vpnapp) {
+            // VPN app isn't running - we can't startup.
+            throw new Error('Cannot start application using network which isnt active');
+          }
           const vpn = await Network.getPrivateNetwork(pNetwork);
           config.HostConfig.NetworkMode = vpn.id;
-          const dns = vpn.info.IPAM.Config[0].Gateway.replace(/\.\d$/,'.2');
-          configEnv.push(`__DNSSERVER=${dns}`);
-          configEnv.push(`__GATEWAY=${dns}`);
-          config.HostConfig.Dns = [ dns ];
+          configEnv.push(`__DNSSERVER=${vpnapp._secondaryIP}`);
+          configEnv.push(`__GATEWAY=${vpnapp._secondaryIP}`);
+          config.HostConfig.Dns = [ vpnapp._secondaryIP ];
           config.HostConfig.DnsSearch = [ 'local.' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
           break;
@@ -1663,16 +1663,6 @@ MinkeApp.startApps = async function(app, config) {
       console.error(e);
     }
   }
-
-  // Restart any apps which have been marked
-  await Promise.all(MinkeApp.needRestart().map(async (app) => {
-    try {
-      await app.restart();
-    }
-    catch (e) {
-      console.error(e);
-    }
-  }));
 }
 
 MinkeApp.getStartupOrder = function() {
@@ -1789,15 +1779,6 @@ MinkeApp.getTags = function() {
   });
   tags.sort((a, b) => a.localeCompare(b));
   return [ 'All' ].concat(tags);
-}
-
-MinkeApp.needRestart = function() {
-  return applications.reduce((acc, app) => {
-    if (app._needRestart) {
-      acc.push(app);
-    }
-    return acc;
-  }, []);
 }
 
 module.exports = MinkeApp;

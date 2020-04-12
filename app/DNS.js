@@ -18,6 +18,7 @@ const GLOBAL2 = { _name: 'global2', _position: { tab: Number.MAX_SAFE_INTEGER } 
 
 const PARALLEL_QUERY = 1;
 const DEBUG_QUERY = 0;
+const DEBUG_QUERY_TIMING = 0;
 
 //
 // PrivateDNS provides mappings for locally hosted services.
@@ -539,10 +540,20 @@ GlobalDNS.prototype = {
         message.copy(msgout, 2);
         let timeout = setTimeout(() => {
           if (timeout) {
+            timeout = null;
             callback(null);
           }
         }, this._timeout);
         const socket = Net.createConnection(this._port, this._address, () => {
+          socket.on('error', (e) => {
+            console.error(e);
+            if (timeout) {
+              clearTimeout(timeout);
+              timeout = null;
+              callback(null);
+            }
+            socket.destroy();
+          });
           socket.on('data', (buffer) => {
             if (buffer.length >= 2) {
               const len = buffer.readUInt16BE();
@@ -788,10 +799,20 @@ const LocalDNSSingleton = {
         message.copy(msgout, 2);
         let timeout = setTimeout(() => {
           if (timeout) {
+            timeout = null;
             callback(null);
           }
         }, tinfo._timeout);
         const socket = Net.createConnection(tinfo._port, tinfo._address, () => {
+          socket.on('error', (e) => {
+            console.error(e);
+            if (timeout) {
+              clearTimeout(timeout);
+              timeout = null;
+              callback(null);
+            }
+            socket.destroy();
+          });
           socket.on('data', (buffer) => {
             if (buffer.length >= 2) {
               const len = buffer.readUInt16BE();
@@ -972,6 +993,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
     const onMessage = async (msgin, rinfo) => {
       //console.log(msgin, rinfo);
+      const start = DEBUG_QUERY_TIMING && Date.now();
       const response = {
         id: 0,
         type: 'response',
@@ -1004,6 +1026,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
       }
       DEBUG_QUERY && console.log('response', rinfo.tcp ? 'tcp' : 'udp', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
+      DEBUG_QUERY_TIMING && console.log(`Query time ${Date.now() - start}ms: ${response.questions[0].name} ${response.questions[0].type}`);
       return DnsPkt.encode(response);
     }
 
@@ -1043,6 +1066,10 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     // Super primitive DNS over TCP handler
     await new Promise(resolve => {
       this._tcp = Net.createServer((socket) => {
+        socket.on('error', (e) => {
+          console.error(e);
+          socket.destroy();
+        });
         socket.on('data', async (buffer) => {
           try {
             if (buffer.length >= 2) {
@@ -1199,7 +1226,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
       let replied = false;
       for(; i < this._proxies.length; i++) {
         const proxy = this._proxies[i];
-        DEBUG_QUERY && console.log(`Trying remote ${proxy.app._name}`);
+        DEBUG_QUERY && console.log(`Trying ${proxy.app._name}`);
         const presponse = {
           id: response.id,
           type: response.type,
@@ -1210,8 +1237,10 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           additionals: []
         };
         const idx = i;
+        const start = DEBUG_QUERY_TIMING && Date.now();
         proxy.srv.query(Object.assign({}, request), presponse, rinfo).then(success => {
           DEBUG_QUERY && console.log(`Reply ${this._proxies[idx].app._name}`, success);
+          DEBUG_QUERY_TIMING && console.log(`Query time ${Date.now() - start}ms ${this._proxies[idx].app._name}: ${question.name} ${question.type}`);
           if (!replied) {
             done[idx] = success ? presponse : 'fail';
             for (let k = 0; k < this._proxies.length; k++) {
