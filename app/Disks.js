@@ -103,8 +103,10 @@ const Disks = {
   _initNoSystemDisks: async function() {
     for (let id in NOSYSTEM) {
       try {
-        await DF.file(NOSYSTEM[id].root);
-        this._diskinfo[id] = NOSYSTEM[id];
+        const info = FS.statSync(NOSYSTEM[id].root);
+        if (info.isDirectory()) {
+          this._diskinfo[id] = NOSYSTEM[id];
+        }
       }
       catch (_) {
       }
