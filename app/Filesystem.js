@@ -216,7 +216,10 @@ const Filesystem = {
       if (mount.Type === 'bind') {
         this._mappings[mount.Destination] = { src: mount.Source, dst: mount.Destination, propagation: mount.Propagation };
         if (mount.Destination.indexOf(NATIVE_DIR) === 0) {
-          this._natives.push(this._mappings[mount.Destination]);
+          const info = FS.statSync(mount.Destination);
+          if (info.isDirectory()) {
+            this._natives.push(this._mappings[mount.Destination]);
+          }
         }
       }
     });
