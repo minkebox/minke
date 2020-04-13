@@ -16,6 +16,6 @@ networks:
     driver: macvlan
     ipam:
       config:
-      - subnet: ${SUBNET}
+      - subnet: ${IP}/24
     driver_opts:
       parent: ${NETWORK}
