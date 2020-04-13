@@ -14,6 +14,7 @@ const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Updater = require('./Updater');
+const Pull = require('./Pull');
 const Disks = require('./Disks');
 const UPNP = require('./UPNP');
 const System = require('./System');
@@ -1648,6 +1649,14 @@ MinkeApp.startApps = async function(app, config) {
   }));
 
   await setup.start();
+
+  // Make sure helper is installed
+  try {
+    await docker.getImage(Images.withTag(Images.MINKE_HELPER)).inspect();
+  }
+  catch (_) {
+    await Pull.updateImage(Images.withTag(Images.MINKE_HELPER));
+  }
 
   // Startup applications in order
   const order = MinkeApp.getStartupOrder();
