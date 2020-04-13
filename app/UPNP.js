@@ -7,9 +7,10 @@ const MinkeApp = require('./MinkeApp');
 
 const URN_WAN = 'urn:schemas-upnp-org:service:WANIPConnection:1';
 const URN_IGD = 'urn:schemas-upnp-org:device:InternetGatewayDevice:1';
-const TIMEOUT = 1 * 1000;
-const REFRESH = 30 * 1000;
-const PROXY_REFRESH = 60 * 1000;
+const TIMEOUT = 1 * 1000; // 1 second
+const WAN_FAST_REFRESH = 30 * 1000; // 30 seconds
+const WAN_SLOW_REFRESH = 5 * 60 * 1000; // 5 minutes
+const PROXY_REFRESH = 60 * 1000; // 60 seconds
 
 const UPNP = {
 
@@ -96,19 +97,16 @@ const UPNP = {
         }
       });
       await this._ssdpClient.start();
-      this._ssdpClient.search(URN_IGD);
-      this._wanRefresh = setInterval(async () => {
+      const wRefresh = () => {
         if (this._ssdpClient) {
           this._ssdpClient.search(URN_IGD);
         }
-      }, REFRESH);
+        this._wanRefresh = setTimeout(wRefresh, this._gwLocation ? WAN_SLOW_REFRESH : WAN_FAST_REFRESH);
+      }
+      wRefresh();
 
-      // Pause for a short while to get the UPNP stuff happen
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve();
-        }, TIMEOUT);
-      });
+      // Pause for a short while to let the UPNP stuff happen
+      return new Promise(resolve => setTimeout(resolve, TIMEOUT));
     }
     catch (e) {
       console.error(e);
@@ -119,7 +117,7 @@ const UPNP = {
 
   stop: async function() {
     if (this._wanRefresh) {
-      clearInterval(this._wanRefresh);
+      clearTimeout(this._wanRefresh);
       this._wanRefresh = null;
     }
     if (this._proxyRefresh) {

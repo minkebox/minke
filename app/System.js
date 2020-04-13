@@ -11,6 +11,7 @@ const System = {
   _lastActive: 0,
   _cpuLoad: 0,
   _memoryUsed: 0,
+  _timer: null,
 
   _updateMemory: function() {
     const lines = FS.readFileSync(MEMINFO, { encoding: 'utf8' }).split('\n');
@@ -47,22 +48,21 @@ const System = {
   },
 
   start: function() {
-    let timer = null;
     Root.on(`${EVENT_NAME}.start`, () => {
       const update = () => {
         this._updateMemory();
         this._updateCPU();
         Root.emit(EVENT_NAME, { cpuLoad: this._cpuLoad, memoryUsed: this._memoryUsed });
       };
-      if (timer) {
-        clearInterval(timer);
+      if (this._timer) {
+        clearInterval(this._timer);
       }
-      timer = setInterval(update, TICK);
+      this._timer = setInterval(update, TICK);
       update();
     });
     Root.on(`${EVENT_NAME}.stop`, () => {
-      clearInterval(timer);
-      timer = null;
+      clearInterval(this._timer);
+      this._timer = null;
     });
   }
 

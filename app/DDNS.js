@@ -6,24 +6,28 @@ let MinkeApp;
 const FALLBACK_GETIP = 'http://api.ipify.org';
 const DDNS_URL = `${Config.DDNS_UPDATE}`;
 const TICK = 30 * 60 * 1000; // 30 minutes
+const FORCE_TICKS = 24 * 60 * 60 * 1000; // 1 day
 const RETRY = 60 * 1000; // 1 minute
 const DELAY = 10 * 1000; // 10 seconds
-const FORCE_TICKS = 48; // 1 day
 
 const DDNS = {
 
   _gids: {},
   _pending: null,
   _key: '',
+  _tick: null,
 
   start: function(key) {
     this._key = key;
     let ticks = 0;
-    this._tick = setInterval(async () => {
-      this._update(this._key, ticks === 0);
+    if (this._tick) {
+      clearInterval(this._tick);
+    }
+    this._tick = setInterval(() => {
+      this._update(this._key, ticks <= 0);
       ticks--;
       if (ticks < 0) {
-        ticks = FORCE_TICKS;
+        ticks = Math.floor(FORCE_TICKS / TICKS);
       }
     }, TICK);
   },
@@ -55,9 +59,7 @@ const DDNS = {
       this._pending = setTimeout(() => {
         this._getExternalIP().then(eip => {
           if (!eip) {
-            setTimeout(() => {
-              this._update(key, true);
-            }, RETRY);
+            setTimeout(() => this._update(key, true), RETRY);
           }
           else {
             Object.keys(this._gids).forEach(gid => {
@@ -86,7 +88,7 @@ const DDNS = {
   },
 
   _getExternalIP: async function() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       //console.log('_getExternalIP');
       UPNP.getExternalIP().then((ip) => {
         //console.log('_gotExternaIP', ip);
