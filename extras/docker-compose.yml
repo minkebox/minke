@@ -2,10 +2,12 @@ version: '3.5'
 services:
   minkebox:
     container_name: minkebox
-    image: registry.minkebox.net/minkebox/minke
+    image: registry.minkebox.net/minkebox/minke:${TAG-latest}
     volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-    - /tmp/minkebox:/minke
+    - /var/run/docker.sock:/var/run/docker.sock:rprivate
+    - ${VOL_ROOT-/tmp/minkebox}:/minke:rshared
+    - ${VOL_STORE-/dev/null}:/mnt/store:rshared
+    - ${VOL_NATIVE-/dev/null}:/mnt/native/host:rshared
     privileged: true
     networks:
       home:
@@ -18,4 +20,4 @@ networks:
       config:
       - subnet: ${IP}/24
     driver_opts:
-      parent: ${NETWORK}
+      parent: ${NETWORK-eth0}
