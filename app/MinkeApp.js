@@ -416,7 +416,7 @@ MinkeApp.prototype = {
           configEnv.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
           configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
           config.HostConfig.Dns = [ MinkeApp._network.network.ip_address ];
-          config.HostConfig.DnsSearch = [ 'local.' ];
+          config.HostConfig.DnsSearch = [ 'local' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
           if (this.getIP6()) {
             config.HostConfig.Sysctls["net.ipv6.conf.all.disable_ipv6"] = "0";
@@ -447,7 +447,7 @@ MinkeApp.prototype = {
           configEnv.push(`__DNSSERVER=${vpnapp._secondaryIP}`);
           configEnv.push(`__GATEWAY=${vpnapp._secondaryIP}`);
           config.HostConfig.Dns = [ vpnapp._secondaryIP ];
-          config.HostConfig.DnsSearch = [ 'local.' ];
+          config.HostConfig.DnsSearch = [ 'local' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
           break;
         }
