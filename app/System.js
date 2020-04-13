@@ -54,10 +54,16 @@ const System = {
         this._updateCPU();
         Root.emit(EVENT_NAME, { cpuLoad: this._cpuLoad, memoryUsed: this._memoryUsed });
       };
+      if (timer) {
+        clearInterval(timer);
+      }
       timer = setInterval(update, TICK);
       update();
     });
-    Root.on(`${EVENT_NAME}.stop`, () => clearInterval(timer));
+    Root.on(`${EVENT_NAME}.stop`, () => {
+      clearInterval(timer);
+      timer = null;
+    });
   }
 
 };
