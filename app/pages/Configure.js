@@ -425,7 +425,7 @@ async function ConfigurePageHTML(ctx) {
             if (!minkeConfig) {
               return {};
             }
-            const diskinfo = Object.values(Disks.getAllDisks().diskinfo);
+            const diskinfo = Object.values((await Disks.getAllDisks()).diskinfo);
             const havestore = diskinfo.find(info => info.root === '/mnt/store');
             return {
               type: '__Disks',

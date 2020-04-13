@@ -17,7 +17,6 @@ const DF = require('@sindresorhus/df');
 const BOOT_PATH = '/minke';
 const STORE_PATH = '/mnt/store';
 const TAG = '.minke-formatted';
-const TICK = 10 * 60 * 1000;
 const BLOCKSIZE = 512;
 const DISKS = [
   BOOT_PATH, [ 'sda', 'mmcblk0' ],
@@ -47,9 +46,6 @@ const Disks = {
   _timer: null,
 
   init: async function() {
-    this._timer = setInterval(async () => {
-      await this._update();
-    }, TICK);
     if (SYSTEM) {
       this._initDisks();
     }
@@ -184,7 +180,8 @@ const Disks = {
     }
   },
 
-  getAllDisks: function() {
+  getAllDisks: async function() {
+    await this._update();
     return {
       diskinfo: this._diskinfo
     };
