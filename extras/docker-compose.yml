@@ -1,0 +1,21 @@
+version: '3.5'
+services:
+  minkebox:
+    container_name: minkebox
+    image: registry.minkebox.net/minkebox/minke:dev
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /tmp/minkebox:/minke
+    privileged: true
+    networks:
+      home:
+        ipv4_address: ${IP}
+networks:
+  home:
+    name: home
+    driver: macvlan
+    ipam:
+      config:
+      - subnet: ${SUBNET}
+    driver_opts:
+      parent: ${NETWORK}
