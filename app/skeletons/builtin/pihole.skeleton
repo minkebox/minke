@@ -49,26 +49,6 @@
     },
     {
       type: `Environment`,
-      name: `CONDITIONAL_FORWARDING`,
-      defaultValue: `True`
-    },
-    {
-      type: `Environment`,
-      name: `CONDITIONAL_FORWARDING_IP`,
-      defaultValue: `{{__DNSSERVER}}`
-    },
-    {
-      type: `Environment`,
-      name: `CONDITIONAL_FORWARDING_DOMAIN`,
-      defaultValue: `{{__DOMAINNAME}}`
-    },
-    {
-      type: `Environment`,
-      name: `CONDITIONAL_FORWARDING_REVERSE`,
-      defaultValue: `{{EVAL '{{__SECONDARYIP}}'.split('.').slice(0,3).reverse().join('.') + '.in-addr.arpa'}}`
-    },
-    {
-      type: `Environment`,
       name: `DNSMASQ_LISTENING`,
       defaultValue: `all`
     },
