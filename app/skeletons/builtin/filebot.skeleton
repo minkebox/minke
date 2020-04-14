@@ -1,0 +1,65 @@
+{
+  name: `Filebot`,
+  description: `The ultimate tool for organizing and renaming your movies, tv shows or anime, and music well as downloading subtitles and artwork`,
+  image: `coppit/filebot`,
+  tags: [
+    `Media`,
+    `Storage`
+  ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Storage`
+    },
+    {
+      type: `SelectDirectory`,
+      name: `/media`,
+      description: `Select storage to organize`
+    }
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `localtime`
+    },
+    {
+      type: `Directory`,
+      name: `/config`,
+      style: `boot`
+    },
+    {
+      type: `Directory`,
+      name: `/media`,
+      style: `store`
+    },
+    {
+      type: `File`,
+      name: `/config/filebot.conf`,
+      defaultValue: `SETTLE_DURATION=10
+MAX_WAIT_TIME=01:00
+MIN_PERIOD=05:00
+DEBUG=0
+OPENSUBTITLES_USER=""
+OPENSUBTITLES_PASSWORD=""
+SUBTITLE_LANG=""
+ALLOW_REPROCESSING=yes
+RUN_UI=yes
+`
+    },
+    {
+      type: `Port`,
+      name: `8080/tcp`,
+      port: 8080,
+      protocol: `TCP`,
+      web: {
+        tab: `newtab`,
+        path: `/`
+      }
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ]
+}

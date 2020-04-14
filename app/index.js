@@ -67,14 +67,11 @@ process.on('uncaughtException', (e) => {
   console.error(e)
 });
 process.on('SIGINT', async () => {
-  await MinkeApp.shutdown({});
-  process.exit();
+  await MinkeApp.getAppById('minke').systemRestart('halt');
 });
 process.on('SIGTERM', async () => {
-  await MinkeApp.shutdown({});
-  process.exit();
+  await MinkeApp.getAppById('minke').systemRestart('halt');
 });
 process.on('SIGUSR1', async() => {
-  await MinkeApp.shutdown({ inherit: true });
-  process.exit();
+  await MinkeApp.getAppById('minke').systemRestart('restart');
 });

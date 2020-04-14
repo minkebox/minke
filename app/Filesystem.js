@@ -215,7 +215,7 @@ const Filesystem = {
     info.Mounts.forEach(mount => {
       if (mount.Type === 'bind') {
         this._mappings[mount.Destination] = { src: mount.Source, dst: mount.Destination, propagation: mount.Propagation };
-        if (mount.Destination.indexOf(NATIVE_DIR) === 0) {
+        if (mount.Destination.indexOf(NATIVE_DIR) === 0 && FS.statSync(mount.Destination).isDirectory()) {
           this._natives.push(this._mappings[mount.Destination]);
         }
       }

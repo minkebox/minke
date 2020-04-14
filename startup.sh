@@ -17,7 +17,11 @@ echo "servers pool.ntp.org" > /etc/ntpd.conf
 echo "nameserver 127.0.0.1" > /etc/resolv.conf
 
 # MinkeBox
-/usr/bin/node --expose-gc /app/index.js
+trap "killall node" INT TERM
+/usr/bin/node --expose-gc /app/index.js &
+wait "$!"
+wait "$!"
+
 # Restart if testing (so we can debug inside the docker container)
 while [ -f /tmp/minke-testing ]; do
   /usr/bin/node --expose-gc /app/index.js

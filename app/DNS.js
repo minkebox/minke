@@ -251,9 +251,7 @@ const CachingDNS = {
     }
 
     if (this._q.length > this._qHighWater && !this._qTrim) {
-      this._qTrim = setTimeout(() => {
-        this._trimAnswers();
-      }, 0);
+      this._qTrim = setTimeout(() => this._trimAnswers(), 0);
     }
   },
 
@@ -739,9 +737,7 @@ const LocalDNSSingleton = {
         daddress = this._available.shift();
       }
       if (this._available.length < this._qLowWater && !this._qPrune) {
-        this._qPrune = setTimeout(() => {
-          this._pruneAddresses();
-        }, 0);
+        this._qPrune = setTimeout(() => this._pruneAddresses(), 0);
       }
     }
 
@@ -1054,9 +1050,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           catch (_) {
           }
           // Wait a moment before reopening
-          setTimeout(() => {
-            run(() => {});
-          }, 1000);
+          setTimeout(() => run(() => {}), 1000);
         });
         this._udp.bind(config.port, callback);
       }

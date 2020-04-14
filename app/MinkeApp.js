@@ -14,6 +14,7 @@ const Database = require('./Database');
 const Monitor = require('./Monitor');
 const Images = require('./Images');
 const Updater = require('./Updater');
+const Pull = require('./Pull');
 const Disks = require('./Disks');
 const UPNP = require('./UPNP');
 const System = require('./System');
@@ -280,7 +281,7 @@ MinkeApp.prototype = {
             mode: prop.mode || 0o666,
             backup: prop.backup
           };
-          f.data = file.data || '';
+          f.data = file.data || prop.defaultValue || '';
           if (file.altData) {
             f.altData = file.altData;
           }
@@ -416,8 +417,8 @@ MinkeApp.prototype = {
           configEnv.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
           configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
           config.HostConfig.Dns = [ MinkeApp._network.network.ip_address ];
-          config.HostConfig.DnsSearch = [ 'local.' ];
-          config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
+          config.HostConfig.DnsSearch = [ 'local' ];
+          config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:2', 'attempts:1' ];
           if (this.getIP6()) {
             config.HostConfig.Sysctls["net.ipv6.conf.all.disable_ipv6"] = "0";
           }
@@ -447,8 +448,8 @@ MinkeApp.prototype = {
           configEnv.push(`__DNSSERVER=${vpnapp._secondaryIP}`);
           configEnv.push(`__GATEWAY=${vpnapp._secondaryIP}`);
           config.HostConfig.Dns = [ vpnapp._secondaryIP ];
-          config.HostConfig.DnsSearch = [ 'local.' ];
-          config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:1', 'attempts:1' ];
+          config.HostConfig.DnsSearch = [ 'local' ];
+          config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:2', 'attempts:1' ];
           break;
         }
       }
@@ -1648,6 +1649,14 @@ MinkeApp.startApps = async function(app, config) {
   }));
 
   await setup.start();
+
+  // Make sure helper is installed
+  try {
+    await docker.getImage(Images.withTag(Images.MINKE_HELPER)).inspect();
+  }
+  catch (_) {
+    await Pull.updateImage(Images.withTag(Images.MINKE_HELPER));
+  }
 
   // Startup applications in order
   const order = MinkeApp.getStartupOrder();
