@@ -281,7 +281,7 @@ MinkeApp.prototype = {
             mode: prop.mode || 0o666,
             backup: prop.backup
           };
-          f.data = file.data || '';
+          f.data = file.data || prop.defaultValue || '';
           if (file.altData) {
             f.altData = file.altData;
           }
