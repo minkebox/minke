@@ -62,10 +62,10 @@ function onPageShow() {
         window.location.reload();
         break;
       case 'page.redirect':
-        window.location.replace(msg.url);
+        window.location.replace(`${msg.url}#${msg.src}`);
         break;
       case 'skeleton.load':
-        install(msg.image);
+        install(msg.image,'skeleton');
         break;
       case 'monitor2.reply':
         monitorQ[msg.id] && monitorQ[msg.id]('reply', msg.reply);
@@ -252,11 +252,12 @@ function setEditMode(edit) {
   }
 }
 
-function install(app) {
+function install(app, src) {
   popbox.open('download');
   ws.send(JSON.stringify({
     type: 'newapp.image',
-    value: app
+    value: app,
+    src: src
   }));
 }
 

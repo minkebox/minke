@@ -184,7 +184,8 @@
         <div class="skeleton">
           <div class="content-header">Skeleton</div>
           <div class="editor">{{skeletonAsText}}</div>
-          <a class="pure-button" onclick="saveSkeleton()">Save to Disk</a>
+          <a class="pure-button" onclick="saveSkeleton()">Export</a>
+          {{#if Advanced}}<script>if (location.hash === '#registry-name') setEditMode(null)</script>{{/if}}
         </div>
       </div>
     </div>

@@ -70,7 +70,7 @@ async function PageWS(ctx) {
             }));
             if (success.reduce((acc, val) => acc & !!val, true)) {
               const app = await MinkeApp.create(images[0]);
-              send({ type: 'page.redirect', url: `/configure/${app._id}/`});
+              send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: msg.src });
             }
             else {
               send({ type: 'css.class.add', selector: '.download-spinner', className: 'error' });
