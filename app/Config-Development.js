@@ -9,6 +9,8 @@ module.exports = {
     'registry.minkebox.net/minkebox/minke-helper': 'dev'
   },
   DDNS_UPDATE: 'https://ddns.minkebox.net/update',
+  CAPTCH_QUESTION: 'https://captcha.minkebox.net/captcha',
+  CAPTCH_VERIFY: 'https://captcha.minkebox.net/verify',
   GLOBALDOMAIN: '.minkebox.net',
   DEFAULT_FALLBACK_RESOLVER: '1.1.1.1'
 };
