@@ -35,7 +35,7 @@ App.use(async (ctx, next) => {
     "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
     "style-src 'self' 'unsafe-inline';" +
     "img-src 'self' data:;" +
-    `frame-src * http://*.${MinkeApp.getLocalDomainName()} http://*.${MinkeApp.getLocalDomainName()}:* http://${ctx.request.header.host}:* https://*.${MinkeApp.getLocalDomainName()};` +
+    `frame-src http://*.${MinkeApp.getLocalDomainName()} http://*.${MinkeApp.getLocalDomainName()}:* http://${ctx.request.header.host}:* https://*.${MinkeApp.getLocalDomainName()} https://*.minkebox.net;` +
     `connect-src 'self' ws://${ctx.headers.host};` +
     "font-src 'none';" +
     "object-src 'none';" +
