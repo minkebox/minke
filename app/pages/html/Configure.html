@@ -165,6 +165,11 @@
           <div class="action disks pure-control-group">
             {{> Disks}}
           </div>
+          {{else if (eq type "__Captcha")}}
+          <div class="action pure-control-group">
+            <label class="description wide">MinkeBox provides its own DDNS service which applications use automatically once we have verified you are human</label>
+            <button {{#if enabled}}onclick="window.cmd('app.open-captcha');event.preventDefault()"{{else}}disabled{{/if}} class="pure-button">{{label}}</button>
+          </div>
           {{else if (eq type "__BackupAndRestore")}}
           <div class="action disks pure-control-group">
             {{> BackupAndRestore}}

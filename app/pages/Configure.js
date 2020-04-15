@@ -6,6 +6,7 @@ const Images = require('../Images');
 const Skeletons = require('../Skeletons');
 const Network = require('../Network');
 const Disks = require('../Disks');
+const Human = require('../Human');
 const ConfigBackup = require('../ConfigBackup');
 const UPNP = require('../UPNP');
 const Filesystem = require('../Filesystem');
@@ -439,6 +440,18 @@ async function ConfigurePageHTML(ctx) {
                   format: SYSTEM && !havestore && disk.root !== '/minke'
                 }
               })
+            };
+          }
+        case '__Captcha':
+          {
+            if (!minkeConfig) {
+              return {};
+            }
+            const valid = Human.isVerified();
+            return {
+              type: '__Captcha',
+              label: valid ? 'Verified' : 'Unverified: Click to verify',
+              enabled: !valid
             };
           }
         case 'Header':
@@ -889,6 +902,9 @@ async function ConfigurePageWS(ctx) {
           if (app._image === Images.MINKE) {
             ConfigBackup.restore(msg.value);
           }
+          break;
+        case 'app.open-captcha':
+          Root.emit('human.verify', { force: true });
           break;
         case 'app.update-download':
           {

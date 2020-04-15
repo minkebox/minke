@@ -122,6 +122,9 @@ html:not(.help-available) .help-text {
 .configure .actions label {
   width: 30% !important;
 }
+.configure .actions label.wide {
+  width: 60% !important;
+}
 .configure .actions input[type="text"]::placeholder {
   color: #ccc;
 }
