@@ -5,7 +5,7 @@
     <link href="/css/configure.css" rel="stylesheet" type="text/css">
     <link href="/css/pure.css" rel="stylesheet" type="text/css">
     <script src="/js/script.js" type="text/javascript"></script>
-    {{#if Advanced}}<script src="/js/ace.js" type="text/javascript"></script>{{/if}}
+    <script src="/js/ace.js" type="text/javascript"></script>
   </head>
   <body>
     <div class="pure-g">
@@ -36,7 +36,7 @@
             {{#each ../navbuttons}}
             <a class="pure-button" href="{{link}}" target="{{linktarget}}" {{#if ../../firstUse}}disabled{{/if}}>Open {{name}}</a>
             {{/each}}
-            <a class="pure-button admin-only" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
+            <a class="pure-button" onclick="setEditMode(null)||cmd('app.save')">Edit</a>
             {{#if ../help}}<a class="pure-button" onclick="toggleHelp()">Help</a>{{/if}}
             <a class="pure-button" onclick="cmd('app.restart');this.innerText='Restart'">{{#if ../firstUse}}Start{{else}}Restart{{/if}}</a>
             <a class="pure-button" data-popbox-target="delete">Delete</a>
@@ -185,7 +185,7 @@
           <div class="content-header">Skeleton</div>
           <div class="editor">{{skeletonAsText}}</div>
           <a class="pure-button" onclick="saveSkeleton()">Export</a>
-          {{#if Advanced}}<script>if (location.hash === '#registry-name') setEditMode(null)</script>{{/if}}
+          <script>if (location.hash === '#registry-name') setEditMode(null)</script>
         </div>
       </div>
     </div>
