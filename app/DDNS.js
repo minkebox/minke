@@ -50,6 +50,7 @@ const DDNS = {
       lastIP6: null
     };
     this._update(true);
+    Root.emit('human.verify', {});
   },
 
   unregister: function(app) {
