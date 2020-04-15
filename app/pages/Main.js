@@ -239,6 +239,11 @@ async function MainPageWS(ctx) {
     });
   }
 
+  function openCaptcha(data) {
+    send({ type: 'system.captcha', url: Config.CAPTCH_QUESTION });
+    Root.emit('system.captcha.token', { token: 'maybe' });
+  }
+
   ctx.websocket.on('message', async (msg) => {
     try {
       msg = JSON.parse(msg);
@@ -307,6 +312,9 @@ async function MainPageWS(ctx) {
           }
           break;
         }
+        case 'system.captcha.token':
+          Root.emit('system.captcha.token', { token: msg.value });
+          break;
         default:
           break;
       }
@@ -322,6 +330,7 @@ async function MainPageWS(ctx) {
     Root.off('net.create', updateNetworks);
     Root.off('net.remove', updateNetworks);
     Root.off('system.stats', updateOperational);
+    Root.off('system.captcha', openCaptcha);
   });
 
   ctx.websocket.on('error', () => {
@@ -334,6 +343,7 @@ async function MainPageWS(ctx) {
   Root.on('net.create', updateNetworks);
   Root.on('net.remove', updateNetworks);
   Root.on('system.stats', updateOperational);
+  Root.on('system.captcha', openCaptcha);
 }
 
 module.exports = {
