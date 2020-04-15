@@ -1,11 +1,10 @@
 const HTTPS = require('https');
 const Config = require('./Config');
 const UPNP = require('./UPNP');
-let MinkeApp;
 
 const FALLBACK_GETIP = 'http://api.ipify.org';
 const DDNS_URL = `${Config.DDNS_UPDATE}`;
-const TICK = 30 * 60 * 1000; // 30 minutes
+const TICKS = 30 * 60 * 1000; // 30 minutes
 const FORCE_TICKS = 24 * 60 * 60 * 1000; // 1 day
 const RETRY = 60 * 1000; // 1 minute
 const DELAY = 10 * 1000; // 10 seconds
@@ -24,12 +23,23 @@ const DDNS = {
       clearInterval(this._tick);
     }
     this._tick = setInterval(() => {
-      this._update(this._key, ticks <= 0);
+      this._update(ticks <= 0);
       ticks--;
       if (ticks < 0) {
         ticks = Math.floor(FORCE_TICKS / TICKS);
       }
-    }, TICK);
+    }, TICKS);
+
+    this._humanVerified = (evt) => {
+      if (evt.human === 'yes') {
+        this._update(true);
+      }
+    };
+    Root.on('human.verified', this._humanVerified);
+  },
+
+  stop: function() {
+    Root.off('human.verified', this._humanVerified);
   },
 
   register: function(app) {
@@ -39,7 +49,7 @@ const DDNS = {
       lastIP: null,
       lastIP6: null
     };
-    this._update(this._key, true);
+    this._update(true);
   },
 
   unregister: function(app) {
@@ -47,7 +57,7 @@ const DDNS = {
     delete this._gids[app._globalId];
   },
 
-  _update: function(key, force) {
+  _update: function(force) {
     if (Object.keys(this._gids).length) { // Dont store keys - may change after we've got the IP address
       if (force) {
         Object.values(this._gids).forEach(entry => {
@@ -59,7 +69,7 @@ const DDNS = {
       this._pending = setTimeout(() => {
         this._getExternalIP().then(eip => {
           if (!eip) {
-            setTimeout(() => this._update(key, true), RETRY);
+            setTimeout(() => this._update(true), RETRY);
           }
           else {
             Object.keys(this._gids).forEach(gid => {
@@ -69,12 +79,12 @@ const DDNS = {
               if (ip != entry.lastIP || ip6 != entry.lastIP6) {
                 if (ip) {
                   if (!ip6) {
-                    //console.log(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}`);
-                    HTTPS.get(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}`, () => {});
+                    //console.log(`${DDNS_URL}?key=${this._key}&host=${gid}&ip=${ip}`);
+                    HTTPS.get(`${DDNS_URL}?key=${this._key}&host=${gid}&ip=${ip}`, () => {});
                   }
                   else {
-                    //console.log(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}&ip6=${ip6}`);
-                    HTTPS.get(`${DDNS_URL}?key=${key}&host=${gid}&ip=${ip}&ip6=${ip6}`, () => {});
+                    //console.log(`${DDNS_URL}?key=${this._key}&host=${gid}&ip=${ip}&ip6=${ip6}`);
+                    HTTPS.get(`${DDNS_URL}?key=${this._key}&host=${gid}&ip=${ip}&ip6=${ip6}`, () => {});
                   }
                 }
                 entry.lastIP = ip;
