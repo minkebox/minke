@@ -1,0 +1,4 @@
+docker kill minke
+docker build --network host -t registry.minkebox.net/minkebox/minke:dev .
+sudo ./extras/minkebox 192.168.51.14 /minke/
+docker logs -f minke
