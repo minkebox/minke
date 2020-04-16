@@ -56,6 +56,17 @@ to change this to a fixed IP address. Any change to the network configuration re
     },
     {
       type: 'Header',
+      title: 'Human'
+    },
+    {
+      type: 'Text',
+      text: `To prevent abuse it is necessary to verify that you are not a bot.`
+    },
+    {
+      type: '__Captcha'
+    },
+    {
+      type: 'Header',
       title: 'Wifi',
       visible: 'property.WifiAvailable',
       enabled: `!property['EditEnvironmentAsCheckbox#DHCP']`

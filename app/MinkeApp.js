@@ -1553,7 +1553,8 @@ MinkeApp.startApps = async function(app, config) {
     ADMINMODE: 'DISABLED',
     GLOBALID: UUID(),
     UPDATETIME: '03:00',
-    POSITION: 0
+    POSITION: 0,
+    HUMAN: 'unknown'
   });
   applications.unshift(setup);
 

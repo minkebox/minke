@@ -62,13 +62,16 @@ function onPageShow() {
         window.location.reload();
         break;
       case 'page.redirect':
-        window.location.replace(msg.url);
+        window.location.replace(`${msg.url}#${msg.src}`);
         break;
       case 'skeleton.load':
-        install(msg.image);
+        install(msg.image,'skeleton');
         break;
       case 'monitor2.reply':
         monitorQ[msg.id] && monitorQ[msg.id]('reply', msg.reply);
+        break;
+      case 'system.captcha':
+        openInlinePage(msg.url);
         break;
       default:
         break;
@@ -107,6 +110,18 @@ function onPageShow() {
   document.addEventListener('visibilitychange', (event) => {
     if (document.visibilityState === 'visible') {
       updateMonitors();
+    }
+  });
+
+  window.addEventListener('message', (msg) => {
+    const evt = JSON.parse(msg.data);
+    switch (evt.type) {
+      case 'system.captcha.token':
+        closeInlinePage();
+        ws.send(JSON.stringify(evt));
+        break;
+      default:
+        break;
     }
   });
 }
@@ -237,11 +252,12 @@ function setEditMode(edit) {
   }
 }
 
-function install(app) {
+function install(app, src) {
   popbox.open('download');
   ws.send(JSON.stringify({
     type: 'newapp.image',
-    value: app
+    value: app,
+    src: src
   }));
 }
 
@@ -400,7 +416,7 @@ function openInlinePage(url, target) {
     const builder = document.createElement('div');
     const width = document.body.clientWidth;
     const height = document.body.clientHeight;
-    builder.innerHTML = `<div class="inline-page pure-g"><div class="pure-u-1"><iframe allow="fullscreen" scroling="no" allow="fullscreen" frameborder="0" width="${width}" height="${height}"></div></div>`;
+    builder.innerHTML = `<div class="inline-page pure-g"><div class="pure-u-1"><iframe allow="fullscreen" scroling="no" allowTransparency="true" frameborder="0" width="${width}" height="${height}" style="background-color: transparent"></div></div>`;
     const scrollY = window.scrollY;
     setTimeout(() => {
       window.scrollTo(0, scrollY);

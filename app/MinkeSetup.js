@@ -1,5 +1,4 @@
 const FS = require('fs');
-const Util = require('util');
 const Config = require('./Config');
 const Images = require('./Images');
 const DNS = require('./DNS');
@@ -10,6 +9,7 @@ const UPNP = require('./UPNP');
 const MinkeApp = require('./MinkeApp');
 const Updater = require('./Updater');
 const DDNS = require('./DDNS');
+const Human = require('./Human');
 const Filesystem = require('./Filesystem');
 const Pull = require('./Pull');
 
@@ -71,7 +71,8 @@ function MinkeSetup(savedConfig, config) {
     TIMEZONE: getEnv('TIMEZONE'),
     ADMINMODE: getEnv('ADMINMODE'),
     GLOBALID: getEnv('GLOBALID'),
-    UPDATETIME: getEnv('UPDATETIME')
+    UPDATETIME: getEnv('UPDATETIME'),
+    HUMAN: getEnv('HUMAN')
   };
   this._name = getEnv('HOSTNAME').value;
   this._homeIP = this._env.IPADDRESS.value;
@@ -95,6 +96,7 @@ MinkeSetup.prototype = {
       port: 53,
       resolvers: [ this._env.DNSSERVER1.value, this._env.DNSSERVER2.value ]
     });
+    Human.start(this._globalId, this._env.HUMAN);
     DDNS.start(this._globalId);
     await UPNP.start({
       uuid: this._globalId,
@@ -136,6 +138,8 @@ MinkeSetup.prototype = {
     this._setStatus('shutting down');
     await MDNS.stop();
     await UPNP.stop();
+    Human.stop();
+    DDNS.stop();
     await DNS.stop();
   },
 
@@ -229,7 +233,8 @@ MinkeSetup.prototype = {
       ADMINMODE: null,
       GLOBALID: null,
       UPDATETIME: null,
-      TIMEZONE: null
+      TIMEZONE: null,
+      HUMAN: null
     };
     for (let key in config) {
       config[key] = this._env[key].value;

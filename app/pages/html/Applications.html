@@ -15,7 +15,7 @@
       </div>
     </div>
     <div class="content pure-u-1">
-      <div class="admin-only">
+      <div>
         <div class="section-header">Download named application</div>
         <div class="text">
           You can install an app by clicking on one of the suggestions; or
@@ -26,18 +26,17 @@
           <div class="pure-form pure-form-aligned">
             <div class="pure-control-group">
               <label>Enter Registry Name or drop Skeleton</label>
-              <input data-skeleton="true" type="text" spellcheck="false" onkeypress="window.event.keyCode===13&&install(this.value)" class="pure-input-rounded pure-u-1-3">
+              <input data-skeleton="true" type="text" spellcheck="false" onkeypress="window.event.keyCode===13&&install(this.value,'registry-name')" class="pure-input-rounded pure-u-1-3">
             </div>
           </div>
         </div>
       </div>
       <div class="section">
-        <div class="section-header user-only">Applications</div>
-        <div class="section-header admin-only">Suggested Applications</div>
+        <div class="section-header">Applications</div>
         <div class="pure-g">
         {{#each skeletons}}
         <div class="skel pure-u-1-2">
-          <div class="inner" onclick="install('{{image}}')">
+          <div class="inner" onclick="install('{{image}}','catalogue')">
             <div class="bgcolor-{{color}} icon">
               <div class="icon-inner fgcolor-{{color}}">{{pre}}</div>
             </div>
