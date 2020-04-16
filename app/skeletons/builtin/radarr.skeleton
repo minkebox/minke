@@ -8,12 +8,12 @@
   actions: [
     {
       type: `NavButton`,
-      name: `Transmission`,
+      name: `Open Transmission`,
       url: `http://{{__HOMEIP}}:9091/`
     },
     {
       type: `NavButton`,
-      name: `NZBGet`,
+      name: `Open NZBGet`,
       url: `http://{{__HOMEIP}}:6789/`
     },
     {
