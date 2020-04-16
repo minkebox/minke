@@ -20,6 +20,7 @@
     "handlebars": "^4.7.6",
     "ip-address": "^6.3.0",
     "js-interpreter": "^2.2.0",
+    "js-yaml": "^3.13.1",
     "koa": "^2.11.0",
     "koa-cache-control": "^2.0.0",
     "koa-proxy": "^1.0.0-alpha.3",
