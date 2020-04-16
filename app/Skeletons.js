@@ -295,6 +295,19 @@ function dockerComposeToSkeleton(yml) {
       });
     }
 
+    (service.cap_add || []).forEach(cap => {
+      skel.properties.push({
+        type: 'Feature',
+        name: `+${cap}`
+      });
+    });
+    (service.cap_drop || []).forEach(cap => {
+      skel.properties.push({
+        type: 'Feature',
+        name: `-${cap}`
+      });
+    });
+
     (service.environment || []).forEach(env => {
       const ep = env.split('=');
       if (ep[0] === 'TZ') {
