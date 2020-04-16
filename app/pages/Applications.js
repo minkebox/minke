@@ -91,6 +91,18 @@ async function PageWS(ctx) {
           }
           break;
         }
+        case 'docker-compose.drop':
+        {
+          (async function() {
+            const skel = Skeletons.parseDockerCompose(msg.value);
+            if (skel) {
+              Skeletons.saveLocalSkeleton(skel);
+              const app = await MinkeApp.create(skel.image);
+              send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: 'docker-compose' });
+            }
+          })();
+          break;
+        }
         default:
           break;
       }

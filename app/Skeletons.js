@@ -3,10 +3,11 @@ const Path = require('path');
 const Glob = require('fast-glob');
 const VM = require('vm');
 const Tar = require('tar-stream');
+const Yaml = require('js-yaml');
 const Config = require('./Config');
 
 const BUILTINS_DIR = `${__dirname}/skeletons/builtin`;
-const LOCALS_DIR   = `${Config.ROOT}/skeletons/local`;
+const LOCALS_DIR = `${Config.ROOT}/skeletons/local`;
 const INTERNAL_DIR = `${Config.ROOT}/skeletons/internal`;
 
 const Builtins = {};
@@ -87,7 +88,7 @@ async function imageToSkeleton(image) {
     name: 'MyApp',
     description: '',
     image: image,
-    tags: [ 'App' ],
+    tags: ['App'],
 
     actions: [
     ],
@@ -140,7 +141,7 @@ async function imageToSkeleton(image) {
           port: parseInt(key),
           protocol: key.split('/')[1].toUpperCase(),
         };
-        switch (key ) {
+        switch (key) {
           case '80/tcp':
             r.web = { type: 'newtab', path: '' };
             break;
@@ -178,7 +179,7 @@ function _toText(o, t) {
   if (Array.isArray(o)) {
     let r = "[";
     for (let i = 0; i < o.length; i++) {
-      r += `${i === 0 ? '' : ','}\n${_tab(t+1)}${_toText(o[i],t+1)}`;
+      r += `${i === 0 ? '' : ','}\n${_tab(t + 1)}${_toText(o[i], t + 1)}`;
     }
     r += `\n${_tab(t)}]`;
     return r;
@@ -198,7 +199,7 @@ function _toText(o, t) {
       let r = '{';
       const k = Object.keys(o);
       for (let i = 0; i < k.length; i++) {
-        r += `${i === 0 ? '' : ','}\n${_tab(t+1)}${k[i]}: ${_toText(o[k[i]],t+1)}`;
+        r += `${i === 0 ? '' : ','}\n${_tab(t + 1)}${k[i]}: ${_toText(o[k[i]], t + 1)}`;
       }
       r += `\n${_tab(t)}}`;
       return r;
@@ -209,6 +210,165 @@ function _toText(o, t) {
   return '';
 }
 
+function dockerComposeToSkeleton(yml) {
+  const info = Yaml.safeLoad(yml);
+
+  const skeleton = {
+    name: 'MyApp',
+    description: '',
+    image: null,
+    tags: ['App'],
+    delay: 2,
+    actions: [
+    ],
+    properties: [
+    ],
+    secondary: [
+    ],
+    monitor: {
+      cmd: '',
+      init: ''
+    }
+  };
+
+  // Generate a startup order while preserving first-to-last ordering of similarly dependent items
+  const order = [];
+  const list = Object.keys(info.services);
+  let startlen;
+  do {
+    startlen = list.length;
+    const partial = [];
+    for (let k = 0; k < list.length; ) {
+      const deps = info.services[list[k]].depends_on || [];
+      let i = 0;
+      for (; i < deps.length && order.indexOf(deps[i]) !== -1; i++)
+        ;
+      if (i === deps.length) {
+        partial.push(list.splice(k, 1)[0]);
+        ;
+      }
+      else {
+        k++;
+      }
+    }
+    order.unshift.apply(order, partial);
+  } while (list.length < startlen);
+
+  function detox(str) {
+    return str.replace(/\${.*}/g, '');
+  }
+
+  function cmdline(str) {
+    const args = str.match(/(".*?"|[^"\s]+)(?=\s*\s|\s*$)/g);
+    return args;
+  }
+
+  for (let i = 0; i < order.length; i++) {
+    const service = info.services[order[i]];
+
+    let skel;
+    if (i === 0) {
+      skel = skeleton;
+      skel.name = service.container_name || order[i];
+    }
+    else {
+      skel = {
+        image: null,
+        properties: []
+      };
+      skeleton.secondary.unshift(skel);
+    }
+
+    skel.image = detox(service.image);
+
+    if (service.command) {
+      skel.properties.push({
+        type: 'Arguments',
+        defaultValue: cmdline(service.command)
+      });
+    }
+
+    if (service.privileged) {
+      skel.properties.push({
+        type: 'Feature',
+        name: 'privileged'
+      });
+    }
+
+    (service.environment || []).forEach(env => {
+      const ep = env.split('=');
+      if (ep[0] === 'TZ') {
+        skel.properties.push({
+          type: 'Feature',
+          name: 'localtime'
+        });
+      }
+      else {
+        skel.properties.push({
+          type: 'Environment',
+          name: ep[0],
+          defaultValue: ep[1]
+        });
+        if (ep[1].indexOf('${') !== -1) {
+          skel.actions.push({
+            type: 'EditEnvironment',
+            name: ep[0],
+            description: ep[0]
+          });
+        }
+      }
+    });
+
+    (service.volumes || []).forEach(vol => {
+      const vp = vol.split(':');
+      skel.properties.push({
+        type: 'Directory',
+        name: vp[1]
+      });
+      if (vp[0].indexOf('${') !== -1) {
+        skeleton.actions.push({
+          type: 'SelectDirectory',
+          name: vp[1],
+          description: vp[1]
+        });
+      }
+    });
+
+    (service.ports || []).forEach(p => {
+      const vp = p.split(':');
+      const pnr = parseInt(vp[vp.length - 1]);
+      const protocol = vp[vp.length - 1].indexOf('/udp') !== -1 ? 'udp' : 'tcp';
+      const port = {
+        type: 'Port',
+        name: `${pnr}/${protocol}`,
+        port: pnr,
+        protocol: protocol.toUpperCase()
+      };
+      if (pnr === 43) {
+        port.dns = true;
+      }
+      if (pnr === 80) {
+        port.web = { path: '/', tab: 'newtab' };
+      }
+      if (skel === skeleton) {
+        skel.properties.push(port);
+      }
+    });
+  }
+
+  skeleton.properties.push({
+    type: `Network`,
+    name: `primary`,
+    defaultValue: `home`
+  });
+
+  if (!skeleton.secondary.length) {
+    delete skeleton.secondary;
+    delete skeleton.delay;
+  }
+
+  return skeleton;
+}
 
 function skeletonToString(skeleton) {
   // Clone and remove any properties we shouldn't see in the text version of a skeleton
@@ -347,7 +507,7 @@ function loadSkeleton(image, create) {
         };
       });
     }
-  }).catch ((e) => {
+  }).catch((e) => {
     console.log(e);
     return null;
   });
@@ -420,5 +580,6 @@ module.exports = {
   updateInternalSkeleton: updateInternalSkeleton,
   toString: skeletonToString,
   parse: stringToSkeleton,
+  parseDockerCompose: dockerComposeToSkeleton,
   catalog: catalog
 };
