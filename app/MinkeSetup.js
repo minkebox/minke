@@ -296,11 +296,12 @@ MinkeSetup.prototype = {
   },
 
   _setStatus: function(status) {
-    if (this._status === status) {
-      return;
+    const old = this._status;
+    if (old !== status) {
+      this._status = status;
+      Root.emit('app.status.update', { app: this, status: status, oldStatus: old });
     }
-    this._status = status;
-    Root.emit('app.status.update', { app: this, status: status });
+    return old;
   },
 
   _setTimezone: function() {

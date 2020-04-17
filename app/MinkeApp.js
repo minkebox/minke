@@ -1011,9 +1011,9 @@ MinkeApp.prototype = {
       }
     }
     if (fail) {
-      this._setStatus('downloading');
+      const old = this._setStatus('downloading');
       await Updater.updateApp(this);
-      this._setStatus('stopped');
+      this._setStatus(old);
     }
   },
 
@@ -1362,11 +1362,12 @@ MinkeApp.prototype = {
   },
 
   _setStatus: function(status) {
-    if (this._status === status) {
-      return;
+    const old = this._status;
+    if (old !== status) {
+      this._status = status;
+      Root.emit('app.status.update', { app: this, status: status, oldStatus: old });
     }
-    this._status = status;
-    Root.emit('app.status.update', { app: this, status: status });
+    return old;
   },
 
   skeletonId: function() {
