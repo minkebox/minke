@@ -1011,7 +1011,9 @@ MinkeApp.prototype = {
       }
     }
     if (fail) {
+      this._setStatus('downloading');
       await Updater.updateApp(this);
+      this._setStatus('stopped');
     }
   },
 
