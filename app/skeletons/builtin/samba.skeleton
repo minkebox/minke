@@ -1,6 +1,7 @@
 {
   name: `File Share`,
   description: `Share your files on the network using Samba`,
+  uuid: `83F87920-93CB-40E7-A7F4-6D6796FFB7A1`,
   image: `registry.minkebox.net/minkebox/samba`,
   tags: [ 'Shares', 'Storage' ],
   actions: [

@@ -2,6 +2,7 @@
   name: `Website`,
   description: `Simple, static, website based on the Apache web server`,
   image: `registry.minkebox.net/minkebox/apache`,
+  uuid: `9C2BC9F1-A4BE-4B1B-A206-84A19479F1C3`,
   tags: [ 'Web' ],
   actions: [
     {

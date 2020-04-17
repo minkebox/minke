@@ -2,6 +2,7 @@
   name: `Kasa TP-Link`,
   description: `Add Kasa TP-Link bulbs and plugs to your HomeKit network using HomeBridge`,
   image: `registry.minkebox.net/minkebox/homebridge_tplink`,
+  uuid: `F1E6AC67-B66B-4515-B4B3-7C53B7FB8288`,
   tags: [ 'HomeKit' ],
   actions: [
     {

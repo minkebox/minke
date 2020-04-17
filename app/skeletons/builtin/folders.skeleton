@@ -2,6 +2,7 @@
   name: `Files and Folders`,
   description: `Create folders which can be shared with other applications`,
   image: `registry.minkebox.net/minkebox/folders`,
+  uuid: `FE8D1F85-0F18-4FFB-BA7F-FD91D2354CFE`,
   tags: [ `Storage` ],
   actions: [
     {

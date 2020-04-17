@@ -2,6 +2,7 @@
   name: `Nest`,
   description: `Add Google Nest devices to your HomeKit network using HomeBridge`,
   image: `registry.minkebox.net/minkebox/homebridge_nest`,
+  uuid: `2B7C89E3-F3F3-4A31-8503-ADFDDEEF34FE`,
   tags: [ 'HomeKit' ],
   actions: [
     {

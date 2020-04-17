@@ -2,6 +2,7 @@
   name: `Hostnames`,
   description: `Create simple mappings between fully qualified hostnames and IP addresses`,
   image: `registry.minkebox.net/minkebox/dnshosts`,
+  uuid: `4ACEAEFE-78DD-447D-8209-0659A54EF7B1`,
   tags: [ 'Networking', `Dns` ],
   actions: [
     {

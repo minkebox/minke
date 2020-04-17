@@ -2,6 +2,7 @@
   name: `Notifications`,
   description: `Add HomeKit buttons which, when pressed, will send Notifications`,
   image: `registry.minkebox.net/minkebox/homebridge_notifications`,
+  uuid: `F8331C13-2F32-4FB9-BEBD-911F50533763`,
   tags: [ 'HomeKit' ],
   actions: [
     {

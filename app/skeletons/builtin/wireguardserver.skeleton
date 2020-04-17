@@ -2,6 +2,7 @@
   name: `Wireguard Server`,
   description: `Fast, Modern, Secure VPN Tunnel Server`,
   image: `registry.minkebox.net/minkebox/wireguardserver`,
+  uuid: `5B605272-3D3D-4A97-8CA1-BCE9E7CC72F9`,
   tags: [ 'VPN', 'Security', 'Networking' ],
   actions: [
     {

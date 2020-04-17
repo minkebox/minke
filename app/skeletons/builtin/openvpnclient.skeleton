@@ -2,6 +2,7 @@
   name: `OpenVPN`,
   description: `OpenVPN client for use with various OpenVPN servers`,
   image: `registry.minkebox.net/minkebox/openvpnclient`,
+  uuid: `D66A1C55-6224-40BA-A772-006B156CCD55`,
   tags: [ 'VPN', 'Security', 'Networking' ],
   actions: [
     {

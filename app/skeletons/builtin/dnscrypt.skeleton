@@ -2,6 +2,7 @@
   name: `DNSCrypt`,
   description: `Encrypt and authenticate DNS traffic`,
   image: `registry.minkebox.net/minkebox/dnscrypt`,
+  uuid: `189E9948-07D3-40B3-87B2-B0F53E8F2DCF`,
   tags: [
     `Dns`,
     `Security`,
