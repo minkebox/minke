@@ -37,6 +37,7 @@
         {{#each skeletons}}
         <div class="skel pure-u-1-2 application-image" data-name="{{image}}">
           {{#if canDelete}}<a class="cross-icon" data-popbox-target="delete" data-popbox-arg="{{image}}"></a>{{/if}}
+          {{#if personal}}<div class="personal-icon fgcolor-{{color}}">personal</div>{{/if}}
           <div class="inner" onclick="install('{{image}}','catalogue')">
             <div class="bgcolor-{{color}} icon">
               <div class="icon-inner fgcolor-{{color}}">{{pre}}</div>

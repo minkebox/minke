@@ -40,7 +40,8 @@ async function PageHTML(ctx) {
   ctx.body = template({ Advanced: MinkeApp.getAdvancedMode(), skeletons: catalog.map(skel => Object.assign({
     pre: skel.name.substr(0, 2),
     color: _strhash((skel.tags && skel.tags.length && skel.tags[0] || 'all').toLowerCase()) % NRTAGS,
-    canDelete: canDelete(skel)
+    canDelete: canDelete(skel),
+    personal: skel.source === 'local'
   }, skel)) });
   ctx.type = 'text/html';
 }
