@@ -18,7 +18,11 @@ FS.readdirSync(BUILTINS_DIR).forEach((file) => {
     const str = FS.readFileSync(`${BUILTINS_DIR}/${file}`, { encoding: 'utf8' });
     const skeleton = stringToSkeleton(str);
     if (skeleton) {
-      Builtins[skeleton.uuid || skeleton.image] = skeleton;
+      if (skeleton.uuid) {
+        Builtins[skeleton.uuid] = skeleton;
+      }
+      // And the old way
+      Builtins[skeleton.image] = skeleton;
     }
   }
 });
@@ -541,13 +545,13 @@ function catalog() {
   const cat = {};
 
   // Builtins first
-  for (let image in Builtins) {
-    if (Builtins[image].catalog !== false) {
-      const id = Builtins[image].uuid || image
+  for (let key in Builtins) {
+    if (Builtins[key].catalog !== false) {
+      const id = Builtins[key].uuid || Builtins[key].image;
       cat[id] = {
-        name: Builtins[image].name,
-        description: Builtins[image].description,
-        tags: Builtins[image].tags || [],
+        name: Builtins[key].name,
+        description: Builtins[key].description,
+        tags: Builtins[key].tags || [],
         image: id
       };
     }
