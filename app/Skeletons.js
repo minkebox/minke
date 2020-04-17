@@ -4,6 +4,7 @@ const Glob = require('fast-glob');
 const VM = require('vm');
 const Tar = require('tar-stream');
 const Yaml = require('js-yaml');
+const UUID = require('uuid/v4');
 const Config = require('./Config');
 
 const BUILTINS_DIR = `${__dirname}/skeletons/builtin`;
@@ -17,7 +18,7 @@ FS.readdirSync(BUILTINS_DIR).forEach((file) => {
     const str = FS.readFileSync(`${BUILTINS_DIR}/${file}`, { encoding: 'utf8' });
     const skeleton = stringToSkeleton(str);
     if (skeleton) {
-      Builtins[skeleton.image] = skeleton;
+      Builtins[skeleton.uuid || skeleton.image] = skeleton;
     }
   }
 });
@@ -87,6 +88,7 @@ async function imageToSkeleton(image) {
   return {
     name: 'MyApp',
     description: '',
+    uuid: UUID(),
     image: image,
     tags: ['App'],
 
@@ -216,6 +218,7 @@ function dockerComposeToSkeleton(yml) {
   const skeleton = {
     name: 'MyApp',
     description: '',
+    uuid: UUID(),
     image: null,
     tags: ['App'],
     delay: 2,
@@ -468,13 +471,13 @@ function stringToSkeleton(str) {
 }
 
 function saveLocalSkeleton(skeleton) {
-  const path = `${LOCALS_DIR}/${skeleton.image}.skeleton`;
+  const path = `${LOCALS_DIR}/${skeleton.uuid || skeleton.image}.skeleton`;
   FS.mkdirSync(Path.dirname(path), { recursive: true });
   FS.writeFileSync(path, skeletonToString(skeleton));
 }
 
 function saveInternalSkeleton(skeleton) {
-  const path = `${INTERNAL_DIR}/${skeleton.image}.skeleton`;
+  const path = `${INTERNAL_DIR}/${skeleton.uuid || skeleton.image}.skeleton`;
   FS.mkdirSync(Path.dirname(path), { recursive: true });
   FS.writeFileSync(path, skeletonToString(skeleton));
 }
@@ -540,11 +543,12 @@ function catalog() {
   // Builtins first
   for (let image in Builtins) {
     if (Builtins[image].catalog !== false) {
-      cat[image] = {
+      const id = Builtins[image].uuid || image
+      cat[id] = {
         name: Builtins[image].name,
         description: Builtins[image].description,
         tags: Builtins[image].tags || [],
-        image: image
+        image: id
       };
     }
   }
@@ -556,11 +560,12 @@ function catalog() {
   internal.forEach((file) => {
     const skeleton = stringToSkeleton(FS.readFileSync(file, { encoding: 'utf8' }));
     if (skeleton && skeleton.catalog !== false) {
-      cat[skeleton.image] = {
+      const id = skeleton.uuid || skeleton.image;
+      cat[id] = {
         name: skeleton.name,
         description: skeleton.description,
         tags: skeleton.tags || [],
-        image: skeleton.image
+        image: id
       };
     }
   });
@@ -572,11 +577,12 @@ function catalog() {
   locals.forEach((file) => {
     const skeleton = stringToSkeleton(FS.readFileSync(file, { encoding: 'utf8' }));
     if (skeleton && skeleton.catalog !== false) {
-      cat[skeleton.image] = {
+      const id = skeleton.uuid || skeleton.image;
+      cat[id] = {
         name: skeleton.name,
         description: skeleton.description,
         tags: skeleton.tags || [],
-        image: skeleton.image
+        image: id
       };
     }
   });

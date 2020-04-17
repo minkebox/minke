@@ -46,7 +46,7 @@ const Updater = {
         if (updated.indexOf(app) !== -1) {
           if (app._image !== Images.MINKE) {
             try {
-              const skel = await Skeletons.loadSkeleton(app._image, false);
+              const skel = await Skeletons.loadSkeleton(app.skeletonId(), false);
               if (skel && skel.type != 'local') {
                 app.updateFromSkeleton(skel.skeleton, app.toJSON());
               }
@@ -94,7 +94,7 @@ const Updater = {
     }
 
     if (updated) {
-      const skel = await Skeletons.loadSkeleton(app._image, false);
+      const skel = await Skeletons.loadSkeleton(app.skeletonId(), false);
       if (skel && skel.type != 'local') {
         app.updateFromSkeleton(skel.skeleton, app.toJSON());
       }

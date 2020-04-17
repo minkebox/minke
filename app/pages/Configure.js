@@ -51,7 +51,7 @@ async function ConfigurePageHTML(ctx) {
   if (!app) {
     throw new Error(`Missing app: ${ctx.params.id}`);
   }
-  const skel = await Skeletons.loadSkeleton(app._image, true);
+  const skel = await Skeletons.loadSkeleton(app.skeletonId(), true);
   if (!skel) {
     throw new Error(`Failed to load skeleton: ${app._image}`);
   }
@@ -494,7 +494,7 @@ async function ConfigurePageWS(ctx) {
   }
 
   let app = MinkeApp.getAppById(ctx.params.id);
-  const skeleton = Skeletons.loadSkeleton(app._image, false).skeleton;
+  const skeleton = Skeletons.loadSkeleton(app.skeletonId(), false).skeleton;
 
   const NOCHANGE = 0;
   const APPCHANGE = 1;
@@ -835,7 +835,7 @@ async function ConfigurePageWS(ctx) {
       if (changed || app._status === 'stopped' || forceRestart) {
         const uapp = app;
         if ((changed & SKELCHANGE) !== 0) {
-          await uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image, false).skeleton, uapp.toJSON());
+          await uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp.skeletonId(), false).skeleton, uapp.toJSON());
           await ConfigBackup.save();
           app = null;
           send({

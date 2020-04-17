@@ -45,6 +45,7 @@ MinkeApp.prototype = {
     this._name = app.name;
     this._description = app.description;
     this._image = app.image;
+    this._skeletonId = app.skeletonId;
     this._args = app.args;
     this._env = app.env;
     this._features = app.features,
@@ -58,6 +59,7 @@ MinkeApp.prototype = {
     this._secondary = (app.secondary || []).map(secondary => {
       return {
         _image: secondary.image,
+        _skeletonId: secondary.skeletonId,
         _args: secondary.args,
         _env: secondary.env,
         _features: secondary.features,
@@ -68,7 +70,7 @@ MinkeApp.prototype = {
       };
     });
 
-    const skel = Skeletons.loadSkeleton(this._image, false);
+    const skel = Skeletons.loadSkeleton(this.skeletonId(), false);
     if (skel) {
       this._skeleton = skel.skeleton;
       this._monitor = skel.skeleton.monitor || {};
@@ -93,6 +95,7 @@ MinkeApp.prototype = {
       globalId: this._globalId,
       name: this._name,
       description: this._description,
+      skeletonId: this._skeletonId,
       image: this._image,
       args: this._args,
       env: this._env,
@@ -107,6 +110,7 @@ MinkeApp.prototype = {
       secondary: this._secondary.map(secondary => {
         return {
           image: secondary._image,
+          skeletonId: secondary._skeletonId,
           args: secondary._args,
           env: secondary._env,
           features: secondary._features,
@@ -128,6 +132,7 @@ MinkeApp.prototype = {
       }
     }
     this._id = Database.newAppId();
+    this._skeletonId = skel.uuid;
     this._image = skel.image,
     this._globalId = UUID();
     this._backups = [];
@@ -311,7 +316,7 @@ MinkeApp.prototype = {
   },
 
   _updateIfBuiltin: async function() {
-    const skel = Skeletons.loadSkeleton(this._image, false);
+    const skel = Skeletons.loadSkeleton(this.skeletonId(), false);
     if (!skel || skel.type !== 'builtin') {
       return false;
     }
@@ -1360,6 +1365,10 @@ MinkeApp.prototype = {
     }
     this._status = status;
     Root.emit('app.status.update', { app: this, status: status });
+  },
+
+  skeletonId: function() {
+    return this._skeletonId || this._image;
   },
 
   isRunning: function() {

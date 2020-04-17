@@ -51,17 +51,18 @@ async function PageWS(ctx) {
         case 'newapp.image':
         {
           (async function() {
-            const images = [ msg.value ];
-            const skel = Skeletons.loadSkeleton(images[0], false);
-            if (skel && skel.skeleton.secondary) {
-              skel.skeleton.secondary.forEach(secondary => {
+            const images = [];
+            const skel = Skeletons.loadSkeleton(msg.value, false);
+            if (skel) {
+              images.push(skel.skeleton.image);
+              (skel.skeleton.secondary ||[]).forEach(secondary => {
                 images.push(secondary.image);
               });
             }
             const download = [];
             const extract = [];
             const success = await Promise.all(images.map((image, idx) => {
-              return Pull.loadImage(Images.withTag(image), (progress) => {
+              return Pull.loadImage(Images.withTag(image), progress => {
                 download[idx] = progress.download / images.length;
                 extract[idx] = progress.extract / images.length;
                 send({ type: 'html.update.attribute', selector: '.newapp .download', name: 'value', value: download.reduce((acc, val) => acc + (val || 0), 0) });
@@ -69,7 +70,7 @@ async function PageWS(ctx) {
               });
             }));
             if (success.reduce((acc, val) => acc & !!val, true)) {
-              const app = await MinkeApp.create(images[0]);
+              const app = await MinkeApp.create(msg.value);
               send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: msg.src });
             }
             else {
