@@ -132,7 +132,6 @@ MinkeApp.prototype = {
       }
     }
     this._id = Database.newAppId();
-    this._skeletonId = skel.uuid;
     this._image = skel.image,
     this._globalId = UUID();
     this._backups = [];
@@ -149,6 +148,7 @@ MinkeApp.prototype = {
 
   updateFromSkeleton: async function(skel, defs) {
 
+    this._skeletonId = skel.uuid;
     this._description = skel.description;
     this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue;
 
