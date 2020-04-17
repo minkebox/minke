@@ -2,6 +2,7 @@
   name: `Wireguard Peer`,
   description: `Fast, Modern, Secure VPN Tunnel`,
   image: `registry.minkebox.net/minkebox/wireguardclient`,
+  uuid: `4F3784DF-8426-4051-AAA2-D4551B055D1B`,
   tags: [ 'VPN', 'Security', 'Networking' ],
   actions: [
     {

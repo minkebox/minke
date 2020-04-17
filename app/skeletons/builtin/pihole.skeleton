@@ -2,6 +2,7 @@
   name: `Pi Hole`,
   description: `Network-wide Ad Blocking`,
   image: `pihole/pihole`,
+  uuid: `7CCA69ED-DA29-4DCE-95DD-A14878568B54`,
   tags: [
     `Ad Blocking`, `Networking`, `Dns`
   ],

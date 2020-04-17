@@ -1,6 +1,7 @@
 {
   name: `Internet Speed Test`,
   description: `Run a latency and bandwidth test on your Internet connection every hour`,
+  uuid: `4F438977-75B9-4937-B945-555F75FA4FCC`,
   image: `registry.minkebox.net/minkebox/speedtest`,
   tags: [ 'Networking', 'Utilities' ],
   actions: [

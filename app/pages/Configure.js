@@ -1,5 +1,6 @@
 const FS = require('fs');
 const Path = require('path');
+const UUID = require('uuid/v4');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
@@ -51,7 +52,7 @@ async function ConfigurePageHTML(ctx) {
   if (!app) {
     throw new Error(`Missing app: ${ctx.params.id}`);
   }
-  const skel = await Skeletons.loadSkeleton(app._image, true);
+  const skel = await Skeletons.loadSkeleton(app.skeletonId(), true);
   if (!skel) {
     throw new Error(`Failed to load skeleton: ${app._image}`);
   }
@@ -494,7 +495,7 @@ async function ConfigurePageWS(ctx) {
   }
 
   let app = MinkeApp.getAppById(ctx.params.id);
-  const skeleton = Skeletons.loadSkeleton(app._image, false).skeleton;
+  const skeleton = Skeletons.loadSkeleton(app.skeletonId(), false).skeleton;
 
   const NOCHANGE = 0;
   const APPCHANGE = 1;
@@ -810,7 +811,21 @@ async function ConfigurePageWS(ctx) {
       p: /^__EditSkeleton$/, f: async (value, match) => {
         const skel = Skeletons.parse(value);
         if (skel) {
+          // Make sure skeleton has unique id
+          if (!skel.uuid) {
+            skel.uuid = UUID();
+          }
+          else {
+            // If skeleton exists, we can update in-place if it's already local. Otherwise
+            // we assigned it a new id.
+            const existing = Skeletons.loadSkeleton(skel.uuid, false);
+            if (existing && existing.type !== 'local') {
+              skel.uuid = UUID();
+            }
+          }
           Skeletons.saveLocalSkeleton(skel);
+          // Make sure app points to the correct skeleton
+          app._skeletonId = skel.uuid;
           return SKELCHANGE;
         }
         return NOCHANGE;
@@ -835,7 +850,7 @@ async function ConfigurePageWS(ctx) {
       if (changed || app._status === 'stopped' || forceRestart) {
         const uapp = app;
         if ((changed & SKELCHANGE) !== 0) {
-          await uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp._image, false).skeleton, uapp.toJSON());
+          await uapp.updateFromSkeleton(Skeletons.loadSkeleton(uapp.skeletonId(), false).skeleton, uapp.toJSON());
           await ConfigBackup.save();
           app = null;
           send({

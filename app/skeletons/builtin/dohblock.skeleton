@@ -2,6 +2,7 @@
   name: `DoH Block`,
   description: `Block Firefox from bypassing your DNS`,
   image: `registry.minkebox.net/minkebox/dohblock`,
+  uuid: `BE5ABE19-AD1A-48CE-A89B-259891A253BB`,
   tags: [ 'Networking', `Dns` ],
   actions: [
   ],

@@ -1,7 +1,10 @@
 {
   name: `Roborock`,
   description: `Add a Roborock vacuum to your HomeKit network using HomeBridge`,
-  image: `registry.minkebox.net/minkebox/homebridge_roborock`,
+  images: {
+    x64: `registry.minkebox.net/minkebox/homebridge_roborock`
+  },
+  uuid: `B2AD4A7B-9843-4EA4-902C-CDFAE00E123A`,
   tags: [ 'HomeKit' ],
   actions: [
     {

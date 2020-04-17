@@ -2,6 +2,7 @@
   name: `Netatmo`,
   description: `Add Netatmo devices to your HomeKit network using HomeBridge`,
   image: `registry.minkebox.net/minkebox/homebridge_netatmo`,
+  uuid: `0B85CC4F-5FE9-4FC5-89B4-EE6C83C2A2CE`,
   tags: [ 'HomeKit' ],
   actions: [
     {

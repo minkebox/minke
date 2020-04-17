@@ -2,6 +2,7 @@
   name: `UPnP Monitor`,
   description: `Monitor the open UPnP ports on your firewall.`,
   image: `registry.minkebox.net/minkebox/upnpmonitor`,
+  uuid: `83271E99-6703-4739-B347-38C1B52B7706`,
   tags: [ 'Networking', 'Utilities' ],
   actions: [
     {

@@ -2,6 +2,7 @@
   name: `HomeBridge`,
   description: `Add HomeKit devices using HomeBridge`,
   image: `registry.minkebox.net/minkebox/homebridge`,
+  uuid: `DB46A1EB-63B6-4BAC-94B3-B897807D3312`,
   tags: [
     `HomeKit`
   ],

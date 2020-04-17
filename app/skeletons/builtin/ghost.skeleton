@@ -4,6 +4,7 @@
   images: {
     x64: `ghost:alpine`
   },
+  uuid: `F301B560-3262-4B4D-B09D-75CBB86B3BB1`,
   tags: [
     `Blog`,
     `Web`

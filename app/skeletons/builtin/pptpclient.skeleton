@@ -2,6 +2,7 @@
   name: `PPTP`,
   description: `PPTP client to connect to PPTP servers`,
   image: `registry.minkebox.net/minkebox/pptpclient`,
+  uuid: `11E7B3AF-CE7B-49DF-AFCC-FB561B1628DB`,
   tags: [ 'VPN', 'Security', 'Networking' ],
   actions: [
     {

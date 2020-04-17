@@ -2,6 +2,7 @@
   name: `AlexaBridge`,
   description: `Virtual switches shared between Alexa and HomeKit using HomeBridge`,
   image: `registry.minkebox.net/minkebox/homebridge_alexabridge`,
+  uuid: `6CFCBF9A-237D-4B5E-84EE-B803251C0042`,
   tags: [ 'HomeKit' ],
   actions: [
     {

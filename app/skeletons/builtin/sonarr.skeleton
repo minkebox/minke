@@ -2,18 +2,19 @@
   name: `Sonarr`,
   description: `Smart PVR for newsgroup and bittorrent users`,
   image: `linuxserver/sonarr`,
+  uuid: `42150D45-9105-4263-BB92-93AF87559337`,
   tags: [
     `Media`
   ],
   actions: [
     {
       type: `NavButton`,
-      name: `Transmission`,
+      name: `Open Transmission`,
       url: `http://{{__HOMEIP}}:9091/`
     },
     {
       type: `NavButton`,
-      name: `NZBGet`,
+      name: `Open NZBGet`,
       url: `http://{{__HOMEIP}}:6789/`
     },
     {

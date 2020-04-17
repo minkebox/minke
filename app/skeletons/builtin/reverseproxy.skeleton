@@ -1,8 +1,9 @@
 {
   name: `Website Proxy`,
   description: `Make your websites available to the outside world using HTTP or HTTPS`,
+  uuid: `D3D37AE4-CF21-4946-A46C-14A8CA348C1E`,
   image: `registry.minkebox.net/minkebox/reverseproxy`,
-  tags: [ 'Web', `Dns` ],
+  tags: [ 'Web' ],
   actions: [
     {
       type: `Header`,

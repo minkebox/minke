@@ -45,6 +45,7 @@ MinkeApp.prototype = {
     this._name = app.name;
     this._description = app.description;
     this._image = app.image;
+    this._skeletonId = app.skeletonId;
     this._args = app.args;
     this._env = app.env;
     this._features = app.features,
@@ -58,6 +59,7 @@ MinkeApp.prototype = {
     this._secondary = (app.secondary || []).map(secondary => {
       return {
         _image: secondary.image,
+        _skeletonId: secondary.skeletonId,
         _args: secondary.args,
         _env: secondary.env,
         _features: secondary.features,
@@ -68,7 +70,7 @@ MinkeApp.prototype = {
       };
     });
 
-    const skel = Skeletons.loadSkeleton(this._image, false);
+    const skel = Skeletons.loadSkeleton(this.skeletonId(), false);
     if (skel) {
       this._skeleton = skel.skeleton;
       this._monitor = skel.skeleton.monitor || {};
@@ -93,6 +95,7 @@ MinkeApp.prototype = {
       globalId: this._globalId,
       name: this._name,
       description: this._description,
+      skeletonId: this._skeletonId,
       image: this._image,
       args: this._args,
       env: this._env,
@@ -107,6 +110,7 @@ MinkeApp.prototype = {
       secondary: this._secondary.map(secondary => {
         return {
           image: secondary._image,
+          skeletonId: secondary._skeletonId,
           args: secondary._args,
           env: secondary._env,
           features: secondary._features,
@@ -144,6 +148,7 @@ MinkeApp.prototype = {
 
   updateFromSkeleton: async function(skel, defs) {
 
+    this._skeletonId = skel.uuid;
     this._description = skel.description;
     this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue;
 
@@ -311,7 +316,7 @@ MinkeApp.prototype = {
   },
 
   _updateIfBuiltin: async function() {
-    const skel = Skeletons.loadSkeleton(this._image, false);
+    const skel = Skeletons.loadSkeleton(this.skeletonId(), false);
     if (!skel || skel.type !== 'builtin') {
       return false;
     }
@@ -330,6 +335,9 @@ MinkeApp.prototype = {
       if (this._willCreateNetwork()) {
         Root.emit('net.create', { app: this });
       }
+
+      // Make sure we have all the pieces
+      await this.checkInstalled();
 
       this._bootcount++;
 
@@ -516,7 +524,7 @@ MinkeApp.prototype = {
         }
 
         // Expand the environment before selecting ports as this could effect their values
-        await this._expandEnvironment();
+        this._fullEnv = await this._expandEnvironment(this._env, this._skeleton.properties);
 
         this._ddns = this._features.ddns || false;
         const nat = [];
@@ -639,7 +647,7 @@ MinkeApp.prototype = {
       }
 
       // Expand environment (again) after the helper has set some variables
-      await this._expandEnvironment();
+      this._fullEnv = await this._expandEnvironment(this._env, this._skeleton.properties);
 
       config.Env = Object.keys(this._fullEnv).map(key => `${key}=${this._fullEnv[key].value}`).concat(configEnv);
 
@@ -757,6 +765,7 @@ MinkeApp.prototype = {
             const secondary = this._secondary[c];
             const secondaryMounts = await this._fs.getAllMounts(secondary);
             this._allmounts = this._allmounts.concat(secondaryMounts);
+            const secondaryEnv = await this._expandEnvironment(secondary._env, this._skeleton.secondary[c].properties);
             const sconfig = {
               name: `${this._safeName()}__${this._id}__${c}`,
               Image: Images.withTag(secondary._image),
@@ -766,10 +775,10 @@ MinkeApp.prototype = {
                 Devices: [],
                 CapAdd: [],
                 CapDrop: [],
-                LogConfig: config.LogConfig,
+                LogConfig: config.HostConfig.LogConfig,
                 NetworkMode: `container:${this._helperContainer.id}`
               },
-              Env: await Promise.all(Object.keys(secondary._env).map(async key => `${key}=${await this.expand(secondary._env[key].value)}`))
+              Env: Object.keys(secondaryEnv).map(key => `${key}=${secondaryEnv[key].value}`)
             };
             this._secondaryContainers[c] = await docker.createContainer(sconfig);
             startup.push({ delay: secondary._delay, container: this._secondaryContainers[c] });
@@ -1002,7 +1011,9 @@ MinkeApp.prototype = {
       }
     }
     if (fail) {
+      const old = this._setStatus('downloading');
       await Updater.updateApp(this);
+      this._setStatus(old);
     }
   },
 
@@ -1264,18 +1275,17 @@ MinkeApp.prototype = {
     return true;
   },
 
-  _expandEnvironment: async function() {
-    this._fullEnv = {};
+  _expandEnvironment: async function(env, properties) {
+    const fullEnv = {};
     let skelenv = null;
-    for (let key in this._env) {
-      const val = this._env[key].value;
+    for (let key in env) {
+      const val = env[key].value;
       if (val) {
-        this._fullEnv[key] = this._env[key];
+        fullEnv[key] = env[key];
       }
-      else if (this._skeleton) {
+      else if (properties) {
         if (!skelenv) {
           skelenv = {};
-          const properties = this._skeleton.properties;
           for (let i = 0; i < properties.length; i++) {
             const prop = properties[i];
             if (prop.type === 'Environment' && prop.defaultValue) {
@@ -1283,9 +1293,10 @@ MinkeApp.prototype = {
             }
           }
         }
-        this._fullEnv[key] = { value: skelenv[key] || '' };
+        fullEnv[key] = { value: skelenv[key] || '' };
       }
     }
+    return fullEnv;
   },
 
   _eval: function(val) {
@@ -1351,11 +1362,16 @@ MinkeApp.prototype = {
   },
 
   _setStatus: function(status) {
-    if (this._status === status) {
-      return;
+    const old = this._status;
+    if (old !== status) {
+      this._status = status;
+      Root.emit('app.status.update', { app: this, status: status, oldStatus: old });
     }
-    this._status = status;
-    Root.emit('app.status.update', { app: this, status: status });
+    return old;
+  },
+
+  skeletonId: function() {
+    return this._skeletonId || this._image;
   },
 
   isRunning: function() {
@@ -1665,7 +1681,6 @@ MinkeApp.startApps = async function(app, config) {
     try {
       const app = order[i];
       if (app._status === 'stopped') {
-        await app.checkInstalled();
         await app.start(inheritables[app._id]);
       }
     }

@@ -2,6 +2,7 @@
   name: `Shaped Network`,
   description: `Create a network then route, shape and limit traffic crossing to a target network.`,
   image: `registry.minkebox.net/minkebox/networkshaper`,
+  uuid: `06DB17F2-1FD1-4142-AE13-6CA3F10DB5B8`,
   tags: [
     `Networking`
   ],

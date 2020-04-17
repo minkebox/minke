@@ -2,6 +2,7 @@
   name: `Neato`,
   description: `Add Neato robotic vacuum cleaner to your HomeKit network using HomeBridge`,
   image: `registry.minkebox.net/minkebox/homebridge_neato`,
+  uuid: `0096B537-96D7-4C81-8F11-60E392567756`,
   tags: [ 'HomeKit' ],
   actions: [
     {

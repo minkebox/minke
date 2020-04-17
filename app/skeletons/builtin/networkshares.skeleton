@@ -2,6 +2,7 @@
   name: `Network Folders`,
   description: `Mount SMB/CIFS shares from another machine and make them available locally.`,
   image: `registry.minkebox.net/minkebox/networkshares`,
+  uuid: `08ABD2A5-D5A4-4613-9FBA-F56E73322814`,
   tags: [ 'Shares', 'Storage' ],
   actions: [
     {

@@ -2,6 +2,7 @@
   name: `JellyFin`,
   description: `The Free Software Media Browser`,
   image: `jellyfin/jellyfin`,
+  uuid: `F301B560-3262-4B4D-B09D-75CBB86B3BB1`,
   tags: [
     `Media`
   ],

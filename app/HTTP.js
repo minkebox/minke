@@ -1,4 +1,3 @@
-const URL = require('url');
 const FS = require('fs');
 const Koa = require('koa');
 const KoaRouter = require('koa-router');
@@ -21,7 +20,7 @@ function makeProxy(to) {
       }
     }
     catch (e) {
-      console.log(e);
+      //console.log(e);
       ctx.type = 'text/html';
       ctx.body = FS.readFileSync(`${__dirname}/pages/html/ProxyFail.html`);
     }

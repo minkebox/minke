@@ -1,6 +1,7 @@
 {
   name: `TimeMachine Backups`,
   description: `Destination for your Apple TimeMachine backups`,
+  uuid: `FD2841A9-CEBD-4BB6-B033-0F23CB00114E`,
   image: `registry.minkebox.net/minkebox/timemachine`,
   tags: [ 'Backups' ],
   actions: [

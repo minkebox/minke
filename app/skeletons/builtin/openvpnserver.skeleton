@@ -2,6 +2,7 @@
   name: `Simple VPN`,
   description: `Super simple VPN to connect to your home network`,
   image: `registry.minkebox.net/minkebox/openvpnserver`,
+  uuid: `C8810B9B-6B20-4682-B8C7-52655ED02A14`,
   tags: [ 'VPN', 'Security', 'Networking' ],
   actions: [
     {

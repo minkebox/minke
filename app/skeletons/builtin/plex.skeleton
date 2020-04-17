@@ -2,6 +2,7 @@
   name: `Plex`,
   description: `Your favorite movies, TV, music, web shows, podcasts, and more, all streamed to your favorite screens`,
   image: `linuxserver/plex`,
+  uuid: `84EDCC84-C18D-4D7D-8664-859E67FE6128`,
   tags: [ 'Media' ],
   actions: [
     {

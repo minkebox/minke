@@ -374,20 +374,26 @@ document.addEventListener('drop', function(event) {
     event.preventDefault();
     if (event.dataTransfer && event.dataTransfer && event.dataTransfer.items && event.dataTransfer.items[0]) {
       const item = event.dataTransfer.items[0];
+      const type = item.type;
       if (item.kind === 'file')
       {
         const reader = new FileReader();
         reader.onload = function(e)
         {
           const content = e.target.result;
-          try {
-            let skel;
-            eval(`skel=${content}`);
-            if (('name' in skel) && (('image' in skel) || ('images' in skel)) && ('properties' in skel)) {
-              cmd('skeleton.drop', content);
-            }
+          if (type === 'application/x-yaml') {
+            cmd('docker-compose.drop', content);
           }
-          catch (_) {
+          else {
+            try {
+              let skel;
+              eval(`skel=${content}`);
+              if (('name' in skel) && (('image' in skel) || ('images' in skel)) && ('properties' in skel)) {
+                cmd('skeleton.drop', content);
+              }
+            }
+            catch (_) {
+            }
           }
         };
         reader.readAsText(item.getAsFile());

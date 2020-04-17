@@ -20,12 +20,12 @@
         <div class="text">
           You can install an app by clicking on one of the suggestions; or
           you can choose another Docker app by entering its registry name, or by dropping
-          a Skeleton here.
+          a Skeleton or Docker compose file here.
         </div>
         <div class="section">
           <div class="pure-form pure-form-aligned">
             <div class="pure-control-group">
-              <label>Enter Registry Name or drop Skeleton</label>
+              <label>Enter Registry Name or drop Skeleton or Docker compose file</label>
               <input data-skeleton="true" type="text" spellcheck="false" onkeypress="window.event.keyCode===13&&install(this.value,'registry-name')" class="pure-input-rounded pure-u-1-3">
             </div>
           </div>
@@ -35,7 +35,9 @@
         <div class="section-header">Applications</div>
         <div class="pure-g">
         {{#each skeletons}}
-        <div class="skel pure-u-1-2">
+        <div class="skel pure-u-1-2 application-image" data-name="{{image}}">
+          {{#if canDelete}}<a class="cross-icon" data-popbox-target="delete" data-popbox-arg="{{image}}"></a>{{/if}}
+          {{#if personal}}<div class="personal-icon fgcolor-{{color}}">personal</div>{{/if}}
           <div class="inner" onclick="install('{{image}}','catalogue')">
             <div class="bgcolor-{{color}} icon">
               <div class="icon-inner fgcolor-{{color}}">{{pre}}</div>
@@ -75,16 +77,35 @@
         </div>
       </div>
     </div>
+    <div data-popbox-id="delete" class="popbox dialog">
+      <div class="popbox_container">
+        <div class="content-header">Delete Application</div>
+        <div class="content-text">
+          Are you sure you want to delete this application?
+        </div>
+        <div class="spacer">
+          <button class="pure-button button-delete-app" data-popbox-close="delete">Yes</button>
+          <button class="pure-button button-no" data-popbox-close="delete">No</button>
+        </div>
+      </div>
+    </div>
     <script>
       const popbox = new Popbox({ blur: false, overlay: true });
-      document.addEventListener('popbox_opening', () => {
+      let image = null;
+      document.addEventListener('popbox_opening', e => {
+        image = e.detail.arg;
         document.querySelector('.download-spinner').classList.remove('error');
         document.querySelector('.download-message').innerHTML = '';
         document.querySelector('.download').value = 0;
         document.querySelector('.extract').value = 0;
       });
-      document.addEventListener('popbox_closing', () => {
-        cmd('newapp.cancel');
+      document.addEventListener('popbox_closing', e => {
+        if (e.detail.source.classList.contains('button-delete-app')) {
+          cmd('appimage.delete', image);
+        }
+        else {
+          cmd('newapp.cancel');
+        }
       });
     </script>
   </body>
