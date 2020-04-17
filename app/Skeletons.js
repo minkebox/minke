@@ -495,7 +495,8 @@ function removeImage(skelid) {
   }
   catch (_) {
   }
-  if (!Builtins[skelid]) {
+  const builtin = Builtins[skelid] && Builtins[skelid].uuid === skelid;
+  if (!builtin) {
     try {
       const path = `${INTERNAL_DIR}/${skelid}.skeleton`;
       FS.unlinkSync(path);

@@ -118,8 +118,18 @@ async function PageWS(ctx) {
         }
         case 'appimage.delete':
         {
-          Skeletons.removeImage(msg.value);
-          send({ type: 'html.remove', selector: `.application-image[data-name="${msg.value}"]` });
+          const apps = MinkeApp.getApps();
+          let i;
+          for (i = 0; i < apps.length; i++) {
+            // Dont remove anything which is running
+            if (apps[i].skeletonId() === msg.value) {
+              break;
+            }
+          }
+          if (i === apps.length) {
+            Skeletons.removeImage(msg.value);
+            send({ type: 'html.remove', selector: `.application-image[data-name="${msg.value}"]` });
+          }
           break;
         }
         default:
