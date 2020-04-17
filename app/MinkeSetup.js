@@ -341,6 +341,10 @@ MinkeSetup.prototype = {
     return false;
   },
 
+  skeletonId: function() {
+    return Images.MINKE;
+  },
+
   systemRestart: async function(reason) {
     try {
       FS.writeFileSync(RESTART_REASON, reason);
