@@ -25,10 +25,22 @@ async function PageHTML(ctx) {
   });
   const template = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Applications.html`, { encoding: 'utf8' }));
 
+  const running = {};
+  MinkeApp.getApps().forEach(app => {
+    running[app.skeletonId()] = true;
+  });
+  function canDelete(skel) {
+    if (skel.source === 'builtin' || skel.source === 'internal-builtin') {
+      return false;
+    }
+    return running[skel.image] ? false : true;
+  }
+
   const catalog = Skeletons.catalog();
   ctx.body = template({ Advanced: MinkeApp.getAdvancedMode(), skeletons: catalog.map(skel => Object.assign({
     pre: skel.name.substr(0, 2),
-    color: _strhash((skel.tags && skel.tags.length && skel.tags[0] || 'all').toLowerCase()) % NRTAGS
+    color: _strhash((skel.tags && skel.tags.length && skel.tags[0] || 'all').toLowerCase()) % NRTAGS,
+    canDelete: canDelete(skel)
   }, skel)) });
   ctx.type = 'text/html';
 }
@@ -102,6 +114,12 @@ async function PageWS(ctx) {
               send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: 'docker-compose' });
             }
           })();
+          break;
+        }
+        case 'appimage.delete':
+        {
+          Skeletons.removeImage(msg.value);
+          send({ type: 'html.remove', selector: `.application-image[data-name="${msg.value}"]` });
           break;
         }
         default:

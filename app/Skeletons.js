@@ -486,6 +486,27 @@ function saveInternalSkeleton(skeleton) {
   FS.writeFileSync(path, skeletonToString(skeleton));
 }
 
+function removeImage(skelid) {
+  try {
+    const path = `${LOCALS_DIR}/${skelid}.skeleton`;
+    FS.unlinkSync(path);
+    FS.rmdirSync(Path.dirname(path));
+    FS.rmdirSync(Path.dirname(Path.dirname(path)));
+  }
+  catch (_) {
+  }
+  if (!Builtins[skelid]) {
+    try {
+      const path = `${INTERNAL_DIR}/${skelid}.skeleton`;
+      FS.unlinkSync(path);
+      FS.rmdirSync(Path.dirname(path));
+      FS.rmdirSync(Path.dirname(Path.dirname(path)));
+    }
+    catch (_) {
+    }
+  }
+}
+
 function loadSkeleton(image, create) {
   const lpath = `${LOCALS_DIR}/${image}.skeleton`;
   if (FS.existsSync(lpath)) {
@@ -552,7 +573,8 @@ function catalog() {
         name: Builtins[key].name,
         description: Builtins[key].description,
         tags: Builtins[key].tags || [],
-        image: id
+        image: id,
+        source: 'builtin'
       };
     }
   }
@@ -569,7 +591,8 @@ function catalog() {
         name: skeleton.name,
         description: skeleton.description,
         tags: skeleton.tags || [],
-        image: id
+        image: id,
+        source: cat[id] ? 'internal-builtin' : 'internal'
       };
     }
   });
@@ -586,7 +609,8 @@ function catalog() {
         name: skeleton.name,
         description: skeleton.description,
         tags: skeleton.tags || [],
-        image: id
+        image: id,
+        source: 'local'
       };
     }
   });
@@ -601,6 +625,7 @@ module.exports = {
   saveLocalSkeleton: saveLocalSkeleton,
   loadSkeleton: loadSkeleton,
   updateInternalSkeleton: updateInternalSkeleton,
+  removeImage: removeImage,
   toString: skeletonToString,
   parse: stringToSkeleton,
   parseDockerCompose: dockerComposeToSkeleton,
