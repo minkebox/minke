@@ -4,6 +4,7 @@
   images: {
     x64: `itzg/minecraft-server`
   },
+  uuid: `E70D6635-F75A-48F2-9E21-18B4707C5593`,
   tags: [ 'Games' ],
   actions: [
     {

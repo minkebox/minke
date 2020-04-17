@@ -4,6 +4,7 @@
   images: {
     x64: `bitnami/discourse`
   },
+  uuid: `AE1C2DB4-E767-447D-B84A-3BF331DF07DE`,
   tags: [
     `Forum`,
     `Web`

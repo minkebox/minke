@@ -4,6 +4,7 @@
   images: {
     x64: `amimof/sftp`
   },
+  uuid: `D6AD83F2-C379-4FD8-81C4-9292620E5D3C`,
   tags: [ 'Utilities' ],
   actions: [
     {

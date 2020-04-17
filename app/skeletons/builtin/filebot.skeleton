@@ -2,6 +2,7 @@
   name: `Filebot`,
   description: `The ultimate tool for organizing and renaming your movies, tv shows or anime, and music well as downloading subtitles and artwork`,
   image: `coppit/filebot`,
+  uuid: `1EBAD7F2-5C5B-4732-86DE-ACA05ADD91F1`,
   tags: [
     `Media`,
     `Storage`

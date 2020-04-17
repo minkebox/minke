@@ -4,6 +4,7 @@
   images: {
     x64: `lancachenet/monolithic`
   },
+  uuid: `E1052DE9-6D0C-4B7D-827F-6F661CEB1FB0`,
   tags: [ 'Caches', `Dns` ],
   actions: [
     {

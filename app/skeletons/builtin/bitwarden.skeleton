@@ -2,6 +2,7 @@
   name: `Bitwarden`,
   description: `Bitwarden password manager`,
   image: `bitwardenrs/server`,
+  uuid: `AFD02CE2-AE46-4B1F-8164-7A18986D2609`,
   tags: [
     `Security`,
     `Web`

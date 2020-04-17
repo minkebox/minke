@@ -5,6 +5,7 @@
     x64: `requarks/wiki:2`,
     arm64: `requarks/wiki:2.1-arm`
   },
+  uuid: `828D4811-E001-409B-9BDC-A440B9A1A736`,
   tags: [
     'Wiki',
     'Web'

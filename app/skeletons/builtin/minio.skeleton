@@ -2,6 +2,7 @@
   name: `MinIO`,
   description: `High Performance Object Storage compatible with Amazon's S3.`,
   image: `minio/minio`,
+  uuid: `8994692D-BB01-4320-AE45-B3DD27A6DF8F`,
   tags: [
     `Storage`
   ],

@@ -2,6 +2,7 @@
   name: `Backups`,
   description: `Multi-protocol, offsite backups using Duplicati`,
   image: `linuxserver/duplicati`,
+  uuid: `1D93B03F-819A-475C-8A96-5CCCBFA58019`,
   tags: [ 'Backups' ],
   actions: [
     {

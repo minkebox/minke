@@ -2,6 +2,7 @@
   name: `SyncThing`,
   description: `Continuous and secure file synchronization between multiple computers anywhere`,
   image: `linuxserver/syncthing`,
+  uuid: `010B271D-68A8-4E03-8612-1E94F1DD9FA3`,
   tags: [ 'Sync', 'Shares' ],
   actions: [
     {

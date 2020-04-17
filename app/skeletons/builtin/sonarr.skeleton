@@ -2,6 +2,7 @@
   name: `Sonarr`,
   description: `Smart PVR for newsgroup and bittorrent users`,
   image: `linuxserver/sonarr`,
+  uuid: `42150D45-9105-4263-BB92-93AF87559337`,
   tags: [
     `Media`
   ],

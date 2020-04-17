@@ -2,6 +2,7 @@
   name: `Radarr`,
   description: `Movies downloader for newsgroup and bittorrent users`,
   image: `linuxserver/radarr`,
+  uuid: `8200F669-0959-4579-8B50-DC176C9BD721`,
   tags: [
     `Media`
   ],
