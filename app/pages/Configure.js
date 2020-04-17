@@ -1,5 +1,6 @@
 const FS = require('fs');
 const Path = require('path');
+const UUID = require('uuid/v4');
 const Handlebars = require('./HB');
 const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
@@ -810,7 +811,21 @@ async function ConfigurePageWS(ctx) {
       p: /^__EditSkeleton$/, f: async (value, match) => {
         const skel = Skeletons.parse(value);
         if (skel) {
+          // Make sure skeleton has unique id
+          if (!skel.uuid) {
+            skel.uuid = UUID();
+          }
+          else {
+            // If skeleton exists, we can update in-place if it's already local. Otherwise
+            // we assigned it a new id.
+            const existing = Skeletons.loadSkeleton(skel.uuid, false);
+            if (existing && existing.type !== 'local') {
+              skel.uuid = UUID();
+            }
+          }
           Skeletons.saveLocalSkeleton(skel);
+          // Make sure app points to the correct skeleton
+          app._skeletonId = skel.uuid;
           return SKELCHANGE;
         }
         return NOCHANGE;
