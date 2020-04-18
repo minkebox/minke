@@ -287,6 +287,10 @@ MinkeSetup.prototype = {
     return true;
   },
 
+  isStarting: function() {
+    return false;
+  },
+
   expand: function(txt) {
     return txt;
   },

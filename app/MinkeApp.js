@@ -1022,6 +1022,10 @@ MinkeApp.prototype = {
     if (idx !== -1) {
       applications.splice(idx, 1);
     }
+    // Can't delete during startup - so wait for that to be done
+    while (this.isStarting()) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
     if (this.isRunning()) {
       await this.stop();
     }
@@ -1376,6 +1380,10 @@ MinkeApp.prototype = {
 
   isRunning: function() {
     return this._status === 'running';
+  },
+
+  isStarting: function() {
+    return this._status === 'starting' || this._status === 'downloading';
   },
 
   _safeName: function() {
@@ -1751,6 +1759,11 @@ MinkeApp.getMinkeName = function() {
 
 MinkeApp.shutdown = async function(config) {
   await Promise.all(applications.map(async (app) => {
+    // If app is starting up, wait for it to finish ... then we can shut it down.
+    // If the app is stopping, then no need to stop it again.
+    while (app.isStarting()) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
     if (app.isRunning()) {
       // If we shutdown with 'inherit' set, we leave the children running so we
       // can inherit them when on a restart. But we're always stopping Minke itself
