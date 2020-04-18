@@ -234,32 +234,32 @@ MinkeApp.prototype = {
         }
         case 'Directory':
         {
-          const targetname = Path.normalize(prop.name);
+          let targetname = Path.normalize(prop.name);
+          const description = prop.description || targetname;
           const bind = defs.binds && defs.binds.find(bind => bind.target === targetname);
           let src = null;
-          switch (prop.style) {
-            case 'parent':
-              const pbind = this._binds.find(pbind => pbind.target === targetname);
-              if (pbind) {
-                src = pbind.src;
+          if (prop.style !== 'temp') {
+            if (bind && bind.src) {
+              src = bind.src;
+            }
+            else if (prop.use) {
+              const vbind = defs.binds && defs.binds.find(bind => bind.target === prop.use);
+              if (vbind) {
+                src = vbind.src;
               }
               else {
-                src = null;
+                // If we fail to find a binding, we create a default in 'store'. We don't use the properties
+                // style to avoid errors where some prop.use have a style and some don't.
+                src = Filesystem.getNativePath(this._id, 'store', `/vol/${prop.use}`);
               }
-              break;
-            case 'boot':
-            case 'store':
-            default:
-              if (bind && bind.src) {
-                src = bind.src;
-              }
-              else {
-                src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`);
-              }
-              break;
-            case 'temp':
-              src = null;
-              break;
+            }
+            else if (targetname[0] !== '/') {
+              src = Filesystem.getNativePath(this._id, prop.style, `/vol/${targetname}`);
+              targetname = null;
+            }
+            else {
+              src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`);
+            }
           }
           const b = {
             src: src,

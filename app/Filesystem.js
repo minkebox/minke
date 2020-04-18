@@ -56,42 +56,44 @@ _Filesystem.prototype = {
     }
 
     const binds = [];
-    if (bind.src) {
-      binds.push({
-        Type: 'bind',
-        Source: Filesystem.mapFilenameToNative(bind.src),
-        Target: await this._expand(bind.target),
-        BindOptions: {
-          Propagation: 'rshared'
-        }
-      });
-    }
-    const natives = Filesystem.getNativeDirectories();
-    await Promise.all(bind.shares.map(async share => {
-      // If share has a source which exists, bind it.
-      if (share.src) {
-        if (MinkeApp.getAppById(share.src.replace(/^.*apps\/([^/]+).*$/,'$1')) && FS.existsSync(share.src)) {
-          binds.push({
-            Type: 'bind',
-            Source: Filesystem.mapFilenameToNative(share.src),
-            Target: Path.normalize(await this._expand(`${bind.target}/${share.name}`)),
-            BindOptions: {
-              Propagation: 'rshared'
-            }
-          });
-        }
-        else if (natives.find(native => native.src === share.src)) {
-          binds.push({
-            Type: 'bind',
-            Source: share.src,
-            Target: Path.normalize(await this._expand(`${bind.target}/${share.name}`)),
-            BindOptions: {
-              Propagation: 'rshared'
-            }
-          });
-        }
+    if (bind.target) {
+      if (bind.src) {
+        binds.push({
+          Type: 'bind',
+          Source: Filesystem.mapFilenameToNative(bind.src),
+          Target: await this._expand(bind.target),
+          BindOptions: {
+            Propagation: 'rshared'
+          }
+        });
       }
-    }));
+      const natives = Filesystem.getNativeDirectories();
+      await Promise.all(bind.shares.map(async share => {
+        // If share has a source which exists, bind it.
+        if (share.src) {
+          if (MinkeApp.getAppById(share.src.replace(/^.*apps\/([^/]+).*$/,'$1')) && FS.existsSync(share.src)) {
+            binds.push({
+              Type: 'bind',
+              Source: Filesystem.mapFilenameToNative(share.src),
+              Target: Path.normalize(await this._expand(`${bind.target}/${share.name}`)),
+              BindOptions: {
+                Propagation: 'rshared'
+              }
+            });
+          }
+          else if (natives.find(native => native.src === share.src)) {
+            binds.push({
+              Type: 'bind',
+              Source: share.src,
+              Target: Path.normalize(await this._expand(`${bind.target}/${share.name}`)),
+              BindOptions: {
+                Propagation: 'rshared'
+              }
+            });
+          }
+        }
+      }));
+    }
     return binds;
   },
 
