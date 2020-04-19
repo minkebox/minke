@@ -468,7 +468,7 @@ async function ConfigurePageHTML(ctx) {
     minkeConfig: minkeConfig,
     Advanced: advanced,
     skeleton: nskeleton,
-    skeletonType: advanced && !minkeConfig ? skel.type : null,
+    skeletonType: !minkeConfig && skel.type === 'local' ? 'Personal' : null,
     properties: JSON.stringify(properties),
     skeletonAsText: Skeletons.toString(skeleton),
     navbuttons: navbuttons,

@@ -225,7 +225,7 @@ function dockerComposeToSkeleton(yml) {
     uuid: UUID(),
     image: null,
     tags: ['App'],
-    delay: 2,
+    delay: 0.1,
     actions: [
     ],
     properties: [
@@ -269,6 +269,8 @@ function dockerComposeToSkeleton(yml) {
     const args = str.match(/(".*?"|[^"\s]+)(?=\s*\s|\s*$)/g);
     return args;
   }
+
+  const sdir = {};
 
   for (let i = 0; i < order.length; i++) {
     const service = info.services[order[i]];
@@ -341,10 +343,15 @@ function dockerComposeToSkeleton(yml) {
 
     (service.volumes || []).forEach(vol => {
       const vp = vol.split(':');
-      skel.properties.push({
+      const dir = {
         type: 'Directory',
-        name: vp[1]
-      });
+        name: vp[1] || vp[0]
+      };
+      if (vp[0][0] !== '/' && vp[0][0] !== '.' && vp[0][0] !== '~') {
+        dir.use = vp[0];
+        sdir[dir.use] = true;
+      }
+      skel.properties.push(dir);
       if (vp[0].indexOf('${') !== -1) {
         skeleton.actions.push({
           type: 'SelectDirectory',
@@ -373,6 +380,14 @@ function dockerComposeToSkeleton(yml) {
       if (skel === skeleton) {
         skel.properties.push(port);
       }
+    });
+  }
+
+  for (let dir in sdir) {
+    skeleton.properties.push({
+      type: `Directory`,
+      name: dir,
+      style: `store`
     });
   }
 

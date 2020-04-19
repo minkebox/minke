@@ -57,7 +57,7 @@ but you may want to use a VPN network for extra security and privacy.`
     {
       type: `Directory`,
       name: `/downloads`,
-      style: `store`,
+      use: `downloads`,
       shares: [
         {
           name: `/`,
@@ -68,6 +68,11 @@ but you may want to use a VPN network for extra security and privacy.`
     {
       type: `Directory`,
       name: `/movies`,
+      style: `store`
+    },
+    {
+      type: `Directory`,
+      name: `downloads`,
       style: `store`
     },
     {
@@ -110,7 +115,7 @@ but you may want to use a VPN network for extra security and privacy.`
         {
           type: `Directory`,
           name: `/downloads`,
-          style: `parent`
+          use: `downloads`
         }
       ]
     },
@@ -127,7 +132,7 @@ but you may want to use a VPN network for extra security and privacy.`
         {
           type: `Directory`,
           name: `/downloads`,
-          style: `parent`
+          use: `downloads`
         },
         {
           type: `File`,

@@ -234,32 +234,32 @@ MinkeApp.prototype = {
         }
         case 'Directory':
         {
-          const targetname = Path.normalize(prop.name);
+          let targetname = Path.normalize(prop.name);
+          const description = prop.description || targetname;
           const bind = defs.binds && defs.binds.find(bind => bind.target === targetname);
           let src = null;
-          switch (prop.style) {
-            case 'parent':
-              const pbind = this._binds.find(pbind => pbind.target === targetname);
-              if (pbind) {
-                src = pbind.src;
+          if (prop.style !== 'temp') {
+            if (bind && bind.src) {
+              src = bind.src;
+            }
+            else if (prop.use) {
+              const vbind = defs.binds && defs.binds.find(bind => bind.target === prop.use);
+              if (vbind) {
+                src = vbind.src;
               }
               else {
-                src = null;
+                // If we fail to find a binding, we create a default in 'store'. We don't use the properties
+                // style to avoid errors where some prop.use have a style and some don't.
+                src = Filesystem.getNativePath(this._id, 'store', `/vol/${prop.use}`);
               }
-              break;
-            case 'boot':
-            case 'store':
-            default:
-              if (bind && bind.src) {
-                src = bind.src;
-              }
-              else {
-                src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`);
-              }
-              break;
-            case 'temp':
-              src = null;
-              break;
+            }
+            else if (targetname[0] !== '/') {
+              src = Filesystem.getNativePath(this._id, prop.style, `/vol/${targetname}`);
+              targetname = null;
+            }
+            else {
+              src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`);
+            }
           }
           const b = {
             src: src,
@@ -1022,6 +1022,10 @@ MinkeApp.prototype = {
     if (idx !== -1) {
       applications.splice(idx, 1);
     }
+    // Can't delete during startup - so wait for that to be done
+    while (this.isStarting()) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
     if (this.isRunning()) {
       await this.stop();
     }
@@ -1376,6 +1380,10 @@ MinkeApp.prototype = {
 
   isRunning: function() {
     return this._status === 'running';
+  },
+
+  isStarting: function() {
+    return this._status === 'starting' || this._status === 'downloading';
   },
 
   _safeName: function() {
@@ -1751,6 +1759,11 @@ MinkeApp.getMinkeName = function() {
 
 MinkeApp.shutdown = async function(config) {
   await Promise.all(applications.map(async (app) => {
+    // If app is starting up, wait for it to finish ... then we can shut it down.
+    // If the app is stopping, then no need to stop it again.
+    while (app.isStarting()) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
     if (app.isRunning()) {
       // If we shutdown with 'inherit' set, we leave the children running so we
       // can inherit them when on a restart. But we're always stopping Minke itself

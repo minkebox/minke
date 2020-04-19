@@ -101,7 +101,7 @@ async function PageWS(ctx) {
           const skel = Skeletons.parse(msg.value);
           if (skel) {
             Skeletons.saveLocalSkeleton(skel);
-            send({ type: 'skeleton.load', image: skel.image });
+            send({ type: 'skeleton.load', image: skel.uuid });
           }
           break;
         }
@@ -111,7 +111,7 @@ async function PageWS(ctx) {
             const skel = Skeletons.parseDockerCompose(msg.value);
             if (skel) {
               Skeletons.saveLocalSkeleton(skel);
-              const app = await MinkeApp.create(skel.image);
+              const app = await MinkeApp.create(skel.uuid);
               send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: 'docker-compose' });
             }
           })();

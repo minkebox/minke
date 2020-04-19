@@ -1,3 +1,4 @@
+const TIMEOUT = 2000; // 2 seconds
 
 async function runCmd(app, cmd) {
   const exec = await app._container.exec({
@@ -16,7 +17,22 @@ async function runCmd(app, cmd) {
     }
   }, null);
   return new Promise(resolve => {
+    let timeout = setTimeout(() => {
+      if (!timeout) {
+        timeout = null;
+        try {
+          stream.output.destroy();
+        }
+        catch (_) {
+        }
+        resolve('');
+      }
+    }, TIMEOUT);
     stream.output.on('close', () => {
+      if (!timeout) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
       resolve(buffer);
     });
   });
