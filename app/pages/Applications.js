@@ -86,7 +86,7 @@ async function PageWS(ctx) {
                 send({ type: 'html.update.attribute', selector: '.newapp .extract', name: 'value', value: extract.reduce((acc, val) => acc + (val || 0), 0) });
               });
             }));
-            if (success.reduce((acc, val) => acc & !!val, true)) {
+            if (images.length && success.reduce((acc, val) => acc & !!val, true)) {
               const app = await MinkeApp.create(msg.value);
               send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: msg.src });
             }
