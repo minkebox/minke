@@ -156,11 +156,11 @@ MinkeApp.prototype = {
     };
     skel.properties.forEach(prop => {
       if (prop.type === 'Network') {
-        if (defs.networks && defs.networks[prop.name]) {
-          this._networks[prop.name] = defs.networks[prop.name];
-        }
-        else if (prop.defaultValue === '__create') {
+        if (prop.defaultValue === '__create') {
           this._networks[prop.name] = this._id;
+        }
+        else if (defs.networks && defs.networks[prop.name]) {
+          this._networks[prop.name] = defs.networks[prop.name];
         }
         else if (prop.defaultValue) {
           this._networks[prop.name] = prop.defaultValue;
