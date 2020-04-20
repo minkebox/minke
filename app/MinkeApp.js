@@ -20,7 +20,6 @@ const UPNP = require('./UPNP');
 const System = require('./System');
 const Skeletons = require('./Skeletons');
 const ConfigBackup = require('./ConfigBackup');
-const Events = require('./utils/Events');
 
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
 
@@ -33,7 +32,6 @@ let koaApp = null;
 let setup = null;
 
 function MinkeApp() {
-  Events.call(this);
 }
 
 MinkeApp.prototype = {
@@ -1419,13 +1417,6 @@ MinkeApp.prototype = {
     return minPort + port;
   }
 }
-
-Object.assign(MinkeApp, {
-  _events: new Events(),
-  on: (evt, listener) => { return MinkeApp._events.on(evt, listener); },
-  off: (evt, listener) => { return MinkeApp._events.off(evt, listener); },
-  emit: (evt, data) => { return MinkeApp._events.emit(evt, data); },
-});
 
 MinkeApp._monitorEvents = async function() {
   const stream = await docker.getEvents({});
