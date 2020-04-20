@@ -633,7 +633,7 @@ GlobalDNS.prototype = {
 
   _addTiming: function(time) {
     this._samples.shift();
-    this._samples.push(time);
+    this._samples.push(Math.min(time, this._maxTimeout));
   },
 
   _getTimeout: function() {
@@ -933,7 +933,7 @@ const LocalDNSSingleton = {
 
   _addTiming: function(tinfo, time) {
     tinfo._samples.shift();
-    tinfo._samples.push(time);
+    tinfo._samples.push(Math.min(time, tinfo._maxTimeout));
   },
 
   _getTimeout: function(tinfo) {
