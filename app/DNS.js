@@ -541,7 +541,7 @@ GlobalDNS.prototype = {
         message.copy(msgout, 2);
         let timeout = setTimeout(() => {
           if (timeout) {
-            this._addTiming(this._getTimeout() * 2);
+            this._addTimingFailure(Date.now() - start);
             timeout = null;
             callback(null);
           }
@@ -550,7 +550,7 @@ GlobalDNS.prototype = {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
-              this._addTiming(this._getTimeout() * 2);
+              this._addTimingFailure(Date.now() - start);
               clearTimeout(timeout);
               timeout = null;
               callback(null);
@@ -561,7 +561,7 @@ GlobalDNS.prototype = {
             if (buffer.length >= 2) {
               const len = buffer.readUInt16BE();
               if (timeout && buffer.length >= 2 + len) {
-                this._addTiming(Date.now() - start);
+                this._addTimingSuccess(Date.now() - start);
                 clearTimeout(timeout);
                 timeout = null;
                 callback(DnsPkt.decode(buffer.subarray(2, 2 + len)));
@@ -581,13 +581,13 @@ GlobalDNS.prototype = {
         const id = request.id;
         const timeout = setTimeout(() => {
           if (this._pending[id]) {
-            this._addTiming(this._getTimeout() * 2);
+            this._addTimingFailure(Date.now() - start);
             delete this._pending[id];
             callback(null);
           }
         }, this._getTimeout());
         this._pending[id] = (message) => {
-          this._addTiming(Date.now() - start);
+          this._addTimingSuccess(Date.now() - start);
           clearTimeout(timeout);
           delete this._pending[id];
           callback(DnsPkt.decode(message));
@@ -631,9 +631,14 @@ GlobalDNS.prototype = {
     });
   },
 
-  _addTiming: function(time) {
+  _addTimingSuccess: function(time) {
     this._samples.shift();
     this._samples.push(Math.min(time, this._maxTimeout));
+  },
+
+  _addTimingFailure: function(time) {
+    const dev = this._stddev();
+    this._addTimingSuccess(time + dev.deviation);
   },
 
   _getTimeout: function() {
@@ -823,7 +828,7 @@ const LocalDNSSingleton = {
         message.copy(msgout, 2);
         let timeout = setTimeout(() => {
           if (timeout) {
-            this._addTiming(tinfo, this._getTimeout(tinfo) * 2);
+            this._addTimingFailure(tinfo, Date.now() - start);
             timeout = null;
             callback(null);
           }
@@ -832,7 +837,7 @@ const LocalDNSSingleton = {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
-              this._addTiming(tinfo, this._getTimeout(tinfo) * 2);
+              this._addTimingFailure(tinfo, Date.now() - start);
               clearTimeout(timeout);
               timeout = null;
               callback(null);
@@ -843,11 +848,10 @@ const LocalDNSSingleton = {
             if (buffer.length >= 2) {
               const len = buffer.readUInt16BE();
               if (timeout && buffer.length >= 2 + len) {
-                this._addTiming(tinfo, Date.now() - start);
+                this._addTimingSuccess(tinfo, Date.now() - start);
                 clearTimeout(timeout);
                 timeout = null;
-                const pkt = DnsPkt.decode(buffer.subarray(2, 2 + len));
-                callback(pkt);
+                callback(DnsPkt.decode(buffer.subarray(2, 2 + len)));
               }
             }
             socket.end();
@@ -887,13 +891,13 @@ const LocalDNSSingleton = {
         const id = request.id;
         const timeout = setTimeout(() => {
           if (this._pending[id]) {
-            this._addTiming(tinfo, this._getTimeout(tinfo) * 2);
+            this._addTimingFailure(tinfo, Date.now() - start);
             delete this._pending[id];
             callback(null);
           }
         }, this._getTimeout(tinfo));
         this._pending[id] = (message) => {
-          this._addTiming(tinfo, Date.now() - start);
+          this._addTimingSuccess(tinfo, Date.now() - start);
           clearTimeout(timeout);
           delete this._pending[id];
           callback(DnsPkt.decode(message));
@@ -931,7 +935,12 @@ const LocalDNSSingleton = {
     return null;
   },
 
-  _addTiming: function(tinfo, time) {
+  _addTimingFailure: function(tinfo, time) {
+    const dev = this._stddev(tinfo);
+    this._addTimingSuccess(tinfo, time + dev.deviation);
+  },
+
+  _addTimingSuccess: function(tinfo, time) {
     tinfo._samples.shift();
     tinfo._samples.push(Math.min(time, tinfo._maxTimeout));
   },
