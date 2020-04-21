@@ -19,6 +19,7 @@
             <input size="25" type="text" placeholder="{{name}}" oninput="action('Name',this.value)" value="{{value}}">
           </div>
           <h2 class="description">{{{description}}}</h2>
+          {{#if ../Build}}<div class="build">Build {{../Build}}</div>{{/if}}
           <nav>
             {{#if ../minkeConfig}}
             {{#if ../help}}<a class="pure-button" onclick="toggleHelp()">Help</a>{{/if}}
