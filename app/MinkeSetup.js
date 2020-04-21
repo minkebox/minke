@@ -16,18 +16,18 @@ const Pull = require('./Pull');
 const RESTART_REASON = `${Config.ROOT}/minke-restart-reason`;
 
 
-function MinkeSetup(savedConfig, config) {
+function MinkeSetup(savedConfig, firstUseConfig, defaultConfig) {
 
   if (savedConfig) {
     this._bootcount = 1;
   }
   else {
     this._bootcount = 0;
+    savedConfig = Object.assign({}, firstUseConfig);
   }
-  savedConfig = savedConfig || {};
 
   function getEnv(name) {
-    return { value: savedConfig[name] || config[name] };
+    return { value: savedConfig[name] || defaultConfig[name] };
   }
 
   this._id = 'minke';
@@ -48,7 +48,7 @@ function MinkeSetup(savedConfig, config) {
     { port: getEnv('PORT').value + 1, protocol: 'TCP', mdns: { type: '_ssh._tcp' } }
   ];
   this._networks = {
-    primary: getEnv('REMOTEMANAGEMENT').value || 'none',
+    primary: 'none',
     secondary: 'host'
   };
   this._monitor = {};
@@ -66,8 +66,6 @@ function MinkeSetup(savedConfig, config) {
     WIFIPASSWORD: getEnv('WIFIPASSWORD'),
     DNSSERVER1: getEnv('DNSSERVER1'),
     DNSSERVER2: getEnv('DNSSERVER2'),
-    DNSSECURE1: getEnv('DNSSECURE1'),
-    DNSSECURE2: getEnv('DNSSECURE2'),
     TIMEZONE: getEnv('TIMEZONE'),
     ADMINMODE: getEnv('ADMINMODE'),
     GLOBALID: getEnv('GLOBALID'),
@@ -228,8 +226,6 @@ MinkeSetup.prototype = {
       WIFIPASSWORD: null,
       DNSSERVER1: null,
       DNSSERVER2: null,
-      DNSSECURE1: null,
-      DNSSECURE2: null,
       ADMINMODE: null,
       GLOBALID: null,
       UPDATETIME: null,
@@ -240,7 +236,6 @@ MinkeSetup.prototype = {
       config[key] = this._env[key].value;
     }
     config.HOSTNAME = this._name;
-    config.REMOTEMANAGEMENT = this._networks.primary;
     config.POSITION = this._position.tab;
     config._id = this._id;
     await Database.saveConfig(config);

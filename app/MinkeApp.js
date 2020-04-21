@@ -653,9 +653,8 @@ MinkeApp.prototype = {
       if (this._defaultIP) {
         const webport = ports.find(port => port.web);
         if (webport) {
-
           let web = webport.web;
-          const url = web.url || `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path || '/'}`;
+          const url = web.url || `http${webport.port === 443 ? 's' : ''}://${this._fullSafeName()}:${webport.port}${web.path || '/'}`;
           const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}:${webport.port || 80}`;
           switch (web.widget || 'none') {
             case 'newtab':
@@ -1388,6 +1387,11 @@ MinkeApp.prototype = {
     return this._name.replace(/[^a-zA-Z0-9]/g, '');
   },
 
+  _fullSafeName: function() {
+    const domainname = MinkeApp.getLocalDomainName();
+    return this._safeName() + (domainname ? '.' + domainname : '');
+  },
+
   _primaryMacAddress: function() {
     const r = this._globalId.split('-')[4];
     return `${r[0]}a:${r[2]}${r[3]}:${r[4]}${r[5]}:${r[6]}${r[7]}:${r[8]}${r[9]}:${r[10]}${r[11]}`;
@@ -1549,27 +1553,30 @@ MinkeApp.startApps = async function(app, config) {
   // recursively (which won't work).
   const MinkeSetup = require('./MinkeSetup');
   setup = new MinkeSetup(await Database.getConfig('minke'), {
-    HOSTNAME: 'MinkeBox',
     LOCALDOMAIN: 'home',
+    IP6: false,
+    NATIP6: false,
+    WIFIENABLED: false,
+    DNSSERVER1: Config.DEFAULT_FALLBACK_RESOLVER,
+    DNSSERVER2: '',
+    TIMEZONE: Moment.tz.guess(),
+    ADMINMODE: 'DISABLED',
+    GLOBALID: UUID(),
+    POSITION: 0,
+    HUMAN: 'unknown'
+  }, {
+    HOSTNAME: 'MinkeBox',
+    LOCALDOMAIN: '',
     DHCP: MinkeApp._network.dhcp,
     PORT: config.port || 80,
     IPADDRESS: MinkeApp._network.network.ip_address,
     GATEWAY: MinkeApp._network.network.gateway_ip,
     NETMASK: MinkeApp._network.netmask.mask,
-    IP6: false,
-    NATIP6: false,
-    WIFIENABLED: false,
     WIFINAME: '',
     WIFIPASSWORD: '',
     DNSSERVER1: '',
     DNSSERVER2: '',
-    DNSSECURE: '',
-    TIMEZONE: Moment.tz.guess(),
-    ADMINMODE: 'DISABLED',
-    GLOBALID: UUID(),
-    UPDATETIME: '03:00',
-    POSITION: 0,
-    HUMAN: 'unknown'
+    UPDATETIME: '03:00'
   });
   applications.unshift(setup);
 
