@@ -1,3 +1,4 @@
+const HTTP = require('http');
 const HTTPS = require('https');
 const Config = require('./Config');
 const UPNP = require('./UPNP');
@@ -108,9 +109,9 @@ const DDNS = {
         }
         else if (FALLBACK_GETIP) {
           // Fallback
-          HTTPS.get(FALLBACK_GETIP, (res) => {
+          HTTP.get(FALLBACK_GETIP, (res) => {
             res.on('data', (data) => {
-              console.log('_gotExternaIP fallback', data.toString('utf8'));
+              //console.log('_gotExternaIP fallback', data.toString('utf8'));
               resolve(data.toString('utf8'));
             });
           });
