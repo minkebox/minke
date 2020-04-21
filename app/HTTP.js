@@ -86,8 +86,8 @@ const HTTP = {
     };
   },
 
-  createNewTab: function(app, from, url) {
-    const f = new Redirect(from, url);
+  createNewTab: function(app, from, path, to) {
+    const f = new Redirect(from, `${to}${path || ''}`);
     return {
       url: from,
       target: '_blank',
