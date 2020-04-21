@@ -653,9 +653,8 @@ MinkeApp.prototype = {
       if (this._defaultIP) {
         const webport = ports.find(port => port.web);
         if (webport) {
-
           let web = webport.web;
-          const url = web.url || `http${webport.port === 443 ? 's' : ''}://${this._safeName()}.${MinkeApp.getLocalDomainName()}:${webport.port}${web.path || '/'}`;
+          const url = web.url || `http${webport.port === 443 ? 's' : ''}://${this._fullSafeName()}:${webport.port}${web.path || '/'}`;
           const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}:${webport.port || 80}`;
           switch (web.widget || 'none') {
             case 'newtab':
@@ -1386,6 +1385,11 @@ MinkeApp.prototype = {
 
   _safeName: function() {
     return this._name.replace(/[^a-zA-Z0-9]/g, '');
+  },
+
+  _fullSafeName: function() {
+    const domainname = MinkeApp.getLocalDomainName();
+    return this._safeName() + (domainname ? '.' + domainname : '');
   },
 
   _primaryMacAddress: function() {
