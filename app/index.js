@@ -30,12 +30,14 @@ App.use(async (ctx, next) => {
   const start = Date.now();
   await next();
   const ms = Date.now() - start;
+  const domainname = MinkeApp.getLocalDomainName();
+  const domainsrc = domainname ? `http://*.${domainname} http://*.${domainname}:* https://*.${domainname}` : '';
   ctx.set('Content-Security-Policy',
     "default-src 'self';" +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
     "style-src 'self' 'unsafe-inline';" +
     "img-src 'self' data:;" +
-    `frame-src http://*.${MinkeApp.getLocalDomainName()} http://*.${MinkeApp.getLocalDomainName()}:* http://${ctx.request.header.host}:* https://*.${MinkeApp.getLocalDomainName()} https://*.minkebox.net;` +
+    `frame-src ${domainsrc} http://${ctx.request.header.host}:* https://*.minkebox.net;` +
     `connect-src 'self' ws://${ctx.headers.host};` +
     "font-src 'none';" +
     "object-src 'none';" +

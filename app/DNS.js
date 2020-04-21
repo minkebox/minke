@@ -40,7 +40,7 @@ const PrivateDNS = {
       {
         const fullname = request.questions[0].name;
         const name = fullname.split('.');
-        if (name.length === 2 && name[1].toLowerCase() === this._domainName) {
+        if ((name.length === 2 && name[1].toLowerCase() === this._domainName) || (name.length === 1 && !this._domainName)) {
           const ip = this._hostname2ip4[name[0].toLowerCase()];
           if (ip) {
             response.answers.push(
@@ -65,7 +65,7 @@ const PrivateDNS = {
       {
         const fullname = request.questions[0].name;
         const name = fullname.split('.');
-        if (name.length === 2 && name[1].toLowerCase() === this._domainName) {
+        if ((name.length === 2 && name[1].toLowerCase() === this._domainName) || (name.length === 1 && !this._domainName)) {
           const ip6 = this._hostname2ip6[name[0].toLowerCase()];
           if (ip6) {
             response.answers.push(
@@ -94,7 +94,7 @@ const PrivateDNS = {
           const localname = this._ip2localname[ip];
           if (localname) {
             response.answers.push(
-              { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}.${this._domainName}` }
+              { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
             );
             if (this._soa) {
               response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', data: this._soa });
@@ -110,7 +110,7 @@ const PrivateDNS = {
             const localname = this._ip2localname[ip6];
             if (localname) {
               response.answers.push(
-                { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}.${this._domainName}` }
+                { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
               );
               if (this._soa) {
                 response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', data: this._soa });
@@ -126,7 +126,7 @@ const PrivateDNS = {
       {
         const fullname = request.questions[0].name;
         const name = fullname.split('.');
-        if (name.length === 2 && name[1].toLowerCase() === this._domainName && this._soa) {
+        if (this._soa && ((name.length === 2 && name[1].toLowerCase() === this._domainName)  || (name.length === 1 && !this._domainName))) {
           response.answers.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
           response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
           return true;
