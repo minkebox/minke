@@ -5,6 +5,7 @@ const MinkeApp = require('../MinkeApp');
 const Images = require('../Images');
 const Skeletons = require('../Skeletons');
 
+const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const NRTAGS = 20;
 
 function _strhash(str) {
@@ -72,6 +73,9 @@ async function PageWS(ctx) {
                 images.push(secondary.image);
               });
             }
+            else if (!GUID.test(msg.value)) {
+              images.push(msg.value);
+            }
             const download = [];
             const extract = [];
             const success = await Promise.all(images.map((image, idx) => {
@@ -82,7 +86,7 @@ async function PageWS(ctx) {
                 send({ type: 'html.update.attribute', selector: '.newapp .extract', name: 'value', value: extract.reduce((acc, val) => acc + (val || 0), 0) });
               });
             }));
-            if (success.reduce((acc, val) => acc & !!val, true)) {
+            if (images.length && success.reduce((acc, val) => acc & !!val, true)) {
               const app = await MinkeApp.create(msg.value);
               send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: msg.src });
             }

@@ -38,6 +38,11 @@ body {
   font-size: 160px;
   text-transform: capitalize;
 }
+.header .build {
+  font-size: 10px;
+  color: #ccc;
+  margin-top: -18px;
+}
 .sidebar nav {
   position: relative;
   height: 47px;

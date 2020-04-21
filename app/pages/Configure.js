@@ -11,6 +11,7 @@ const Human = require('../Human');
 const ConfigBackup = require('../ConfigBackup');
 const UPNP = require('../UPNP');
 const Filesystem = require('../Filesystem');
+const Build = require('../Build');
 
 const MinkeBoxConfiguration = 'minke'; // MinkeSetup._id
 
@@ -474,6 +475,7 @@ async function ConfigurePageHTML(ctx) {
     navbuttons: navbuttons,
     firstUse: properties.FirstUse,
     NoSystemControl: properties.NoSystemControl,
+    Build: minkeConfig && MinkeApp.getAdvancedMode() ? Build : null,
     help: help,
     changes: '[' + Object.keys(visibles).map((key) => {
       return `function(){try{const c=document.getElementById("${key}").classList;if(${visibles[key]}){c.remove("invisible")}else{c.add("invisible")}}catch(_){}}`;

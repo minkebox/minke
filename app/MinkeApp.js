@@ -20,7 +20,6 @@ const UPNP = require('./UPNP');
 const System = require('./System');
 const Skeletons = require('./Skeletons');
 const ConfigBackup = require('./ConfigBackup');
-const Events = require('./utils/Events');
 
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
 
@@ -33,7 +32,6 @@ let koaApp = null;
 let setup = null;
 
 function MinkeApp() {
-  Events.call(this);
 }
 
 MinkeApp.prototype = {
@@ -158,11 +156,11 @@ MinkeApp.prototype = {
     };
     skel.properties.forEach(prop => {
       if (prop.type === 'Network') {
-        if (defs.networks && defs.networks[prop.name]) {
-          this._networks[prop.name] = defs.networks[prop.name];
-        }
-        else if (prop.defaultValue === '__create') {
+        if (prop.defaultValue === '__create') {
           this._networks[prop.name] = this._id;
+        }
+        else if (defs.networks && defs.networks[prop.name]) {
+          this._networks[prop.name] = defs.networks[prop.name];
         }
         else if (prop.defaultValue) {
           this._networks[prop.name] = prop.defaultValue;
@@ -1419,13 +1417,6 @@ MinkeApp.prototype = {
     return minPort + port;
   }
 }
-
-Object.assign(MinkeApp, {
-  _events: new Events(),
-  on: (evt, listener) => { return MinkeApp._events.on(evt, listener); },
-  off: (evt, listener) => { return MinkeApp._events.off(evt, listener); },
-  emit: (evt, data) => { return MinkeApp._events.emit(evt, data); },
-});
 
 MinkeApp._monitorEvents = async function() {
   const stream = await docker.getEvents({});

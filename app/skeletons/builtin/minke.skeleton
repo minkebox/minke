@@ -10,9 +10,13 @@
       title: 'General'
     },
     {
+      type: 'Text',
+      text: `<b>Please note</b> that a reboot is required before changes to MinkeBox's configuration will take effect.`,
+    },
+    {
       type: 'Help',
       text: `By default, MinkeBox acquires its IP address from your network's DHCP server. However, because many services provided by MinkeBox require your client's DNS to be configured to use it, it probably make sense
-to change this to a fixed IP address. Any change to the network configuration requires a reboot for it to take effect.`,
+to change this to a fixed IP address.`,
       visible: `!property.NoSystemControl`
     },
     {

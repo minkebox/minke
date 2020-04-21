@@ -15,6 +15,7 @@ const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
 const GLOBAL1 = { _name: 'global1', _position: { tab: Number.MAX_SAFE_INTEGER - 1 } };
 const GLOBAL2 = { _name: 'global2', _position: { tab: Number.MAX_SAFE_INTEGER } };
+const MAX_SAMPLES = 64;
 
 const PARALLEL_QUERY = 1;
 const DEBUG_QUERY = 0;
@@ -494,7 +495,8 @@ const MulticastDNS = {
 const GlobalDNS = function(address, port, timeout) {
   this._address = address;
   this._port = port;
-  this._timeout = timeout;
+  this._maxTimeout = timeout;
+  this._samples = Array(MAX_SAMPLES).fill(this._maxTimeout);
   this._pending = {};
   // Identify local or global forwarding addresses. We don't forward local domain lookups to global addresses.
   if (/(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/.exec(address)) {
@@ -530,6 +532,7 @@ GlobalDNS.prototype = {
   },
 
   getSocket: function(rinfo) {
+    const start = Date.now();
     if (rinfo.tcp) {
       return (request, callback) => {
         const message = DnsPkt.encode(request);
@@ -538,14 +541,16 @@ GlobalDNS.prototype = {
         message.copy(msgout, 2);
         let timeout = setTimeout(() => {
           if (timeout) {
+            this._addTimingFailure(Date.now() - start);
             timeout = null;
             callback(null);
           }
-        }, this._timeout);
+        }, this._getTimeout());
         const socket = Net.createConnection(this._port, this._address, () => {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
+              this._addTimingFailure(Date.now() - start);
               clearTimeout(timeout);
               timeout = null;
               callback(null);
@@ -556,6 +561,7 @@ GlobalDNS.prototype = {
             if (buffer.length >= 2) {
               const len = buffer.readUInt16BE();
               if (timeout && buffer.length >= 2 + len) {
+                this._addTimingSuccess(Date.now() - start);
                 clearTimeout(timeout);
                 timeout = null;
                 callback(DnsPkt.decode(buffer.subarray(2, 2 + len)));
@@ -575,11 +581,13 @@ GlobalDNS.prototype = {
         const id = request.id;
         const timeout = setTimeout(() => {
           if (this._pending[id]) {
+            this._addTimingFailure(Date.now() - start);
             delete this._pending[id];
             callback(null);
           }
-        }, this._timeout);
+        }, this._getTimeout());
         this._pending[id] = (message) => {
+          this._addTimingSuccess(Date.now() - start);
           clearTimeout(timeout);
           delete this._pending[id];
           callback(DnsPkt.decode(message));
@@ -621,6 +629,30 @@ GlobalDNS.prototype = {
         reject(e);
       }
     });
+  },
+
+  _addTimingSuccess: function(time) {
+    this._samples.shift();
+    this._samples.push(Math.min(time, this._maxTimeout));
+  },
+
+  _addTimingFailure: function(time) {
+    const dev = this._stddev();
+    this._addTimingSuccess(time + dev.deviation);
+  },
+
+  _getTimeout: function() {
+    const dev = this._stddev();
+    return Math.min(dev.mean + 3 * dev.deviation, this._maxTimeout);
+  },
+
+  _stddev: function() {
+    const mean = this._samples.reduce((total, value) => total + value, 0) / this._samples.length;
+    const variance = this._samples.reduce((total, value) => total + Math.pow(value - mean, 2), 0) / (this._samples.length - 1);
+    return {
+      mean: mean,
+      deviation: Math.sqrt(variance)
+    };
   }
 
 };
@@ -787,6 +819,7 @@ const LocalDNSSingleton = {
   },
 
   getSocket: async function(rinfo, tinfo) {
+    const start = Date.now();
     if (rinfo.tcp) {
       return (request, callback) => {
         const message = DnsPkt.encode(request);
@@ -795,14 +828,16 @@ const LocalDNSSingleton = {
         message.copy(msgout, 2);
         let timeout = setTimeout(() => {
           if (timeout) {
+            this._addTimingFailure(tinfo, Date.now() - start);
             timeout = null;
             callback(null);
           }
-        }, tinfo._timeout);
+        }, this._getTimeout(tinfo));
         const socket = Net.createConnection(tinfo._port, tinfo._address, () => {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
+              this._addTimingFailure(tinfo, Date.now() - start);
               clearTimeout(timeout);
               timeout = null;
               callback(null);
@@ -813,10 +848,10 @@ const LocalDNSSingleton = {
             if (buffer.length >= 2) {
               const len = buffer.readUInt16BE();
               if (timeout && buffer.length >= 2 + len) {
+                this._addTimingSuccess(tinfo, Date.now() - start);
                 clearTimeout(timeout);
                 timeout = null;
-                const pkt = DnsPkt.decode(buffer.subarray(2, 2 + len));
-                callback(pkt);
+                callback(DnsPkt.decode(buffer.subarray(2, 2 + len)));
               }
             }
             socket.end();
@@ -856,11 +891,13 @@ const LocalDNSSingleton = {
         const id = request.id;
         const timeout = setTimeout(() => {
           if (this._pending[id]) {
+            this._addTimingFailure(tinfo, Date.now() - start);
             delete this._pending[id];
             callback(null);
           }
-        }, tinfo._timeout);
+        }, this._getTimeout(tinfo));
         this._pending[id] = (message) => {
+          this._addTimingSuccess(tinfo, Date.now() - start);
           clearTimeout(timeout);
           delete this._pending[id];
           callback(DnsPkt.decode(message));
@@ -896,6 +933,30 @@ const LocalDNSSingleton = {
       return entry.address;
     }
     return null;
+  },
+
+  _addTimingFailure: function(tinfo, time) {
+    const dev = this._stddev(tinfo);
+    this._addTimingSuccess(tinfo, time + dev.deviation);
+  },
+
+  _addTimingSuccess: function(tinfo, time) {
+    tinfo._samples.shift();
+    tinfo._samples.push(Math.min(time, tinfo._maxTimeout));
+  },
+
+  _getTimeout: function(tinfo) {
+    const dev = this._stddev(tinfo);
+    return Math.min(dev.mean + 3 * dev.deviation, tinfo._maxTimeout);
+  },
+
+  _stddev: function(tinfo) {
+    const mean = tinfo._samples.reduce((total, value) => total + value, 0) / tinfo._samples.length;
+    const variance = tinfo._samples.reduce((total, value) => total + Math.pow(value - mean, 2), 0) / (tinfo._samples.length - 1);
+    return {
+      mean: mean,
+      deviation: Math.sqrt(variance)
+    };
   }
 }
 
@@ -906,7 +967,8 @@ const LocalDNS = function(addresses, port, timeout) {
   this._address = addresses[0];
   this._addresses = addresses
   this._port = port;
-  this._timeout = timeout;
+  this._maxTimeout = timeout;
+  this._samples = Array(MAX_SAMPLES).fill(this._maxTimeout);
 }
 
 LocalDNS.prototype = {
