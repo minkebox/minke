@@ -1549,27 +1549,30 @@ MinkeApp.startApps = async function(app, config) {
   // recursively (which won't work).
   const MinkeSetup = require('./MinkeSetup');
   setup = new MinkeSetup(await Database.getConfig('minke'), {
-    HOSTNAME: 'MinkeBox',
     LOCALDOMAIN: 'home',
+    IP6: false,
+    NATIP6: false,
+    WIFIENABLED: false,
+    DNSSERVER1: Config.DEFAULT_FALLBACK_RESOLVER,
+    DNSSERVER2: '',
+    TIMEZONE: Moment.tz.guess(),
+    ADMINMODE: 'DISABLED',
+    GLOBALID: UUID(),
+    POSITION: 0,
+    HUMAN: 'unknown'
+  }, {
+    HOSTNAME: 'MinkeBox',
+    LOCALDOMAIN: '',
     DHCP: MinkeApp._network.dhcp,
     PORT: config.port || 80,
     IPADDRESS: MinkeApp._network.network.ip_address,
     GATEWAY: MinkeApp._network.network.gateway_ip,
     NETMASK: MinkeApp._network.netmask.mask,
-    IP6: false,
-    NATIP6: false,
-    WIFIENABLED: false,
     WIFINAME: '',
     WIFIPASSWORD: '',
     DNSSERVER1: '',
     DNSSERVER2: '',
-    DNSSECURE: '',
-    TIMEZONE: Moment.tz.guess(),
-    ADMINMODE: 'DISABLED',
-    GLOBALID: UUID(),
-    UPDATETIME: '03:00',
-    POSITION: 0,
-    HUMAN: 'unknown'
+    UPDATETIME: '03:00'
   });
   applications.unshift(setup);
 
