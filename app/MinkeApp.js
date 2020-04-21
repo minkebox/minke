@@ -654,12 +654,13 @@ MinkeApp.prototype = {
         const webport = ports.find(port => port.web);
         if (webport) {
           let web = webport.web;
-          const url = web.url || `http${webport.port === 443 ? 's' : ''}://${this._fullSafeName()}:${webport.port}${web.path || '/'}`;
-          const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}:${webport.port || 80}`;
+          //const url = web.url || `${webport.port === 443 ? 'https' : 'http'}://${this._fullSafeName()}${webport.port ? ':' + web.port : ''}`;
+          const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}${webport.port ? ':' + webport.port : ''}`;
+          const url = web.url || urlip;
           switch (web.widget || 'none') {
             case 'newtab':
               if (this._homeIP) {
-                this._widgetOpen = HTTP.createNewTab(this, `/a/w${this._id}`, url);
+                this._widgetOpen = HTTP.createNewTab(this, `/a/w${this._id}`, web.path, url);
               }
               else {
                 this._widgetOpen = HTTP.createNewTabProxy(this, `/a/w${this._id}`, web.path, urlip);
@@ -679,7 +680,7 @@ MinkeApp.prototype = {
           switch (web.tab || 'none') {
             case 'newtab':
               if (this._homeIP) {
-                this._tabOpen = HTTP.createNewTab(this, `/a/t${this._id}`,url);
+                this._tabOpen = HTTP.createNewTab(this, `/a/t${this._id}`, web.path, url);
               }
               else {
                 this._tabOpen = HTTP.createNewTabProxy(this, `/a/t${this._id}`, web.path, urlip);
