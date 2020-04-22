@@ -654,7 +654,6 @@ MinkeApp.prototype = {
         const webport = ports.find(port => port.web);
         if (webport) {
           let web = webport.web;
-          //const url = web.url || `${webport.port === 443 ? 'https' : 'http'}://${this._fullSafeName()}${webport.port ? ':' + web.port : ''}`;
           const urlip = `${webport.port === 443 ? 'https' : 'http'}://${this._defaultIP}${webport.port ? ':' + webport.port : ''}`;
           const url = web.url || `${webport.port === 443 ? 'https' : 'http'}://${this._homeIP}${webport.port ? ':' + webport.port : ''}`;
           switch (web.widget || 'none') {
