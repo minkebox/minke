@@ -635,7 +635,7 @@ GlobalDNS.prototype = {
 
   _addTimingSuccess: function(time) {
     this._samples.shift();
-    this._samples.push(Math.max(1, Math.min(time, this._maxTimeout)));
+    this._samples.push(Math.min(time, this._maxTimeout));
   },
 
   _addTimingFailure: function(time) {
@@ -644,8 +644,15 @@ GlobalDNS.prototype = {
   },
 
   _getTimeout: function() {
-    const dev = this._stddev();
-    return Math.min(dev.mean + STDEV_QUERY * dev.deviation, this._maxTimeout);
+    // The last proxy uses the maxTimeout because it's the final attempt at an answer and there's
+    // no reason to terminate it early.
+    if (DNS._proxies[DNS._proxies.length - 1].srv === this) {
+      return this._maxTimeout;
+    }
+    else {
+      const dev = this._stddev();
+      return Math.max(1, Math.min(dev.mean + STDEV_QUERY * dev.deviation, this._maxTimeout));
+    }
   },
 
   _stddev: function() {
@@ -944,12 +951,12 @@ const LocalDNSSingleton = {
 
   _addTimingSuccess: function(tinfo, time) {
     tinfo._samples.shift();
-    tinfo._samples.push(Math.max(1, Math.min(time, tinfo._maxTimeout)));
+    tinfo._samples.push(Math.min(time, tinfo._maxTimeout));
   },
 
   _getTimeout: function(tinfo) {
     const dev = this._stddev(tinfo);
-    return Math.min(dev.mean + STDEV_QUERY * dev.deviation, tinfo._maxTimeout);
+    return Math.max(1, Math.min(dev.mean + STDEV_QUERY * dev.deviation, tinfo._maxTimeout));
   },
 
   _stddev: function(tinfo) {
