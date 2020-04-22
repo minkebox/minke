@@ -11,6 +11,7 @@ const TIMEOUT = 1 * 1000; // 1 second
 const WAN_FAST_REFRESH = 30 * 1000; // 30 seconds
 const WAN_SLOW_REFRESH = 5 * 60 * 1000; // 5 minutes
 const PROXY_REFRESH = 60 * 1000; // 60 seconds
+const REQ_TIMEOUT = 5 * 1000; // 5 seconds
 
 const UPNP = {
 
@@ -218,7 +219,8 @@ const UPNP = {
           'Content-Type': 'text/xml; charset="utf-8"',
           'Connection': 'close',
           'SOAPAction': JSON.stringify(`${service}#${action}`)
-        }
+        },
+        timeout: REQ_TIMEOUT
       }, (res) => {
         let xml = '';
         res.on('data', chunk => {
@@ -227,6 +229,9 @@ const UPNP = {
         res.on('end', () => {
           resolve(xml.replace(/[\n\r]/g, ''));
         });
+      });
+      req.on('error', () => {
+        resolve('');
       });
       req.write(body);
       req.end();
