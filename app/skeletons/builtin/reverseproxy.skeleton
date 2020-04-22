@@ -10,6 +10,12 @@
       title: `Websites`
     },
     {
+      type: `Help`,
+      text: `Below is a list of all the MinkeBox hosted websites this proxy can see on its network. You should select the ones you want to make available
+             via this proxy and give each a DNS name you will use to access it. This will probably be the public name of the website (e.g. wiki.myownwebsite.com).
+             If you enable HTTPS support below, make sure this website name has already been registered with your favorite domain name service.`
+    },
+    {
       type: `SelectWebsites`,
       name: `WEBSITES`,
       description: `Select and name each of the websites you wish to publish`,
