@@ -185,12 +185,15 @@ async function ConfigurePageHTML(ctx) {
               catch (_) {
               }
             }
-            const websites = (await app.getAvailableWebsites(app._networks.primary)).map((site) => {
+            const websites = (await app.getAvailableWebsites(app._networks.primary)).map(site => {
               const match = currentSites.find(cs => cs[0] === site.app._id);
+              let ip = app._networks.primary === site.app._networks.primary ? site.app._defaultIP : site.app._secondaryIP;
               return {
                 appid: site.app._id,
                 name: site.app._name,
                 hostname: site.app._safeName(),
+                ip: ip,
+                ip6: site.app.getSLAACAddress(),
                 port: site.port.port,
                 dns: match ? match[3] : '',
                 published: match ? !!match[4] : false
@@ -945,11 +948,14 @@ async function ConfigurePageWS(ctx) {
         case 'app.update-websites':
           {
             const primary = msg.value;
-            const websites = (await app.getAvailableWebsites(primary)).map((site) => {
+            const websites = (await app.getAvailableWebsites(primary)).map(site => {
+              let ip = primary === site.app._networks.primary ? site.app._defaultIP : site.app._secondaryIP;
               return {
                 appid: site.app._id,
                 name: site.app._name,
                 hostname: site.app._safeName(),
+                ip: ip,
+                ip6: site.app.getSLAACAddress(),
                 port: site.port.port,
                 dns: '',
                 published: false
