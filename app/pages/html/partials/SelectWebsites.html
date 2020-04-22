@@ -6,6 +6,8 @@
     <th>Port</th>
     <th>Published Name</th>
     <th>Publish</th>
+    <th style="display:none"></th>
+    <th style="display:none"></th>
   </tr>
 </thead>
 <tbody>
@@ -17,6 +19,8 @@
     <td>{{port}}</td>
     <td><input type="text" value="{{dns}}" placeholder="Website name" oninput="publish(this)"></td>
     <td><input class="value" type="checkbox" {{#if published}}checked{{/if}} onchange="publish(this)"></td>
+    <td style="display:none">{{ip}}</td>
+    <td style="display:none">{{ip6}}</td>
   </tr>
   {{/each}}
 </tbody>

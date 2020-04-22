@@ -1091,7 +1091,7 @@ MinkeApp.prototype = {
   getAvailableWebsites: async function(network) {
     const acc = [];
     await Promise.all(applications.map(async app => {
-      if (app !== this && network === app._networks.primary) {
+      if (app !== this && (network === app._networks.primary || network === app._networks.secondary)) {
         const ports = await Promise.all(app._ports.map(async port => await this.expandPort(port)));
         const webport = ports.find(port => port.web);
         if (webport && !webport.web.private) {
