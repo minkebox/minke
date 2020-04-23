@@ -140,7 +140,12 @@
     },
     {
       type: `Directory`,
-      name: `/mastodon/public/system`
+      name: `mastodon-public-system`
+    },
+    {
+      type: `Directory`,
+      name: `/mastodon/public/system`,
+      use: `mastodon-public-system`
     },
     {
       type: `Port`,
@@ -254,7 +259,8 @@
         },
         {
           type: `Directory`,
-          name: `/mastodon/public/system`
+          name: `/mastodon/public/system`,
+          use: `mastodon-public-system`
         },
         {
           type: `Directory`,
