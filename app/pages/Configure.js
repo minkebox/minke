@@ -14,6 +14,15 @@ const Filesystem = require('../Filesystem');
 const Build = require('../Build');
 
 const MinkeBoxConfiguration = 'minke'; // MinkeSetup._id
+const SKELETON_ERROR = {
+  type: 'error',
+  skeleton: {
+    name: 'Missing Skeleton',
+    description: 'Missing Skeleton',
+    actions: [],
+    properties: []
+  }
+};
 
 let template;
 let downloadTemplate;
@@ -53,9 +62,9 @@ async function ConfigurePageHTML(ctx) {
   if (!app) {
     throw new Error(`Missing app: ${ctx.params.id}`);
   }
-  const skel = await Skeletons.loadSkeleton(app.skeletonId(), true);
-  if (!skel) {
-    throw new Error(`Failed to load skeleton: ${app._image}`);
+  const skel = (await Skeletons.loadSkeleton(app.skeletonId(), true)) || SKELETON_ERROR;
+  if (skel.type === 'error') {
+    console.error(`Failed to load skeleton: ${app._image}`);
   }
   const skeleton = skel.skeleton;
   const minkeConfig = app._image == Images.MINKE;
@@ -500,7 +509,7 @@ async function ConfigurePageWS(ctx) {
   }
 
   let app = MinkeApp.getAppById(ctx.params.id);
-  const skeleton = Skeletons.loadSkeleton(app.skeletonId(), false).skeleton;
+  const skeleton = (Skeletons.loadSkeleton(app.skeletonId(), false) || SKELETON_ERROR).skeleton;
 
   const NOCHANGE = 0;
   const APPCHANGE = 1;
