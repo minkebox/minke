@@ -238,10 +238,7 @@ MinkeApp.prototype = {
           const bind = defs.binds && defs.binds.find(bind => bind.target === targetname);
           let src = null;
           if (prop.style !== 'temp') {
-            if (bind && bind.src) {
-              src = bind.src;
-            }
-            else if (prop.use) {
+            if (prop.use) {
               const vbind = defs.binds && defs.binds.find(bind => bind.target === prop.use);
               if (vbind) {
                 src = vbind.src;
@@ -251,6 +248,9 @@ MinkeApp.prototype = {
                 // style to avoid errors where some prop.use have a style and some don't.
                 src = Filesystem.getNativePath(this._id, 'store', `/vol/${prop.use}`);
               }
+            }
+            else if (bind && bind.src) {
+              src = bind.src;
             }
             else if (targetname[0] !== '/') {
               src = Filesystem.getNativePath(this._id, prop.style, `/vol/${targetname}`);
