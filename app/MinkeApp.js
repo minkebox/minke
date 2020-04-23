@@ -263,7 +263,7 @@ MinkeApp.prototype = {
           const b = {
             src: src,
             target: targetname,
-            description: prop.description || targetname,
+            description: description,
             backup: prop.backup
           };
           if (bind && bind.shares.length) {
