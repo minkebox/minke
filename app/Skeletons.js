@@ -377,12 +377,11 @@ function dockerComposeToSkeleton(yml) {
         type: 'Directory',
         name: vp[1] || vp[0]
       };
-
       if (sdir[vp[0]]) {
         dir.use = sdir[vp[0]];
       }
-
       skel.properties.push(dir);
+
       if (vp[0].indexOf('${') !== -1) {
         skeleton.actions.push({
           type: 'SelectDirectory',
