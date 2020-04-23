@@ -389,14 +389,6 @@ function dockerComposeToSkeleton(yml) {
         dir.use = sdir[vp[0]];
       }
       skel.properties.push(dir);
-
-      /*if (vp[0].indexOf('${') !== -1) {
-        skeleton.actions.push({
-          type: 'SelectDirectory',
-          name: vp[1],
-          description: detox(vp[0])
-        });
-      }*/
     });
 
     (service.ports || []).forEach(p => {
