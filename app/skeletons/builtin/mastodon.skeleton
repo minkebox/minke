@@ -1,0 +1,282 @@
+{
+  name: `Mastodon`,
+  description: `Your self-hosted, globally interconnected microblogging community`,
+  uuid: `6BCC2C00-323B-4038-B7B5-9B9B3C989CB7`,
+  image: `tootsuite/mastodon`,
+  tags: [
+    `Social`
+  ],
+  delay: 5,
+  actions: [
+    {
+      type: `NavButton`,
+      name: `Open Sidekiq`,
+      url: `https://{{LOCAL_DOMAIN}}/sidekiq`
+    },
+    {
+      type: `Header`,
+      title: `First Use Configuration`
+    },
+    {
+      type: `Text`,
+      text: `First use configuration cannot be changed once the app has booted for the first time.`
+    },
+    {
+      type: `Text`,
+      text: `Pick your Mastodon domain name. This is the internet visible name Mastodon will be access from.`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `LOCAL_DOMAIN`,
+      description: `Domain name`,
+      enabled: `property.FirstUse`
+    },
+    {
+      type: `Text`,
+      text: `Pick the user who will have administration permissions.`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `ADMIN_USER`,
+      description: `Username`,
+      validate: `(?!admin$|support$|help$|roo$t|webmaster$|administrator$|mod$|moderator$).*`,
+      enabled: `property.FirstUse`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `ADMIN_EMAIL`,
+      description: `Email`,
+      enabled: `property.FirstUse`
+    },
+    {
+      type: `Header`,
+      title: `Mail`
+    },
+    {
+      type: `Text`,
+      text: `Mastodon needs to send emails (e.g. when someone creates an account and their email address needs to be verified).
+             Provide the configuration of an SMTP server here.`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `SMTP_FROM_ADDRESS`,
+      description: `From`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `SMTP_SERVER`,
+      description: `Server address`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `SMTP_PORT`,
+      description: `Port`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `SMTP_LOGIN`,
+      description: `Username`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `SMTP_PASSWORD`,
+      description: `Password`
+    }
+  ],
+  properties: [
+    {
+      type: `Arguments`,
+      defaultValue: [
+        `bash`,
+        `-c`,
+        `rm -f /mastodon/tmp/pids/server.pid; bundle exec rails s -p 3000`
+      ]
+    },
+    {
+      type: `Environment`,
+      name: `LOCAL_DOMAIN`,
+      defaultValue: `localhost`
+    },
+    {
+      type: `Environment`,
+      name: `OTP_SECRET`,
+      defaultValue: `{{__SECUREPASSWORD64}}`
+    },
+    {
+      type: `Environment`,
+      name: `SECRET_KEY_BASE`,
+      defaultValue: `{{__SECUREPASSWORD64}}`
+    },
+    {
+      type: `Environment`,
+      name: `SMTP_FROM_ADDRESS`
+    },
+    {
+      type: `Environment`,
+      name: `SMTP_SERVER`,
+      defaultValue: `smtp.gmail.com`
+    },
+    {
+      type: `Environment`,
+      name: `SMTP_PORT`,
+      defaultValue: `587`
+    },
+    {
+      type: `Environment`,
+      name: `SMTP_LOGIN`
+    },
+    {
+      type: `Environment`,
+      name: `SMTP_PASSWORD`
+    },
+    {
+      type: `Environment`,
+      name: `ADMIN_USER`,
+      defaultValue: `control`
+    },
+    {
+      type: `Environment`,
+      name: `ADMIN_EMAIL`
+    },
+    {
+      type: `Directory`,
+      name: `/mastodon/public/system`
+    },
+    {
+      type: `Port`,
+      name: `3000/tcp`,
+      port: 3000,
+      protocol: `TCP`,
+      web: {
+        url: `https://{{LOCAL_DOMAIN}}/`
+      }
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    }
+  ],
+  secondary: [
+    {
+      image: `redis:5.0-alpine`,
+      properties: [
+        {
+          type: `Directory`,
+          name: `/data`
+        }
+      ]
+    },
+    {
+      image: `postgres:9.6-alpine`,
+      properties: [
+        {
+          type: `Environment`,
+          name: `POSTGRES_HOST_AUTH_METHOD`,
+          defaultValue: `trust`
+        },
+        {
+          type: `Environment`,
+          name: `POSTGRES_USER`,
+          defaultValue: `mastodon`
+        },
+        {
+          type: `Environment`,
+          name: `POSTGRES_DB`,
+          defaultValue: `mastodon_production`
+        },
+        {
+          type: `Directory`,
+          name: `/var/lib/postgresql/data`
+        }
+      ]
+    },
+    {
+      image: `tootsuite/mastodon`,
+      properties: [
+        {
+          type: `Arguments`,
+          defaultValue: [
+            `bash`,
+            `-c`,
+            `if [ ! -e /firstuse/yes ]; then touch /firstuse/yes; rails db:migrate; tootctl accounts create $ADMIN_USER --role admin --email $ADMIN_EMAIL; fi; bundle exec sidekiq`
+          ]
+        },
+        {
+          type: `Environment`,
+          name: `LOCAL_DOMAIN`,
+          defaultValue: `{{LOCAL_DOMAIN}}`
+        },
+        {
+          type: `Environment`,
+          name: `OTP_SECRET`,
+          defaultValue: `{{OTP_SECRET}}`
+        },
+        {
+          type: `Environment`,
+          name: `SECRET_KEY_BASE`,
+          defaultValue: `{{SECRET_KEY_BASE}}`
+        },
+        {
+          type: `Environment`,
+          name: `SMTP_FROM_ADDRESS`,
+          defaultValue: `{{SMTP_FROM_ADDRESS}}`
+        },
+        {
+          type: `Environment`,
+          name: `SMTP_SERVER`,
+          defaultValue: `{{SMTP_SERVER}}`
+        },
+        {
+          type: `Environment`,
+          name: `SMTP_PORT`,
+          defaultValue: `{{SMTP_PORT}}`
+        },
+        {
+          type: `Environment`,
+          name: `SMTP_LOGIN`,
+          defaultValue: `{{SMTP_LOGIN}}`
+        },
+        {
+          type: `Environment`,
+          name: `SMTP_PASSWORD`,
+          defaultValue: `{{SMTP_PASSWORD}}`
+        },
+        {
+          type: `Environment`,
+          name: `ADMIN_USER`,
+          defaultValue: `{{ADMIN_USER}}`
+        },
+        {
+          type: `Environment`,
+          name: `ADMIN_EMAIL`,
+          defaultValue: `{{ADMIN_EMAIL}}`
+        },
+        {
+          type: `Directory`,
+          name: `/mastodon/public/system`
+        },
+        {
+          type: `Directory`,
+          name: `/firstuse`
+        }
+      ]
+    },
+    {
+      image: `tootsuite/mastodon`,
+      properties: [
+        {
+          type: `Arguments`,
+          defaultValue: [
+            `node`,
+            `./streaming`
+          ]
+        }
+      ]
+    }
+  ],
+  monitor: {
+    cmd: ``,
+    init: ``
+  }
+}

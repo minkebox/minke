@@ -28,7 +28,8 @@
     {
       type: `EditEnvironment`,
       description: `Admin token`,
-      name: `ADMIN_TOKEN`
+      name: `ADMIN_TOKEN`,
+      initValue: `{{__SECUREPASSWORD64}}`
     }
   ],
   properties: [

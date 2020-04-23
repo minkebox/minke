@@ -1,5 +1,6 @@
 const Path = require('path');
 const ChildProcess = require('child_process');
+const Crypto = require('crypto');
 const Moment = require('moment-timezone');
 const UUID = require('uuid/v4');
 const JSInterpreter = require('js-interpreter');
@@ -237,10 +238,7 @@ MinkeApp.prototype = {
           const bind = defs.binds && defs.binds.find(bind => bind.target === targetname);
           let src = null;
           if (prop.style !== 'temp') {
-            if (bind && bind.src) {
-              src = bind.src;
-            }
-            else if (prop.use) {
+            if (prop.use) {
               const vbind = defs.binds && defs.binds.find(bind => bind.target === prop.use);
               if (vbind) {
                 src = vbind.src;
@@ -250,6 +248,9 @@ MinkeApp.prototype = {
                 // style to avoid errors where some prop.use have a style and some don't.
                 src = Filesystem.getNativePath(this._id, 'store', `/vol/${prop.use}`);
               }
+            }
+            else if (bind && bind.src) {
+              src = bind.src;
             }
             else if (targetname[0] !== '/') {
               src = Filesystem.getNativePath(this._id, prop.style, `/vol/${targetname}`);
@@ -262,7 +263,7 @@ MinkeApp.prototype = {
           const b = {
             src: src,
             target: targetname,
-            description: prop.description || targetname,
+            description: description,
             backup: prop.backup
           };
           if (bind && bind.shares.length) {
@@ -1162,12 +1163,6 @@ MinkeApp.prototype = {
           addresses = this._homeIP;
         }
       }
-      // Fetching random ports (while avoiding those in use on the NAT) can be time consuming so
-      // only do this if we need to. We make sure 3 consequtive ports are available.
-      let natPort = null;
-      if (txt.indexOf('{{__RANDOMPORT}}') !== -1) {
-        natPort = await this._allocateRandomNatPorts(3);
-      }
       const env = Object.assign({
         __APPNAME: { value: this._name },
         __HOSTNAME: { value: this._safeName() },
@@ -1183,9 +1178,24 @@ MinkeApp.prototype = {
         __SECONDARYIP: { value: this._secondaryIP || '<none>' },
 
         __IPV6ENABLED: { value : this.getSLAACAddress() ? 'true' : 'false' },
-        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() },
-        __RANDOMPORT: { value: natPort }
+        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() }
       }, this._fullEnv);
+
+      // Fetching random ports (while avoiding those in use on the NAT) can be time consuming so
+      // only do this if we need to. We make sure 3 consequtive ports are available.
+      if (txt.indexOf('{{__RANDOMPORT}}') !== -1) {
+        env.__RANDOMPORT = { value: await this._allocateRandomNatPorts(3) };
+      }
+
+      // Generate random passwords of required length
+      if (txt.indexOf('{{__SECUREPASSWORD') !== -1) {
+        const match = txt.match(/{{__SECUREPASSWORD(\d+)}}/);
+        if (match) {
+          const len = parseInt(match[1]);
+          env[`__SECUREPASSWORD${len}`] = { value: this._generateSecurePassword(len) };
+        }
+      }
+
       for (let key in env) {
         txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
       }
@@ -1419,6 +1429,10 @@ MinkeApp.prototype = {
       port = (port + count) % nrPorts;
     }
     return minPort + port;
+  },
+
+  _generateSecurePassword: function(len) {
+    return Crypto.randomBytes(len / 2).toString('hex');
   }
 }
 

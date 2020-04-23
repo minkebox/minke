@@ -15,7 +15,9 @@ const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
 const GLOBAL1 = { _name: 'global1', _position: { tab: Number.MAX_SAFE_INTEGER - 1 } };
 const GLOBAL2 = { _name: 'global2', _position: { tab: Number.MAX_SAFE_INTEGER } };
-const MAX_SAMPLES = 64;
+const MAX_SAMPLES = 128;
+const STDEV_QUERY = 4;
+const STDEV_FAIL = 2;
 
 const PARALLEL_QUERY = 1;
 const DEBUG_QUERY = 0;
@@ -633,17 +635,24 @@ GlobalDNS.prototype = {
 
   _addTimingSuccess: function(time) {
     this._samples.shift();
-    this._samples.push(Math.max(1, Math.min(time, this._maxTimeout)));
+    this._samples.push(Math.min(time, this._maxTimeout));
   },
 
   _addTimingFailure: function(time) {
     const dev = this._stddev();
-    this._addTimingSuccess(time + dev.deviation);
+    this._addTimingSuccess(time + STDEV_FAIL * dev.deviation);
   },
 
   _getTimeout: function() {
-    const dev = this._stddev();
-    return Math.min(dev.mean + 3 * dev.deviation, this._maxTimeout);
+    // The last proxy uses the maxTimeout because it's the final attempt at an answer and there's
+    // no reason to terminate it early.
+    if (DNS._proxies[DNS._proxies.length - 1].srv === this) {
+      return this._maxTimeout;
+    }
+    else {
+      const dev = this._stddev();
+      return Math.max(1, Math.min(dev.mean + STDEV_QUERY * dev.deviation, this._maxTimeout));
+    }
   },
 
   _stddev: function() {
@@ -937,17 +946,17 @@ const LocalDNSSingleton = {
 
   _addTimingFailure: function(tinfo, time) {
     const dev = this._stddev(tinfo);
-    this._addTimingSuccess(tinfo, time + dev.deviation);
+    this._addTimingSuccess(tinfo, time + STDEV_FAIL * dev.deviation);
   },
 
   _addTimingSuccess: function(tinfo, time) {
     tinfo._samples.shift();
-    tinfo._samples.push(Math.max(1, Math.min(time, tinfo._maxTimeout)));
+    tinfo._samples.push(Math.min(time, tinfo._maxTimeout));
   },
 
   _getTimeout: function(tinfo) {
     const dev = this._stddev(tinfo);
-    return Math.min(dev.mean + 3 * dev.deviation, tinfo._maxTimeout);
+    return Math.max(1, Math.min(dev.mean + STDEV_QUERY * dev.deviation, tinfo._maxTimeout));
   },
 
   _stddev: function(tinfo) {
