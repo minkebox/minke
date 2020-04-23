@@ -343,10 +343,17 @@ async function ConfigurePageHTML(ctx) {
                 })
               });
             }
-            const prop = skeleton.properties.find(prop => prop.name === action.name);
+            let idx = '';
+            let prop = skeleton.properties.find(prop => prop.name === action.name);
+            if (!prop) {
+              prop = skeleton.secondary.find((secondary, sidx) => {
+                idx = sidx;
+                return secondary.properties.find(prop => prop.name === action.name);
+              });
+            }
             if (prop) {
               shareables.unshift({
-                app: app, shares: [{ name: 'Local', src: Filesystem.getNativePath(app._id, prop.style, `/dir/${action.name}`), description: 'Local', value: !found }]
+                app: app, shares: [{ name: 'Local', src: Filesystem.getNativePath(app._id, prop.style, `/dir${idx}/${action.name}`), description: 'Local', value: !found }]
               });
             }
             return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action, { description: await expand(action.description) });
