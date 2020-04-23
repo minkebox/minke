@@ -266,8 +266,12 @@ function dockerComposeToSkeleton(yml) {
   }
 
   function cmdline(str) {
-    const args = str.match(/(".*?"|[^"\s]+)(?=\s*\s|\s*$)/g);
-    return args;
+    return str.match(/(".*?"|[^"\s]+)(?=\s*\s|\s*$)/g).map(arg => {
+      if (arg[0] === '"' && arg[arg.length - 1] === '"') {
+        arg = arg.slice(1, -1);
+      }
+      return arg;
+    });
   }
 
   const sdir = {};
