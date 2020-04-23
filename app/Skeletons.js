@@ -274,7 +274,33 @@ function dockerComposeToSkeleton(yml) {
     });
   }
 
+  // Find share directories
   const sdir = {};
+
+  const cdir = {};
+  for (let i = 0; i < order.length; i++) {
+    const service = info.services[order[i]];
+    (service.volumes || []).forEach(vol => {
+      const vp = vol.split(':');
+      if (vp[0][0] !== '/' && vp[0][0] !== '.' && vp[0][0] !== '~') {
+        sdir[vp[0]] = vp[0];
+      }
+      else {
+        if (cdir[vp[0]]) {
+          cdir[vp[0]].push(vp[0]);
+        }
+        else {
+          cdir[vp[0]] = [ vp[0] ];
+        }
+      }
+    });
+  }
+  // Convert common bind points into shares
+  for (let dir in cdir) {
+    if (cdir[dir].length > 1) {
+      sdir[dir] = dir.replace(/[./~]+/g, '_').replace(/^_+/, '');
+    }
+  }
 
   for (let i = 0; i < order.length; i++) {
     const service = info.services[order[i]];
@@ -351,10 +377,11 @@ function dockerComposeToSkeleton(yml) {
         type: 'Directory',
         name: vp[1] || vp[0]
       };
-      if (vp[0][0] !== '/' && vp[0][0] !== '.' && vp[0][0] !== '~') {
-        dir.use = vp[0];
-        sdir[dir.use] = true;
+
+      if (sdir[vp[0]]) {
+        dir.use = sdir[vp[0]];
       }
+
       skel.properties.push(dir);
       if (vp[0].indexOf('${') !== -1) {
         skeleton.actions.push({
@@ -390,7 +417,7 @@ function dockerComposeToSkeleton(yml) {
   for (let dir in sdir) {
     skeleton.properties.push({
       type: `Directory`,
-      name: dir,
+      name: sdir[dir],
       style: `store`
     });
   }
