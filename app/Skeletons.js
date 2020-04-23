@@ -282,8 +282,8 @@ function dockerComposeToSkeleton(yml) {
     const service = info.services[order[i]];
     (service.volumes || []).forEach(vol => {
       const vp = vol.split(':');
-      if (vp[0][0] !== '/' && vp[0][0] !== '.' && vp[0][0] !== '~') {
-        sdir[vp[0]] = vp[0];
+      if (vp[0][0] !== '/' && vp[0][0] !== '.' && vp[0][0] !== '~' && vp[0][0] !== '$') {
+        sdir[vp[0]] = detox(vp[0]);
       }
       else {
         if (cdir[vp[0]]) {
@@ -298,7 +298,7 @@ function dockerComposeToSkeleton(yml) {
   // Convert common bind points into shares
   for (let dir in cdir) {
     if (cdir[dir].length > 1) {
-      sdir[dir] = dir.replace(/[./~]+/g, '_').replace(/^_+/, '');
+      sdir[dir] = dir.replace(/[${}./~]+/g, '_').replace(/^_+/, '');
     }
   }
 
@@ -356,17 +356,25 @@ function dockerComposeToSkeleton(yml) {
         });
       }
       else {
-        skel.properties.push({
-          type: 'Environment',
-          name: ep[0],
-          defaultValue: ep[1]
-        });
-        if (ep[1].indexOf('${') !== -1) {
-          skel.actions.push({
-            type: 'EditEnvironment',
-            name: ep[0],
-            description: ep[0]
+        if (!ep[1]) {
+          skel.properties.push({
+            type: 'Environment',
+            name: ep[0]
           });
+        }
+        else {
+          skel.properties.push({
+            type: 'Environment',
+            name: ep[0],
+            defaultValue: ep[1]
+          });
+          if (ep[1].indexOf('${') !== -1) {
+            skel.actions.push({
+              type: 'EditEnvironment',
+              name: ep[0],
+              description: ep[0]
+            });
+          }
         }
       }
     });
@@ -375,20 +383,20 @@ function dockerComposeToSkeleton(yml) {
       const vp = vol.split(':');
       const dir = {
         type: 'Directory',
-        name: vp[1] || vp[0]
+        name: vp[1] || detox(vp[0])
       };
       if (sdir[vp[0]]) {
         dir.use = sdir[vp[0]];
       }
       skel.properties.push(dir);
 
-      if (vp[0].indexOf('${') !== -1) {
+      /*if (vp[0].indexOf('${') !== -1) {
         skeleton.actions.push({
           type: 'SelectDirectory',
           name: vp[1],
-          description: vp[1]
+          description: detox(vp[0])
         });
-      }
+      }*/
     });
 
     (service.ports || []).forEach(p => {
