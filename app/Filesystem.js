@@ -55,6 +55,12 @@ _Filesystem.prototype = {
     const backupset = await this._expandBackupSet(bind.target);
     const natives = Filesystem.getNativeDirectories();
 
+    // MIGRATION
+    if (target[0] !== '/') {
+      return [];
+    }
+    // MIGRATION
+
     const binds = [];
 
     if (src) {
