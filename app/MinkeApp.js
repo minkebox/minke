@@ -1487,6 +1487,7 @@ MinkeApp.prototype = {
 
   _eval: async function(val) {
     try {
+      // LEGACY
       // Fetching random ports (while avoiding those in use on the NAT) can be time consuming so
       // only do this if we need to. We make sure 3 consequtive ports are available.
       let randomport = null;
@@ -1501,6 +1502,7 @@ MinkeApp.prototype = {
           securepassword = this._generateSecurePassword(parseInt(match[1]));
         }
       }
+      // LEGACY
       const js = new JSInterpreter(val, (intr, glb) => {
         for (let name in this._vars) {
           const v = this._vars[name];
@@ -1529,12 +1531,22 @@ MinkeApp.prototype = {
         else {
           intr.setProperty(glb, '__HOMEADDRESSES', '');
         }
+        intr.setProperty(glb, '__PASSWORDHEX', intr.createNativeFunction(len => {
+          return this._generateSecurePassword(len);
+        }));
+        intr.setProperty(glb, '__RANDOMPORTS', intr.createAsyncFunction((nr, callback) => {
+          this._allocateRandomNatPorts(nr).then(randomport => {
+            callback(randomport);
+          });
+        }));
+        // LEGACY
         if (randomport) {
           intr.setProperty(glb, '__RANDOMPORT', randomport);
         }
         if (securepassword) {
           intr.setProperty(glb, `__SECUREPASSWORD${securepassword.length}`, securepassword);
         }
+        // LEGACY
       });
       for (let i = 0; i < JSINTERPRETER_STEPS && js.step(); i++)
         ;
