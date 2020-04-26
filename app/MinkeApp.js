@@ -1531,7 +1531,7 @@ MinkeApp.prototype = {
         else {
           intr.setProperty(glb, '__HOMEADDRESSES', '');
         }
-        intr.setProperty(glb, '__PASSWORDHEX', intr.createNativeFunction(len => {
+        intr.setProperty(glb, '__RANDOMHEX', intr.createNativeFunction(len => {
           return this._generateSecurePassword(len);
         }));
         intr.setProperty(glb, '__RANDOMPORTS', intr.createAsyncFunction((nr, callback) => {
