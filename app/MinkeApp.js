@@ -150,6 +150,7 @@ MinkeApp.prototype = {
       const action = skeleton.actions[i];
       switch (action.type) {
         case 'EditEnvironment':
+        case 'SetEnvironment':
           this._vars[action.name] = {
             type: 'String',
             value: await this.expandString(action.initValue),
@@ -882,6 +883,7 @@ MinkeApp.prototype = {
       else {
         const startup = [];
 
+        //console.log('primary', config);
         this._container = await docker.createContainer(config);
         startup.push({ delay: this._delay, container: this._container });
 
@@ -906,6 +908,7 @@ MinkeApp.prototype = {
               },
               Env: Object.keys(secondaryEnv).map(key => `${key}=${secondaryEnv[key].value}`)
             };
+            //console.log(`secondary${c}`, sconfig);
             this._secondaryContainers[c] = await docker.createContainer(sconfig);
             startup.push({ delay: secondary._delay, container: this._secondaryContainers[c] });
           }
@@ -1289,7 +1292,7 @@ MinkeApp.prototype = {
     }
     txt = txt.toString();
     // Simple strings
-    if (txt[0] !== '$' && txt.indexOf('{{') === -1) {
+    if (txt.indexOf('{{') === -1) {
       return txt;
     }
     // Convert to evaluatable form and eval
@@ -1306,12 +1309,7 @@ MinkeApp.prototype = {
   },
 
   _expressionString2JS: function(str) {
-    if (str[0] === '$' && str[1] === '(' && str[str.length - 1] === ')') {
-      return str.slice(2, -1);
-    }
-    else {
-      return '"'+str.replace(/"/g, '\\"').replace(/\n/g, ' ').replace(/{{/g, '"+').replace(/}}/g, '+"')+'"';
-    }
+    return '"'+str.replace(/"/g, '\\"').replace(/\n/g, ' ').replace(/{{/g, '"+').replace(/}}/g, '+"')+'"';
   },
 
   expandPath: async function(path) {
