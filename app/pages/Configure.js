@@ -69,8 +69,8 @@ async function ConfigurePageHTML(ctx) {
   const skeleton = skel.skeleton;
   const minkeConfig = app._image == Images.MINKE;
 
-  async function expand(text) {
-    return await app.expand(text);
+  async function expandString(text) {
+    return await app.expandString(text);
   }
 
   let nextid = 100;
@@ -89,7 +89,7 @@ async function ConfigurePageHTML(ctx) {
   const nskeleton = {
     name: skeleton.name,
     value: app._name,
-    description: await expand(skeleton.description),
+    description: await expandString(skeleton.description),
     actions: await Promise.all(skeleton.actions.map(async action => {
       if ('visible' in action || 'enabled' in action) {
         const id = action.id || `x${++nextid}`;
@@ -105,18 +105,18 @@ async function ConfigurePageHTML(ctx) {
       switch (action.type) {
         case 'Text':
           {
-            return Object.assign({}, action, { text: await expand(action.text) });
+            return Object.assign({}, action, { text: await expandString(action.text) });
           }
         case 'Help':
           {
             help = true;
-            return Object.assign({}, action, { text: await expand(action.text) });
+            return Object.assign({}, action, { text: await expandString(action.text) });
           }
         case 'NavButton':
           {
             navbuttons.push({
               name: action.name,
-              link: await expand(action.url),
+              link: await expandString(action.url),
               linktarget: '_blank'
             });
             return action;
@@ -124,76 +124,46 @@ async function ConfigurePageHTML(ctx) {
         case 'EditEnvironment':
           {
             let value = '';
-            const env = app._env[action.name];
-            if (env) {
-              value = env.value;
-            }
-            if (!value && firstUse && action.initValue) {
-              value = await expand(action.initValue);
-              app._env[action.name] = { value: value };
+            let placeholder = '';
+            if (app._vars[action.name]) {
+              value = app._vars[action.name].value;
+              placeholder = app._vars[action.name].defaultValue;
             }
             properties[`${action.type}#${action.name}`] = value;
-            const placeholder = await expand((skeleton.properties.find(prop => prop.type === 'Environment' && prop.name === action.name) || {}).defaultValue);
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, placeholder: placeholder, options: action.options }, action, { description: await expand(action.description) });
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, placeholder: placeholder, options: action.options }, action, { description: await expandString(action.description) });
           }
         case 'EditEnvironmentAsCheckbox':
           {
-            let value = '';
-            const env = app._env[action.name];
-            if (env) {
-              value = env.value;
-            }
-            if (!value && firstUse && action.initValue) {
-              value = await expand(action.initValue);
-              app._env[action.name] = { value: value };
+            let value = false;
+            if (app._vars[action.name]) {
+              value = app._vars[action.name].value;
             }
             properties[`${action.type}#${action.name}`] = value;
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: value }, action, { description: await expand(action.description) });
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.checked)`, value: value }, action, { description: await expandString(action.description) });
           }
         case 'EditEnvironmentAsTable':
           {
-            let value = '';
-            const env = app._env[action.name];
-            if (env) {
-              value = env.value;
+            let value = [];
+            if (app._vars[action.name] && app._vars[action.name].value) {
+              value = app._vars[action.name].value;
+              // Fix up the data so we have at least enough for to match the headers
+              // (otherwise it looks bad when we display it)
+              const hlen = action.headers.length;
+              value.forEach(v => {
+                while (v.length < hlen) {
+                  v.push('');
+                }
+              });
             }
-            if (!value && firstUse && action.initValue) {
-              value = await expand(action.initValue);
-              app._env[action.name] = { value: value };
-              const altValue = action.initAltValue;
-              if (altValue) {
-                app._env[action.name].altValue = await expand(altValue);
-              }
-            }
-            properties[`${action.type}#${action.name}`] = value;
-            let avalue = [];
-            if (env && env.altValue) {
-              try {
-                avalue = JSON.parse(env.altValue);
-                const hlen = action.headers.length;
-                avalue.forEach(v => {
-                  while (v.length < hlen) {
-                    v.push('');
-                  }
-                });
-              }
-              catch (_) {
-              }
-            }
-            return Object.assign({ action: `${action.type}#${action.name}`, value: avalue, controls: true }, action, { description: await expand(action.description) });
+            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: await expandString(action.description) });
           }
         case 'SelectWebsites':
           {
-            const env = app._env[action.name];
-            properties[`${action.type}#${action.name}`] = env ? env.value : '';
             let currentSites = [];
-            if (env && env.altValue) {
-              try {
-                currentSites = JSON.parse(env.altValue);
-              }
-              catch (_) {
-              }
+            if (app._vars[action.name] && app._vars[action.name].value) {
+              currentSites = app._vars[action.name].value;
             }
+
             const websites = (await app.getAvailableWebsites(app._networks.primary)).map(site => {
               const match = currentSites.find(cs => cs[0] === site.app._id);
               let ip = app._networks.primary === site.app._networks.primary ? site.app._defaultIP : site.app._secondaryIP;
@@ -208,7 +178,7 @@ async function ConfigurePageHTML(ctx) {
                 published: match ? !!match[4] : false
               };
             });
-            return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action, { description: await expand(action.description) });
+            return Object.assign({ action: `${action.type}#${action.name}`, websites: websites }, action, { description: await expandString(action.description) });
           }
         case 'SelectNetwork':
           {
@@ -224,111 +194,95 @@ async function ConfigurePageHTML(ctx) {
               action: `window.action('${action.type}#${action.name}',this.value)` + reload,
               networks: networks,
               value: network
-            }, action, { description: await expand(action.description) });
+            }, action, { description: await expandString(action.description) });
           }
         case 'ShowFileAsTable':
           {
-            const file = app._files.find(file => file.target === action.name);
-            if (file && app._fs) {
-              app._fs.readFile(file);
+            if (app._fs) {
+              try {
+                app._vars[action.name].value = JSON.parse(app._fs.readFromFile(action.name));
+              }
+              catch (_) {
+              }
             }
-            let value = [];
-            try {
-              value = JSON.parse(file.data)
-            }
-            catch (_) {
-            }
-            return Object.assign({ value: value }, action, { description: await expand(action.description) });
+            const data = app._vars[action.name].value;
+            return Object.assign({ value: data }, action, { description: await expandString(action.description) });
           }
         case 'ShowFile':
           {
-            const file = app._files.find(file => file.target === action.name);
-            if (file && app._fs) {
-              app._fs.readFile(file);
+            if (app._fs) {
+              app._vars[action.name].value = app._fs.readFromFile(action.name);
             }
-            return Object.assign({ value: file ? file.data : '' }, action, { description: await expand(action.description) });
+            const data = app._vars[action.name].value;
+            return Object.assign({ value: data }, action, { description: await expandString(action.description) });
           }
         case 'DownloadFile':
-          {
-            const file = app._files.find(file => file.target === action.name);
-            if (file && app._fs) {
-              app._fs.readFile(file);
-            }
-            const value = file ? file.data : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action, { description: await expand(action.description) });
-          }
         case 'EditFile':
           {
-            const file = app._files.find(file => file.target === action.name);
-            if (file && app._fs) {
-              app._fs.readFile(file);
+            if (app._fs) {
+              app._vars[action.name].value = app._fs.readFromFile(action.name);
             }
-            const value = file ? file.data : '';
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, filename: Path.basename(action.name) }, action, { description: await expand(action.description) });
+            const data = app._vars[action.name].value;
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: data, filename: Path.basename(action.name) }, action, { description: await expandString(action.description) });
           }
         case 'EditFileAsTable':
           {
-            let value = null;
-            const file = app._files.find(file => file.target === action.name);
-            if (file && file.altData) {
-              try {
-                value = JSON.parse(file.altData);
-              }
-              catch (_) {
-              }
+            let value = [];
+            if (app._vars[action.name] && app._vars[action.name].value) {
+              value = app._vars[action.name].value;
+              // Fix up the data so we have at least enough for to match the headers
+              // (otherwise it looks bad when we display it)
+              const hlen = action.headers.length;
+              value.forEach(v => {
+                while (v.length < hlen) {
+                  v.push('');
+                }
+              });
             }
-            else if (firstUse && action.initValue) {
-              try {
-                value = JSON.parse(await expand(action.initValue));
-              }
-              catch (_) {
-              }
-            }
-            if (value) {
-              try {
-                value = JSON.parse(file.altData);
-                const hlen = action.headers.length;
-                value.forEach((v) => {
-                  while (v.length < hlen) {
-                    v.push('');
-                  }
-                });
-              }
-              catch (_) {
-              }
-            }
-            else {
-              value = [];
-            }
-            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: await expand(action.description) });
+            return Object.assign({ action: `${action.type}#${action.name}`, value: value, controls: true }, action, { description: await expandString(action.description) });
           }
         case 'SelectDirectory':
           {
+            let selected = '';
+            if (app._vars[action.name] && app._vars[action.name].value) {
+              selected = app._vars[action.name].value;
+            }
+
+            const shareables = [];
+            let found = false;
+
+            // Generate a list of all shareables (making the currently selected one as necessary)
             const allShares = app.getAvailableShareables();
             allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
-            let found = false;
-            const shareables = await Promise.all(allShares.map(async shareable => {
+
+            for (let i = 0; i < allShares.length; i++) {
+              const shareable = allShares[i];
               const shares = [];
-              await Promise.all(shareable.shares.map(async bind => {
-                await Promise.all(bind.shares.map(async share => {
-                  const target = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
-                  const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
-                  const selected = !!app._binds.find(abind => abind.src === src);
-                  found |= selected;
+              for (let j = 0; j < shareable.shares.length; j++) {
+                const bind = shareable.shares[j];
+                for (let k = 0; k < bind.shares.length; k++) {
+                  const share = bind.shares[k];
+                  const name = Path.normalize(`${shareable.app._name}/${await shareable.app.expandString(bind.target)}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
+                  const src = Path.normalize(`${await shareable.app.expandPath(bind.src)}/${share.name}/`).slice(0, -1);
+                  const value = src == selected;
+                  found |= value;
                   shares.push({
-                    name: target,
+                    name: name,
                     src: src,
-                    description: await expand(share.description),
-                    value: selected
+                    description: await expandString(share.description),
+                    value: value
                   });
-                }));
-                return shares;
-              }));
-              return {
-                app: shareable.app,
-                shares: shares
-              };
-            }));
+                }
+              }
+              if (shares.length) {
+                shareables.push({
+                  app: shareable.app,
+                  shares: shares
+                });
+              }
+            }
+
+            // Add native shareables
             const nativedirs = Filesystem.getNativeDirectories();
             if (nativedirs.length) {
               shareables.push({
@@ -337,26 +291,30 @@ async function ConfigurePageHTML(ctx) {
                   _name: 'Native'
                 },
                 shares: nativedirs.map(dir => {
-                  const selected = !!app._binds.find(abind => abind.src === dir.src);
-                  found |= selected;
-                  return { name: Path.basename(dir.src), src: dir.src, description: dir.src, value: selected }
+                  const value = dir.src == selected;
+                  found |= value;
+                  return {
+                    name: Path.basename(dir.src),
+                    src: dir.src,
+                    description: dir.src,
+                    value: value
+                  };
                 })
               });
             }
-            let idx = '';
-            let prop = skeleton.properties.find(prop => prop.name === action.name);
-            if (!prop) {
-              prop = skeleton.secondary.find((secondary, sidx) => {
-                idx = sidx;
-                return secondary.properties.find(prop => prop.name === action.name);
-              });
-            }
-            if (prop) {
-              shareables.unshift({
-                app: app, shares: [{ name: 'Local', src: Filesystem.getNativePath(app._id, prop.style, `/dir${idx}/${action.name}`), description: 'Local', value: !found }]
-              });
-            }
-            return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action, { description: await expand(action.description) });
+
+            // Local fallback
+            shareables.unshift({
+              app: app,
+              shares: [{
+                name: 'Local',
+                src: Filesystem.getNativePath(app._id, 'store', `/vol/${action.name}`),
+                description: 'Local',
+                value: !found
+              }]
+            });
+
+            return Object.assign({ action: `window.action('${action.type}#${action.name}',event.target.value)`, shareables: shareables }, action, { description: await expandString(action.description) });
           }
         case 'EditShares':
           {
@@ -374,73 +332,103 @@ async function ConfigurePageHTML(ctx) {
                   empty: empty
                 };
               })
-            }, action, { description: await expand(action.description) });
+            }, action, { description: await expandString(action.description) });
           }
         case 'SelectShares':
           {
-            const binding = app._binds.find(bind => bind.target === action.name) || { shares: [] };
+            let selected = [];
+            if (app._vars[action.name] && app._vars[action.name].value) {
+              selected = app._vars[action.name].value;
+            }
+
+            const shareables = [];
+
+            // Generate a list of all shareables (making the currently selected ones)
             const allShares = app.getAvailableShareables();
             allShares.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
-            const shareables = await Promise.all(allShares.map(async shareable => {
+
+            for (let i = 0; i < allShares.length; i++) {
+              const shareable = allShares[i];
               const shares = [];
-              await Promise.all(shareable.shares.map(async bind => {
-                await Promise.all(bind.shares.map(async share => {
-                  const defaultName = Path.normalize(`${shareable.app._name}/${bind.target}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
-                  const src = Path.normalize(`${bind.src}/${share.name}/`).slice(0, -1);
-                  const ashare = binding.shares.find(ashare => ashare.src === src);
-                  const altName = ashare ? ashare.name : '';
+              for (let j = 0; j < shareable.shares.length; j++) {
+                const bind = shareable.shares[j];
+                for (let k = 0; k < bind.shares.length; k++) {
+                  const share = bind.shares[k];
+                  const name = Path.normalize(`${shareable.app._name}/${await shareable.app.expandString(bind.target)}/${share.name}/`).slice(0, -1).replace(/\//g, '.');
+                  const src = Path.normalize(`${await shareable.app.expandPath(bind.src)}/${share.name}/`).slice(0, -1);
+                  const isShared = selected.find(select => select.src === src);
                   shares.push({
-                    name: defaultName,
-                    altname: altName != defaultName ? altName : null,
-                    description: await expand(share.description),
-                    action: `window.share('${action.type}#${shareable.app._id}#${src}#${action.name}#${defaultName}',this)`,
-                    value: !!ashare
+                    name: name,
+                    altname: !isShared || isShared.name == name ? null : isShared.name,
+                    description: await expandString(share.description),
+                    action: `window.share('${action.type}#${shareable.app._id}#${src}#${action.name}#${name}',this)`,
+                    value: !!isShared
                   });
-                }));
-              }));
-              return {
-                app: shareable.app,
-                shares: shares
-              };
-            }));
+                }
+              }
+              if (shares.length) {
+                shareables.push({
+                  app: shareable.app,
+                  shares: shares
+                });
+              }
+            }
+
+            // Add native shareables
             const nativedirs = Filesystem.getNativeDirectories();
             if (nativedirs.length) {
               shareables.push({
-                app: { _id: 'native', _name: 'Native' },
+                app: {
+                  _id: 'native',
+                  _name: 'Native'
+                },
                 shares: nativedirs.map(dir => {
-                  const defaultName = Path.basename(dir.src);
-                  const ashare = binding.shares.find(ashare => ashare.src === dir.src);
+                  const name = Path.basename(dir.src);
+                  const isShared = selected.find(select => select.src === dir.src);
                   return {
-                    name: defaultName,
-                    altname: ashare ? ashare.name : '',
+                    name: name,
+                    altname: !isShared || isShared.name == name ? null : isShared.name,
                     description: dir.src,
-                    action: `window.share('${action.type}#native#${dir.src}#${action.name}#${defaultName}',this)`,
-                    value: !!ashare
-                  }
+                    action: `window.share('${action.type}#native#${dir.src}#${action.name}#${name}',this)`,
+                    value: !!isShared
+                  };
                 })
               });
             }
-            return Object.assign({ shareables: shareables }, action, { description: await expand(action.description) });
+
+            return Object.assign({ shareables: shareables }, action, { description: await expandString(action.description) })
           }
         case 'SelectBackups':
           {
+            let selected = [];
+            if (app._vars[action.name] && app._vars[action.name].value) {
+              selected = app._vars[action.name].value;
+            }
+
             const allBackups = app.getAvailableBackups();
             allBackups.sort((a, b) => a.app._name < b.app._name ? -1 : a.app._name > b.app._name ? 1 : 0);
-            const backups = allBackups.map(backup => {
-              return {
-                id: backup.app._id,
-                name: backup.app._name,
-                action: `window.backup('${action.type}#${backup.app._id}#${action.name}',this)`,
-                value: !!app._backups.find(abk => abk.appid === backup.app._id)
-              };
+
+            const backups = [];
+            allBackups.forEach(backup => {
+              if (backup.app._id === MinkeBoxConfiguration) {
+                backups.unshift({
+                  id: MinkeBoxConfiguration,
+                  name: `${backup.app._name} (Configuration)`,
+                  action: `window.backup('${action.type}#${MinkeBoxConfiguration}#${action.name}',this)`,
+                  value: !!selected.find(select => select.appid === MinkeBoxConfiguration)
+                });
+              }
+              else {
+                backups.push({
+                  id: backup.app._id,
+                  name: backup.app._name,
+                  action: `window.backup('${action.type}#${backup.app._id}#${action.name}',this)`,
+                  value: !!selected.find(select => select.appid === backup.app._id)
+                });
+              }
             });
-            const midx = backups.findIndex(backup => backup.id === MinkeBoxConfiguration);
-            if (midx !== -1) {
-              const config = backups.splice(midx, 1)[0];
-              config.name = `${config.name} (Configuration)`;
-              backups.unshift(config);
-            }
-            return Object.assign({ backups: backups }, action, { description: await expand(action.description) });
+
+            return Object.assign({ backups: backups }, action, { description: await expandString(action.description) });
           }
         case '__Disks':
           {
@@ -516,39 +504,13 @@ async function ConfigurePageWS(ctx) {
   }
 
   let app = MinkeApp.getAppById(ctx.params.id);
-  const skeleton = (Skeletons.loadSkeleton(app.skeletonId(), false) || SKELETON_ERROR).skeleton;
+  //const skeleton = (Skeletons.loadSkeleton(app.skeletonId(), false) || SKELETON_ERROR).skeleton;
 
   const NOCHANGE = 0;
   const APPCHANGE = 1;
   const SKELCHANGE = 2;
   const SHARECHANGE = 4;
   const BACKUPCHANGE = 8;
-
-  async function getTableValue(value, format) {
-    try {
-      const table = JSON.parse(value);
-      const headers = (format && format.headers) || [];
-      const pattern = (format && format.pattern) || '{{0}}';
-      value = [];
-      await Promise.all(table.map(async row => {
-        let line = pattern;
-        for (let i = 0; i < row.length; i++) {
-          const header = headers[i] || {};
-          let rowval = row[i];
-          if (header.encoding === 'url') {
-            rowval = encodeURIComponent(rowval);
-          }
-          line = line.replace(new RegExp('\\{\\{' + i + '\\}\\}', 'g'), rowval);
-        }
-        value.push(await app.expand(line));
-      }));
-      return value.join('join' in format ? format.join : '\n');
-    }
-    catch (e) {
-      console.log(e);
-      return '';
-    }
-  }
 
   const patterns = [
     {
@@ -561,97 +523,85 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^EditEnvironment#(.+)$/, f: async (value, match) => {
-        const key = match[1];
-        let change = NOCHANGE;
-
-        function update(r) {
-          if (r) {
-            if (r.value !== value) {
-              r.value = value;
-              change = APPCHANGE;
-            }
-          }
+      p: /^(EditEnvironment|SelectDirectory|EditFile)#(.+)$/, f: async (value, match) => {
+        const key = match[2];
+        if (app._vars[key] && app._vars[key].value !== value) {
+          app._vars[key].value = value;
+          return APPCHANGE;
         }
-
-        update(app._env[key]);
-        app._secondary.forEach(secondary => update(secondary._env[key]));
-
-        return change;
+        return NOCHANGE;
       }
     },
     {
       p: /^EditEnvironmentAsCheckbox#(.+)$/, f: async (value, match) => {
         const key = match[1];
-        let change = NOCHANGE;
-
-        function update(r) {
-          if (r) {
-            if (r.value !== value) {
-              r.value = value;
-              change = APPCHANGE;
-            }
-          }
+        if (app._vars[key] && app._vars[key].value !== value) {
+          app._vars[key].value = !!value;
+          return APPCHANGE;
         }
-
-        update(app._env[key]);
-        app._secondary.forEach(secondary => update(secondary._env[key]));
-
-        return change;
+        return NOCHANGE;
       }
     },
     {
-      p: /^EditEnvironmentAsTable#(.+)$/, f: async (value, match) => {
-        const key = match[1];
-        const tableValue = await getTableValue(value, skeleton.actions.find(action => action.name === key));
-        let change = NOCHANGE;
-
-        function update(r) {
-          if (r) {
-            if (tableValue !== null) {
-              r.altValue = value;
-            }
-            else {
-              delete r.altValue;
-            }
-            if (r.value !== tableValue) {
-              r.value = tableValue;
-              change = APPCHANGE;
-            }
-          }
+      p: /^(EditEnvironmentAsTable|SelectWebsites|EditFileAsTable)#(.+)$/, f: async (value, match) => {
+        const key = match[2];
+        if (app._vars[key] && JSON.stringify(app._vars[key].value) !== value) {
+          app._vars[key].value = JSON.parse(value);
+          return APPCHANGE;
         }
-
-        update(app._env[key]);
-        app._secondary.forEach(secondary => update(secondary._env[key]));
-
-        return change;
+        return NOCHANGE;
       }
     },
     {
-      p: /^SelectWebsites#(.+)$/, f: async (value, match) => {
-        const key = match[1];
-        const tableValue = await getTableValue(value, skeleton.actions.find(action => action.name === key));
-        let change = NOCHANGE;
+      p: /^SelectShares#(.*)#(.*)#(.*)#(.*)$/, f: async (value, match) => {
+        const sharesrc = match[2]; // Absolute path of directory we're sharing
+        const target = match[3]; // Path of the parent directory we're sharing onto
+        const name = value.target.replace(/\//, '.') || match[4]; // The directory name in the parent
 
-        function update(r) {
-          if (r) {
-            if (tableValue !== null) {
-              r.altValue = value;
-            }
-            else {
-              delete r.altValue;
-            }
-            if (r.value !== tableValue) {
-              r.value = tableValue;
-              change = APPCHANGE;
-            }
+        if (app._vars[target]) {
+          const current = app._vars[target].value;
+          const idx = current.findIndex(curr => curr.src === sharesrc);
+          if (value.shared && idx === -1) {
+            current.push({
+              src: sharesrc,
+              name: name
+            });
+            return SHARECHANGE;
+          }
+          if (value.shared && idx !== -1 && current[idx].name !== name) {
+            current[idx].name = name;
+            return SHARECHANGE;
+          }
+          else if (!value.shared && idx !== -1) {
+            current.splice(idx, 1);
+            return SHARECHANGE;
           }
         }
 
-        update(app._env[key]);
-        app._secondary.forEach(secondary => update(secondary._env[key]));
+        return NOCHANGE;
+      }
+    },
+    {
+      p: /^SelectBackups#(.+)#(.*)/, f: async (value, match) => {
+        const appid = match[1];
+        const target = match[2];
 
-        return change;
+        if (app._vars[target]) {
+          const current = app._vars[target].value;
+          const idx = current.findIndex(curr => curr.appid === appid);
+          if (value.backup && idx === -1) {
+            current.push({
+              appid: appid,
+              target: target
+            });
+            return BACKUPCHANGE;
+          }
+          else if (!value.backup && idx !== -1) {
+            current.splice(idx, 1);
+            return BACKUPCHANGE;
+          }
+        }
+        return BACKUPCHANGE
       }
     },
     {
@@ -666,120 +616,6 @@ async function ConfigurePageWS(ctx) {
       }
     },
     {
-      p: /^SelectDirectory#(.+)$/, f: async (value, match) => {
-        const target = match[1];
-        let change = NOCHANGE;
-
-        function update(binds) {
-          const bind = binds.find(bind => bind.target == target);
-          if (bind && bind.src !== value) {
-            bind.src = value;
-            change = APPCHANGE;
-          }
-        }
-
-        update(app._binds);
-        app._secondary.forEach(secondary => update(secondary._binds));
-
-        return change;
-      }
-    },
-    {
-      p: /^EditFile#(.+)$/, f: async (value, match) => {
-        const filename = match[1];
-        let change = NOCHANGE;
-
-        async function update(files) {
-          const file = files.find(file => file.target == filename)
-          if (file && file.data !== value) {
-            file.data = value;
-            if (app._fs) {
-              await app._fs.makeFile(file);
-            }
-            change = APPCHANGE;
-          }
-        }
-
-        await update(app._files);
-        await Promise.all(app._secondary.map(async secondary => update(secondary._files)));
-
-        return change;
-      }
-    },
-    {
-      p: /^EditFileAsTable#(.+)$/, f: async (value, match) => {
-        const filename = match[1];
-        const tableValue = await getTableValue(value, skeleton.actions.find(action => action.name === filename));
-        let change = NOCHANGE;
-
-        async function update(files) {
-          const file = files.find(file => file.target == filename)
-          if (file && (file.data !== tableValue || file.altData !== value)) {
-            if (tableValue !== null) {
-              file.altData = value;
-            }
-            else {
-              delete file.altData;
-            }
-            file.data = tableValue;
-            if (app._fs) {
-              await app._fs.makeFile(file);
-            }
-            change = APPCHANGE;
-          }
-        }
-
-        await update(app._files);
-        await Promise.all(app._secondary.map(async secondary => update(secondary._files)));
-
-        return change;
-      }
-    },
-    {
-      p: /^SelectShares#(.*)#(.*)#(.*)#(.*)$/, f: async (value, match) => {
-        const sharesrc = match[2]; // Absolute path of directory we're sharing
-        const target = match[3]; // Path of the parent directory we're sharing onto
-        const name = value.target.replace(/\//, '.') || match[4]; // The directory name in the parent
-        let changed = NOCHANGE;
-
-        function update(binds) {
-          const bind = binds.find(bind => bind.target == target);
-          if (bind) {
-            const shares = bind.shares;
-            const idx = shares.findIndex(share => share.src == sharesrc);
-            if (value.shared) {
-              if (idx !== -1) {
-                if (shares[idx].name !== name) {
-                  shares[idx].name = name;
-                  shares[idx].description = name;
-                  changed = SHARECHANGE;
-                }
-              }
-              else {
-                shares.push({
-                  src: sharesrc,
-                  name: name,
-                  description: name
-                });
-                changed = SHARECHANGE;
-              }
-            }
-            else {
-              if (idx !== -1) {
-                shares.splice(idx, 1);
-                changed = SHARECHANGE;
-              }
-            }
-          }
-        }
-
-        update(app._binds);
-        app._secondary.forEach(secondary => update(secondary._binds));
-
-        return changed;
-      }
-    },
-    {
       p: /^EditShares#(.+)$/, f: async (value, match) => {
         const target = match[1];
         const shares = JSON.parse(value).map(row => {
@@ -787,16 +623,21 @@ async function ConfigurePageWS(ctx) {
         });
         const bind = app._binds.find(bind => bind.target === target);
         if (bind) {
+          // (Re)Create all the current shares
+          shares.forEach(share => FS.mkdirSync(`${bind.src}/${share.name}`, { recursive: true }));
+          // Remove any which are no longer in the list and empty
           bind.shares.forEach(share => {
             try {
               if (!shares.find(ns => ns.name === share.name)) {
                 const dir = `${bind.src}/${share.name}`;
-                if (FS.readdirSync(dir).length !== 0) {
-                  // Directory not empty - put it back in the list
-                  shares.push(share);
-                }
-                else {
-                  FS.rmdirSync(dir);
+                if (FS.existsSync(dir)) {
+                  if (FS.readdirSync(dir).length !== 0) {
+                    // Directory not empty - put it back in the list
+                    shares.push(share);
+                  }
+                  else {
+                    FS.rmdirSync(dir);
+                  }
                 }
               }
             }
@@ -808,24 +649,6 @@ async function ConfigurePageWS(ctx) {
           bind.shares = shares;
         }
         return SHARECHANGE;
-      }
-    },
-    {
-      p: /^SelectBackups#(.+)#(.*)/, f: async (value, match) => {
-        const backup = {
-          appid: match[1],
-          target: match[2]
-        };
-        const idx = app._backups.findIndex(obackup => obackup.appid === backup.appid);
-        if (value.backup) {
-          if (idx === -1) {
-            app._backups.push(backup);
-          }
-        }
-        else if (idx !== -1) {
-          app._backups.splice(idx, 1);
-        }
-        return BACKUPCHANGE;
       }
     },
     {
@@ -944,12 +767,10 @@ async function ConfigurePageWS(ctx) {
           break;
         case 'app.update-download':
           {
-            const path = msg.value;
-            const file = app._files.find(file => file.target === path);
-            if (file && app._fs) {
-              app._fs.readFile(file);
+            let value = '';
+            if (app._fs) {
+              value = app._fs.readFromFile(msg.value);
             }
-            const value = file ? file.data : '';
             send({
               type: 'html.replace',
               selector: `#${path.replace(/[./]/g, '\\$&')}`,
