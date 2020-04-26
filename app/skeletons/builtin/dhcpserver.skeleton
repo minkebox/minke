@@ -83,6 +83,10 @@
       name: `+NET_ADMIN`
     },
     {
+      type: `Environment`,
+      name: `ALT_DNS`
+    },
+    {
       type: `Port`,
       name: `1053/tcp`,
       port: 1053,
@@ -131,12 +135,7 @@
       type: `Network`,
       name: `primary`,
       defaultValue: `host`
-    },
-    {
-      type: `Environment`,
-      name: `ALT_DNS`,
-      defaultValue: ``
-    },
+    }
   ],
   monitor: {
     cmd: `wc -l /etc/dnsmasq-hosts.d/user-defined-hosts.conf ; cat /etc/dnsmasq.d/dhcp-ranges.conf ; cat /etc/dnsmasq-state.d/leases`,

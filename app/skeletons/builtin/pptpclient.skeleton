@@ -35,27 +35,32 @@
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `PAP`,
-      description: `Enable PAP authentication`
+      description: `Enable PAP authentication`,
+      initValue: false
     },
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `EAP`,
-      description: `Enable EAP authentication`
+      description: `Enable EAP authentication`,
+      initValue: false
     },
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `CHAP`,
-      description: `Enable CHAP authentication`
+      description: `Enable CHAP authentication`,
+      initValue: false
     },
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `MSCHAP`,
-      description: `Enable MS-CHAP authentication`
+      description: `Enable MS-CHAP authentication`,
+      initValue: true
     },
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `MPPE`,
-      description: `Enable encryption`
+      description: `Enable encryption`,
+      initValue: true
     }
   ],
   properties: [
@@ -77,28 +82,23 @@
     },
     {
       type: `Environment`,
-      name: `PAP`,
-      defaultValue: false
+      name: `PAP`
     },
     {
       type: `Environment`,
-      name: `CHAP`,
-      defaultValue: false
+      name: `CHAP`
     },
     {
       type: `Environment`,
-      name: `EAP`,
-      defaultValue: false
+      name: `EAP`
     },
     {
       type: `Environment`,
-      name: `MSCHAP`,
-      defaultValue: true
+      name: `MSCHAP`
     },
     {
       type: `Environment`,
-      name: `MPPE`,
-      defaultValue: true
+      name: `MPPE`
     },
     {
       type: `Directory`,
