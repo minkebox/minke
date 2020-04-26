@@ -3,6 +3,5 @@ include:
     file: '/.gitlab-ci.yml'
 
 variables:
-  CI_COMMIT_TAG: "dev"
+  CI_COMMIT_TAG: "vars"
   CI_BUILDX_ARCHS: "linux/arm64,linux/amd64"
-  
