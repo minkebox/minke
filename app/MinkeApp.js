@@ -94,7 +94,7 @@ MinkeApp.prototype = {
       this._vars = {};
       if (this._skeleton) {
         await this.updateVariables(this._skeleton, {});
-        this._variableMigration(this._skeleton, this._env);
+        await this._variableMigration(this._skeleton, this._env);
       }
     }
     // MIGRATION
@@ -231,7 +231,7 @@ MinkeApp.prototype = {
     //console.log('Created Vars', this._vars);
   },
 
-  _variableMigration: function(skeleton, envs) {
+  _variableMigration: async function(skeleton, envs) {
     for (let i = 0; i < skeleton.actions.length; i++) {
       const action = skeleton.actions[i];
       const env = envs[action.name];
