@@ -1394,8 +1394,9 @@ MinkeApp.prototype = {
     if (typeof val === 'string') {
       try {
         val = await this._eval(val.replace(/({{|}})/g, ''));
-        if (typeof val === 'number' && !isNaN(val)) {
-          return val;
+        const nval = Number(val);
+        if (val == nval) {
+          return nval;
         }
       }
       catch (_) {
@@ -1514,7 +1515,20 @@ MinkeApp.prototype = {
       const js = new JSInterpreter(val, (intr, glb) => {
         for (let name in this._vars) {
           const v = this._vars[name];
-          intr.setProperty(glb, name, intr.nativeToPseudo(v.value || v.defaultValue));
+          let val = v.value || v.defaultValue;
+          // Reduce values to Booleans or Numbers if possible
+          if (val !== null && val !== undefined) {
+            if (String(val).toLowerCase() === 'true') {
+              val = true;
+            }
+            else if (String(val).toLowerCase() === 'false') {
+              val = false;
+            }
+            else if (Number(val) == val) {
+              val = Number(val);
+            }
+          }
+          intr.setProperty(glb, name, intr.nativeToPseudo(val));
         }
         intr.setProperty(glb, '__APPNAME', this._name);
         intr.setProperty(glb, '__HOSTNAME', this._safeName());
