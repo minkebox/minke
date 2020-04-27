@@ -29,7 +29,8 @@
       type: `EditEnvironment`,
       name: `LOCAL_DOMAIN`,
       description: `Domain name`,
-      enabled: `property.FirstUse`
+      enabled: `property.FirstUse`,
+      initValue: `localhost`
     },
     {
       type: `Text`,
@@ -40,7 +41,8 @@
       name: `ADMIN_USER`,
       description: `Username`,
       validate: `(?!admin$|support$|help$|roo$t|webmaster$|administrator$|mod$|moderator$).*`,
-      enabled: `property.FirstUse`
+      enabled: `property.FirstUse`,
+      initValue: `control`
     },
     {
       type: `EditEnvironment`,
@@ -65,12 +67,14 @@
     {
       type: `EditEnvironment`,
       name: `SMTP_SERVER`,
-      description: `Server address`
+      description: `Server address`,
+      initValue: `smtp.gmail.com`
     },
     {
       type: `EditEnvironment`,
       name: `SMTP_PORT`,
-      description: `Port`
+      description: `Port`,
+      initValue: `587`
     },
     {
       type: `EditEnvironment`,
@@ -81,7 +85,17 @@
       type: `EditEnvironment`,
       name: `SMTP_PASSWORD`,
       description: `Password`
-    }
+    },
+    {
+      type: `SetEnvironment`,
+      name: `OTP_SECRET`,
+      defaultValue: `{{__SECUREPASSWORD64}}`
+    },
+    {
+      type: `SetEnvironment`,
+      name: `SECRET_KEY_BASE`,
+      defaultValue: `{{__SECUREPASSWORD64}}`
+    },
   ],
   properties: [
     {
@@ -94,18 +108,15 @@
     },
     {
       type: `Environment`,
-      name: `LOCAL_DOMAIN`,
-      defaultValue: `localhost`
+      name: `LOCAL_DOMAIN`
     },
     {
       type: `Environment`,
-      name: `OTP_SECRET`,
-      defaultValue: `{{__SECUREPASSWORD64}}`
+      name: `OTP_SECRET`
     },
     {
       type: `Environment`,
-      name: `SECRET_KEY_BASE`,
-      defaultValue: `{{__SECUREPASSWORD64}}`
+      name: `SECRET_KEY_BASE`
     },
     {
       type: `Environment`,
@@ -113,13 +124,11 @@
     },
     {
       type: `Environment`,
-      name: `SMTP_SERVER`,
-      defaultValue: `smtp.gmail.com`
+      name: `SMTP_SERVER`
     },
     {
       type: `Environment`,
-      name: `SMTP_PORT`,
-      defaultValue: `587`
+      name: `SMTP_PORT`
     },
     {
       type: `Environment`,
@@ -131,16 +140,11 @@
     },
     {
       type: `Environment`,
-      name: `ADMIN_USER`,
-      defaultValue: `control`
+      name: `ADMIN_USER`
     },
     {
       type: `Environment`,
       name: `ADMIN_EMAIL`
-    },
-    {
-      type: `Directory`,
-      name: `mastodon-public-system`
     },
     {
       type: `Directory`,
@@ -198,6 +202,7 @@
     },
     {
       image: `tootsuite/mastodon`,
+      delay: 2,
       properties: [
         {
           type: `Arguments`,
@@ -209,53 +214,43 @@
         },
         {
           type: `Environment`,
-          name: `LOCAL_DOMAIN`,
-          defaultValue: `{{LOCAL_DOMAIN}}`
+          name: `LOCAL_DOMAIN`
         },
         {
           type: `Environment`,
-          name: `OTP_SECRET`,
-          defaultValue: `{{OTP_SECRET}}`
+          name: `OTP_SECRET`
         },
         {
           type: `Environment`,
-          name: `SECRET_KEY_BASE`,
-          defaultValue: `{{SECRET_KEY_BASE}}`
+          name: `SECRET_KEY_BASE`
         },
         {
           type: `Environment`,
-          name: `SMTP_FROM_ADDRESS`,
-          defaultValue: `{{SMTP_FROM_ADDRESS}}`
+          name: `SMTP_FROM_ADDRESS`
         },
         {
           type: `Environment`,
-          name: `SMTP_SERVER`,
-          defaultValue: `{{SMTP_SERVER}}`
+          name: `SMTP_SERVER`
         },
         {
           type: `Environment`,
-          name: `SMTP_PORT`,
-          defaultValue: `{{SMTP_PORT}}`
+          name: `SMTP_PORT`
         },
         {
           type: `Environment`,
-          name: `SMTP_LOGIN`,
-          defaultValue: `{{SMTP_LOGIN}}`
+          name: `SMTP_LOGIN`
         },
         {
           type: `Environment`,
-          name: `SMTP_PASSWORD`,
-          defaultValue: `{{SMTP_PASSWORD}}`
+          name: `SMTP_PASSWORD`
         },
         {
           type: `Environment`,
-          name: `ADMIN_USER`,
-          defaultValue: `{{ADMIN_USER}}`
+          name: `ADMIN_USER`
         },
         {
           type: `Environment`,
-          name: `ADMIN_EMAIL`,
-          defaultValue: `{{ADMIN_EMAIL}}`
+          name: `ADMIN_EMAIL`
         },
         {
           type: `Directory`,

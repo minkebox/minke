@@ -60,7 +60,8 @@
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `INTERNET_ONLY`,
-      description: `Clients can <b>only</b> access the Internet`
+      description: `Clients can <b>only</b> access the Internet`,
+      initValue: false
     },
     {
       type: `Header`,
@@ -186,8 +187,7 @@
     },
     {
       type: `Environment`,
-      name: `INTERNET_ONLY`,
-      defaultValue: false
+      name: `INTERNET_ONLY`
     },
     {
       type: `Directory`,

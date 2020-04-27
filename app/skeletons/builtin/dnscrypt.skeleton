@@ -27,7 +27,8 @@ https:// is used for DNS-over-HTTPS. A hostname in these URLs can contain only a
       type: `EditEnvironment`,
       name: `SERVER1`,
       description: `Primary URL`,
-      validate: `^(sdns://[a-zA-Z0-0+/]+|https://([a-zA-Z][a-zA-Z0-9]*.[a-zA-Z][a-zA-z0-9]*|[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)(:[0-9]+|)/.*)$`
+      validate: `^(sdns://[a-zA-Z0-0+/]+|https://([a-zA-Z][a-zA-Z0-9]*.[a-zA-Z][a-zA-z0-9]*|[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)(:[0-9]+|)/.*)$`,
+      initValue: `https://cloudflare-dns.com/dns-query`
     },
     {
       type: `EditEnvironment`,
@@ -44,8 +45,7 @@ https:// is used for DNS-over-HTTPS. A hostname in these URLs can contain only a
     },
     {
       type: `Environment`,
-      name: `SERVER1`,
-      defaultValue: `https://cloudflare-dns.com/dns-query`
+      name: `SERVER1`
     },
     {
       type: `Environment`,

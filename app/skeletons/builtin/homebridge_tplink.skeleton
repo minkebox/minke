@@ -12,7 +12,8 @@
     {
       type: `EditEnvironment`,
       description: `Pin used to add this device to your network using the Home app`,
-      name: `BRIDGE_PIN`
+      name: `BRIDGE_PIN`,
+      initValue: `111-11-111`
     },
     {
       type: `Header`,
@@ -42,8 +43,7 @@
     },
     {
       type: `Environment`,
-      name: `BRIDGE_PIN`,
-      defaultValue: `111-11-111`
+      name: `BRIDGE_PIN`
     },
     {
       type: `Directory`,

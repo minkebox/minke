@@ -12,7 +12,8 @@
     {
       type: `EditEnvironment`,
       description: `Pin used to add this device to your network using the Home app`,
-      name: `BRIDGE_PIN`
+      name: `BRIDGE_PIN`,
+      initValue: `111-11-111`
     },
     {
       type: `Header`,
@@ -80,11 +81,6 @@
       protocol: 'TCP'
     },
     {
-      type: `Network`,
-      name: `primary`,
-      defaultValue: `home`
-    },
-    {
       type: `File`,
       name: `/app/switches1.conf`
     },
@@ -103,8 +99,7 @@
     },
     {
       type: `Environment`,
-      name: `BRIDGE_PIN`,
-      defaultValue: `111-11-111`
+      name: `BRIDGE_PIN`
     },
     {
       type: `Environment`,
@@ -118,6 +113,11 @@
       type: `Directory`,
       name: `/app/homebridge`,
       style: 'store'
-    }
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
   ]
 }

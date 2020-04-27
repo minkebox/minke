@@ -81,12 +81,14 @@
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `LETS_ENCRYPT`,
-      description: `Enable HTTPS support using <b>Let's&nbsp;Encrypt</b>`
+      description: `Enable HTTPS support using <b>Let's&nbsp;Encrypt</b>`,
+      initValue: false
     },
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `WEB_NAT`,
-      description: `Make websites available on the Internet`
+      description: `Make websites available on the Internet`,
+      initValue: false
     },
     {
       type: `Text`,
@@ -118,13 +120,11 @@
     },
     {
       type: `Environment`,
-      name: `LETS_ENCRYPT`,
-      defaultValue: false
+      name: `LETS_ENCRYPT`
     },
     {
       type: `Environment`,
-      name: `WEB_NAT`,
-      defaultValue: false
+      name: `WEB_NAT`
     },
     {
       type: 'Directory',
