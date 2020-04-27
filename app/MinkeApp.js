@@ -1433,7 +1433,7 @@ MinkeApp.prototype = {
           return null;
         }
         return v.value.toString();
-      case 'Object':
+      case 'Array':
       {
         const encoding = v.encoding || { pattern: '{{0}}', join: '\n' };
         const nvalue = [];
