@@ -768,8 +768,9 @@ async function ConfigurePageWS(ctx) {
         case 'app.update-download':
           {
             let value = '';
+            const path = msg.value;
             if (app._fs) {
-              value = app._fs.readFromFile(msg.value);
+              value = app._fs.readFromFile(path);
             }
             send({
               type: 'html.replace',
@@ -812,7 +813,8 @@ async function ConfigurePageWS(ctx) {
           break;
       }
     }
-    catch (_) {
+    catch (e) {
+      console.error(e);
     }
   });
 
