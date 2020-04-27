@@ -120,9 +120,12 @@ _Filesystem.prototype = {
   _makeFile: async function(file) {
     //console.log('_makeFile', file);
     const data = await this._expandFileWithDefault(file.target, file.value);
+    FS.mkdirSync(Path.dirname(file.src), { recursive: true, mode: 0o777 });
     if (data !== null && data !== undefined) {
-      FS.mkdirSync(Path.dirname(file.src), { recursive: true, mode: 0o777 });
       FS.writeFileSync(file.src, data, { mode: ('mode' in file ? file.mode : 0o666) });
+    }
+    else if (!FS.existsSync(file.src)) {
+      FS.writeFileSync(file.src, '', { mode: ('mode' in file ? file.mode : 0o666) });
     }
     return {
       Type: 'bind',
