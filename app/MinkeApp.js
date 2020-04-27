@@ -1501,28 +1501,12 @@ MinkeApp.prototype = {
         fullEnv[key] = { value: value };
       }
     }
-    console.log('expandEnv', env, '->', fullEnv);
+    //console.log('expandEnv', env, '->', fullEnv);
     return fullEnv;
   },
 
   _eval: async function(val) {
     try {
-      // LEGACY
-      // Fetching random ports (while avoiding those in use on the NAT) can be time consuming so
-      // only do this if we need to. We make sure 3 consequtive ports are available.
-      let randomport = null;
-      if (val.indexOf('__RANDOMPORT') !== -1) {
-        randomport = await this._allocateRandomNatPorts(3);
-      }
-      let securepassword = null;
-      // Generate random passwords of required length
-      if (val.indexOf('__SECUREPASSWORD') !== -1) {
-        const match = val.match(/__SECUREPASSWORD(\d+)/);
-        if (match) {
-          securepassword = this._generateSecurePassword(parseInt(match[1]));
-        }
-      }
-      // LEGACY
       const js = new JSInterpreter(val, (intr, glb) => {
         for (let name in this._vars) {
           intr.setProperty(glb, name, intr.nativeToPseudo(this.expandVariable(name)));
@@ -1558,14 +1542,6 @@ MinkeApp.prototype = {
             callback(randomport);
           });
         }));
-        // LEGACY
-        if (randomport) {
-          intr.setProperty(glb, '__RANDOMPORT', randomport);
-        }
-        if (securepassword) {
-          intr.setProperty(glb, `__SECUREPASSWORD${securepassword.length}`, securepassword);
-        }
-        // LEGACY
       });
       for (let i = 0; i < JSINTERPRETER_STEPS && js.step(); i++)
         ;
