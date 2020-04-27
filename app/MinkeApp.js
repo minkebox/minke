@@ -155,15 +155,13 @@ MinkeApp.prototype = {
         case 'SetEnvironment':
           this._vars[action.name] = {
             type: 'String',
-            value: ovalue || await this.expandString(action.initValue),
-            defaultValue: await this.expandString(action.defaultValue)
+            value: ovalue || await this.expandString(action.initValue)
           };
           break;
         case 'EditEnvironmentAsCheckbox':
           this._vars[action.name] = {
             type: 'Bool',
-            value: ovalue || await this.expandBool(action.initValue),
-            defaultValue: await this.expandBool(action.defaultValue)
+            value: ovalue || await this.expandBool(action.initValue)
           };
           break;
         case 'EditEnvironmentAsTable':
@@ -1438,7 +1436,7 @@ MinkeApp.prototype = {
     switch (v.type) {
       case 'String':
       case 'Path':
-      case 'Boo':
+      case 'Bool':
         if (v.value === undefined || v.value === null) {
           return null;
         }
@@ -1525,8 +1523,7 @@ MinkeApp.prototype = {
       // LEGACY
       const js = new JSInterpreter(val, (intr, glb) => {
         for (let name in this._vars) {
-          const v = this._vars[name];
-          let val = (v.value === undefined || v.value === null || v.value === '') ? v.defaultValue : v.value;
+          let val = this._vars[name].value;
           // Reduce values to Booleans or Numbers if possible
           if (String(val).toLowerCase() === 'true') {
             val = true;
