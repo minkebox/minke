@@ -1436,9 +1436,10 @@ MinkeApp.prototype = {
       case 'Array':
       {
         const encoding = v.encoding || { pattern: '{{0}}', join: '\n' };
+        const value = v.value || [];
         const nvalue = [];
-        for (let r = 0; r < v.value.length; r++) {
-          const row = v.value[r];
+        for (let r = 0; r < value.length; r++) {
+          const row = value[r];
           let line = encoding.pattern;
           for (let c = 0; c < row.length; c++) {
             line = line.replace(new RegExp('\\{\\{' + c + '\\}\\}', 'g'), row[c])
