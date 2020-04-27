@@ -94,8 +94,8 @@ MinkeApp.prototype = {
       this._vars = {};
       if (this._skeleton) {
         await this.updateVariables(this._skeleton, {});
-        await this._variableMigration(this._skeleton, this._env);
-        await this._parseProperties(this, '', this._skeleton.properties, {});
+        await this._variableMigration();
+        await this._parseProperties(this, '', this._skeleton.properties);
       }
     }
     // MIGRATION
@@ -232,31 +232,39 @@ MinkeApp.prototype = {
     //console.log('Created Vars', this._vars);
   },
 
-  _variableMigration: async function(skeleton, envs) {
-    for (let i = 0; i < skeleton.actions.length; i++) {
-      const action = skeleton.actions[i];
-      const env = envs[action.name];
+  _variableMigration: async function() {
+    for (let i = 0; i < this._skeleton.actions.length; i++) {
+      const action = this._skeleton.actions[i];
+      const env = this._env[action.name];
       switch (action.type) {
         case 'EditEnvironment':
           if (env && ('value' in env)) {
             this._vars[action.name].value = await this.expandString(env.value);
-            envs[action.name] = {};
+            this._env[action.name] = {};
           }
           break;
         case 'EditEnvironmentAsCheckbox':
           if (env && ('value' in env)) {
             this._vars[action.name].value = !!env.value;
-            envs[action.name] = {};
+            this._env[action.name] = {};
           }
           break;
         case 'EditEnvironmentAsTable':
         case 'SelectWebsites':
-        case 'EditFileAsTable':
           if (env && env.altValue) {
             this._vars[action.name].value = JSON.parse(env.altValue);
-            envs[action.name] = {};
+            this._env[action.name] = {};
           }
           break;
+        case 'EditFileAsTable':
+        {
+          const file = this._files.find(f => f.target === action.name);
+          if (file && file.altData) {
+            this._vars[action.name].value = JSON.parse(file.altData);
+            delete file.altData;
+          }
+          break;
+        }
         case 'SelectBackups':
           if (this._backups && this._backups.length) {
             this._vars[action.name].value = this._backups;
@@ -353,7 +361,7 @@ MinkeApp.prototype = {
       this._networks.secondary = 'none';
     }
 
-    await this._parseProperties(this, '', skel.properties, defs);
+    await this._parseProperties(this, '', skel.properties);
     if (skel.secondary) {
       const defssecondary = defs.secondary || [];
       this._secondary = await Promise.all(skel.secondary.map(async (secondary, idx) => {
@@ -362,7 +370,7 @@ MinkeApp.prototype = {
           _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
           _delay: secondary.delay || 0
         };
-        await this._parseProperties(secondaryApp, `${idx}`, secondary.properties, defssecondary[idx] || {});
+        await this._parseProperties(secondaryApp, `${idx}`, secondary.properties);
         return secondaryApp;
       }));
     }
@@ -377,7 +385,7 @@ MinkeApp.prototype = {
     return this;
   },
 
-  _parseProperties: async function(target, ext, properties, defs) {
+  _parseProperties: async function(target, ext, properties) {
     target._env = {};
     target._features = {};
     target._ports = [];
@@ -1127,6 +1135,7 @@ MinkeApp.prototype = {
       await this.stop();
     }
     await this.save();
+    await this._parseProperties(this, '', this._skeleton.properties);
     await this.start();
   },
 
