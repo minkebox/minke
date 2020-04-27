@@ -93,7 +93,7 @@ MinkeApp.prototype = {
     if (!this._vars) {
       this._vars = {};
       if (this._skeleton) {
-        await this.createVariables(this._skeleton);
+        await this.updateVariables(this._skeleton, {});
         this._variableMigration(this._skeleton, this._env);
       }
     }
@@ -144,23 +144,24 @@ MinkeApp.prototype = {
     }
   },
 
-  createVariables: async function(skeleton) {
+  updateVariables: async function(skeleton, cvars) {
     this._vars = {};
     for (let i = 0; i < skeleton.actions.length; i++) {
       const action = skeleton.actions[i];
+      const ovalue = cvars[action.name] && cvars[action.name].value;
       switch (action.type) {
         case 'EditEnvironment':
         case 'SetEnvironment':
           this._vars[action.name] = {
             type: 'String',
-            value: await this.expandString(action.initValue),
+            value: ovalue || await this.expandString(action.initValue),
             defaultValue: await this.expandString(action.defaultValue)
           };
           break;
         case 'EditEnvironmentAsCheckbox':
           this._vars[action.name] = {
             type: 'Bool',
-            value: await this.expandBool(action.initValue),
+            value: ovalue || await this.expandBool(action.initValue),
             defaultValue: await this.expandBool(action.defaultValue)
           };
           break;
@@ -169,7 +170,7 @@ MinkeApp.prototype = {
         case 'EditFileAsTable':
           this._vars[action.name] = {
             type: 'Array',
-            value: action.initValue && JSON.parse(await this.expandString(action.initValue))
+            value: ovalue || (action.initValue && JSON.parse(await this.expandString(action.initValue)))
           };
           if (action.pattern) {
             this._vars[action.name].encoding = {
@@ -181,14 +182,14 @@ MinkeApp.prototype = {
         case 'SelectBackups':
           this._vars[action.name] = {
             type: 'BackupSet',
-            value: []
+            value: ovalue || []
           };
           break;
         case 'SelectDirectory':
         {
           this._vars[action.name] = {
             type: 'Path',
-            value: await this.expandPath(action.initValue)
+            value: ovalue || await this.expandPath(action.initValue)
           };
           break;
         }
@@ -196,16 +197,22 @@ MinkeApp.prototype = {
         {
           this._vars[action.name] = {
             type: 'PathSet',
-            value: []
+            value: ovalue || []
           };
           break;
         }
         case 'EditFile':
+          this._vars[action.name] = {
+            type: 'String',
+            value: await this.expandString(action.initValue),
+            persist: false // Don't persist value in DB
+          };
+          break;
         case 'ShowFile':
         case 'DownloadFile':
           this._vars[action.name] = {
             type: 'String',
-            value: (await this.expandString(action.initValue)) || undefined,
+            value: undefined,
             persist: false // Don't persist value in DB
           };
           break;
@@ -298,7 +305,6 @@ MinkeApp.prototype = {
     this._position = { tab: 0, widget: 0 };
     this._skeleton = skel;
 
-    await this.createVariables(skel);
     await this.updateFromSkeleton(skel, {});
 
     this._setStatus('stopped');
@@ -307,6 +313,8 @@ MinkeApp.prototype = {
   },
 
   updateFromSkeleton: async function(skel, defs) {
+
+    await this.updateVariables(skel, this._vars || {});
 
     this._skeletonId = skel.uuid;
     this._description = skel.description;
