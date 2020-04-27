@@ -252,9 +252,9 @@ _Filesystem.prototype = {
   },
 
   _expandFileWithDefault: async function(path, defaultStr) {
-    const str = await this._primaryApp.expandVariableAsString(path);
+    const str = await this._primaryApp.expandVariable(path);
     if (str !== undefined && str !== null) {
-      return str;
+      return String(str);
     }
     return defaultStr;
   }

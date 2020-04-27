@@ -155,13 +155,15 @@ MinkeApp.prototype = {
         case 'SetEnvironment':
           this._vars[action.name] = {
             type: 'String',
-            value: ovalue || await this.expandString(action.initValue)
+            value: ovalue || await this.expandString(action.initValue),
+            defaultValue: action.defaultValue
           };
           break;
         case 'EditEnvironmentAsCheckbox':
           this._vars[action.name] = {
             type: 'Bool',
-            value: ovalue || await this.expandBool(action.initValue)
+            value: ovalue || await this.expandBool(action.initValue),
+            defaultValue: action.defaultValue
           };
           break;
         case 'EditEnvironmentAsTable':
@@ -1428,19 +1430,33 @@ MinkeApp.prototype = {
     return true;
   },
 
-  expandVariableAsString: async function(name) {
+  expandVariable: async function(name) {
     const v = this._vars[name];
     if (!v) {
       return null;
     }
+    let value = v.value;
+    if ((value === undefined || value === null || value === '') && v.defaultValue) {
+      value = await this.expandString(v.defaultValue);
+    }
     switch (v.type) {
       case 'String':
-      case 'Path':
       case 'Bool':
-        if (v.value === undefined || v.value === null) {
-          return null;
+        // Reduce values to Booleans or Numbers if possible
+        if (String(value).toLowerCase() === 'true') {
+          value = true;
         }
-        return v.value.toString();
+        else if (String(value).toLowerCase() === 'false') {
+          value = false;
+        }
+        else if (Number(value) == value) {
+          value = Number(value);
+        }
+        return value;
+      case 'Path':
+      {
+        return String(value);
+      }
       case 'Array':
       {
         const encoding = v.encoding || { pattern: '{{0}}', join: '\n' };
@@ -1468,38 +1484,24 @@ MinkeApp.prototype = {
   },
 
   expandEnvironment: async function(env) {
-    //console.log('expandEnv', env);
     const fullEnv = {};
     // Evaluate the environment
     for (let key in env) {
-      const str = this._vars[key] ? key : env[key].value;
-      if (str) {
-        const value = await this._eval(str);
-        if (Array.isArray(value)) {
-          const encoding = (this._vars[key] && this._vars[key].encoding) || { pattern: '{{0}}', join: '\n' };
-          const nvalue = [];
-          for (let r = 0; r < value.length; r++) {
-            const row = value[r];
-            let line = encoding.pattern;
-            for (let c = 0; c < row.length; c++) {
-              line = line.replace(new RegExp('\\{\\{' + c + '\\}\\}', 'g'), row[c])
-                         .replace(new RegExp('\\{\\{uri\(' + c + '\)\\}\\}', 'g'), encodeURIComponent(row[c]));
-            }
-            nvalue.push(line);
-          }
-          fullEnv[key] = { value: nvalue.join(encoding.join) };
-        }
-        else if (value === undefined || value === null) {
-          fullEnv[key] = { value: '' };
-        }
-        else {
-          fullEnv[key] = { value: value };
-        }
+      let value = null;
+      if (this._vars[key]) {
+        value = await this.expandVariable(key);
       }
-      else {
+      else if (env[key] && env[key].value) {
+        value = await this._eval(env[key].value);
+      }
+      if (value === undefined || value === null) {
         fullEnv[key] = { value: '' };
       }
+      else {
+        fullEnv[key] = { value: value };
+      }
     }
+    console.log('expandEnv', env, '->', fullEnv);
     return fullEnv;
   },
 
@@ -1523,18 +1525,7 @@ MinkeApp.prototype = {
       // LEGACY
       const js = new JSInterpreter(val, (intr, glb) => {
         for (let name in this._vars) {
-          let val = this._vars[name].value;
-          // Reduce values to Booleans or Numbers if possible
-          if (String(val).toLowerCase() === 'true') {
-            val = true;
-          }
-          else if (String(val).toLowerCase() === 'false') {
-            val = false;
-          }
-          else if (Number(val) == val) {
-            val = Number(val);
-          }
-          intr.setProperty(glb, name, intr.nativeToPseudo(val));
+          intr.setProperty(glb, name, intr.nativeToPseudo(this.expandVariable(name)));
         }
         intr.setProperty(glb, '__APPNAME', this._name);
         intr.setProperty(glb, '__HOSTNAME', this._safeName());
