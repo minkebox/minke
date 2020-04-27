@@ -29,7 +29,7 @@
       type: `EditEnvironment`,
       description: `Admin token`,
       name: `ADMIN_TOKEN`,
-      initValue: `{{__SECUREPASSWORD64}}`
+      initValue: `{{__RANDOMHEX(64)}}`
     }
   ],
   properties: [

@@ -25,7 +25,7 @@
       description: `Select the UDP port number for the VPN`,
       validate: `\\d*`,
       enabled: `property.FirstUse`,
-      initValue: `{{__RANDOMPORT}}`
+      initValue: `{{__RANDOMPORTS(1)}}`
     },
     {
       type: `EditEnvironment`,

@@ -89,12 +89,12 @@
     {
       type: `SetEnvironment`,
       name: `OTP_SECRET`,
-      defaultValue: `{{__SECUREPASSWORD64}}`
+      defaultValue: `{{__RANDOMHEX(64)}}`
     },
     {
       type: `SetEnvironment`,
       name: `SECRET_KEY_BASE`,
-      defaultValue: `{{__SECUREPASSWORD64}}`
+      defaultValue: `{{__RANDOMHEX(64)}}`
     },
   ],
   properties: [
