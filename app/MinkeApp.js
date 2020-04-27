@@ -1515,18 +1515,16 @@ MinkeApp.prototype = {
       const js = new JSInterpreter(val, (intr, glb) => {
         for (let name in this._vars) {
           const v = this._vars[name];
-          let val = v.value || v.defaultValue;
+          let val = (v.value === undefined || v.value === null || v.value === '') ? v.defaultValue : v.value;
           // Reduce values to Booleans or Numbers if possible
-          if (val !== null && val !== undefined) {
-            if (String(val).toLowerCase() === 'true') {
-              val = true;
-            }
-            else if (String(val).toLowerCase() === 'false') {
-              val = false;
-            }
-            else if (Number(val) == val) {
-              val = Number(val);
-            }
+          if (String(val).toLowerCase() === 'true') {
+            val = true;
+          }
+          else if (String(val).toLowerCase() === 'false') {
+            val = false;
+          }
+          else if (Number(val) == val) {
+            val = Number(val);
           }
           intr.setProperty(glb, name, intr.nativeToPseudo(val));
         }
