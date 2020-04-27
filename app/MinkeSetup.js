@@ -26,8 +26,11 @@ function MinkeSetup(savedConfig, firstUseConfig, defaultConfig) {
     savedConfig = Object.assign({}, firstUseConfig);
   }
 
-  function getEnv(name) {
+  /*function getEnv(name) {
     return { value: savedConfig[name] || defaultConfig[name] };
+  }*/
+  const makeVar = (name) => {
+    this._vars[name] = { type: 'String', value: savedConfig[name] || defaultConfig[name] };
   }
 
   this._id = 'minke';
@@ -42,42 +45,43 @@ function MinkeSetup(savedConfig, firstUseConfig, defaultConfig) {
     mode: 0o600,
     backup: true
   }];
+  this._vars = {};
+  makeVar('LOCALDOMAIN');
+  makeVar('DHCP');
+  makeVar('PORT');
+  makeVar('IPADDRESS');
+  makeVar('NETMASK');
+  makeVar('GATEWAY');
+  makeVar('IP6');
+  makeVar('NATIP6');
+  makeVar('WIFIENABLED');
+  makeVar('WIFINAME');
+  makeVar('WIFIPASSWORD');
+  makeVar('DNSSERVER1');
+  makeVar('DNSSERVER2');
+  makeVar('TIMEZONE');
+  makeVar('ADMINMODE');
+  makeVar('GLOBALID');
+  makeVar('UPDATETIME');
+  makeVar('HUMAN');
+  makeVar('HOSTNAME');
+  makeVar('POSITION');
   this._secondary = [];
   this._ports = [
-    { port: getEnv('PORT').value, protocol: 'TCP', mdns: { type: '_minkebox._tcp' } },
-    { port: getEnv('PORT').value + 1, protocol: 'TCP', mdns: { type: '_ssh._tcp' } }
+    { port: this._getValue('PORT'), protocol: 'TCP', mdns: { type: '_minkebox._tcp' } },
+    { port: this._getValue('PORT') + 1, protocol: 'TCP', mdns: { type: '_ssh._tcp' } }
   ];
   this._networks = {
     primary: 'none',
     secondary: 'host'
   };
   this._monitor = {};
-  this._env = {
-    LOCALDOMAIN: getEnv('LOCALDOMAIN'),
-    DHCP: getEnv('DHCP'),
-    PORT: getEnv('PORT'),
-    IPADDRESS: getEnv('IPADDRESS'),
-    NETMASK: getEnv('NETMASK'),
-    GATEWAY: getEnv('GATEWAY'),
-    IP6: getEnv('IP6'),
-    NATIP6: getEnv('NATIP6'),
-    WIFIENABLED: getEnv('WIFIENABLED'),
-    WIFINAME: getEnv('WIFINAME'),
-    WIFIPASSWORD: getEnv('WIFIPASSWORD'),
-    DNSSERVER1: getEnv('DNSSERVER1'),
-    DNSSERVER2: getEnv('DNSSERVER2'),
-    TIMEZONE: getEnv('TIMEZONE'),
-    ADMINMODE: getEnv('ADMINMODE'),
-    GLOBALID: getEnv('GLOBALID'),
-    UPDATETIME: getEnv('UPDATETIME'),
-    HUMAN: getEnv('HUMAN')
-  };
-  this._name = getEnv('HOSTNAME').value;
-  this._homeIP = this._env.IPADDRESS.value;
+  this._name = this._getValue('HOSTNAME');
+  this._homeIP = this._getValue('IPADDRESS');
   this._defaultIP = this._homeIP;
-  this._globalId = this._env.GLOBALID.value;
+  this._globalId = this._getValue('GLOBALID');
   this._tags = [ 'All' ];
-  this._position = { tab: getEnv('POSITION').value, widget: 0 };
+  this._position = { tab: parseInt(this._getValue('POSITION')), widget: 0 };
 }
 
 MinkeSetup.prototype = {
@@ -90,44 +94,44 @@ MinkeSetup.prototype = {
     DNS.start({
       hostname: this._name,
       domainname: this.getLocalDomainName(),
-      ip: this._env.IPADDRESS.value,
+      ip: this._getValue('IPADDRESS'),
       port: 53,
-      resolvers: [ this._env.DNSSERVER1.value, this._env.DNSSERVER2.value ]
+      resolvers: [ this._getValue('DNSSERVER1'), this._getValue('DNSSERVER2') ]
     });
-    Human.start(this._globalId, this._env.HUMAN);
+    Human.start(this._globalId, this._vars.HUMAN);
     DDNS.start(this._globalId);
     await UPNP.start({
       uuid: this._globalId,
       hostname: this._name,
-      ipaddress: this._env.IPADDRESS.value,
-      port: this._env.PORT.value
+      ipaddress: this._getValue('IPADDRESS'),
+      port: this._getValue('PORT')
     });
     await MDNS.start({
-      ipaddress: this._env.IPADDRESS.value
+      ipaddress: this._getValue('IPADDRESS')
     });
 
     this._hostMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
-      ip: this._env.IPADDRESS.value,
+      ip: this._getValue('IPADDRESS'),
       service: '_http._tcp',
-      port: this._env.PORT.value,
+      port: this._getValue('PORT'),
       txt: []
     });
     this._minkeMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
-      ip: this._env.IPADDRESS.value,
+      ip: this._getValue('IPADDRESS'),
       service: '_minkebox._tcp',
-      port: this._env.PORT.value,
+      port: this._getValue('PORT'),
       txt: []
     });
     this._sshdMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
-      ip: this._env.IPADDRESS.value,
+      ip: this._getValue('IPADDRESS'),
       service: '_ssh._tcp',
-      port: this._env.PORT.value + 1,
+      port: this._getValue('PORT') + 1,
       txt: []
     });
   },
@@ -156,52 +160,52 @@ MinkeSetup.prototype = {
     this._hostMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
-      ip: this._env.IPADDRESS.value,
+      ip: this._getValue('IPADDRESS'),
       service: '_http._tcp',
-      port: this._env.PORT.value,
+      port: this._getValue('PORT'),
       txt: []
     });
     await MDNS.removeRecord(this._minkeMdns);
     this._minkeMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
-      ip: this._env.IPADDRESS.value,
+      ip: this._getValue('IPADDRESS'),
       service: '_minkebox._tcp',
-      port: this._env.PORT.value,
+      port: this._getValue('PORT'),
       txt: []
     });
     await MDNS.removeRecord(this._sshdMdns);
     this._sshdMdns = await MDNS.addRecord({
       hostname: this._name,
       domainname: 'local',
-      ip: this._env.IPADDRESS.value,
+      ip: this._getValue('IPADDRESS'),
       service: '_ssh._tcp',
-      port: this._env.PORT.value + 1,
+      port: this._getValue('PORT') + 1,
       txt: []
     });
     UPNP.update({ hostname: this._name });
     DNS.setHostname(this._name);
     DNS.setDefaultResolver(
-      this._env.DNSSERVER1.value,
-      this._env.DNSSERVER2.value
+      this._getValue('DNSSERVER1'),
+      this._getValue('DNSSERVER2')
     );
     DNS.setDomainName(this.getLocalDomainName());
     Network.setHomeNetwork({
-      enable: !this._env.WIFIENABLED.value,
-      address: this._env.DHCP.value ? 'dhcp' : this._env.IPADDRESS.value,
-      netmask: this._env.NETMASK.value,
-      gateway: this._env.GATEWAY.value
+      enable: !this._getValue('WIFIENABLED'),
+      address: this._getValue('DHCP') ? 'dhcp' : this._getValue('IPADDRESS'),
+      netmask: this._getValue('NETMASK'),
+      gateway: this._getValue('GATEWAY')
     });
     Network.setWiredNetwork({
-      enable: !this._env.WIFIENABLED.value,
+      enable: !this._getValue('WIFIENABLED'),
     });
     Network.setWiFiNetwork({
-      enable: this._env.WIFIENABLED.value,
-      network: this._env.WIFINAME.value,
-      password: this._env.WIFIPASSWORD.value,
-      address: this._env.DHCP.value ? 'dhcp' : this._env.IPADDRESS.value,
-      netmask: this._env.NETMASK.value,
-      gateway: this._env.GATEWAY.value
+      enable: this._getValue('WIFIENABLED'),
+      network: this._getValue('WIFINAME'),
+      password: this._getValue('WIFIPASSWORD'),
+      address: this._getValue('DHCP') ? 'dhcp' : this._getValue('IPADDRESS'),
+      netmask: this._getValue('NETMASK'),
+      gateway: this._getValue('GATEWAY')
     });
     this._setTimezone();
     this._setUpdateTime();
@@ -233,12 +237,16 @@ MinkeSetup.prototype = {
       HUMAN: null
     };
     for (let key in config) {
-      config[key] = this._env[key].value;
+      config[key] = this._getValue(key);
     }
     config.HOSTNAME = this._name;
     config.POSITION = this._position.tab;
     config._id = this._id;
     await Database.saveConfig(config);
+  },
+
+  _getValue: function(key) {
+    return this._vars[key].value;
   },
 
   getAvailableNetworks: function() {
@@ -258,11 +266,11 @@ MinkeSetup.prototype = {
   },
 
   getAdvancedMode: function() {
-    return this._env.ADMINMODE.value === 'ENABLED';
+    return this._getValue('ADMINMODE') === 'ENABLED';
   },
 
   getLocalDomainName: function() {
-    return this._env.LOCALDOMAIN.value;
+    return this._getValue('LOCALDOMAIN');
   },
 
   getIP6: function() {
@@ -270,12 +278,12 @@ MinkeSetup.prototype = {
       return false;
     }
     else {
-      return !!this._env.IP6.value;
+      return !!this._getValue('IP6');
     }
   },
 
   getNATIP6: function() {
-    return this.getIP6() && !!this._env.NATIP6.value;
+    return this.getIP6() && !!this._getValue('NATIP6');
   },
 
   isRunning: function() {
@@ -286,12 +294,12 @@ MinkeSetup.prototype = {
     return false;
   },
 
-  expand: function(txt) {
-    return txt;
+  expandString: function(str) {
+    return str;
   },
 
   getTimezone: function() {
-    return this._env.TIMEZONE.value;
+    return this._getValue('TIMEZONE');
   },
 
   _setStatus: function(status) {
@@ -308,7 +316,7 @@ MinkeSetup.prototype = {
       return false;
     }
     try {
-      const timezone = this._env.TIMEZONE.value;
+      const timezone = this._getValue('TIMEZONE');
       const oldtimezone = FS.readFileSync('/etc/timezone', { encoding: 'utf8' });
       const zonefile = `/usr/share/zoneinfo/${timezone}`;
       if (oldtimezone != timezone && FS.existsSync(zonefile)) {
@@ -324,7 +332,7 @@ MinkeSetup.prototype = {
 
   _setUpdateTime: function() {
     try {
-      const time = this._env.UPDATETIME.value.split(':')
+      const time = this._getValue('UPDATETIME').split(':')
       const config = {
         hour: parseInt(time[0]),
         minute: parseInt(time[1])
@@ -366,7 +374,7 @@ MinkeSetup.prototype = {
           const vols = Object.keys(maps).map(dest => `--mount type=bind,source=${e(maps[dest].src)},target=${e(dest)},bind-propagation=${maps[dest].propagation}`).join(' ');
           const net = await Network.getHomeNetwork();
           const info = await MinkeApp._container.inspect();
-          const cmdline = `-d --name ${e(info.Name || 'minke')} --privileged -e TZ=${this._env.TIMEZONE.value} --network=${e(net.id)} --ip=${this._env.IPADDRESS.value} ${vols} ${Images.withTag(Images.MINKE)}`;
+          const cmdline = `-d --name ${e(info.Name || 'minke')} --privileged -e TZ=${this._getValue('TIMEZONE')} --network=${e(net.id)} --ip=${this._getValue('IPADDRESS')} ${vols} ${Images.withTag(Images.MINKE)}`;
           const id = MinkeApp._container.id.substring(0, 12);
           docker.run(
             img,

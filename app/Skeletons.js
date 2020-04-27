@@ -413,14 +413,6 @@ function dockerComposeToSkeleton(yml) {
     });
   }
 
-  for (let dir in sdir) {
-    skeleton.properties.push({
-      type: `Directory`,
-      name: sdir[dir],
-      style: `store`
-    });
-  }
-
   skeleton.properties.push({
     type: `Network`,
     name: `primary`,
