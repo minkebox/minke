@@ -238,7 +238,7 @@ MinkeApp.prototype = {
       switch (action.type) {
         case 'EditEnvironment':
           if (env && ('value' in env)) {
-            this._vars[action.name].value = env.value;
+            this._vars[action.name].value = await this.expandString(env.value);
             envs[action.name] = {};
           }
           break;
