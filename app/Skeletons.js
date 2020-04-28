@@ -163,7 +163,7 @@ async function imageToSkeleton(image) {
       {
         type: 'Network',
         name: 'primary',
-        defaultValue: 'home'
+        value: 'home'
       }
     ),
     monitor: {
@@ -416,7 +416,7 @@ function dockerComposeToSkeleton(yml) {
   skeleton.properties.push({
     type: `Network`,
     name: `primary`,
-    defaultValue: `home`
+    value: `home`
   });
 
   if (!skeleton.secondary.length) {

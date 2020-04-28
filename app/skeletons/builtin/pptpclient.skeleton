@@ -108,12 +108,12 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `__create`
+      value: `__create`
     }
   ],
   monitor: {

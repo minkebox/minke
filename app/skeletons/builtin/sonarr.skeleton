@@ -113,12 +113,12 @@ but you may want to use a VPN network for extra security and privacy.`
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `home`
+      value: `home`
     }
   ],
   secondary: [
