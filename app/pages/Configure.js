@@ -127,7 +127,7 @@ async function ConfigurePageHTML(ctx) {
             let placeholder = '';
             if (app._vars[action.name]) {
               value = app._vars[action.name].value;
-              placeholder = await this.expandString(app._vars[action.name].defaultValue);
+              placeholder = await expandString(app._vars[action.name].defaultValue);
             }
             properties[`${action.type}#${action.name}`] = value;
             return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: value, placeholder: placeholder, options: action.options }, action, { description: await expandString(action.description) });
