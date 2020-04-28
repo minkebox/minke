@@ -1779,8 +1779,7 @@ MinkeApp.startApps = async function(app, config) {
     }
   }
   catch (e) {
-    console.error('Failed to connect to DNS network');
-    console.error(e);
+    console.error('Failed to connect to DNS network - ignoring');
   }
 
   // See if we have wifi (in background)
@@ -2017,7 +2016,7 @@ MinkeApp.shutdown = async function(config) {
       // If we shutdown with 'inherit' set, we leave the children running so we
       // can inherit them when on a restart. But we're always stopping Minke itself
       // so make sure we do that regardless.
-      if (!config.inherit || app._image === Images.MINKE) {
+      if (!config.inherit || app._image === Images.MINKE || app._image === Images.withTag(Images.MINKE)) {
         await app.stop();
       }
       await app.save();
