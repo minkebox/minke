@@ -1457,7 +1457,7 @@ MinkeApp.prototype = {
         return value;
       case 'Path':
       {
-        return String(value);
+        return value === undefined || value === null ? value : String(value);
       }
       case 'Array':
       {
