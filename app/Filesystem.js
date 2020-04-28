@@ -119,16 +119,16 @@ _Filesystem.prototype = {
 
   _makeFile: async function(app, file) {
     //console.log('_makeFile', file);
-    const data = await this._expandFileWithDefault(file.target, file.value);
+    const target = await this._expandString(file.target);
+    const data = await this._expandFileWithDefault(target, file.value);
 
     // If file.target is inside a directory mount, we just create the file inside that
     // and don't mount it seperately.
     let src = file.src;
     for (let i = 0; i < app._binds.length; i++) {
-      const bind = app._binds[i];
-      const target = await this._expandString(bind.target);
-      if (file.target.indexOf(target) === 0 && file.target[target.length] === '/') {
-        src = `${bind.src}${file.target.substring(target.length)}`;
+      const bindtarget = await this._expandString(app._binds[i].target);
+      if (target.indexOf(bindtarget) === 0 && target[bindtarget.length] === '/') {
+        src = `${app._binds[i].src}${target.substring(bindtarget.length)}`;
         // With the 'src' inside a bind, we don't strictly need the bind being returned below,
         // but we'll let the 'removeChildren' filter handle this.
         break;
