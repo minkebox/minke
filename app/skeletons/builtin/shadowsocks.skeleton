@@ -17,7 +17,7 @@
       name: `SERVER_PORT`,
       description: `TCP port to access the proxy`,
       id: `port`,
-      initValue: `{{__RANDOMPORT}}`
+      initValue: `{{__RANDOMPORTS(1)}}`
     },
     {
       type: `EditEnvironment`,

@@ -22,12 +22,14 @@
     {
       type: `EditEnvironmentAsCheckbox`,
       description: `Autorun SpeedTest. If this is unchecked, SpeedTest will only be run when you restart`,
-      name: `CRONJOB_RUN`
+      name: `CRONJOB_RUN`,
+      initValue: true
     },
     {
       type: `EditEnvironment`,
       description: `Comma seperated list of minutes in the hour to run the test. (e.g. 0,30 runs the test on the hour and half hour)`,
-      name: `CRONJOB_ITERATION`
+      name: `CRONJOB_ITERATION`,
+      initValue: 0
     },
     {
       type: `SelectNetwork`,
@@ -65,13 +67,11 @@
     },
     {
       type: `Environment`,
-      name: `CRONJOB_ITERATION`,
-      defaultValue: 0
+      name: `CRONJOB_ITERATION`
     },
     {
       type: `Environment`,
-      name: `CRONJOB_RUN`,
-      defaultValue: true
+      name: `CRONJOB_RUN`
     },
     {
       type: `Directory`,

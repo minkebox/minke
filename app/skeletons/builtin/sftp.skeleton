@@ -14,12 +14,14 @@
     {
       type: `EditEnvironment`,
       name: `SSH_USERNAME`,
-      description: `Select the user's login name`
+      description: `Select the user's login name`,
+      initValue: `sftpuser`
     },
     {
       type: `EditEnvironment`,
       name: `SSH_PASSWORD`,
-      description: `Select the user's password`
+      description: `Select the user's password`,
+      initValue: `sftppassword`
     },
     {
       type: `Header`,
@@ -51,7 +53,8 @@
     {
       type: `EditEnvironment`,
       name: `SSH_PORT`,
-      description: `Select the SSH port (usually 22)`
+      description: `Select the SSH port (usually 22)`,
+      initValue: 22
     },
     {
       type: `EditEnvironmentAsCheckbox`,
@@ -62,8 +65,7 @@
   properties: [
     {
       type: `Environment`,
-      name: `SSH_USERNAME`,
-      defaultValue: `sftpuser`
+      name: `SSH_USERNAME`
     },
     {
       type: `Environment`,
@@ -81,13 +83,11 @@
     },
     {
       type: `Environment`,
-      name: `SSH_PASSWORD`,
-      defaultValue: `sftppassword`
+      name: `SSH_PASSWORD`
     },
     {
       type: `Environment`,
-      name: `SSH_PORT`,
-      defaultValue: 22
+      name: `SSH_PORT`
     },
     {
       type: `Environment`,

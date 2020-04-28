@@ -41,7 +41,7 @@ using Wi-Fi; use "tun" in this case.`,
       validate: `\\d*`,
       visible: `property.Advanced`,
       enabled: `property.FirstUse`,
-      initValue: `{{__RANDOMPORT}}`
+      initValue: `{{__RANDOMPORT(2)}}`
     },
     {
       type: `Text`,

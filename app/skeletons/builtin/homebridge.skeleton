@@ -14,7 +14,8 @@
     {
       type: `EditEnvironment`,
       description: `Pin used to add this device to your network using the Home app`,
-      name: `BRIDGE_PIN`
+      name: `BRIDGE_PIN`,
+      initValue: `111-11-111`
     },
     {
       type: `Header`,
@@ -28,12 +29,16 @@
     {
       type: `EditFile`,
       name: `/app/accessories-config.json`,
-      description: `Accessories`
+      description: `Accessories`,
+      initValue: `[
+]`
     },
     {
       type: `EditFile`,
       name: `/app/platforms-config.json`,
-      description: `Platforms`
+      description: `Platforms`,
+      initValue: `[
+]`
     }
   ],
   properties: [
@@ -44,19 +49,13 @@
       protocol: `TCP`
     },
     {
-      type: `Network`,
-      name: `primary`,
-      defaultValue: `home`
-    },
-    {
       type: `Environment`,
       name: `BRIDGE_USERNAME`,
       defaultValue: `{{__MACADDRESS}}`
     },
     {
       type: `Environment`,
-      name: `BRIDGE_PIN`,
-      defaultValue: `111-11-111`
+      name: `BRIDGE_PIN`
     },
     {
       type: `Environment`,
@@ -65,21 +64,22 @@
     {
       type: `File`,
       name: `/app/accessories-config.json`,
-      style: `boot`,
-      defaultValue: `[
-]`
+      style: `boot`
     },
     {
       type: `File`,
       name: `/app/platforms-config.json`,
-      style: `boot`,
-      defaultValue: `[
-]`
+      style: `boot`
     },
     {
       type: `Directory`,
       name: `/app/homebridge`,
       style: `boot`
-    }
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      defaultValue: `home`
+    },
   ]
 }

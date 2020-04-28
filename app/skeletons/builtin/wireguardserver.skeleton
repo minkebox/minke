@@ -25,7 +25,7 @@
       description: `Select the UDP port number for the VPN`,
       validate: `\\d*`,
       enabled: `property.FirstUse`,
-      initValue: `{{__RANDOMPORT}}`
+      initValue: `{{__RANDOMPORTS(1)}}`
     },
     {
       type: `EditEnvironment`,
@@ -60,7 +60,8 @@
     {
       type: `EditEnvironmentAsCheckbox`,
       name: `INTERNET_ONLY`,
-      description: `Clients can <b>only</b> access the Internet`
+      description: `Clients can <b>only</b> access the Internet`,
+      initValue: false
     },
     {
       type: `Header`,
@@ -186,8 +187,7 @@
     },
     {
       type: `Environment`,
-      name: `INTERNET_ONLY`,
-      defaultValue: false
+      name: `INTERNET_ONLY`
     },
     {
       type: `Directory`,
