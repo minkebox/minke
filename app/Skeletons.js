@@ -323,7 +323,7 @@ function dockerComposeToSkeleton(yml) {
     if (service.command) {
       skel.properties.push({
         type: 'Arguments',
-        defaultValue: cmdline(service.command)
+        value: cmdline(service.command)
       });
     }
 
@@ -366,7 +366,7 @@ function dockerComposeToSkeleton(yml) {
           skel.properties.push({
             type: 'Environment',
             name: ep[0],
-            defaultValue: ep[1]
+            value: ep[1]
           });
           if (ep[1].indexOf('${') !== -1) {
             skel.actions.push({

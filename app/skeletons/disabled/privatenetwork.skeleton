@@ -61,7 +61,7 @@
     {
       type: `Environment`,
       name: `MODE`,
-      defaultValue: `CLIENT`
+      value: `CLIENT`
     },
     {
       type: `Directory`,

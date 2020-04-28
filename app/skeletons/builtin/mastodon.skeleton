@@ -89,18 +89,18 @@
     {
       type: `SetEnvironment`,
       name: `OTP_SECRET`,
-      defaultValue: `{{__RANDOMHEX(64)}}`
+      value: `{{__RANDOMHEX(64)}}`
     },
     {
       type: `SetEnvironment`,
       name: `SECRET_KEY_BASE`,
-      defaultValue: `{{__RANDOMHEX(64)}}`
+      value: `{{__RANDOMHEX(64)}}`
     },
   ],
   properties: [
     {
       type: `Arguments`,
-      defaultValue: [
+      value: [
         `bash`,
         `-c`,
         `rm -f /mastodon/tmp/pids/server.pid; bundle exec rails s -p 3000`
@@ -182,17 +182,17 @@
         {
           type: `Environment`,
           name: `POSTGRES_HOST_AUTH_METHOD`,
-          defaultValue: `trust`
+          value: `trust`
         },
         {
           type: `Environment`,
           name: `POSTGRES_USER`,
-          defaultValue: `mastodon`
+          value: `mastodon`
         },
         {
           type: `Environment`,
           name: `POSTGRES_DB`,
-          defaultValue: `mastodon_production`
+          value: `mastodon_production`
         },
         {
           type: `Directory`,
@@ -206,7 +206,7 @@
       properties: [
         {
           type: `Arguments`,
-          defaultValue: [
+          value: [
             `bash`,
             `-c`,
             `if [ ! -e /firstuse/yes ]; then touch /firstuse/yes; rails db:migrate; tootctl accounts create $ADMIN_USER --role admin --email $ADMIN_EMAIL; fi; bundle exec sidekiq`
@@ -268,7 +268,7 @@
       properties: [
         {
           type: `Arguments`,
-          defaultValue: [
+          value: [
             `node`,
             `./streaming`
           ]

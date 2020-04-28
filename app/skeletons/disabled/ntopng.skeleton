@@ -11,7 +11,7 @@
     },
     {
       type: `Arguments`,
-      defaultValue: [
+      value: [
         `--interface`,
         `br0`,
         `--disable-autologout`,

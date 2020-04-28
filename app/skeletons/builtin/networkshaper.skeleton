@@ -48,7 +48,7 @@
     {
       type: `Environment`,
       name: `INTERNET_ONLY`,
-      defaultValue: false
+      value: false
     },
     {
       type: `Network`,

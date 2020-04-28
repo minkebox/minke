@@ -328,7 +328,7 @@ MinkeApp.prototype = {
 
     this._skeletonId = skel.uuid;
     this._description = skel.description;
-    this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue;
+    this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).value;
 
     this._networks = {
       primary: 'none',
@@ -368,7 +368,7 @@ MinkeApp.prototype = {
       this._secondary = await Promise.all(skel.secondary.map(async (secondary, idx) => {
         const secondaryApp = {
           _image: secondary.image,
-          _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
+          _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).value,
           _delay: secondary.delay || 0
         };
         await this._parseProperties(secondaryApp, `${idx}`, secondary.properties);
