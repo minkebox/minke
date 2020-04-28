@@ -18,7 +18,7 @@ _Filesystem.prototype = {
   getAllMounts: async function(app) {
     const mounts = Flatten([
       await Promise.all(app._binds.map(async map => await this._makeMount(map))),
-      await Promise.all(app._files.map(async file => await this._makeFile(file)))
+      await Promise.all(app._files.map(async file => await this._makeFile(app, file)))
     ]);
 
     // Remove any internal child mounts
@@ -117,19 +117,33 @@ _Filesystem.prototype = {
     return binds;
   },
 
-  _makeFile: async function(file) {
+  _makeFile: async function(app, file) {
     //console.log('_makeFile', file);
     const data = await this._expandFileWithDefault(file.target, file.value);
-    FS.mkdirSync(Path.dirname(file.src), { recursive: true, mode: 0o777 });
+
+    // If file.target is inside a directory mount, we just create the file inside that
+    // and don't mount it seperately.
+    let src = file.src;
+    for (let i = 0; i < app._binds.length; i++) {
+      const bind = app._binds[i];
+      const target = await this._expandString(bind.target);
+      if (file.target.indexOf(target) === 0 && file.target[target.length] === '/') {
+        src = `${bind.src}${file.target.substring(target.length)}`;
+        break;
+      }
+    }
+
+    FS.mkdirSync(Path.dirname(src), { recursive: true, mode: 0o777 });
     if (data !== null && data !== undefined) {
-      FS.writeFileSync(file.src, data, { mode: ('mode' in file ? file.mode : 0o666) });
+      FS.writeFileSync(src, data, { mode: ('mode' in file ? file.mode : 0o666) });
     }
     else if (!FS.existsSync(file.src)) {
-      FS.writeFileSync(file.src, '', { mode: ('mode' in file ? file.mode : 0o666) });
+      FS.writeFileSync(src, '', { mode: ('mode' in file ? file.mode : 0o666) });
     }
+
     return {
       Type: 'bind',
-      Source: Filesystem.mapFilenameToNative(file.src),
+      Source: Filesystem.mapFilenameToNative(src),
       Target: file.target,
       BindOptions: {
         Propagation: 'rshared'
@@ -188,6 +202,8 @@ _Filesystem.prototype = {
       for (let idx = 0; outer && idx < mounts.length; idx++) {
         const inner = mounts[idx];
         if (outer !== inner && outer.Source.indexOf(inner.Source) === 0 && outer.Target.indexOf(inner.Target) === 0) {
+          const outerSourceExtra = outer.Source.substring(inner.Source.length);
+          const outerTargetExtra = outer.Target.substring(inner.Target.length);
           if (outer.Source[inner.Source.length] === '/' && outer.Target[inner.Target.length] === '/') {
             // Outer is a child of Inner. Its source is a child path and it's target is a child path. - ignore
             outer = null;
