@@ -129,6 +129,8 @@ _Filesystem.prototype = {
       const target = await this._expandString(bind.target);
       if (file.target.indexOf(target) === 0 && file.target[target.length] === '/') {
         src = `${bind.src}${file.target.substring(target.length)}`;
+        // With the 'src' inside a bind, we don't strictly need the bind being returned below,
+        // but we'll let the 'removeChildren' filter handle this.
         break;
       }
     }
