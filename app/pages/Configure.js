@@ -504,7 +504,6 @@ async function ConfigurePageWS(ctx) {
   }
 
   let app = MinkeApp.getAppById(ctx.params.id);
-  //const skeleton = (Skeletons.loadSkeleton(app.skeletonId(), false) || SKELETON_ERROR).skeleton;
 
   const NOCHANGE = 0;
   const APPCHANGE = 1;
