@@ -95,7 +95,7 @@ MinkeApp.prototype = {
       if (this._skeleton) {
         await this.updateVariables(this._skeleton, {});
         await this._variableMigration();
-        await this._parseProperties(this, '', this._skeleton.properties);
+        await this.updateFromSkeleton(this._skeleton, this.toJSON());
         await this.save();
       }
     }
