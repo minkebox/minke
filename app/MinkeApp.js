@@ -1386,7 +1386,7 @@ MinkeApp.prototype = {
       dns = !!port.dns ? {} : null;
     }
 
-    return {
+    const nport = {
       target: port.name || port.target,
       port: await this.expandNumber(port.port, port.defaultPort || 0),
       protocol: port.protocol,
@@ -1395,6 +1395,8 @@ MinkeApp.prototype = {
       nat: await this.expandBool(port.nat || false),
       mdns: port.mdns || null
     };
+    //console.log(port, nport);
+    return nport;
   },
 
   expandNumber: async function(val, alt) {
@@ -1507,9 +1509,13 @@ MinkeApp.prototype = {
 
   _eval: async function(val) {
     try {
+      const evars = {};
+      for (let name in this._vars) {
+        evars[name] = await this.expandVariable(name);
+      }
       const js = new JSInterpreter(val, (intr, glb) => {
-        for (let name in this._vars) {
-          intr.setProperty(glb, name, intr.nativeToPseudo(this.expandVariable(name)));
+        for (let name in evars) {
+          intr.setProperty(glb, name, intr.nativeToPseudo(evars[name]));
         }
         intr.setProperty(glb, '__APPNAME', this._name);
         intr.setProperty(glb, '__HOSTNAME', this._safeName());
