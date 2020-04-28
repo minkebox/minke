@@ -96,6 +96,7 @@ MinkeApp.prototype = {
         await this.updateVariables(this._skeleton, {});
         await this._variableMigration();
         await this._parseProperties(this, '', this._skeleton.properties);
+        await this.save();
       }
     }
     // MIGRATION
@@ -1135,7 +1136,6 @@ MinkeApp.prototype = {
       await this.stop();
     }
     await this.save();
-    await this._parseProperties(this, '', this._skeleton.properties);
     await this.start();
   },
 
