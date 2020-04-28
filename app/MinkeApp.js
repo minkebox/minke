@@ -37,7 +37,7 @@ function MinkeApp() {
 
 MinkeApp.prototype = {
 
-  createFromJSON: function(app) {
+  createFromJSON: async function(app) {
 
     this._id = app._id;
     this._globalId = app.globalId;
@@ -51,7 +51,14 @@ MinkeApp.prototype = {
     this._ports = app.ports;
     this._binds = app.binds;
     this._files = app.files;
-    this._backups = app.backups || [];
+    // MIGRATION
+    if (app.backups) {
+      this._backups = app.backups;
+    }
+    if (app.vars) {
+      this._vars = JSON.parse(app.vars);
+    }
+    // MIGRATION
     this._networks = app.networks;
     this._bootcount = app.bootcount;
     this._position = app.position || { tab: 0, widget: 0 };
@@ -64,8 +71,7 @@ MinkeApp.prototype = {
         _features: secondary.features,
         _ports: secondary.ports,
         _binds: secondary.binds,
-        _files: secondary.files,
-        _backups: secondary.backups
+        _files: secondary.files
       };
     });
 
@@ -82,6 +88,18 @@ MinkeApp.prototype = {
       this._delay = 0;
       this._tags = [ 'All' ];
     }
+
+    // MIGRATION
+    if (!this._vars) {
+      this._vars = {};
+      if (this._skeleton) {
+        await this.updateVariables(this._skeleton, {});
+        await this._variableMigration();
+        await this.updateFromSkeleton(this._skeleton, this.toJSON());
+        await this.save();
+      }
+    }
+    // MIGRATION
 
     this._setStatus('stopped');
 
@@ -102,7 +120,14 @@ MinkeApp.prototype = {
       ports: this._ports,
       binds: this._binds,
       files: this._files,
-      backups: this._backups,
+       // Cannot store raw key in DB due to '.' in keynames
+      vars: JSON.stringify(Object.keys(this._vars).reduce((obj, key) => {
+        obj[key] = Object.assign({}, this._vars[key]);
+        if (this._vars[key].persist === false) {
+          delete obj[key].value;
+        }
+        return obj;
+      }, {})),
       networks: this._networks,
       bootcount: this._bootcount,
       position: this._position,
@@ -116,9 +141,162 @@ MinkeApp.prototype = {
           ports: secondary._ports,
           binds: secondary._binds,
           files: secondary._files,
-          backups: secondary._backups
         };
       })
+    }
+  },
+
+  updateVariables: async function(skeleton, cvars) {
+    this._vars = {};
+    for (let i = 0; i < skeleton.actions.length; i++) {
+      const action = skeleton.actions[i];
+      const ovalue = cvars[action.name] && cvars[action.name].value;
+      switch (action.type) {
+        case 'EditEnvironment':
+        case 'SetEnvironment':
+          this._vars[action.name] = {
+            type: 'String',
+            value: ovalue || await this.expandString(action.initValue),
+            defaultValue: action.defaultValue
+          };
+          break;
+        case 'EditEnvironmentAsCheckbox':
+          this._vars[action.name] = {
+            type: 'Bool',
+            value: ovalue || await this.expandBool(action.initValue),
+            defaultValue: action.defaultValue
+          };
+          break;
+        case 'EditEnvironmentAsTable':
+        case 'SelectWebsites':
+        case 'EditFileAsTable':
+          this._vars[action.name] = {
+            type: 'Array',
+            value: ovalue || (action.initValue && JSON.parse(await this.expandString(action.initValue)))
+          };
+          if (action.pattern) {
+            this._vars[action.name].encoding = {
+              pattern: action.pattern,
+              join: 'join' in action ? action.join : '\n'
+            };
+          }
+          break;
+        case 'SelectBackups':
+          this._vars[action.name] = {
+            type: 'BackupSet',
+            value: ovalue || []
+          };
+          break;
+        case 'SelectDirectory':
+        {
+          this._vars[action.name] = {
+            type: 'Path',
+            value: ovalue || await this.expandPath(action.initValue)
+          };
+          break;
+        }
+        case 'SelectShares':
+        {
+          this._vars[action.name] = {
+            type: 'PathSet',
+            value: ovalue || []
+          };
+          break;
+        }
+        case 'EditFile':
+          this._vars[action.name] = {
+            type: 'String',
+            value: await this.expandString(action.initValue),
+            persist: false // Don't persist value in DB
+          };
+          break;
+        case 'ShowFile':
+        case 'DownloadFile':
+          this._vars[action.name] = {
+            type: 'String',
+            value: undefined,
+            persist: false // Don't persist value in DB
+          };
+          break;
+        case 'ShowFileAsTable':
+          this._vars[action.name] = {
+            type: 'Array',
+            value: undefined,
+            persist: false // Don't persist value in DB
+          };
+          break;
+        case 'EditShares':
+        default:
+          break;
+      }
+    }
+    //console.log('Created Vars', this._vars);
+  },
+
+  _variableMigration: async function() {
+    for (let i = 0; i < this._skeleton.actions.length; i++) {
+      const action = this._skeleton.actions[i];
+      const env = this._env[action.name];
+      switch (action.type) {
+        case 'EditEnvironment':
+          if (env && ('value' in env)) {
+            this._vars[action.name].value = await this.expandString(env.value);
+            this._env[action.name] = {};
+          }
+          break;
+        case 'EditEnvironmentAsCheckbox':
+          if (env && ('value' in env)) {
+            this._vars[action.name].value = !!env.value;
+            this._env[action.name] = {};
+          }
+          break;
+        case 'EditEnvironmentAsTable':
+        case 'SelectWebsites':
+          if (env && env.altValue) {
+            this._vars[action.name].value = JSON.parse(env.altValue);
+            this._env[action.name] = {};
+          }
+          break;
+        case 'EditFileAsTable':
+        {
+          const file = this._files.find(f => f.target === action.name);
+          if (file && file.altData) {
+            this._vars[action.name].value = JSON.parse(file.altData);
+            delete file.altData;
+          }
+          break;
+        }
+        case 'SelectBackups':
+          if (this._backups && this._backups.length) {
+            this._vars[action.name].value = this._backups;
+            delete this._backups;
+          }
+          break;
+        case 'SelectDirectory':
+        {
+          const bind = this._binds && this._binds.find(bind => bind.target === action.name);
+          if (bind && bind.src) {
+            this._vars[action.name].value = bind.src;
+          }
+          break;
+        }
+        case 'SelectShares':
+        {
+          const bind = this._binds && this._binds.find(bind => bind.target === action.name);
+          if (bind && bind.shares.length) {
+            this._vars[action.name].value = bind.shares;
+            bind.share = [];
+          }
+          break;
+        }
+        case 'EditFile':
+        case 'ShowFile':
+        case 'DownloadFile':
+        case 'ShowFileAsTable':
+        case 'EditShares':
+        default:
+          break;
+      }
     }
   },
 
@@ -133,7 +311,6 @@ MinkeApp.prototype = {
     this._id = Database.newAppId();
     this._image = skel.image,
     this._globalId = UUID();
-    this._backups = [];
     this._bootcount = 0;
     this._position = { tab: 0, widget: 0 };
     this._skeleton = skel;
@@ -146,6 +323,8 @@ MinkeApp.prototype = {
   },
 
   updateFromSkeleton: async function(skel, defs) {
+
+    await this.updateVariables(skel, this._vars || {});
 
     this._skeletonId = skel.uuid;
     this._description = skel.description;
@@ -183,17 +362,16 @@ MinkeApp.prototype = {
       this._networks.secondary = 'none';
     }
 
-    await this._parseProperties(this, '', skel.properties, defs);
+    await this._parseProperties(this, '', skel.properties);
     if (skel.secondary) {
       const defssecondary = defs.secondary || [];
       this._secondary = await Promise.all(skel.secondary.map(async (secondary, idx) => {
         const secondaryApp = {
           _image: secondary.image,
           _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
-          _backups: [],
           _delay: secondary.delay || 0
         };
-        await this._parseProperties(secondaryApp, `${idx}`, secondary.properties, defssecondary[idx] || {});
+        await this._parseProperties(secondaryApp, `${idx}`, secondary.properties);
         return secondaryApp;
       }));
     }
@@ -208,88 +386,58 @@ MinkeApp.prototype = {
     return this;
   },
 
-  _parseProperties: async function(target, ext, properties, defs) {
+  _parseProperties: async function(target, ext, properties) {
     target._env = {};
     target._features = {};
     target._ports = [];
     target._binds = [];
     target._files = [];
-    const defsenv = defs.env || {};
     await Promise.all(properties.map(async prop => {
       switch (prop.type) {
         case 'Environment':
         {
-          const found = defsenv[prop.name];
-          if (found) {
-            target._env[prop.name] = { value: found.value };
-            if ('altValue' in found) {
-              target._env[prop.name].altValue = found.altValue;
-            }
+          target._env[prop.name] = {};
+          let value;
+          if ('value' in prop) {
+            value = prop.value;
           }
-          else {
-            target._env[prop.name] = { value: '' };
+          else if ('defaultValue' in prop) {
+            value = prop.defaultValue;
+          }
+          if (value !== null && value !== undefined) {
+            target._env[prop.name].value = this._expressionString2JS(value.toString());
           }
           break;
         }
         case 'Directory':
         {
-          let targetname = Path.normalize(prop.name);
-          const description = prop.description || targetname;
-          const bind = defs.binds && defs.binds.find(bind => bind.target === targetname);
           let src = null;
-          if (prop.style !== 'temp') {
-            if (prop.use) {
-              const vbind = defs.binds && defs.binds.find(bind => bind.target === prop.use);
-              if (vbind) {
-                src = vbind.src;
-              }
-              else {
-                // If we fail to find a binding, we create a default in 'store'. We don't use the properties
-                // style to avoid errors where some prop.use have a style and some don't.
-                src = Filesystem.getNativePath(this._id, 'store', `/vol/${prop.use}`);
-              }
-            }
-            else if (bind && bind.src) {
-              src = bind.src;
-            }
-            else if (targetname[0] !== '/') {
-              src = Filesystem.getNativePath(this._id, prop.style, `/vol/${targetname}`);
-              targetname = null;
-            }
-            else {
-              src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${targetname}`);
-            }
-          }
-          const b = {
-            src: src,
-            target: targetname,
-            description: description,
-            backup: prop.backup
-          };
-          if (bind && bind.shares.length) {
-            b.shares = bind.shares;
+          if (prop.use) {
+            src = Filesystem.getNativePath(this._id, 'store', `/vol/${prop.use}`);
           }
           else {
-            b.shares = prop.shares || [];
+            src = Filesystem.getNativePath(this._id, prop.style, `/dir${ext}/${prop.name}`);
           }
-          target._binds.push(b);
+          target._binds.push({
+            dir: prop.use || prop.name,
+            src: src,
+            target: prop.name,
+            description: prop.description || prop.name,
+            backup: prop.backup,
+            shares: prop.shares || []
+          });
           break;
         }
         case 'File':
         {
           const targetname = Path.normalize(prop.name);
-          const file = (defs.files && defs.files.find(file => file.target === targetname)) || {};
-          const f = {
+          target._files.push({
             src: Filesystem.getNativePath(this._id, prop.style, `/file${ext}/${prop.name.replace(/\//g, '_')}`),
             target: targetname,
             mode: prop.mode || 0o666,
-            backup: prop.backup
-          };
-          f.data = file.data || prop.defaultValue || '';
-          if (file.altData) {
-            f.altData = file.altData;
-          }
-          target._files.push(f);
+            backup: prop.backup,
+            value: prop.value || prop.defaultValue
+          });
           break;
         }
         case 'Feature':
@@ -343,7 +491,7 @@ MinkeApp.prototype = {
       inherit = inherit || {};
 
       this._fs = Filesystem.create(this);
-      this._allmounts = await this._fs.getAllMounts(this);
+      this._mounts = await this._fs.getAllMounts(this);
 
       const config = {
         name: `${this._safeName()}__${this._id}`,
@@ -351,7 +499,7 @@ MinkeApp.prototype = {
         Image: Images.withTag(this._image),
         Cmd: this._args,
         HostConfig: {
-          Mounts: this._allmounts,
+          Mounts: this._mounts,
           Devices: [],
           CapAdd: [],
           CapDrop: [],
@@ -523,7 +671,7 @@ MinkeApp.prototype = {
         }
 
         // Expand the environment before selecting ports as this could effect their values
-        this._fullEnv = await this._expandEnvironment(this._env, this._skeleton.properties);
+        this._fullEnv = await this.expandEnvironment(this._env, this._skeleton.properties);
 
         this._ddns = this._features.ddns || false;
         const nat = [];
@@ -646,7 +794,7 @@ MinkeApp.prototype = {
       }
 
       // Expand environment (again) after the helper has set some variables
-      this._fullEnv = await this._expandEnvironment(this._env, this._skeleton.properties);
+      this._fullEnv = await this.expandEnvironment(this._env, this._skeleton.properties);
 
       config.Env = Object.keys(this._fullEnv).map(key => `${key}=${this._fullEnv[key].value}`).concat(configEnv);
 
@@ -753,6 +901,7 @@ MinkeApp.prototype = {
       else {
         const startup = [];
 
+        //console.log('primary', config);
         this._container = await docker.createContainer(config);
         startup.push({ delay: this._delay, container: this._container });
 
@@ -761,15 +910,14 @@ MinkeApp.prototype = {
           this._secondaryContainers = [];
           for (let c = 0; c < this._secondary.length; c++) {
             const secondary = this._secondary[c];
-            const secondaryMounts = await this._fs.getAllMounts(secondary);
-            this._allmounts = this._allmounts.concat(secondaryMounts);
-            const secondaryEnv = await this._expandEnvironment(secondary._env, this._skeleton.secondary[c].properties);
+            secondary._mounts = await this._fs.getAllMounts(secondary);
+            const secondaryEnv = await this.expandEnvironment(secondary._env, this._skeleton.secondary[c].properties);
             const sconfig = {
               name: `${this._safeName()}__${this._id}__${c}`,
               Image: Images.withTag(secondary._image),
               Cmd: secondary._args,
               HostConfig: {
-                Mounts: secondaryMounts,
+                Mounts: secondary._mounts,
                 Devices: [],
                 CapAdd: [],
                 CapDrop: [],
@@ -778,6 +926,7 @@ MinkeApp.prototype = {
               },
               Env: Object.keys(secondaryEnv).map(key => `${key}=${secondaryEnv[key].value}`)
             };
+            //console.log(`secondary${c}`, sconfig);
             this._secondaryContainers[c] = await docker.createContainer(sconfig);
             startup.push({ delay: secondary._delay, container: this._secondaryContainers[c] });
           }
@@ -965,10 +1114,13 @@ MinkeApp.prototype = {
     }
     await Promise.all(removing.map(rm => rm.catch(e => console.log(e)))); // Ignore exceptions
 
-    if (this._fs && this._allmounts) {
-      await this._fs.unmountAll(this._allmounts);
+    if (this._fs) {
+      await this._fs.unmountAll(this, this._mounts);
+      for (let i = 0; i < this._secondary.length; i++) {
+        await this._fs.unmountAll(this._secondary[i], this._secondary[i]._mounts);
+      }
+      this._fs = null;
     }
-    this._fs = null;
 
     this._setStatus('stopped');
 
@@ -1093,12 +1245,12 @@ MinkeApp.prototype = {
     const acc = [];
     await Promise.all(applications.map(async app => {
       if (app !== this && (network === app._networks.primary || network === app._networks.secondary)) {
-        const ports = await Promise.all(app._ports.map(async port => await this.expandPort(port)));
+        const ports = await Promise.all(app._ports.map(async port => await app.expandPort(port)));
         const webport = ports.find(port => port.web);
         if (webport && !webport.web.private) {
           acc.push({
             app: app,
-            port: await this.expandPort(webport)
+            port: webport
           });
         }
       }
@@ -1152,63 +1304,54 @@ MinkeApp.prototype = {
     return setup ? setup.getTimezone() : 'UTC';
   },
 
-  expand: async function(txt) {
-    if (typeof txt ==='string' && txt.indexOf('{{') !== -1) {
-      let addresses = '<none>';
-      if (this._homeIP) {
-        if (this.getSLAACAddress()) {
-          addresses = `${this._homeIP} and ${this.getSLAACAddress()}`;
-        }
-        else {
-          addresses = this._homeIP;
-        }
+  expandString: async function(txt) {
+    if (!txt) {
+      return txt;
+    }
+    txt = txt.toString();
+    // Simple strings
+    if (txt.indexOf('{{') === -1) {
+      return txt;
+    }
+    // Convert to evaluatable form and eval
+    else {
+      try {
+        txt = await this._eval(this._expressionString2JS(txt));
       }
-      const env = Object.assign({
-        __APPNAME: { value: this._name },
-        __HOSTNAME: { value: this._safeName() },
-        __GLOBALNAME: { value: `${this._globalId}${GLOBALDOMAIN}` },
-        __DOMAINNAME: { value: MinkeApp.getLocalDomainName() },
-
-        __HOSTIP: { value: MinkeApp._network.network.ip_address },
-        __HOMEIP: { value: this._homeIP || '<none>' },
-        __HOMEIP6: { value: this.getSLAACAddress() || '<none>' },
-        __HOMEADDRESSES: { value: addresses },
-        __DNSSERVER: { value: MinkeApp._network.network.ip_address },
-        __DEFAULTIP: { value: this._defaultIP || '<none>' },
-        __SECONDARYIP: { value: this._secondaryIP || '<none>' },
-
-        __IPV6ENABLED: { value : this.getSLAACAddress() ? 'true' : 'false' },
-        __MACADDRESS: { value: this._primaryMacAddress().toUpperCase() }
-      }, this._fullEnv);
-
-      // Fetching random ports (while avoiding those in use on the NAT) can be time consuming so
-      // only do this if we need to. We make sure 3 consequtive ports are available.
-      if (txt.indexOf('{{__RANDOMPORT}}') !== -1) {
-        env.__RANDOMPORT = { value: await this._allocateRandomNatPorts(3) };
-      }
-
-      // Generate random passwords of required length
-      if (txt.indexOf('{{__SECUREPASSWORD') !== -1) {
-        const match = txt.match(/{{__SECUREPASSWORD(\d+)}}/);
-        if (match) {
-          const len = parseInt(match[1]);
-          env[`__SECUREPASSWORD${len}`] = { value: this._generateSecurePassword(len) };
-        }
-      }
-
-      for (let key in env) {
-        txt = txt.replace(new RegExp(`\{\{${key}\}\}`, 'g'), env[key].value);
-      }
-      // Support optional complex expression on strings
-      if (txt.indexOf('{{EVAL ') === 0 && txt.indexOf('}}') === txt.length - 2) {
-        try {
-          txt = this._eval(txt.substring(7, txt.length -2));
-        }
-        catch (_) {
-        }
+      catch (e) {
+        console.log(e);
       }
     }
     return txt;
+
+  },
+
+  _expressionString2JS: function(str) {
+    return '"'+str.replace(/"/g, '\\"').replace(/\n/g, ' ').replace(/{{/g, '"+').replace(/}}/g, '+"')+'"';
+  },
+
+  expandPath: async function(path) {
+    const v = this._vars[path];
+    if (v && v.type === 'Path') {
+      return v.value;
+    }
+    return path;
+  },
+
+  expandPathSet: async function(path) {
+    const v = this._vars[path];
+    if (v && v.type === 'PathSet') {
+      return v.value;
+    }
+    return [];
+  },
+
+  expandBackupSet: async function(path) {
+    const v = this._vars[path];
+    if (v && v.type === 'BackupSet') {
+      return v.value;
+    }
+    return [];
   },
 
   expandPort: async function(port) {
@@ -1219,10 +1362,10 @@ MinkeApp.prototype = {
         widget: port.web.widget || port.web.type
       };
       if (port.web.path) {
-        web.path = await this.expand(port.web.path);
+        web.path = await this.expandPath(port.web.path);
       }
       if (port.web.url) {
-        web.url = await this.expand(port.web.url);
+        web.url = await this.expandString(port.web.url);
       }
       if (port.web.private) {
         web.private = true;
@@ -1237,7 +1380,7 @@ MinkeApp.prototype = {
       dns = port.dns;
     }
     else if (typeof port.dns === 'string') {
-      dns = await this._expandBool(port.dns);
+      dns = await this.expandBool(port.dns);
     }
     else {
       dns = !!port.dns ? {} : null;
@@ -1245,24 +1388,25 @@ MinkeApp.prototype = {
 
     return {
       target: port.name || port.target,
-      port: await this._expandNumber(port.port, port.defaultPort || 0),
+      port: await this.expandNumber(port.port, port.defaultPort || 0),
       protocol: port.protocol,
       web: web,
       dns: dns,
-      nat: await this._expandBool(port.nat || false),
+      nat: await this.expandBool(port.nat || false),
       mdns: port.mdns || null
     };
   },
 
-  _expandNumber: async function(val, alt) {
+  expandNumber: async function(val, alt) {
     if (typeof val === 'number') {
       return val;
     }
     if (typeof val === 'string') {
       try {
-        val = this._eval(await this.expand(val));
-        if (typeof val === 'number' && !isNaN(val)) {
-          return val;
+        val = await this._eval(val.replace(/({{|}})/g, ''));
+        const nval = Number(val);
+        if (val == nval) {
+          return nval;
         }
       }
       catch (_) {
@@ -1271,12 +1415,12 @@ MinkeApp.prototype = {
     return alt;
   },
 
-  _expandBool: async function(val) {
+  expandBool: async function(val) {
     if (typeof val !== 'string') {
       return !!val;
     }
     try {
-      val = this._eval(await this.expand(val));
+      val = await this._eval(val.replace(/({{|}})/g, ''));
       if (!val) {
         return false;
       }
@@ -1286,35 +1430,128 @@ MinkeApp.prototype = {
     return true;
   },
 
-  _expandEnvironment: async function(env, properties) {
-    const fullEnv = {};
-    let skelenv = null;
-    for (let key in env) {
-      const val = env[key].value;
-      if (val) {
-        fullEnv[key] = env[key];
-      }
-      else if (properties) {
-        if (!skelenv) {
-          skelenv = {};
-          for (let i = 0; i < properties.length; i++) {
-            const prop = properties[i];
-            if (prop.type === 'Environment' && prop.defaultValue) {
-              skelenv[prop.name] = await this.expand(prop.defaultValue);
-            }
-          }
+  expandVariable: async function(name) {
+    const v = this._vars[name];
+    if (!v) {
+      return null;
+    }
+    let value = v.value;
+    if ((value === undefined || value === null || value === '') && v.defaultValue) {
+      value = await this.expandString(v.defaultValue);
+    }
+    switch (v.type) {
+      case 'String':
+      case 'Bool':
+        // Reduce values to Booleans or Numbers if possible
+        if (String(value).toLowerCase() === 'true') {
+          value = true;
         }
-        fullEnv[key] = { value: skelenv[key] || '' };
+        else if (String(value).toLowerCase() === 'false') {
+          value = false;
+        }
+        else if (Number(value) == value) {
+          value = Number(value);
+        }
+        return value;
+      case 'Path':
+      {
+        return String(value);
+      }
+      case 'Array':
+      {
+        const encoding = v.encoding || { pattern: '{{0}}', join: '\n' };
+        const value = v.value || [];
+        const nvalue = [];
+        for (let r = 0; r < value.length; r++) {
+          const row = value[r];
+          let line = encoding.pattern;
+          for (let c = 0; c < row.length; c++) {
+            line = line.replace(new RegExp('\\{\\{' + c + '\\}\\}', 'g'), row[c])
+                        .replace(new RegExp('\\{\\{uri\(' + c + '\)\\}\\}', 'g'), encodeURIComponent(row[c]));
+          }
+          nvalue.push(line);
+        }
+        return nvalue.join(encoding.join);
+      }
+      case 'PathSet':
+      {
+        const encoding = v.encoding || { join: '\n' };
+        return v.value.join(encoding.join);
+      }
+      default:
+        return ''
+    }
+  },
+
+  expandEnvironment: async function(env) {
+    const fullEnv = {};
+    // Evaluate the environment
+    for (let key in env) {
+      let value = null;
+      if (this._vars[key]) {
+        value = await this.expandVariable(key);
+      }
+      else if (env[key] && env[key].value) {
+        value = await this._eval(env[key].value);
+      }
+      if (value === undefined || value === null) {
+        fullEnv[key] = { value: '' };
+      }
+      else {
+        fullEnv[key] = { value: value };
       }
     }
+    //console.log('expandEnv', env, '->', fullEnv);
     return fullEnv;
   },
 
-  _eval: function(val) {
-    const js = new JSInterpreter(val);
-    for (let i = 0; i < JSINTERPRETER_STEPS && js.step(); i++)
-      ;
-    return js.value;
+  _eval: async function(val) {
+    try {
+      const js = new JSInterpreter(val, (intr, glb) => {
+        for (let name in this._vars) {
+          intr.setProperty(glb, name, intr.nativeToPseudo(this.expandVariable(name)));
+        }
+        intr.setProperty(glb, '__APPNAME', this._name);
+        intr.setProperty(glb, '__HOSTNAME', this._safeName());
+        intr.setProperty(glb, '__GLOBALNAME', `${this._globalId}${GLOBALDOMAIN}`);
+        intr.setProperty(glb, '__DOMAINNAME', MinkeApp.getLocalDomainName());
+        intr.setProperty(glb, '__HOSTIP', MinkeApp._network.network.ip_address);
+        intr.setProperty(glb, '__HOMEIP', this._homeIP);
+        intr.setProperty(glb, '__HOMEIP6', this.getSLAACAddress());
+        intr.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
+        intr.setProperty(glb, '__DEFAULTIP', this._defaultIP);
+        intr.setProperty(glb, '__SECONDARYIP', this._secondaryIP);
+        intr.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress());
+        intr.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
+        if (this._homeIP) {
+          if (this.getSLAACAddress()) {
+            intr.setProperty(glb, '__HOMEADDRESSES', `${this._homeIP} and ${this.getSLAACAddress()}`);
+          }
+          else {
+            intr.setProperty(glb, '__HOMEADDRESSES', this._homeIP);
+          }
+        }
+        else {
+          intr.setProperty(glb, '__HOMEADDRESSES', '');
+        }
+        intr.setProperty(glb, '__RANDOMHEX', intr.createNativeFunction(len => {
+          return this._generateSecurePassword(len);
+        }));
+        intr.setProperty(glb, '__RANDOMPORTS', intr.createAsyncFunction((nr, callback) => {
+          this._allocateRandomNatPorts(nr).then(randomport => {
+            callback(randomport);
+          });
+        }));
+      });
+      for (let i = 0; i < JSINTERPRETER_STEPS && js.step(); i++)
+        ;
+      //console.log('eval', val, js.pseudoToNative(js.value));
+      return js.pseudoToNative(js.value);
+    }
+    catch (e) {
+      console.log('eval fail', val, this._vars, e.stack);
+      throw e;
+    }
   },
 
   _monitorHelper: async function() {
@@ -1542,8 +1779,7 @@ MinkeApp.startApps = async function(app, config) {
     }
   }
   catch (e) {
-    console.error('Failed to connect to DNS network');
-    console.error(e);
+    console.error('Failed to connect to DNS network - ignoring');
   }
 
   // See if we have wifi (in background)
@@ -1559,9 +1795,9 @@ MinkeApp.startApps = async function(app, config) {
   const runningNames = running.map(container => container.Names[0]);
 
   // Load all the apps
-  applications = (await Database.getApps()).map((json) => {
-    return new MinkeApp().createFromJSON(json);
-  });
+  applications = await Promise.all((await Database.getApps()).map(async json => {
+    return await (new MinkeApp().createFromJSON(json));
+  }));
 
   // Setup at the top. We load this now rather than at the top of the file because it will attempt to load us
   // recursively (which won't work).
@@ -1780,7 +2016,7 @@ MinkeApp.shutdown = async function(config) {
       // If we shutdown with 'inherit' set, we leave the children running so we
       // can inherit them when on a restart. But we're always stopping Minke itself
       // so make sure we do that regardless.
-      if (!config.inherit || app._image === Images.MINKE) {
+      if (!config.inherit || app._image === Images.MINKE || app._image === Images.withTag(Images.MINKE)) {
         await app.stop();
       }
       await app.save();
