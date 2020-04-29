@@ -1510,6 +1510,21 @@ MinkeApp.prototype = {
         }
       }
       const js = new JSInterpreter(val, (intr, glb) => {
+
+        const asyncWrap = (fn) => {
+          return intr.createAsyncFunction(async (a,b,c,d,e,f,g,h,i, callback) => {
+            let result = null;
+            intr._inAsyncFn = true;
+            try {
+              result = await fn(a,b,c,d,e,f,g,h,i);
+            }
+            catch (_) {
+            }
+            intr._inAsyncFn = false;
+            callback(result);
+          });
+        };
+
         for (let name in known) {
           intr.setProperty(glb, name, intr.nativeToPseudo(known[name]));
         }
@@ -1542,17 +1557,13 @@ MinkeApp.prototype = {
         intr.setProperty(glb, '__RANDOMHEX', intr.createNativeFunction(len => {
           return this._generateSecurePassword(len);
         }));
-        intr.setProperty(glb, '__RANDOMPORTS', intr.createAsyncFunction((nr, callback) => {
-          intr._inAsyncFn = true;
-          this._allocateRandomNatPorts(nr).then(randomport => {
-            intr._inAsyncFn = false;
-            callback(randomport);
-          });
+        intr.setProperty(glb, '__RANDOMPORTS', asyncWrap(async nr => {
+          return await this._allocateRandomNatPorts(nr);
         }));
       });
       for (let i = 0; i < JSINTERPRETER_STEPS && (js.step() || js._inAsyncFn); i++) {
         if (js._inAsyncFn) {
-          await new Promise(done => setTimeout(done, 100));
+          await new Promise(done => setTimeout(done, 10));
         }
       }
       //console.log('eval', val, js.pseudoToNative(js.value));
