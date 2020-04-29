@@ -200,7 +200,7 @@ async function ConfigurePageHTML(ctx) {
           {
             if (app._fs) {
               try {
-                app._vars[action.name].value = JSON.parse(app._fs.readFromFile(action.name));
+                app._vars[action.name].value = JSON.parse(await app._fs.readFromFile(action.name));
               }
               catch (_) {
               }
@@ -211,7 +211,7 @@ async function ConfigurePageHTML(ctx) {
         case 'ShowFile':
           {
             if (app._fs) {
-              app._vars[action.name].value = app._fs.readFromFile(action.name);
+              app._vars[action.name].value = await app._fs.readFromFile(action.name);
             }
             const data = app._vars[action.name].value;
             return Object.assign({ value: data }, action, { description: await expandString(action.description) });
@@ -220,7 +220,7 @@ async function ConfigurePageHTML(ctx) {
         case 'EditFile':
           {
             if (app._fs) {
-              app._vars[action.name].value = app._fs.readFromFile(action.name);
+              app._vars[action.name].value = await app._fs.readFromFile(action.name);
             }
             const data = app._vars[action.name].value;
             return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: data, filename: Path.basename(action.name) }, action, { description: await expandString(action.description) });
@@ -769,7 +769,7 @@ async function ConfigurePageWS(ctx) {
             let value = '';
             const path = msg.value;
             if (app._fs) {
-              value = app._fs.readFromFile(path);
+              value = await app._fs.readFromFile(path);
             }
             send({
               type: 'html.replace',
