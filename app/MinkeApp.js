@@ -1438,7 +1438,7 @@ MinkeApp.prototype = {
     }
     let value = v.value;
     if ((value === undefined || value === null || value === '') && v.defaultValue) {
-      value = await this.expandString(v.defaultValue, known);
+      value = await this.expandString(v.defaultValue, Object.assign({ [name]: null, known }));
     }
     switch (v.type) {
       case 'String':
@@ -1464,7 +1464,7 @@ MinkeApp.prototype = {
         const value = v.value || [];
         const nvalue = [];
         for (let r = 0; r < value.length; r++) {
-          nvalue.push(await this.expandString(encoding.pattern, Object.assign({ V: value[r] }, known)));
+          nvalue.push(await this.expandString(encoding.pattern, Object.assign({ [name]: null, V: value[r] }, known)));
         }
         return nvalue.join(encoding.join);
       }
