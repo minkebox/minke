@@ -153,11 +153,25 @@ _Filesystem.prototype = {
     }
   },
 
-  readFromFile: function(path) {
+  readFromFile: async function(path) {
     try {
-      const file = this._primaryApp._files.find(file => file.target === path);
-      if (file) {
-        return FS.readFileSync(file.src, { encoding: 'utf8' });
+      const target = await this._expandString(path);
+      let src = null;
+      for (let i = 0; i < this._primaryApp._binds.length; i++) {
+        const bindtarget = await this._expandString(this._primaryApp._binds[i].target);
+        if (target.indexOf(bindtarget) === 0 && target[bindtarget.length] === '/') {
+          src = `${this._primaryApp._binds[i].src}${target.substring(bindtarget.length)}`;
+          break;
+        }
+      }
+      if (!src) {
+        const file = this._primaryApp._files.find(file => file.target === target);
+        if (file) {
+          src = file.src;
+        }
+      }
+      if (src) {
+        return FS.readFileSync(src, { encoding: 'utf8' });
       }
     }
     catch (_) {
