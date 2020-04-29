@@ -1500,79 +1500,91 @@ MinkeApp.prototype = {
     return fullEnv;
   },
 
-  _eval: async function(val, known) {
+  _eval: async function(code, known) {
     try {
-      known = known || {};
-      const evars = {};
-      for (let name in this._vars) {
-        if (!(name in known)) {
-          evars[name] = await this.expandVariable(name, Object.assign({ [name]: null }, known));
-        }
-      }
-      const js = new JSInterpreter(val, (intr, glb) => {
-
-        const asyncWrap = (fn) => {
-          return intr.createAsyncFunction(async (a,b,c,d,e,f,g,h,i, callback) => {
-            let result = null;
-            intr._inAsyncFn = true;
-            try {
-              result = await fn(a,b,c,d,e,f,g,h,i);
-            }
-            catch (_) {
-            }
-            intr._inAsyncFn = false;
-            callback(result);
-          });
-        };
-
-        for (let name in known) {
-          intr.setProperty(glb, name, intr.nativeToPseudo(known[name]));
-        }
-        for (let name in evars) {
-          intr.setProperty(glb, name, intr.nativeToPseudo(evars[name]));
-        }
-        intr.setProperty(glb, '__APPNAME', this._name);
-        intr.setProperty(glb, '__HOSTNAME', this._safeName());
-        intr.setProperty(glb, '__GLOBALNAME', `${this._globalId}${GLOBALDOMAIN}`);
-        intr.setProperty(glb, '__DOMAINNAME', MinkeApp.getLocalDomainName());
-        intr.setProperty(glb, '__HOSTIP', MinkeApp._network.network.ip_address);
-        intr.setProperty(glb, '__HOMEIP', this._homeIP);
-        intr.setProperty(glb, '__HOMEIP6', this.getSLAACAddress());
-        intr.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
-        intr.setProperty(glb, '__DEFAULTIP', this._defaultIP);
-        intr.setProperty(glb, '__SECONDARYIP', this._secondaryIP);
-        intr.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress());
-        intr.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
-        if (this._homeIP) {
-          if (this.getSLAACAddress()) {
-            intr.setProperty(glb, '__HOMEADDRESSES', `${this._homeIP} and ${this.getSLAACAddress()}`);
-          }
-          else {
-            intr.setProperty(glb, '__HOMEADDRESSES', this._homeIP);
-          }
-        }
-        else {
-          intr.setProperty(glb, '__HOMEADDRESSES', '');
-        }
-        intr.setProperty(glb, '__RANDOMHEX', intr.createNativeFunction(len => {
-          return this._generateSecurePassword(len);
-        }));
-        intr.setProperty(glb, '__RANDOMPORTS', asyncWrap(async nr => {
-          return await this._allocateRandomNatPorts(nr);
-        }));
-      });
-      for (let i = 0; i < JSINTERPRETER_STEPS && (js.step() || js._inAsyncFn); i++) {
-        if (js._inAsyncFn) {
-          await new Promise(done => setTimeout(done, 10));
-        }
-      }
-      //console.log('eval', val, js.pseudoToNative(js.value));
-      return js.pseudoToNative(js.value);
+      const js = await this._getJS(known || {});
+      const result = await this.execJS(js, code);
+      console.log('eval', code, result);
+      return result;
     }
     catch (e) {
-      console.log('eval fail', val, this._vars, e.stack);
+      console.error('eval fail', code, this._vars, e.stack);
       throw e;
     }
+  },
+
+  _getJS: async function(known) {
+    // Pre-expand the variables
+    const evars = {};
+    for (let name in this._vars) {
+      if (!(name in known)) {
+        evars[name] = await this.expandVariable(name, Object.assign({ [name]: null }, known));
+      }
+    }
+
+    // Create an interpreter
+    return new JSInterpreter('', (intr, glb) => {
+
+      const asyncWrap = (fn) => {
+        return intr.createAsyncFunction(async (a,b,c,d,e,f,g,h,i, callback) => {
+          let result = null;
+          intr._inAsyncFn = true;
+          try {
+            result = await fn(a,b,c,d,e,f,g,h,i);
+          }
+          catch (_) {
+          }
+          intr._inAsyncFn = false;
+          callback(result);
+        });
+      };
+
+      for (let name in known) {
+        intr.setProperty(glb, name, intr.nativeToPseudo(known[name]));
+      }
+      for (let name in evars) {
+        intr.setProperty(glb, name, intr.nativeToPseudo(evars[name]));
+      }
+      intr.setProperty(glb, '__APPNAME', this._name);
+      intr.setProperty(glb, '__HOSTNAME', this._safeName());
+      intr.setProperty(glb, '__GLOBALNAME', `${this._globalId}${GLOBALDOMAIN}`);
+      intr.setProperty(glb, '__DOMAINNAME', MinkeApp.getLocalDomainName());
+      intr.setProperty(glb, '__HOSTIP', MinkeApp._network.network.ip_address);
+      intr.setProperty(glb, '__HOMEIP', this._homeIP);
+      intr.setProperty(glb, '__HOMEIP6', this.getSLAACAddress());
+      intr.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
+      intr.setProperty(glb, '__DEFAULTIP', this._defaultIP);
+      intr.setProperty(glb, '__SECONDARYIP', this._secondaryIP);
+      intr.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress());
+      intr.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
+      if (this._homeIP) {
+        if (this.getSLAACAddress()) {
+          intr.setProperty(glb, '__HOMEADDRESSES', `${this._homeIP} and ${this.getSLAACAddress()}`);
+        }
+        else {
+          intr.setProperty(glb, '__HOMEADDRESSES', this._homeIP);
+        }
+      }
+      else {
+        intr.setProperty(glb, '__HOMEADDRESSES', '');
+      }
+      intr.setProperty(glb, '__RANDOMHEX', intr.createNativeFunction(len => {
+        return this._generateSecurePassword(len);
+      }));
+      intr.setProperty(glb, '__RANDOMPORTS', asyncWrap(async nr => {
+        return await this._allocateRandomNatPorts(nr);
+      }));
+    });
+  },
+
+  execJS: async function(js, code) {
+    js.appendCode(code);
+    for (let i = 0; i < JSINTERPRETER_STEPS && (js.step() || js._inAsyncFn); i++) {
+      if (js._inAsyncFn) {
+        await new Promise(done => setTimeout(done, 10));
+      }
+    }
+    return js.pseudoToNative(js.value);
   },
 
   _monitorHelper: async function() {
