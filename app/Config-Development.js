@@ -12,5 +12,7 @@ module.exports = {
   CAPTCH_QUESTION: 'https://captcha.minkebox.net/captcha',
   CAPTCH_VERIFY: 'https://captcha.minkebox.net/verify',
   GLOBALDOMAIN: '.minkebox.net',
-  DEFAULT_FALLBACK_RESOLVER: '1.1.1.1'
+  DEFAULT_FALLBACK_RESOLVER: '1.1.1.1',
+  APP_MIGRATIONS: {
+  }
 };

@@ -23,6 +23,7 @@ const Skeletons = require('./Skeletons');
 const ConfigBackup = require('./ConfigBackup');
 
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
+const APP_MIGRATIONS = Config.APP_MIGRATIONS || {};
 
 const CRASH_TIMEOUT = (2 * 60 * 1000); // 2 minutes
 const HELPER_STARTUP_TIMEOUT = (30 * 1000); // 30 seconds
@@ -313,7 +314,6 @@ MinkeApp.prototype = {
     this._globalId = UUID();
     this._bootcount = 0;
     this._position = { tab: 0, widget: 0 };
-    this._skeleton = skel;
 
     await this.updateFromSkeleton(skel, {});
 
@@ -324,9 +324,11 @@ MinkeApp.prototype = {
 
   updateFromSkeleton: async function(skel, defs) {
 
+    this._skeleton = skel;
+    this._skeletonId = skel.uuid;
+
     await this.updateVariables(skel, this._vars || {});
 
-    this._skeletonId = skel.uuid;
     this._description = skel.description;
     this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).value;
 
@@ -463,15 +465,28 @@ MinkeApp.prototype = {
   },
 
   _updateIfBuiltin: async function() {
-    const skel = Skeletons.loadSkeleton(this.skeletonId(), false);
-    if (!skel || skel.type !== 'builtin') {
+    const cid = this.skeletonId();
+    const sid = APP_MIGRATIONS[cid] || cid;
+    const skel = Skeletons.loadSkeleton(sid, false);
+    if (!skel) {
       return false;
     }
-    const before = this.toJSON();
-    await this.updateFromSkeleton(skel.skeleton, before);
-    if (JSON.stringify(before) == JSON.stringify(this.toJSON())) {
-      return false;
+    // If we're migrating the app to another skeleton, we update and restart it regardless
+    if (cid !== sid) {
+      console.log(`Migrating app from ${cid} to ${sid}`);
+      await this.updateFromSkeleton(skel.skeleton, this.toJSON());
     }
+    else {
+      if (!skel || skel.type !== 'builtin') {
+        return false;
+      }
+      const before = this.toJSON();
+      await this.updateFromSkeleton(skel.skeleton, before);
+      if (JSON.stringify(before) == JSON.stringify(this.toJSON())) {
+        return false;
+      }
+    }
+    await this.save();
     return true;
   },
 
@@ -1135,6 +1150,11 @@ MinkeApp.prototype = {
     if (this.isRunning()) {
       await this.stop();
     }
+    // Force skeleton update on explicity restart
+    const skel = Skeletons.loadSkeleton(this.skeletonId(), false);
+    if (skel) {
+      await this.updateFromSkeleton(skel.skeleton, this.toJSON());
+    }
     await this.save();
     await this.start();
   },
@@ -1504,7 +1524,7 @@ MinkeApp.prototype = {
     try {
       const js = await this._getJS(known || {});
       const result = await this.execJS(js, code);
-      console.log('eval', code, result);
+      //console.log('eval', code, result);
       return result;
     }
     catch (e) {
