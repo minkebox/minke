@@ -1304,7 +1304,7 @@ MinkeApp.prototype = {
     return setup ? setup.getTimezone() : 'UTC';
   },
 
-  expandString: async function(txt) {
+  expandString: async function(txt, known) {
     if (!txt) {
       return txt;
     }
@@ -1316,14 +1316,13 @@ MinkeApp.prototype = {
     // Convert to evaluatable form and eval
     else {
       try {
-        txt = await this._eval(this._expressionString2JS(txt));
+        txt = await this._eval(this._expressionString2JS(txt), known);
       }
       catch (e) {
         console.log(e);
       }
     }
     return txt;
-
   },
 
   _expressionString2JS: function(str) {
@@ -1432,14 +1431,14 @@ MinkeApp.prototype = {
     return true;
   },
 
-  expandVariable: async function(name) {
+  expandVariable: async function(name, known) {
     const v = this._vars[name];
     if (!v) {
       return null;
     }
     let value = v.value;
     if ((value === undefined || value === null || value === '') && v.defaultValue) {
-      value = await this.expandString(v.defaultValue);
+      value = await this.expandString(v.defaultValue, known);
     }
     switch (v.type) {
       case 'String':
@@ -1461,17 +1460,11 @@ MinkeApp.prototype = {
       }
       case 'Array':
       {
-        const encoding = v.encoding || { pattern: '{{0}}', join: '\n' };
+        const encoding = v.encoding || { pattern: '{{V[0]}}', join: '\n' };
         const value = v.value || [];
         const nvalue = [];
         for (let r = 0; r < value.length; r++) {
-          const row = value[r];
-          let line = encoding.pattern;
-          for (let c = 0; c < row.length; c++) {
-            line = line.replace(new RegExp('\\{\\{' + c + '\\}\\}', 'g'), row[c])
-                        .replace(new RegExp('\\{\\{uri\(' + c + '\)\\}\\}', 'g'), encodeURIComponent(row[c]));
-          }
-          nvalue.push(line);
+          nvalue.push(await this.expandString(encoding.pattern, Object.assign({ V: value[r] }, known)));
         }
         return nvalue.join(encoding.join);
       }
@@ -1490,11 +1483,11 @@ MinkeApp.prototype = {
     // Evaluate the environment
     for (let key in env) {
       let value = null;
-      if (this._vars[key]) {
-        value = await this.expandVariable(key);
-      }
-      else if (env[key] && env[key].value) {
+      if (env[key] && env[key].value) {
         value = await this._eval(env[key].value);
+      }
+      else if (this._vars[key]) {
+        value = await this.expandVariable(key, {});
       }
       if (value === undefined || value === null) {
         fullEnv[key] = { value: '' };
@@ -1507,13 +1500,19 @@ MinkeApp.prototype = {
     return fullEnv;
   },
 
-  _eval: async function(val) {
+  _eval: async function(val, known) {
     try {
+      known = known || {};
       const evars = {};
       for (let name in this._vars) {
-        evars[name] = await this.expandVariable(name);
+        if (!(name in known)) {
+          evars[name] = await this.expandVariable(name, Object.assign({ [name]: null }, known));
+        }
       }
       const js = new JSInterpreter(val, (intr, glb) => {
+        for (let name in known) {
+          intr.setProperty(glb, name, intr.nativeToPseudo(known[name]));
+        }
         for (let name in evars) {
           intr.setProperty(glb, name, intr.nativeToPseudo(evars[name]));
         }
