@@ -88,7 +88,7 @@
       headers: [
         { name: `Username` }
       ],
-      pattern: `{{0}}`,
+      pattern: `{{V[0]}}`,
       join: `,`
     },
     {
@@ -98,7 +98,7 @@
       headers: [
         { name: `Username` }
       ],
-      pattern: `{{0}}`,
+      pattern: `{{V[0]}}`,
       join: `,`
     },
     {

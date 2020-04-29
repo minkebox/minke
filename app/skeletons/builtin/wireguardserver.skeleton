@@ -53,7 +53,7 @@
         { name: `Client Public Key` },
         { name: `Client Private Key` }
       ],
-      pattern: `{{1}}#{{2}}`,
+      pattern: `{{V[1]}}#{{V[2]}}`,
       controls: true,
       id: 'wgc'
     },

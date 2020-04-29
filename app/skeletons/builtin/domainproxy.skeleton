@@ -39,7 +39,7 @@
       headers: [
         { name: `Domain name` }
       ],
-      pattern: `{{0}}`
+      pattern: `{{V[0]}}`
     }
   ],
   properties: [
