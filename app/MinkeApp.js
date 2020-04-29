@@ -1543,13 +1543,18 @@ MinkeApp.prototype = {
           return this._generateSecurePassword(len);
         }));
         intr.setProperty(glb, '__RANDOMPORTS', intr.createAsyncFunction((nr, callback) => {
+          intr._inAsyncFn = true;
           this._allocateRandomNatPorts(nr).then(randomport => {
+            intr._inAsyncFn = false;
             callback(randomport);
           });
         }));
       });
-      for (let i = 0; i < JSINTERPRETER_STEPS && js.step(); i++)
-        ;
+      for (let i = 0; i < JSINTERPRETER_STEPS && (js.step() || js._inAsyncFn); i++) {
+        if (js._inAsyncFn) {
+          await new Promise(done => setTimeout(done, 100));
+        }
+      }
       //console.log('eval', val, js.pseudoToNative(js.value));
       return js.pseudoToNative(js.value);
     }
