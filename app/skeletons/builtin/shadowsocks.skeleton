@@ -5,7 +5,7 @@
     x64: `shadowsocks/shadowsocks-libev`
   },
   tags: [
-    `Proxies`, `VPN`, `Networking`
+    `Proxy`, `VPN`, `Networking`
   ],
   actions: [
     {
