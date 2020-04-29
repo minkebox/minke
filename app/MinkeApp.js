@@ -1326,7 +1326,7 @@ MinkeApp.prototype = {
   },
 
   _expressionString2JS: function(str) {
-    return '"'+str.replace(/"/g, '\\"').replace(/\n/g, ' ').replace(/{{/g, '"+').replace(/}}/g, '+"')+'"';
+    return '"'+str.replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/{{/g, '"+').replace(/}}/g, '+"')+'"';
   },
 
   expandPath: async function(path) {
