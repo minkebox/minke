@@ -3,7 +3,7 @@
   description: `Send web requests to specific domains via a different network`,
   image: `registry.minkebox.net/minkebox/netproxy`,
   uuid: `1B2AB39F-2472-47AB-AE40-ECCE9CF58484`,
-  tags: [ 'Proxies', `Dns` ],
+  tags: [ 'Proxy', `Dns` ],
   actions: [
     {
       type: `Header`,
