@@ -249,6 +249,10 @@ MinkeSetup.prototype = {
     return this._vars[key].value;
   },
 
+  setVariable: function(key, value) {
+    this._vars[key].value = value;
+  },
+
   getAvailableNetworks: function() {
     return [];
   },
