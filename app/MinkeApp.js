@@ -320,6 +320,9 @@ MinkeApp.prototype = {
     this._bootcount = 0;
     this._position = { tab: 0, widget: 0 };
 
+    // Need JS available for configuration.
+    this.createJS();
+
     await this.updateFromSkeleton(skel, {});
 
     this._setStatus('stopped');
@@ -2141,8 +2144,6 @@ MinkeApp.shutdown = async function(config) {
 MinkeApp.create = async function(image) {
   const app = await new MinkeApp().createFromSkeleton((await Skeletons.loadSkeleton(image, true)).skeleton);
   applications.push(app);
-  // Need JS available for configuration.
-  app.createJS();
   await app.save();
 
   if (app._willCreateNetwork()) {
