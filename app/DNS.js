@@ -3,6 +3,7 @@ const Net = require('net');
 const ChildProcess = require('child_process');
 const FS = require('fs');
 const DnsPkt = require('dns-packet');
+const Config = require('./Config');
 const Network = require('./Network');
 const Database = require('./Database');
 const MDNS = require('./MDNS');
@@ -40,15 +41,25 @@ const PrivateDNS = {
     switch (request.questions[0].type) {
       case 'A':
       {
-        const fullname = request.questions[0].name;
-        const name = fullname.split('.');
-        if ((name.length === 2 && name[1].toLowerCase() === this._domainName) || (name.length === 1 && !this._domainName)) {
-          const ip = this._hostname2ip4[name[0].toLowerCase()];
+        const fullname = request.questions[0].name.toLowerCase();
+        let name = null;
+        const sname = fullname.split('.');
+        if (sname.length === 1 && !this._domainName) {
+          name = sname[0];
+        }
+        else if (sname.length === 2 && sname[1] === this._domainName) {
+          name = sname[0];
+        }
+        else if (sname.length === 3 && Config.GLOBALDOMAIN === `.${sname[1]}.${sname[2]}`) {
+          name = fullname;
+        }
+        if (name) {
+          const ip = this._hostname2ip4[name];
           if (ip) {
             response.answers.push(
               { name: fullname,  ttl: this._ttl, type: 'A', data: ip }
             );
-            const ip6 = this._hostname2ip6[name[0].toLowerCase()];
+            const ip6 = this._hostname2ip6[name];
             if (ip6) {
               response.additionals.push(
                 { name: fullname, ttl: this._ttl, type: 'AAAA', data: ip6 }
@@ -65,15 +76,25 @@ const PrivateDNS = {
       }
       case 'AAAA':
       {
-        const fullname = request.questions[0].name;
-        const name = fullname.split('.');
-        if ((name.length === 2 && name[1].toLowerCase() === this._domainName) || (name.length === 1 && !this._domainName)) {
-          const ip6 = this._hostname2ip6[name[0].toLowerCase()];
+        const fullname = request.questions[0].name.toLowerCase();
+        let name = null;
+        const sname = fullname.split('.');
+        if (sname.length === 1 && !this._domainName) {
+          name = sname[0];
+        }
+        else if (sname.length === 2 && sname[1] === this._domainName) {
+          name = sname[0];
+        }
+        else if (sname.length === 3 && Config.GLOBALDOMAIN === `.${sname[1]}.${sname[2]}`) {
+          name = fullname;
+        }
+        if (name) {
+          const ip6 = this._hostname2ip6[name];
           if (ip6) {
             response.answers.push(
               { name: fullname, ttl: this._ttl, type: 'AAAA', data: ip6 }
             );
-            const ip = this._hostname2ip4[name[0].toLowerCase()];
+            const ip = this._hostname2ip4[name];
             if (ip) {
               response.additionals.push(
                 { name: fullname, ttl: this._ttl, type: 'A', data: ip }
