@@ -149,7 +149,8 @@
     {
       type: `Directory`,
       name: `/mastodon/public/system`,
-      use: `mastodon-public-system`
+      use: `mastodon-public-system`,
+      backup: true
     },
     {
       type: `Port`,
@@ -196,7 +197,8 @@
         },
         {
           type: `Directory`,
-          name: `/var/lib/postgresql/data`
+          name: `/var/lib/postgresql/data`,
+          backup: true
         }
       ]
     },
@@ -259,7 +261,8 @@
         },
         {
           type: `Directory`,
-          name: `/firstuse`
+          name: `/firstuse`,
+          backup: true
         }
       ]
     },
