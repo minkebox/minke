@@ -40,7 +40,7 @@
       type: `EditEnvironment`,
       name: `ADMIN_USER`,
       description: `Username`,
-      validate: `(?!admin$|support$|help$|roo$t|webmaster$|administrator$|mod$|moderator$).*`,
+      validate: `(?!admin$|support$|help$|root$|webmaster$|administrator$|mod$|moderator$).*`,
       enabled: `property.FirstUse`,
       initValue: `control`
     },
