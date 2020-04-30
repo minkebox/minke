@@ -200,7 +200,7 @@ async function ConfigurePageHTML(ctx) {
           {
             if (app._fs) {
               try {
-                app._vars[action.name].value = JSON.parse(await app._fs.readFromFile(action.name));
+                app.setVariable(action.name, await app._fs.readFromFile(action.name));
               }
               catch (_) {
               }
@@ -211,7 +211,7 @@ async function ConfigurePageHTML(ctx) {
         case 'ShowFile':
           {
             if (app._fs) {
-              app._vars[action.name].value = await app._fs.readFromFile(action.name);
+              app.setVariable(action.name, await app._fs.readFromFile(action.name));
             }
             const data = app._vars[action.name].value;
             return Object.assign({ value: data }, action, { description: await expandString(action.description) });
@@ -220,7 +220,7 @@ async function ConfigurePageHTML(ctx) {
         case 'EditFile':
           {
             if (app._fs) {
-              app._vars[action.name].value = await app._fs.readFromFile(action.name);
+              app.setVariable(action.name, await app._fs.readFromFile(action.name));
             }
             const data = app._vars[action.name].value;
             return Object.assign({ action: `window.action('${action.type}#${action.name}',this.value)`, value: data, filename: Path.basename(action.name) }, action, { description: await expandString(action.description) });
@@ -524,31 +524,19 @@ async function ConfigurePageWS(ctx) {
     {
       p: /^(EditEnvironment|SelectDirectory|EditFile)#(.+)$/, f: async (value, match) => {
         const key = match[2];
-        if (app._vars[key] && app._vars[key].value !== value) {
-          app._vars[key].value = value;
-          return APPCHANGE;
-        }
-        return NOCHANGE;
+        return app.setVariable(key, value) ? APPCHANGE : NOCHANGE;
       }
     },
     {
       p: /^EditEnvironmentAsCheckbox#(.+)$/, f: async (value, match) => {
         const key = match[1];
-        if (app._vars[key] && app._vars[key].value !== value) {
-          app._vars[key].value = !!value;
-          return APPCHANGE;
-        }
-        return NOCHANGE;
+        return app.setVariable(key, !!value) ? APPCHANGE : NOCHANGE;
       }
     },
     {
       p: /^(EditEnvironmentAsTable|SelectWebsites|EditFileAsTable)#(.+)$/, f: async (value, match) => {
         const key = match[2];
-        if (app._vars[key] && JSON.stringify(app._vars[key].value) !== value) {
-          app._vars[key].value = JSON.parse(value);
-          return APPCHANGE;
-        }
-        return NOCHANGE;
+        return app.setVariable(key, value) ? APPCHANGE : NOCHANGE;
       }
     },
     {
@@ -558,23 +546,21 @@ async function ConfigurePageWS(ctx) {
         const name = value.target.replace(/\//, '.') || match[4]; // The directory name in the parent
 
         if (app._vars[target]) {
-          const current = app._vars[target].value;
+          const current = [].concat(app._vars[target].value);
           const idx = current.findIndex(curr => curr.src === sharesrc);
           if (value.shared && idx === -1) {
             current.push({
               src: sharesrc,
               name: name
             });
-            return SHARECHANGE;
           }
-          if (value.shared && idx !== -1 && current[idx].name !== name) {
+          else if (value.shared && idx !== -1 && current[idx].name !== name) {
             current[idx].name = name;
-            return SHARECHANGE;
           }
           else if (!value.shared && idx !== -1) {
             current.splice(idx, 1);
-            return SHARECHANGE;
           }
+          return app.setVariable(target, current) ? SHARECHANGE : NOCHANGE;
         }
 
         return NOCHANGE;
