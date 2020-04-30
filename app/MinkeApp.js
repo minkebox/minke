@@ -212,7 +212,7 @@ MinkeApp.prototype = {
         case 'EditFile':
           this._vars[action.name] = {
             type: 'String',
-            value: await this.expandString(action.initValue),
+            value: ovalue || await this.expandString(action.initValue), // ovalue may be valid in some cases (restart)
             persist: false // Don't persist value in DB
           };
           break;
