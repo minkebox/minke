@@ -154,11 +154,16 @@ MinkeApp.prototype = {
       const ovalue = cvars[action.name] && cvars[action.name].value;
       switch (action.type) {
         case 'EditEnvironment':
-        case 'SetEnvironment':
           this._vars[action.name] = {
             type: 'String',
             value: ovalue || await this.expandString(action.initValue),
             defaultValue: action.defaultValue
+          };
+          break;
+        case 'SetEnvironment':
+          this._vars[action.name] = {
+            type: 'String',
+            value: ovalue || await this.expandString(action.value),
           };
           break;
         case 'EditEnvironmentAsCheckbox':
