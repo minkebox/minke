@@ -656,14 +656,14 @@ async function ConfigurePageWS(ctx) {
         if (skel) {
           // Make sure skeleton has unique id
           if (!skel.uuid) {
-            skel.uuid = UUID();
+            skel.uuid = UUID().toUpperCase();
           }
           else {
             // If skeleton exists, we can update in-place if it's already local. Otherwise
             // we assigned it a new id.
             const existing = Skeletons.loadSkeleton(skel.uuid, false);
             if (existing && existing.type !== 'local') {
-              skel.uuid = UUID();
+              skel.uuid = UUID().toUpperCase();
             }
           }
           Skeletons.saveLocalSkeleton(skel);

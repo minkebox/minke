@@ -92,7 +92,7 @@ async function imageToSkeleton(image) {
   return {
     name: 'MyApp',
     description: '',
-    uuid: UUID(),
+    uuid: UUID().toUpperCase(),
     image: image,
     tags: ['App'],
 
@@ -222,7 +222,7 @@ function dockerComposeToSkeleton(yml) {
   const skeleton = {
     name: 'MyApp',
     description: '',
-    uuid: UUID(),
+    uuid: UUID().toUpperCase(),
     image: null,
     tags: ['App'],
     delay: 0.1,
