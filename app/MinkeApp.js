@@ -506,6 +506,9 @@ MinkeApp.prototype = {
       // Make sure we have all the pieces
       await this.checkInstalled();
 
+      // Create new JS instance which will be used to evaluation app configuration
+      this.createJS();
+
       this._bootcount++;
 
       inherit = inherit || {};
@@ -1329,7 +1332,7 @@ MinkeApp.prototype = {
     return setup ? setup.getTimezone() : 'UTC';
   },
 
-  expandString: async function(txt, known) {
+  expandString: async function(txt, extras) {
     if (!txt) {
       return txt;
     }
@@ -1341,7 +1344,7 @@ MinkeApp.prototype = {
     // Convert to evaluatable form and eval
     else {
       try {
-        txt = await this._eval(this._expressionString2JS(txt), known);
+        txt = await this._eval(this._expressionString2JS(txt), extras);
       }
       catch (e) {
         console.log(e);
@@ -1456,14 +1459,38 @@ MinkeApp.prototype = {
     return true;
   },
 
-  expandVariable: async function(name, known) {
+  setVariable: function(name, value) {
+    const v = this._vars[name];
+    if (v && v !== value) {
+      switch (v.type) {
+        case 'Array':
+          if (JSON.stringify(v.value) !== value) {
+            v.value = JSON.parse(value);
+            return true;
+          }
+          break;
+        case 'PathSet':
+          if (JSON.stringify(v.value) !== JSON.stringify(value)) {
+            v.value = value;
+            return true;
+          }
+          break;
+        default:
+          v.value = value;
+          return true;
+      }
+    }
+    return false;
+  },
+
+  expandVariable: async function(name) {
     const v = this._vars[name];
     if (!v) {
       return null;
     }
     let value = v.value;
     if ((value === undefined || value === null || value === '') && v.defaultValue) {
-      value = await this.expandString(v.defaultValue, Object.assign({ [name]: null, known }));
+      value = await this.expandString(v.defaultValue);
     }
     switch (v.type) {
       case 'String':
@@ -1489,7 +1516,7 @@ MinkeApp.prototype = {
         const value = v.value || [];
         const nvalue = [];
         for (let r = 0; r < value.length; r++) {
-          nvalue.push(await this.expandString(encoding.pattern, Object.assign({ [name]: null, V: value[r] }, known)));
+          nvalue.push(await this.expandString(encoding.pattern, { V: value[r] }));
         }
         return nvalue.join(encoding.join);
       }
@@ -1525,88 +1552,116 @@ MinkeApp.prototype = {
     return fullEnv;
   },
 
-  _eval: async function(code, known) {
+  _eval: async function(code, extras) {
     try {
-      const js = await this._getJS(known || {});
-      const result = await this.execJS(js, code);
+      const result = await this.execJS(code, extras);
       //console.log('eval', code, result);
       return result;
     }
     catch (e) {
-      console.error('eval fail', code, this._vars, e.stack);
+      console.error('eval fail', code, this._vars);
       throw e;
     }
   },
 
-  _getJS: async function(known) {
-    // Pre-expand the variables
-    const evars = {};
-    for (let name in this._vars) {
-      if (!(name in known)) {
-        evars[name] = await this.expandVariable(name, Object.assign({ [name]: null }, known));
+  createJS: async function() {
+    //console.log(`Creating JS for ${this._name}`);
+    const oldJS = this._js;
+
+    // Create new interpreter
+    const js = new JSInterpreter('');
+    this._js = js;
+    const glb = this._js.globalObject;
+
+    const asyncWrap = (fn) => {
+      return js.createAsyncFunction(async (a,b,c,d,e,f,g,h,i, callback) => {
+        let result = null;
+        js._inAsyncFn = true;
+        try {
+          result = await fn(a,b,c,d,e,f,g,h,i);
+        }
+        catch (_) {
+        }
+        js._inAsyncFn = false;
+        callback(result);
+      });
+    };
+
+    // Set various app values
+    js.setProperty(glb, '__GLOBALNAME', `${this._globalId}${GLOBALDOMAIN}`);
+    js.setProperty(glb, '__DOMAINNAME', MinkeApp.getLocalDomainName());
+    js.setProperty(glb, '__HOSTIP', MinkeApp._network.network.ip_address);
+    js.setProperty(glb, '__HOMEIP', this._homeIP);
+    js.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
+    js.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress());
+    js.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
+    if (!this._homeIP) {
+      js.setProperty(glb, '__HOMEADDRESSES', '');
+    }
+    else if (!this.getSLAACAddress()) {
+      js.setProperty(glb, '__HOMEADDRESSES', this._homeIP);
+    }
+    else {
+      js.setProperty(glb, '__HOMEADDRESSES', `${this._homeIP} and ${this.getSLAACAddress()}`);
+    }
+    js.setProperty(glb, '__RANDOMHEX', js.createNativeFunction(len => {
+      return this._generateSecurePassword(len);
+    }));
+    js.setProperty(glb, '__RANDOMPORTS', asyncWrap(async nr => {
+      return await this._allocateRandomNatPorts(nr);
+    }));
+
+    if (oldJS) {
+      // Copy current variable state over as initial state
+      const oglb = oldJS.globalObject;
+      for (let name in this._vars) {
+        this._js.setProperty(glb, name, oldJS.getProperty(oglb, name));
+      }
+    }
+    else {
+      // Otherwise, set initial variables to undefined (we want them to exist)
+      for (let name in this._vars) {
+        this._js.setProperty(glb, name, undefined);
       }
     }
 
-    // Create an interpreter
-    return new JSInterpreter('', (intr, glb) => {
+    // Add current variables. Evaluating variables may, in turn, result in calls to
+    // the interpreter (which is why we setup initial values).
+    for (let name in this._vars) {
+      this._js.setProperty(glb, name, await this.expandVariable(name));
+    }
 
-      const asyncWrap = (fn) => {
-        return intr.createAsyncFunction(async (a,b,c,d,e,f,g,h,i, callback) => {
-          let result = null;
-          intr._inAsyncFn = true;
-          try {
-            result = await fn(a,b,c,d,e,f,g,h,i);
-          }
-          catch (_) {
-          }
-          intr._inAsyncFn = false;
-          callback(result);
-        });
-      };
-
-      for (let name in known) {
-        intr.setProperty(glb, name, intr.nativeToPseudo(known[name]));
-      }
-      for (let name in evars) {
-        intr.setProperty(glb, name, intr.nativeToPseudo(evars[name]));
-      }
-      intr.setProperty(glb, '__APPNAME', this._name);
-      intr.setProperty(glb, '__HOSTNAME', this._safeName());
-      intr.setProperty(glb, '__GLOBALNAME', `${this._globalId}${GLOBALDOMAIN}`);
-      intr.setProperty(glb, '__DOMAINNAME', MinkeApp.getLocalDomainName());
-      intr.setProperty(glb, '__HOSTIP', MinkeApp._network.network.ip_address);
-      intr.setProperty(glb, '__HOMEIP', this._homeIP);
-      intr.setProperty(glb, '__HOMEIP6', this.getSLAACAddress());
-      intr.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
-      intr.setProperty(glb, '__DEFAULTIP', this._defaultIP);
-      intr.setProperty(glb, '__SECONDARYIP', this._secondaryIP);
-      intr.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress());
-      intr.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
-      if (this._homeIP) {
-        if (this.getSLAACAddress()) {
-          intr.setProperty(glb, '__HOMEADDRESSES', `${this._homeIP} and ${this.getSLAACAddress()}`);
-        }
-        else {
-          intr.setProperty(glb, '__HOMEADDRESSES', this._homeIP);
-        }
-      }
-      else {
-        intr.setProperty(glb, '__HOMEADDRESSES', '');
-      }
-      intr.setProperty(glb, '__RANDOMHEX', intr.createNativeFunction(len => {
-        return this._generateSecurePassword(len);
-      }));
-      intr.setProperty(glb, '__RANDOMPORTS', asyncWrap(async nr => {
-        return await this._allocateRandomNatPorts(nr);
-      }));
-    });
+    return this._js;
   },
 
-  execJS: async function(js, code) {
-    js.appendCode(code);
-    for (let i = 0; i < JSINTERPRETER_STEPS && (js.step() || js._inAsyncFn); i++) {
-      if (js._inAsyncFn) {
-        await new Promise(done => setTimeout(done, 10));
+  updateJSProperty: function(name, value) {
+    this._js.setProperty(this._js.globalObject, name, this._js.nativeToPseudo(value));
+  },
+
+  execJS: async function(code, extras) {
+    const js = this._js;
+    if (!js) {
+      throw new Error('Missing interpreter');
+    }
+    try {
+      if (extras) {
+        js.setProperty(js.globalObject, '__extras', js.nativeToPseudo(extras));
+        code = `with(__extras){${code}}`;
+      }
+      js.appendCode(code);
+      let i;
+      for (i = 0; i < JSINTERPRETER_STEPS && (js.step() || js._inAsyncFn); i++) {
+        if (js._inAsyncFn) {
+          await new Promise(done => setTimeout(done, 10));
+        }
+      }
+      if (i >= JSINTERPRETER_STEPS) {
+        throw new Error('Interpreter overrun');
+      }
+    }
+    finally {
+      if (extras) {
+        delete js.globalObject.properties.__extras;
       }
     }
     return js.pseudoToNative(js.value);
@@ -1630,6 +1685,7 @@ MinkeApp.prototype = {
           let idx = data.indexOf('MINKE:DHCP:IP ');
           if (idx !== -1) {
             this._homeIP = data.replace(/.*MINKE:DHCP:IP (.*)\n.*/, '$1');
+            this.updateJSProperty('__HOMEIP', this._homeIP);
           }
           idx = data.indexOf('MINKE:DEFAULT:IP ');
           if (idx !== -1) {
@@ -2085,10 +2141,13 @@ MinkeApp.shutdown = async function(config) {
 MinkeApp.create = async function(image) {
   const app = await new MinkeApp().createFromSkeleton((await Skeletons.loadSkeleton(image, true)).skeleton);
   applications.push(app);
+  // Need JS available for configuration.
+  app.createJS();
+  await app.save();
+
   if (app._willCreateNetwork()) {
     Root.emit('net.create', { app: app });
   }
-  await app.save();
   Root.emit('app.create', { app: app });
 
   return app;
