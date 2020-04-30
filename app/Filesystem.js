@@ -18,7 +18,7 @@ _Filesystem.prototype = {
   getAllMounts: async function(app) {
     const mounts = Flatten([
       await Promise.all(app._binds.map(async map => await this._makeMount(map))),
-      await Promise.all(app._files.map(async file => await this._makeFile(file)))
+      await Promise.all(app._files.map(async file => await this._makeFile(app, file)))
     ]);
 
     // Remove any internal child mounts
@@ -117,19 +117,35 @@ _Filesystem.prototype = {
     return binds;
   },
 
-  _makeFile: async function(file) {
+  _makeFile: async function(app, file) {
     //console.log('_makeFile', file);
-    const data = await this._expandFileWithDefault(file.target, file.value);
-    FS.mkdirSync(Path.dirname(file.src), { recursive: true, mode: 0o777 });
+    const target = await this._expandString(file.target);
+    const data = await this._expandFileWithDefault(target, file.value);
+
+    // If file.target is inside a directory mount, we just create the file inside that
+    // and don't mount it seperately.
+    let src = file.src;
+    for (let i = 0; i < app._binds.length; i++) {
+      const bindtarget = await this._expandString(app._binds[i].target);
+      if (target.indexOf(bindtarget) === 0 && target[bindtarget.length] === '/') {
+        src = `${app._binds[i].src}${target.substring(bindtarget.length)}`;
+        // With the 'src' inside a bind, we don't strictly need the bind being returned below,
+        // but we'll let the 'removeChildren' filter handle this.
+        break;
+      }
+    }
+
+    FS.mkdirSync(Path.dirname(src), { recursive: true, mode: 0o777 });
     if (data !== null && data !== undefined) {
-      FS.writeFileSync(file.src, data, { mode: ('mode' in file ? file.mode : 0o666) });
+      FS.writeFileSync(src, data, { mode: ('mode' in file ? file.mode : 0o666) });
     }
     else if (!FS.existsSync(file.src)) {
-      FS.writeFileSync(file.src, '', { mode: ('mode' in file ? file.mode : 0o666) });
+      FS.writeFileSync(src, '', { mode: ('mode' in file ? file.mode : 0o666) });
     }
+
     return {
       Type: 'bind',
-      Source: Filesystem.mapFilenameToNative(file.src),
+      Source: Filesystem.mapFilenameToNative(src),
       Target: file.target,
       BindOptions: {
         Propagation: 'rshared'
@@ -137,11 +153,25 @@ _Filesystem.prototype = {
     }
   },
 
-  readFromFile: function(path) {
+  readFromFile: async function(path) {
     try {
-      const file = this._primaryApp._files.find(file => file.target === path);
-      if (file) {
-        return FS.readFileSync(file.src, { encoding: 'utf8' });
+      const target = await this._expandString(path);
+      let src = null;
+      for (let i = 0; i < this._primaryApp._binds.length; i++) {
+        const bindtarget = await this._expandString(this._primaryApp._binds[i].target);
+        if (target.indexOf(bindtarget) === 0 && target[bindtarget.length] === '/') {
+          src = `${this._primaryApp._binds[i].src}${target.substring(bindtarget.length)}`;
+          break;
+        }
+      }
+      if (!src) {
+        const file = this._primaryApp._files.find(file => file.target === target);
+        if (file) {
+          src = file.src;
+        }
+      }
+      if (src) {
+        return FS.readFileSync(src, { encoding: 'utf8' });
       }
     }
     catch (_) {
@@ -188,6 +218,8 @@ _Filesystem.prototype = {
       for (let idx = 0; outer && idx < mounts.length; idx++) {
         const inner = mounts[idx];
         if (outer !== inner && outer.Source.indexOf(inner.Source) === 0 && outer.Target.indexOf(inner.Target) === 0) {
+          const outerSourceExtra = outer.Source.substring(inner.Source.length);
+          const outerTargetExtra = outer.Target.substring(inner.Target.length);
           if (outer.Source[inner.Source.length] === '/' && outer.Target[inner.Target.length] === '/') {
             // Outer is a child of Inner. Its source is a child path and it's target is a child path. - ignore
             outer = null;

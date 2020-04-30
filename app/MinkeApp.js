@@ -23,6 +23,7 @@ const Skeletons = require('./Skeletons');
 const ConfigBackup = require('./ConfigBackup');
 
 const GLOBALDOMAIN = Config.GLOBALDOMAIN;
+const APP_MIGRATIONS = Config.APP_MIGRATIONS || {};
 
 const CRASH_TIMEOUT = (2 * 60 * 1000); // 2 minutes
 const HELPER_STARTUP_TIMEOUT = (30 * 1000); // 30 seconds
@@ -153,11 +154,16 @@ MinkeApp.prototype = {
       const ovalue = cvars[action.name] && cvars[action.name].value;
       switch (action.type) {
         case 'EditEnvironment':
-        case 'SetEnvironment':
           this._vars[action.name] = {
             type: 'String',
             value: ovalue || await this.expandString(action.initValue),
             defaultValue: action.defaultValue
+          };
+          break;
+        case 'SetEnvironment':
+          this._vars[action.name] = {
+            type: 'String',
+            value: ovalue || await this.expandString(action.value),
           };
           break;
         case 'EditEnvironmentAsCheckbox':
@@ -206,7 +212,7 @@ MinkeApp.prototype = {
         case 'EditFile':
           this._vars[action.name] = {
             type: 'String',
-            value: await this.expandString(action.initValue),
+            value: ovalue || await this.expandString(action.initValue), // ovalue may be valid in some cases (restart)
             persist: false // Don't persist value in DB
           };
           break;
@@ -310,10 +316,9 @@ MinkeApp.prototype = {
     }
     this._id = Database.newAppId();
     this._image = skel.image,
-    this._globalId = UUID();
+    this._globalId = UUID().toUpperCase();
     this._bootcount = 0;
     this._position = { tab: 0, widget: 0 };
-    this._skeleton = skel;
 
     await this.updateFromSkeleton(skel, {});
 
@@ -324,11 +329,13 @@ MinkeApp.prototype = {
 
   updateFromSkeleton: async function(skel, defs) {
 
+    this._skeleton = skel;
+    this._skeletonId = skel.uuid;
+
     await this.updateVariables(skel, this._vars || {});
 
-    this._skeletonId = skel.uuid;
     this._description = skel.description;
-    this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue;
+    this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).value;
 
     this._networks = {
       primary: 'none',
@@ -336,14 +343,14 @@ MinkeApp.prototype = {
     };
     skel.properties.forEach(prop => {
       if (prop.type === 'Network') {
-        if (prop.defaultValue === '__create') {
+        if (prop.defaultValue === '__create' || prop.value === '__create') {
           this._networks[prop.name] = this._id;
         }
         else if (defs.networks && defs.networks[prop.name]) {
           this._networks[prop.name] = defs.networks[prop.name];
         }
-        else if (prop.defaultValue) {
-          this._networks[prop.name] = prop.defaultValue;
+        else if (prop.value || prop.defaultValue) {
+          this._networks[prop.name] = prop.value || prop.defaultValue;
         }
       }
     });
@@ -368,7 +375,7 @@ MinkeApp.prototype = {
       this._secondary = await Promise.all(skel.secondary.map(async (secondary, idx) => {
         const secondaryApp = {
           _image: secondary.image,
-          _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).defaultValue,
+          _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).value,
           _delay: secondary.delay || 0
         };
         await this._parseProperties(secondaryApp, `${idx}`, secondary.properties);
@@ -463,15 +470,28 @@ MinkeApp.prototype = {
   },
 
   _updateIfBuiltin: async function() {
-    const skel = Skeletons.loadSkeleton(this.skeletonId(), false);
-    if (!skel || skel.type !== 'builtin') {
+    const cid = this.skeletonId();
+    const sid = APP_MIGRATIONS[cid] || cid;
+    const skel = Skeletons.loadSkeleton(sid, false);
+    if (!skel) {
       return false;
     }
-    const before = this.toJSON();
-    await this.updateFromSkeleton(skel.skeleton, before);
-    if (JSON.stringify(before) == JSON.stringify(this.toJSON())) {
-      return false;
+    // If we're migrating the app to another skeleton, we update and restart it regardless
+    if (cid !== sid) {
+      console.log(`Migrating app from ${cid} to ${sid}`);
+      await this.updateFromSkeleton(skel.skeleton, this.toJSON());
     }
+    else {
+      if (!skel || skel.type !== 'builtin') {
+        return false;
+      }
+      const before = this.toJSON();
+      await this.updateFromSkeleton(skel.skeleton, before);
+      if (JSON.stringify(before) == JSON.stringify(this.toJSON())) {
+        return false;
+      }
+    }
+    await this.save();
     return true;
   },
 
@@ -1135,6 +1155,11 @@ MinkeApp.prototype = {
     if (this.isRunning()) {
       await this.stop();
     }
+    // Force skeleton update on explicity restart
+    const skel = Skeletons.loadSkeleton(this.skeletonId(), false);
+    if (skel) {
+      await this.updateFromSkeleton(skel.skeleton, this.toJSON());
+    }
     await this.save();
     await this.start();
   },
@@ -1304,7 +1329,7 @@ MinkeApp.prototype = {
     return setup ? setup.getTimezone() : 'UTC';
   },
 
-  expandString: async function(txt) {
+  expandString: async function(txt, known) {
     if (!txt) {
       return txt;
     }
@@ -1316,18 +1341,17 @@ MinkeApp.prototype = {
     // Convert to evaluatable form and eval
     else {
       try {
-        txt = await this._eval(this._expressionString2JS(txt));
+        txt = await this._eval(this._expressionString2JS(txt), known);
       }
       catch (e) {
         console.log(e);
       }
     }
     return txt;
-
   },
 
   _expressionString2JS: function(str) {
-    return '"'+str.replace(/"/g, '\\"').replace(/\n/g, ' ').replace(/{{/g, '"+').replace(/}}/g, '+"')+'"';
+    return '"'+str.replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/{{/g, '"+').replace(/}}/g, '+"')+'"';
   },
 
   expandPath: async function(path) {
@@ -1386,7 +1410,7 @@ MinkeApp.prototype = {
       dns = !!port.dns ? {} : null;
     }
 
-    return {
+    const nport = {
       target: port.name || port.target,
       port: await this.expandNumber(port.port, port.defaultPort || 0),
       protocol: port.protocol,
@@ -1395,6 +1419,8 @@ MinkeApp.prototype = {
       nat: await this.expandBool(port.nat || false),
       mdns: port.mdns || null
     };
+    //console.log(port, nport);
+    return nport;
   },
 
   expandNumber: async function(val, alt) {
@@ -1430,14 +1456,14 @@ MinkeApp.prototype = {
     return true;
   },
 
-  expandVariable: async function(name) {
+  expandVariable: async function(name, known) {
     const v = this._vars[name];
     if (!v) {
       return null;
     }
     let value = v.value;
     if ((value === undefined || value === null || value === '') && v.defaultValue) {
-      value = await this.expandString(v.defaultValue);
+      value = await this.expandString(v.defaultValue, Object.assign({ [name]: null, known }));
     }
     switch (v.type) {
       case 'String':
@@ -1455,21 +1481,15 @@ MinkeApp.prototype = {
         return value;
       case 'Path':
       {
-        return String(value);
+        return value === undefined || value === null ? value : String(value);
       }
       case 'Array':
       {
-        const encoding = v.encoding || { pattern: '{{0}}', join: '\n' };
+        const encoding = v.encoding || { pattern: '{{V[0]}}', join: '\n' };
         const value = v.value || [];
         const nvalue = [];
         for (let r = 0; r < value.length; r++) {
-          const row = value[r];
-          let line = encoding.pattern;
-          for (let c = 0; c < row.length; c++) {
-            line = line.replace(new RegExp('\\{\\{' + c + '\\}\\}', 'g'), row[c])
-                        .replace(new RegExp('\\{\\{uri\(' + c + '\)\\}\\}', 'g'), encodeURIComponent(row[c]));
-          }
-          nvalue.push(line);
+          nvalue.push(await this.expandString(encoding.pattern, Object.assign({ [name]: null, V: value[r] }, known)));
         }
         return nvalue.join(encoding.join);
       }
@@ -1488,11 +1508,11 @@ MinkeApp.prototype = {
     // Evaluate the environment
     for (let key in env) {
       let value = null;
-      if (this._vars[key]) {
-        value = await this.expandVariable(key);
-      }
-      else if (env[key] && env[key].value) {
+      if (env[key] && env[key].value) {
         value = await this._eval(env[key].value);
+      }
+      else if (this._vars[key]) {
+        value = await this.expandVariable(key, {});
       }
       if (value === undefined || value === null) {
         fullEnv[key] = { value: '' };
@@ -1505,53 +1525,91 @@ MinkeApp.prototype = {
     return fullEnv;
   },
 
-  _eval: async function(val) {
+  _eval: async function(code, known) {
     try {
-      const js = new JSInterpreter(val, (intr, glb) => {
-        for (let name in this._vars) {
-          intr.setProperty(glb, name, intr.nativeToPseudo(this.expandVariable(name)));
-        }
-        intr.setProperty(glb, '__APPNAME', this._name);
-        intr.setProperty(glb, '__HOSTNAME', this._safeName());
-        intr.setProperty(glb, '__GLOBALNAME', `${this._globalId}${GLOBALDOMAIN}`);
-        intr.setProperty(glb, '__DOMAINNAME', MinkeApp.getLocalDomainName());
-        intr.setProperty(glb, '__HOSTIP', MinkeApp._network.network.ip_address);
-        intr.setProperty(glb, '__HOMEIP', this._homeIP);
-        intr.setProperty(glb, '__HOMEIP6', this.getSLAACAddress());
-        intr.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
-        intr.setProperty(glb, '__DEFAULTIP', this._defaultIP);
-        intr.setProperty(glb, '__SECONDARYIP', this._secondaryIP);
-        intr.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress());
-        intr.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
-        if (this._homeIP) {
-          if (this.getSLAACAddress()) {
-            intr.setProperty(glb, '__HOMEADDRESSES', `${this._homeIP} and ${this.getSLAACAddress()}`);
-          }
-          else {
-            intr.setProperty(glb, '__HOMEADDRESSES', this._homeIP);
-          }
-        }
-        else {
-          intr.setProperty(glb, '__HOMEADDRESSES', '');
-        }
-        intr.setProperty(glb, '__RANDOMHEX', intr.createNativeFunction(len => {
-          return this._generateSecurePassword(len);
-        }));
-        intr.setProperty(glb, '__RANDOMPORTS', intr.createAsyncFunction((nr, callback) => {
-          this._allocateRandomNatPorts(nr).then(randomport => {
-            callback(randomport);
-          });
-        }));
-      });
-      for (let i = 0; i < JSINTERPRETER_STEPS && js.step(); i++)
-        ;
-      //console.log('eval', val, js.pseudoToNative(js.value));
-      return js.pseudoToNative(js.value);
+      const js = await this._getJS(known || {});
+      const result = await this.execJS(js, code);
+      //console.log('eval', code, result);
+      return result;
     }
     catch (e) {
-      console.log('eval fail', val, this._vars, e.stack);
+      console.error('eval fail', code, this._vars, e.stack);
       throw e;
     }
+  },
+
+  _getJS: async function(known) {
+    // Pre-expand the variables
+    const evars = {};
+    for (let name in this._vars) {
+      if (!(name in known)) {
+        evars[name] = await this.expandVariable(name, Object.assign({ [name]: null }, known));
+      }
+    }
+
+    // Create an interpreter
+    return new JSInterpreter('', (intr, glb) => {
+
+      const asyncWrap = (fn) => {
+        return intr.createAsyncFunction(async (a,b,c,d,e,f,g,h,i, callback) => {
+          let result = null;
+          intr._inAsyncFn = true;
+          try {
+            result = await fn(a,b,c,d,e,f,g,h,i);
+          }
+          catch (_) {
+          }
+          intr._inAsyncFn = false;
+          callback(result);
+        });
+      };
+
+      for (let name in known) {
+        intr.setProperty(glb, name, intr.nativeToPseudo(known[name]));
+      }
+      for (let name in evars) {
+        intr.setProperty(glb, name, intr.nativeToPseudo(evars[name]));
+      }
+      intr.setProperty(glb, '__APPNAME', this._name);
+      intr.setProperty(glb, '__HOSTNAME', this._safeName());
+      intr.setProperty(glb, '__GLOBALNAME', `${this._globalId}${GLOBALDOMAIN}`);
+      intr.setProperty(glb, '__DOMAINNAME', MinkeApp.getLocalDomainName());
+      intr.setProperty(glb, '__HOSTIP', MinkeApp._network.network.ip_address);
+      intr.setProperty(glb, '__HOMEIP', this._homeIP);
+      intr.setProperty(glb, '__HOMEIP6', this.getSLAACAddress());
+      intr.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
+      intr.setProperty(glb, '__DEFAULTIP', this._defaultIP);
+      intr.setProperty(glb, '__SECONDARYIP', this._secondaryIP);
+      intr.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress());
+      intr.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
+      if (this._homeIP) {
+        if (this.getSLAACAddress()) {
+          intr.setProperty(glb, '__HOMEADDRESSES', `${this._homeIP} and ${this.getSLAACAddress()}`);
+        }
+        else {
+          intr.setProperty(glb, '__HOMEADDRESSES', this._homeIP);
+        }
+      }
+      else {
+        intr.setProperty(glb, '__HOMEADDRESSES', '');
+      }
+      intr.setProperty(glb, '__RANDOMHEX', intr.createNativeFunction(len => {
+        return this._generateSecurePassword(len);
+      }));
+      intr.setProperty(glb, '__RANDOMPORTS', asyncWrap(async nr => {
+        return await this._allocateRandomNatPorts(nr);
+      }));
+    });
+  },
+
+  execJS: async function(js, code) {
+    js.appendCode(code);
+    for (let i = 0; i < JSINTERPRETER_STEPS && (js.step() || js._inAsyncFn); i++) {
+      if (js._inAsyncFn) {
+        await new Promise(done => setTimeout(done, 10));
+      }
+    }
+    return js.pseudoToNative(js.value);
   },
 
   _monitorHelper: async function() {
@@ -1811,7 +1869,7 @@ MinkeApp.startApps = async function(app, config) {
     DNSSERVER2: '',
     TIMEZONE: Moment.tz.guess(),
     ADMINMODE: 'DISABLED',
-    GLOBALID: UUID(),
+    GLOBALID: UUID().toUpperCase(),
     POSITION: 0,
     HUMAN: 'unknown'
   }, {

@@ -72,92 +72,92 @@
     {
       type: `Environment`,
       name: `BITNAMI_APP_NAME`,
-      defaultValue: `discourse`
+      value: `discourse`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_EMAIL`,
-      defaultValue: `user@example.com`
+      value: `user@example.com`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_EXTERNAL_PORT_NUMBER`,
-      defaultValue: `80`
+      value: `80`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_HOST`,
-      defaultValue: `discourse`
+      value: `discourse`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_HOSTNAME`,
-      defaultValue: `Discourse1`
+      value: `Discourse1`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_USERNAME`,
-      defaultValue: `admin`
+      value: `admin`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_PASSWORD`,
-      defaultValue: `minkebox00`
+      value: `minkebox00`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_PORT`,
-      defaultValue: `80`
+      value: `80`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_PORT_NUMBER`,
-      defaultValue: `80`
+      value: `80`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_POSTGRESQL_NAME`,
-      defaultValue: `bitnami_application`
+      value: `bitnami_application`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_POSTGRESQL_PASSWORD`,
-      defaultValue: `bitnami1`
+      value: `bitnami1`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_POSTGRESQL_USERNAME`,
-      defaultValue: `bn_discourse`
+      value: `bn_discourse`
     },
     {
       type: `Environment`,
       name: `DISCOURSE_SITENAME`,
-      defaultValue: `My MinkeBox site`
+      value: `My MinkeBox site`
     },
     {
       type: `Environment`,
       name: `POSTGRESQL_CLIENT_CREATE_DATABASE_NAME`,
-      defaultValue: `bitnami_application`
+      value: `bitnami_application`
     },
     {
       type: `Environment`,
       name: `POSTGRESQL_CLIENT_CREATE_DATABASE_PASSWORD`,
-      defaultValue: `bitnami1`
+      value: `bitnami1`
     },
     {
       type: `Environment`,
       name: `POSTGRESQL_CLIENT_CREATE_DATABASE_USERNAME`,
-      defaultValue: `bn_discourse`
+      value: `bn_discourse`
     },
     {
       type: `Environment`,
       name: `POSTGRESQL_HOST`,
-      defaultValue: `localhost`
+      value: `localhost`
     },
     {
       type: `Environment`,
       name: `POSTGRESQL_PORT_NUMBER`,
-      defaultValue: `5432`
+      value: `5432`
     },
     {
       type: `Environment`,
@@ -166,12 +166,12 @@
     {
       type: `Environment`,
       name: `POSTGRESQL_ROOT_USER`,
-      defaultValue: `postgres`
+      value: `postgres`
     },
     {
       type: `Environment`,
       name: `REDIS_HOST`,
-      defaultValue: `localhost`
+      value: `localhost`
     },
     {
       type: `Environment`,
@@ -180,7 +180,7 @@
     {
       type: `Environment`,
       name: `REDIS_PORT_NUMBER`,
-      defaultValue: `6379`
+      value: `6379`
     },
     {
       type: `Environment`,
@@ -201,7 +201,7 @@
     {
       type: `Environment`,
       name: `SMTP_TLS`,
-      defaultValue: `true`
+      value: `true`
     },
     {
       type: `Directory`,
@@ -227,7 +227,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ],
   secondary: [
@@ -251,7 +251,7 @@
         {
           type: `Environment`,
           name: `ALLOW_EMPTY_PASSWORD`,
-          defaultValue: `yes`
+          value: `yes`
         },
         {
           type: `Directory`,
@@ -267,7 +267,7 @@
       properties: [
         {
           type: `Arguments`,
-          defaultValue: [
+          value: [
             `nami`,
             `start`,
             `--foreground`,
@@ -277,42 +277,42 @@
         {
           type: `Environment`,
           name: `POSTGRESQL_HOST`,
-          defaultValue: `localhost`
+          value: `localhost`
         },
         {
           type: `Environment`,
           name: `DISCOURSE_POSTGRESQL_NAME`,
-          defaultValue: `bitnami_application`
+          value: `bitnami_application`
         },
         {
           type: `Environment`,
           name: `DISCOURSE_POSTGRESQL_PASSWORD`,
-          defaultValue: `bitnami1`
+          value: `bitnami1`
         },
         {
           type: `Environment`,
           name: `DISCOURSE_POSTGRESQL_USERNAME`,
-          defaultValue: `bn_discourse`
+          value: `bn_discourse`
         },
         {
           type: `Environment`,
           name: `DISCOURSE_HOST`,
-          defaultValue: `localhost`
+          value: `localhost`
         },
         {
           type: `Environment`,
           name: `DISCOURSE_PORT`,
-          defaultValue: `80`
+          value: `80`
         },
         {
           type: `Environment`,
           name: `REDIS_HOST`,
-          defaultValue: `localhost`
+          value: `localhost`
         },
         {
           type: `Environment`,
           name: `DISCOURSE_HOSTNAME`,
-          defaultValue: `Discourse1`
+          value: `Discourse1`
         },
         {
           type: `Environment`,
@@ -333,7 +333,7 @@
         {
           type: `Environment`,
           name: `SMTP_TLS`,
-          defaultValue: `true`
+          value: `true`
         }
       ]
     }

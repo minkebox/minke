@@ -881,7 +881,7 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
     {
       type: 'Environment',
       name: 'UPDATETIME',
-      defaultValue: '03:00'
+      value: '03:00'
     },
     {
       type: 'Environment',
@@ -908,12 +908,12 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
     {
       type: 'Network',
       name: 'primary',
-      defaultValue: 'none'
+      value: 'none'
     },
     {
       type: 'Network',
       name: 'secondary',
-      defaultValue: 'home'
+      value: 'home'
     }
   ]
 }

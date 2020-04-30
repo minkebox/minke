@@ -88,7 +88,7 @@
       headers: [
         { name: `Username` }
       ],
-      pattern: `{{0}}`,
+      pattern: `{{V[0]}}`,
       join: `,`
     },
     {
@@ -98,7 +98,7 @@
       headers: [
         { name: `Username` }
       ],
-      pattern: `{{0}}`,
+      pattern: `{{V[0]}}`,
       join: `,`
     },
     {
@@ -301,27 +301,27 @@
     {
       type: `Environment`,
       name: `EULA`,
-      defaultValue: true
+      value: true
     },
     {
       type: `Environment`,
       name: `SERVER_NAME`,
-      defaultValue: `Minecraft on MinkeBox`
+      value: `Minecraft on MinkeBox`
     },
     {
       type: `Environment`,
       name: `MODE`,
-      defaultValue: `creative`
+      value: `creative`
     },
     {
       type: `Environment`,
       name: `SERVER_PORT`,
-      defaultValue: 25565
+      value: 25565
     },
     {
       type: `Environment`,
       name: `DIFFICULTY`,
-      defaultValue: `peaceful`
+      value: `peaceful`
     },
     {
       type: `Environment`,
@@ -334,92 +334,92 @@
     {
       type: `Environment`,
       name: `ENABLE_RCON`,
-      defaultValue: false
+      value: false
     },
     {
       type: `Environment`,
       name: `ENABLE_QUERY`,
-      defaultValue: false
+      value: false
     },
     {
       type: `Environment`,
       name: `QUERY_PORT`,
-      defaultValue: 25565
+      value: 25565
     },
     {
       type: `Environment`,
       name: `MAX_PLAYERS`,
-      defaultValue: 10
+      value: 10
     },
     {
       type: `Environment`,
       name: `MAX_WORLD_SIZE`,
-      defaultValue: 10000
+      value: 10000
     },
     {
       type: `Environment`,
       name: `ALLOW_NETHER`,
-      defaultValue: false
+      value: false
     },
     {
       type: `Environment`,
       name: `ANNOUNCE_PLAYER_ACHIEVEMENTS`,
-      defaultValue: true
+      value: true
     },
     {
       type: `Environment`,
       name: `ENABLE_COMMAND_BLOCK`,
-      defaultValue: false
+      value: false
     },
     {
       type: `Environment`,
       name: `GENERATE_STRUCTURES`,
-      defaultValue: true
+      value: true
     },
     {
       type: `Environment`,
       name: `HARDCORE`,
-      defaultValue: false
+      value: false
     },
     {
       type: `Environment`,
       name: `SNOOPER_ENABLED`,
-      defaultValue: false
+      value: false
     },
     {
       type: `Environment`,
       name: `MAX_BUILD_HEIGHT`,
-      defaultValue: 256
+      value: 256
     },
     {
       type: `Environment`,
       name: `MAX_TICK_TIME`,
-      defaultValue: -1
+      value: -1
     },
     {
       type: `Environment`,
       name: `FORCE_GAMEMODE`,
-      defaultValue: false
+      value: false
     },
     {
       type: `Environment`,
       name: `SPAWN_ANIMALS`,
-      defaultValue: true
+      value: true
     },
     {
       type: `Environment`,
       name: `SPAWN_MONSTERS`,
-      defaultValue: true
+      value: true
     },
     {
       type: `Environment`,
       name: `SPAWN_NPCS`,
-      defaultValue: true
+      value: true
     },
     {
       type: `Environment`,
       name: `VIEW_DISTANCE`,
-      defaultValue: 10
+      value: 10
     },
     {
       type: `Environment`,
@@ -428,17 +428,17 @@
     {
       type: `Environment`,
       name: `MOTD`,
-      defaultValue: `Welcome to Minecraft on MinkeBox`
+      value: `Welcome to Minecraft on MinkeBox`
     },
     {
       type: `Environment`,
       name: `PVP`,
-      defaultValue: false
+      value: false
     },
     {
       type: `Environment`,
       name: `LEVEL_TYPE`,
-      defaultValue: `DEFAULT`
+      value: `DEFAULT`
     },
     {
       type: `Environment`,
@@ -447,17 +447,17 @@
     {
       type: `Environment`,
       name: `LEVEL`,
-      defaultValue: `world`
+      value: `world`
     },
     {
       type: `Environment`,
       name: `VERSION`,
-      defaultValue: `LATEST`
+      value: `LATEST`
     },
     {
       type: `Environment`,
       name: `TYPE`,
-      defaultValue: `VANILLA`
+      value: `VANILLA`
     },
     {
       type: `Directory`,
@@ -508,7 +508,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ],
   monitor: {

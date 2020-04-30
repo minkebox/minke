@@ -53,7 +53,7 @@
         { name: `Client Public Key` },
         { name: `Client Private Key` }
       ],
-      pattern: `{{1}}#{{2}}`,
+      pattern: `{{V[1]}}#{{V[2]}}`,
       controls: true,
       id: 'wgc'
     },
@@ -213,12 +213,12 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `home`
+      value: `home`
     }
   ],
   monitor: {

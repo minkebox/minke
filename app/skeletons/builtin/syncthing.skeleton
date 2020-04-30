@@ -32,12 +32,12 @@
     {
       type: `Environment`,
       name: `PUID`,
-      defaultValue: `0`
+      value: `0`
     },
     {
       type: `Environment`,
       name: `HOME`,
-      defaultValue: `/`
+      value: `/`
     },
     {
       type: `Directory`,
@@ -86,7 +86,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ]
 }

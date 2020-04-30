@@ -43,7 +43,7 @@
   properties: [
     {
       type: `Arguments`,
-      defaultValue: [
+      value: [
         `server`,
         `/data`
       ]
@@ -64,27 +64,27 @@
     {
       type: `Environment`,
       name: `MINIO_UPDATE`,
-      defaultValue: `off`
+      value: `off`
     },
     {
       type: `Environment`,
       name: `MINIO_ACCESS_KEY_FILE`,
-      defaultValue: `access_key`
+      value: `access_key`
     },
     {
       type: `Environment`,
       name: `MINIO_SECRET_KEY_FILE`,
-      defaultValue: `secret_key`
+      value: `secret_key`
     },
     {
       type: `Environment`,
       name: `MINIO_KMS_MASTER_KEY_FILE`,
-      defaultValue: `kms_master_key`
+      value: `kms_master_key`
     },
     {
       type: `Environment`,
       name: `MINIO_SSE_MASTER_KEY_FILE`,
-      defaultValue: `sse_master_key`
+      value: `sse_master_key`
     },
     {
       type: `Port`,
@@ -100,7 +100,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ],
   monitor: {

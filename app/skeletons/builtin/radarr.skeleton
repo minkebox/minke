@@ -78,7 +78,7 @@ but you may want to use a VPN network for extra security and privacy.`
     {
       type: `Environment`,
       name: `HOME`,
-      defaultValue: `/root`
+      value: `/root`
     },
     {
       type: `Port`,
@@ -93,12 +93,12 @@ but you may want to use a VPN network for extra security and privacy.`
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `home`
+      value: `home`
     }
   ],
   secondary: [
@@ -138,7 +138,7 @@ but you may want to use a VPN network for extra security and privacy.`
           type: `File`,
           name: `/config/custom-cont-init.d/disable-password`,
           mode: 0o777,
-          defaultValue: `sed -i "s/ControlPassword=.*/ControlPassword=/" /config/nzbget.conf`
+          value: `sed -i "s/ControlPassword=.*/ControlPassword=/" /config/nzbget.conf`
         }
       ]
     }

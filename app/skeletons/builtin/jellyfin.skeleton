@@ -40,7 +40,7 @@
     {
       type: `Environment`,
       name: `DOTNET_RUNNING_IN_CONTAINER`,
-      defaultValue: `true`
+      value: `true`
     },
     {
       type: `Port`,
@@ -55,7 +55,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ]
 }

@@ -40,7 +40,7 @@
       type: `EditEnvironment`,
       name: `ADMIN_USER`,
       description: `Username`,
-      validate: `(?!admin$|support$|help$|roo$t|webmaster$|administrator$|mod$|moderator$).*`,
+      validate: `(?!admin$|support$|help$|root$|webmaster$|administrator$|mod$|moderator$).*`,
       enabled: `property.FirstUse`,
       initValue: `control`
     },
@@ -89,18 +89,18 @@
     {
       type: `SetEnvironment`,
       name: `OTP_SECRET`,
-      defaultValue: `{{__RANDOMHEX(64)}}`
+      value: `{{__RANDOMHEX(64)}}`
     },
     {
       type: `SetEnvironment`,
       name: `SECRET_KEY_BASE`,
-      defaultValue: `{{__RANDOMHEX(64)}}`
+      value: `{{__RANDOMHEX(64)}}`
     },
   ],
   properties: [
     {
       type: `Arguments`,
-      defaultValue: [
+      value: [
         `bash`,
         `-c`,
         `rm -f /mastodon/tmp/pids/server.pid; bundle exec rails s -p 3000`
@@ -149,7 +149,8 @@
     {
       type: `Directory`,
       name: `/mastodon/public/system`,
-      use: `mastodon-public-system`
+      use: `mastodon-public-system`,
+      backup: true
     },
     {
       type: `Port`,
@@ -163,7 +164,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ],
   secondary: [
@@ -182,21 +183,22 @@
         {
           type: `Environment`,
           name: `POSTGRES_HOST_AUTH_METHOD`,
-          defaultValue: `trust`
+          value: `trust`
         },
         {
           type: `Environment`,
           name: `POSTGRES_USER`,
-          defaultValue: `mastodon`
+          value: `mastodon`
         },
         {
           type: `Environment`,
           name: `POSTGRES_DB`,
-          defaultValue: `mastodon_production`
+          value: `mastodon_production`
         },
         {
           type: `Directory`,
-          name: `/var/lib/postgresql/data`
+          name: `/var/lib/postgresql/data`,
+          backup: true
         }
       ]
     },
@@ -206,7 +208,7 @@
       properties: [
         {
           type: `Arguments`,
-          defaultValue: [
+          value: [
             `bash`,
             `-c`,
             `if [ ! -e /firstuse/yes ]; then touch /firstuse/yes; rails db:migrate; tootctl accounts create $ADMIN_USER --role admin --email $ADMIN_EMAIL; fi; bundle exec sidekiq`
@@ -259,7 +261,8 @@
         },
         {
           type: `Directory`,
-          name: `/firstuse`
+          name: `/firstuse`,
+          backup: true
         }
       ]
     },
@@ -268,7 +271,7 @@
       properties: [
         {
           type: `Arguments`,
-          defaultValue: [
+          value: [
             `node`,
             `./streaming`
           ]

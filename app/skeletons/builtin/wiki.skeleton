@@ -21,32 +21,32 @@
     {
       type: `Environment`,
       name: `DB_TYPE`,
-      defaultValue: `postgres`
+      value: `postgres`
     },
     {
       type: `Environment`,
       name: `DB_HOST`,
-      defaultValue: `localhost`
+      value: `localhost`
     },
     {
       type: `Environment`,
       name: `DB_PORT`,
-      defaultValue: 5432
+      value: 5432
     },
     {
       type: `Environment`,
       name: `DB_USER`,
-      defaultValue: `wikijs`
+      value: `wikijs`
     },
     {
       type: `Environment`,
       name: `DB_PASS`,
-      defaultValue: `wikijsrocks`
+      value: `wikijsrocks`
     },
     {
       type: `Environment`,
       name: `DB_NAME`,
-      defaultValue: `wiki`
+      value: `wiki`
     },
     {
       type: `Port`,
@@ -61,7 +61,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ],
   secondary: [
@@ -72,17 +72,17 @@
         {
           type: `Environment`,
           name: `POSTGRES_DB`,
-          defaultValue: `wiki`
+          value: `wiki`
         },
         {
           type: `Environment`,
           name: `POSTGRES_USER`,
-          defaultValue: `wikijs`
+          value: `wikijs`
         },
         {
           type: `Environment`,
           name: `POSTGRES_PASSWORD`,
-          defaultValue: `wikijsrocks`
+          value: `wikijsrocks`
         },
         {
           type: 'Directory',

@@ -11,7 +11,7 @@
     },
     {
       type: `Arguments`,
-      defaultValue: [
+      value: [
         `--interface`,
         `br0`,
         `--disable-autologout`,
@@ -37,7 +37,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `host`
+      value: `host`
     }
   ]
 }

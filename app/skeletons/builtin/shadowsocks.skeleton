@@ -5,7 +5,7 @@
     x64: `shadowsocks/shadowsocks-libev`
   },
   tags: [
-    `Proxies`, `VPN`, `Networking`
+    `Proxy`, `VPN`, `Networking`
   ],
   actions: [
     {
@@ -116,7 +116,7 @@
     {
       type: `Environment`,
       name: `SERVER_NAME`,
-      defaultValue: `0.0.0.0`
+      value: `0.0.0.0`
     },
     {
       type: `Environment`,
@@ -125,17 +125,17 @@
     {
       type: `Environment`,
       name: `ENCRYPTION_METHOD`,
-      defaultValue: `aes-256-gcm`
+      value: `aes-256-gcm`
     },
     {
       type: `Environment`,
       name: `TIMEOUT`,
-      defaultValue: `300`
+      value: `300`
     },
     {
       type: `Environment`,
       name: `DNS_ADDRS`,
-      defaultValue: `{{__DNSSERVER}}`
+      value: `{{__DNSSERVER}}`
     },
     {
       type: `Port`,
@@ -147,7 +147,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ]
 }

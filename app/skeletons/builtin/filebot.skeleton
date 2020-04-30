@@ -36,7 +36,7 @@
     {
       type: `File`,
       name: `/config/filebot.conf`,
-      defaultValue: `SETTLE_DURATION=10
+      value: `SETTLE_DURATION=10
 MAX_WAIT_TIME=01:00
 MIN_PERIOD=05:00
 DEBUG=0
@@ -60,7 +60,7 @@ RUN_UI=yes
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ]
 }

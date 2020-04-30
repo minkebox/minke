@@ -61,7 +61,7 @@
     {
       type: `Environment`,
       name: `MODE`,
-      defaultValue: `CLIENT`
+      value: `CLIENT`
     },
     {
       type: `Directory`,
@@ -81,12 +81,12 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `__create`
+      value: `__create`
     }
   ],
   monitor: {

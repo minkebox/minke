@@ -26,32 +26,32 @@
     {
       type: `Environment`,
       name: `IPv6`,
-      defaultValue: `{{__IPV6ENABLED}}`
+      value: `{{__IPV6ENABLED}}`
     },
     {
       type: `Environment`,
       name: `WEBPASSWORD`,
-      defaultValue: ``
+      value: ``
     },
     {
       type: `Environment`,
       name: `DNS1`,
-      defaultValue: `127.0.0.1`
+      value: `127.0.0.1`
     },
     {
       type: `Environment`,
       name: `DNS2`,
-      defaultValue: `127.0.0.1`
+      value: `127.0.0.1`
     },
     {
       type: `Environment`,
       name: `VIRTUAL_HOST`,
-      defaultValue: `{{__HOSTIP}}`
+      value: `{{__HOSTIP}}`
     },
     {
       type: `Environment`,
       name: `DNSMASQ_LISTENING`,
-      defaultValue: `all`
+      value: `all`
     },
     {
       type: `Port`,
@@ -86,12 +86,12 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `dns`
+      value: `dns`
     }
   ],
   monitor: {

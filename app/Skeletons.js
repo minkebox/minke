@@ -92,7 +92,7 @@ async function imageToSkeleton(image) {
   return {
     name: 'MyApp',
     description: '',
-    uuid: UUID(),
+    uuid: UUID().toUpperCase(),
     image: image,
     tags: ['App'],
 
@@ -163,7 +163,7 @@ async function imageToSkeleton(image) {
       {
         type: 'Network',
         name: 'primary',
-        defaultValue: 'home'
+        value: 'home'
       }
     ),
     monitor: {
@@ -222,7 +222,7 @@ function dockerComposeToSkeleton(yml) {
   const skeleton = {
     name: 'MyApp',
     description: '',
-    uuid: UUID(),
+    uuid: UUID().toUpperCase(),
     image: null,
     tags: ['App'],
     delay: 0.1,
@@ -323,7 +323,7 @@ function dockerComposeToSkeleton(yml) {
     if (service.command) {
       skel.properties.push({
         type: 'Arguments',
-        defaultValue: cmdline(service.command)
+        value: cmdline(service.command)
       });
     }
 
@@ -366,7 +366,7 @@ function dockerComposeToSkeleton(yml) {
           skel.properties.push({
             type: 'Environment',
             name: ep[0],
-            defaultValue: ep[1]
+            value: ep[1]
           });
           if (ep[1].indexOf('${') !== -1) {
             skel.actions.push({
@@ -416,7 +416,7 @@ function dockerComposeToSkeleton(yml) {
   skeleton.properties.push({
     type: `Network`,
     name: `primary`,
-    defaultValue: `home`
+    value: `home`
   });
 
   if (!skeleton.secondary.length) {

@@ -56,37 +56,37 @@
     {
       type: `Environment`,
       name: `CACHE_MEM_SIZE`,
-      defaultValue: `50m`
+      value: `50m`
     },
     {
       type: `Environment`,
       name: `CACHE_DISK_SIZE`,
-      defaultValue: `50000m`
+      value: `50000m`
     },
     {
       type: `Environment`,
       name: `CACHE_MAX_AGE`,
-      defaultValue: `14d`
+      value: `14d`
     },
     {
       type: `Environment`,
       name: `CACHE_DOMAINS_REPO`,
-      defaultValue: `https://github.com/aanon4/cache-domains.git`
+      value: `https://github.com/aanon4/cache-domains.git`
     },
     {
       type: `Environment`,
       name: `BEAT_TIME`,
-      defaultValue: `1h`
+      value: `1h`
     },
     {
       type: `Environment`,
       name: `LOGFILE_RETENTION`,
-      defaultValue: `14`
+      value: `14`
     },
     {
       type: `Environment`,
       name: `NGINX_WORKER_PROCESSES`,
-      defaultValue: `auto`
+      value: `auto`
     },
     {
       type: `Port`,
@@ -110,12 +110,12 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `dns`
+      value: `dns`
     }
   ],
   secondary: [
@@ -127,27 +127,27 @@
         {
           type: `Environment`,
           name: `USE_GENERIC_CACHE`,
-          defaultValue: `true`
+          value: `true`
         },
         {
           type: `Environment`,
           name: `LANCACHE_IP`,
-          defaultValue: `{{__HOMEIP}}`
+          value: `{{__HOMEIP}}`
         },
         {
           type: `Environment`,
           name: `LANCACHE_DNSDOMAIN`,
-          defaultValue: `{{__DOMAINNAME}}`
+          value: `{{__DOMAINNAME}}`
         },
         {
           type: 'Environment',
           name: 'UPSTREAM_DNS',
-          defaultValue: '0.0.0.0'
+          value: '0.0.0.0'
         },
         {
           type: `Environment`,
           name: `CACHE_DOMAINS_REPO`,
-          defaultValue: `https://github.com/aanon4/cache-domains.git`
+          value: `https://github.com/aanon4/cache-domains.git`
         }
       ]
     },

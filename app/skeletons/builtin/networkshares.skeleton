@@ -33,7 +33,7 @@
           placeholder: `Guest`
         }
       ],
-      pattern: `{{0}},{{1}},{{2}},{{3}}
+      pattern: `{{V[0]}},{{V[1]}},{{V[2]}},{{V[3]}}
 `,
       join: ``
     }
@@ -64,7 +64,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ]
 }

@@ -41,7 +41,7 @@ https:// is used for DNS-over-HTTPS. A hostname in these URLs can contain only a
     {
       type: `Environment`,
       name: `IP6`,
-      defaultValue: `{{__IPV6ENABLED}}`
+      value: `{{__IPV6ENABLED}}`
     },
     {
       type: `Environment`,
@@ -67,12 +67,12 @@ https:// is used for DNS-over-HTTPS. A hostname in these URLs can contain only a
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `dns`
+      value: `dns`
     }
   ]
 }

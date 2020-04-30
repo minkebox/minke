@@ -3,7 +3,7 @@
   description: `Send web requests for specific domains via a proxy`,
   image: `registry.minkebox.net/minkebox/domainproxy`,
   uuid: `EDBA640E-0E00-4CC3-AE04-5B5247A631A3`,
-  tags: [ 'Proxies', `Dns` ],
+  tags: [ 'Proxy', `Dns` ],
   actions: [
     {
       type: `Header`,
@@ -39,7 +39,7 @@
       headers: [
         { name: `Domain name` }
       ],
-      pattern: `{{0}}`
+      pattern: `{{V[0]}}`
     }
   ],
   properties: [
@@ -68,12 +68,12 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `none`
+      value: `none`
     },
     {
       type: `Network`,
       name: `secondary`,
-      defaultValue: `home`
+      value: `home`
     }
   ]
 }

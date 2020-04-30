@@ -25,7 +25,7 @@
           name: `IP Address`
         }
       ],
-      pattern: `{{1}} {{0}}
+      pattern: `{{V[1]}} {{V[0]}}
 `,
       join: ``
     }
@@ -51,7 +51,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ]
 }

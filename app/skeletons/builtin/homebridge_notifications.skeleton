@@ -38,9 +38,9 @@
       description: `Notifications`,
       headers: [
         { name: `Name` },
-        { name: `Message`, encoding: `url` }
+        { name: `Message` }
       ],
-      pattern: `{ "accessory": "HTTP-SWITCH", "name": "{{0}}", "switchType": "stateless", "timeout": 1000, "onUrl": "https://maker.ifttt.com/trigger/homebridge_notifications/with/key/{{IFTTT_KEY}}?value1={{1}}" }`,
+      pattern: `{ "accessory": "HTTP-SWITCH", "name": "{{V[0]}}", "switchType": "stateless", "timeout": 1000, "onUrl": "https://maker.ifttt.com/trigger/homebridge_notifications/with/key/{{IFTTT_KEY}}?value1={{encodeURIComponent(V[1])}}" }`,
       join: `,`
     },
     {
@@ -66,9 +66,9 @@
       description: `Alexa Notifications`,
       headers: [
         { name: `Name` },
-        { name: `Message`, encoding: `url` }
+        { name: `Message` }
       ],
-      pattern: `{ "accessory": "HTTP-SWITCH", "name": "{{0}}", "switchType": "stateless", "timeout": 1000, "onUrl": "https://api.notifymyecho.com/v1/NotifyMe?accessCode={{NOTIFYME_KEY}}\\&notification={{1}}" }`,
+      pattern: `{ "accessory": "HTTP-SWITCH", "name": "{{V[0]}}", "switchType": "stateless", "timeout": 1000, "onUrl": "https://api.notifymyecho.com/v1/NotifyMe?accessCode={{NOTIFYME_KEY}}\\&notification={{encodeURIComponent(V[1])}}" }`,
       join: `,`
     }
   ],
@@ -86,12 +86,12 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Environment`,
       name: `BRIDGE_USERNAME`,
-      defaultValue: `{{__MACADDRESS}}`
+      value: `{{__MACADDRESS}}`
     },
     {
       type: `Environment`,

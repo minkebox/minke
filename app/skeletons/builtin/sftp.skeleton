@@ -74,12 +74,12 @@
     {
       type: `Environment`,
       name: `SSH_DATADIR_NAME`,
-      defaultValue: `../../tmp/ignore`
+      value: `../../tmp/ignore`
     },
     {
       type: `Environment`,
       name: `SSH_GENERATE_HOSTKEYS`,
-      defaultValue: `true`
+      value: `true`
     },
     {
       type: `Environment`,
@@ -124,7 +124,7 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     }
   ]
 }

@@ -34,12 +34,12 @@
     {
       type: `Network`,
       name: `primary`,
-      defaultValue: `home`
+      value: `home`
     },
     {
       type: `Environment`,
       name: `BRIDGE_USERNAME`,
-      defaultValue: `{{__MACADDRESS}}`
+      value: `{{__MACADDRESS}}`
     },
     {
       type: `Environment`,
