@@ -1,9 +1,9 @@
 const assert = require('assert');
+const FS = require('fs');
 
 require('./fixture/system.fixture')();
+require('./fixture/skeletons.fixture')();
 
-const FS = require('fs');
-const Path = require('path');
 
 describe('Skeletons', async function() {
 
@@ -26,5 +26,26 @@ describe('Skeletons', async function() {
     });
 
   });
+
+  describe('catalog', function() {
+
+    it('catalog isnt empty', function() {
+      assert.notEqual(this.skeletons.catalog().length, 0);
+    });
+
+  });
+
+  describe('loadSkeleton', function() {
+
+    it('load builtin', function() {
+      assert.ok(this.skeletons.loadSkeleton('FE8D1F85-0F18-4FFB-BA7F-FD91D2354CFE'));
+    });
+
+    it('load skeleton which doesnt exist', function() {
+      assert.ok(!this.skeletons.loadSkeleton('FE8D1F85-0000-0000-0000-FD91D2354CFE'));
+    });
+
+  });
+
 
 });
