@@ -316,7 +316,7 @@ MinkeApp.prototype = {
     }
     this._id = Database.newAppId();
     this._image = skel.image,
-    this._globalId = UUID().toUpperCase();
+    this._globalId = UUID().toLowerCase();
     this._bootcount = 0;
     this._position = { tab: 0, widget: 0 };
 
@@ -1947,7 +1947,7 @@ MinkeApp.startApps = async function(app, config) {
     DNSSERVER2: '',
     TIMEZONE: Moment.tz.guess(),
     ADMINMODE: 'DISABLED',
-    GLOBALID: UUID().toUpperCase(),
+    GLOBALID: UUID().toLowerCase(),
     POSITION: 0,
     HUMAN: 'unknown'
   }, {
