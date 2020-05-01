@@ -2,6 +2,7 @@
   name: `Configure`,
   description: `Essential MinkeBox configuration`,
   image: `registry.minkebox.net/minkebox/minke`,
+  uuid: `00000000-0000-0000-0000-000000000000`,
   catalog: false,
   tags: [ 'All' ],
   actions: [
