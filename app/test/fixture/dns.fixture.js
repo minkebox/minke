@@ -1,15 +1,16 @@
 
-const proxyquire = require('proxyquire');
 const sinon = require('sinon');
+const mock = require('mock-require');
 
-const DNS = proxyquire('../../DNS', {
-  fs: {
-    writeFileSync: sinon.fake()
-  },
-  child_process: {
-    spawnSync: sinon.fake()
-  }
+mock('fs', {
+  writeFileSync: sinon.fake()
 });
+mock('child_process', {
+  spawnSync: sinon.fake()
+});
+const DNS = require('../../DNS');
+mock.stop('fs');
+mock.stop('child_process');
 
 module.exports = function() {
 

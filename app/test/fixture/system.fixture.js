@@ -1,11 +1,8 @@
-const proxyquire = require('proxyquire');
 const sinon = require('sinon');
+const mock = require('mock-require');
 
 // Force production config
-proxyquire('../../Config', {
-  './Config-Development': null,
-  '@global': true
-});
+mock('../../Config-Development', require('../../Config-Production'));
 
 module.exports = function() {
   global.DEBUG = false;
