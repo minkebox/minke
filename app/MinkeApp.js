@@ -316,7 +316,7 @@ MinkeApp.prototype = {
     }
     this._id = Database.newAppId();
     this._image = skel.image,
-    this._globalId = UUID().toUpperCase();
+    this._globalId = UUID().toLowerCase();
     this._bootcount = 0;
     this._position = { tab: 0, widget: 0 };
 
@@ -1357,7 +1357,26 @@ MinkeApp.prototype = {
   },
 
   _expressionString2JS: function(str) {
-    return '"'+str.replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/{{/g, '"+').replace(/}}/g, '+"')+'"';
+    const p = str.replace(/\n/g, '\\n').split(/({{|}})/);
+    let js = '';
+    let expr = false;
+    for (let i = 0; i < p.length; i++) {
+      if (p[i] === '{{') {
+        js += `+(`;
+        expr = true;
+      }
+      else if (p[i] === '}}') {
+        js += `)+`;
+        expr = false;
+      }
+      else if (expr) {
+        js += p[i];
+      }
+      else {
+        js += `"${p[i].replace(/"/g, '\\"')}"`;
+      }
+    }
+    return js;
   },
 
   expandPath: async function(path) {
@@ -1519,7 +1538,21 @@ MinkeApp.prototype = {
         const value = v.value || [];
         const nvalue = [];
         for (let r = 0; r < value.length; r++) {
-          nvalue.push(await this.expandString(encoding.pattern, { V: value[r] }));
+          const V = [];
+          for (let i = 0; i < value[r].length; i++) {
+            let entry = value[r][i];
+            if (String(entry).toLowerCase() === 'true') {
+              entry = true;
+            }
+            else if (String(entry).toLowerCase() === 'false') {
+              entry = false;
+            }
+            else if (Number(entry) == entry) {
+              entry = Number(entry);
+            }
+            V[i] = entry;
+          }
+          nvalue.push(await this.expandString(encoding.pattern, { V: V }));
         }
         return nvalue.join(encoding.join);
       }
@@ -1928,7 +1961,7 @@ MinkeApp.startApps = async function(app, config) {
     DNSSERVER2: '',
     TIMEZONE: Moment.tz.guess(),
     ADMINMODE: 'DISABLED',
-    GLOBALID: UUID().toUpperCase(),
+    GLOBALID: UUID().toLowerCase(),
     POSITION: 0,
     HUMAN: 'unknown'
   }, {
