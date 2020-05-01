@@ -1538,7 +1538,21 @@ MinkeApp.prototype = {
         const value = v.value || [];
         const nvalue = [];
         for (let r = 0; r < value.length; r++) {
-          nvalue.push(await this.expandString(encoding.pattern, { V: value[r] }));
+          const V = [];
+          for (let i = 0; i < value[r].length; i++) {
+            let entry = value[r][i];
+            if (String(entry).toLowerCase() === 'true') {
+              entry = true;
+            }
+            else if (String(entry).toLowerCase() === 'false') {
+              entry = false;
+            }
+            else if (Number(entry) == entry) {
+              entry = Number(entry);
+            }
+            V[i] = entry;
+          }
+          nvalue.push(await this.expandString(encoding.pattern, { V: V }));
         }
         return nvalue.join(encoding.join);
       }
