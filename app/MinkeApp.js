@@ -1357,7 +1357,26 @@ MinkeApp.prototype = {
   },
 
   _expressionString2JS: function(str) {
-    return '"'+str.replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/{{/g, '"+').replace(/}}/g, '+"')+'"';
+    const p = str.replace(/\n/g, '\\n').split(/({{|}})/);
+    let js = '';
+    let expr = false;
+    for (let i = 0; i < p.length; i++) {
+      if (p[i] === '{{') {
+        js += `+(`;
+        expr = true;
+      }
+      else if (p[i] === '}}') {
+        js += `)+`;
+        expr = false;
+      }
+      else if (expr) {
+        js += p[i];
+      }
+      else {
+        js += `"${p[i].replace(/"/g, '\\"')}"`;
+      }
+    }
+    return js;
   },
 
   expandPath: async function(path) {
