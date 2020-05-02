@@ -412,6 +412,7 @@ function closeInlinePage() {
     document.getElementsByClassName('nav')[0].removeEventListener('click', closeInlinePage);
     document.getElementsByClassName('nav')[0].removeEventListener('touchstart', closeInlinePage);
   }
+  updateMonitors();
 }
 
 function openInlinePage(url, target) {
