@@ -59,7 +59,7 @@
         { name: `Name` },
         { name: `Timeout`, validate: `\\d+` }
       ],
-      pattern: `{ "accessory": "DelaySwitch", "name": "{{V[0]}}", "delay": {{V[1]}}, "disableSensor": true }`,
+      pattern: `{ "accessory": "DelaySwitch", "name": "{{V[0]}}", "delay": {{1}}, "disableSensor": true }`,
       join: `,`
     },
     {
