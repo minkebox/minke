@@ -124,6 +124,12 @@ function onPageShow() {
         break;
     }
   });
+
+  const nav = document.getElementsByClassName('nav')[0];
+  if (nav) {
+    nav.addEventListener('click', closeInlinePage);
+    nav.addEventListener('touchstart', closeInlinePage);
+  }
 }
 
 let property = {};
@@ -409,15 +415,17 @@ function closeInlinePage() {
   const div = document.querySelector(".inline-page");
   if (div) {
     div.remove();
-    document.getElementsByClassName('nav')[0].removeEventListener('click', closeInlinePage);
-    document.getElementsByClassName('nav')[0].removeEventListener('touchstart', closeInlinePage);
+    updateMonitors();
   }
-  updateMonitors();
 }
 
 function openInlinePage(url, target) {
-  closeInlinePage();
+  const currentOpen = document.querySelector(".inline-page");
   if (target === '_blank') {
+    if (currentOpen) {
+      currentOpen.remove();
+      updateMonitors();
+    }
     window.open(url, target);
   }
   else {
@@ -428,8 +436,6 @@ function openInlinePage(url, target) {
     const scrollY = window.scrollY;
     setTimeout(() => {
       window.scrollTo(0, scrollY);
-      document.getElementsByClassName('nav')[0].addEventListener('click', closeInlinePage);
-      document.getElementsByClassName('nav')[0].addEventListener('touchstart', closeInlinePage);
       onResizePage();
     }, 0);
     const div = builder.firstElementChild;
@@ -442,6 +448,14 @@ function openInlinePage(url, target) {
     div.addEventListener('mousewheel', noScroll);
     div.querySelector('iframe').src = url;
     onResizePage();
+    if (currentOpen) {
+      div.querySelector('iframe').onload = () => {
+        currentOpen.remove();
+      }
+      setTimeout(() => {
+        currentOpen.remove();
+      }, 500);
+    }
   }
 }
 
