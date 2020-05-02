@@ -54,7 +54,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers[0].data, '10.10.1.2');
     });
 
@@ -79,7 +79,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers[0].data, '10.10.1.3');
     });
 
@@ -104,7 +104,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers[0].data, 'myself');
     });
 
@@ -139,7 +139,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers[0].data, '10.10.1.2');
     });
 
@@ -165,7 +165,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers[0].data, '10.10.1.2');
     });
 
@@ -190,7 +190,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers[0].data, '10.10.1.3');
     });
 
@@ -215,7 +215,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers[0].data, '10.10.1.3');
     });
 
@@ -240,7 +240,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers[0].data, '10.10.1.3');
     });
 
@@ -265,7 +265,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers[0].data, 'myself.myhome');
     });
 
@@ -294,7 +294,7 @@ describe('DNS', async function() {
       };
       const rinfo = {
       };
-      await this.dns.squery(request, response, rinfo);
+      await this.dns.query(request, response, rinfo);
       assert.equal(response.answers.length, 0);
     });
 
