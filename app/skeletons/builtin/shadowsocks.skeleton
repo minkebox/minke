@@ -4,6 +4,7 @@
   images: {
     x64: `shadowsocks/shadowsocks-libev`
   },
+  uuid: `6C6D77BF-A8F5-44B1-B5E9-BEA868B9DF57`,
   tags: [
     `Proxy`, `VPN`, `Networking`
   ],

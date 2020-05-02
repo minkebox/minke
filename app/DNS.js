@@ -1077,8 +1077,6 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     this.setHostname(config.hostname, config.ip);
     this.setDefaultResolver(config.resolvers[0], config.resolvers[1]);
 
-    this.query = PARALLEL_QUERY ? this.pquery : this.squery;
-
     const onMessage = async (msgin, rinfo) => {
       //console.log(msgin, rinfo);
       const start = DEBUG_QUERY_TIMING && Date.now();
@@ -1308,6 +1306,9 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
       }
       done[i] = 'fail';
     }
+    if (i >= this._proxies.length) {
+      return false;
+    }
     const vresponse = await new Promise(resolve => {
       let replied = false;
       for(; i < this._proxies.length; i++) {
@@ -1360,5 +1361,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
   }
 
 };
+
+DNS.query = PARALLEL_QUERY ? DNS.pquery : DNS.squery;
 
 module.exports = DNS;

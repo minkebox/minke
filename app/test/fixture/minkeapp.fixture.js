@@ -1,4 +1,14 @@
-const MinkeApp = require('../../MinkeApp');
+const sinon = require('sinon');
+const mock = require('mock-require');
+
+mock('fs', {
+  mkdirSync: sinon.fake(),
+  readdirSync: sinon.fake.returns([]),
+  existsSync: sinon.fake.returns(false)
+});
+const MinkeApp = mock.reRequire('../../MinkeApp');
+mock.stop('fs');
+
 
 module.exports = function() {
 
