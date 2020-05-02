@@ -14,9 +14,10 @@ describe('Skeletons', async function() {
         let skel = null;
         eval(`skel=${FS.readFileSync(`./skeletons/builtin/${name}`, { encoding: 'utf8' })}`);
         assert.ok(skel);
-        assert.ok(skel.uuid, 'missing uuid');
-        assert.ok(skel.actions, 'missing actions');
-        assert.ok(skel.properties, 'missing properties');
+        assert.equal(typeof skel.name, 'string', 'bad name');
+        assert.equal(typeof skel.uuid, 'string', 'bad uuid');
+        assert.ok(Array.isArray(skel.actions), 'bad actions');
+        assert.ok(Array.isArray(skel.properties), 'bad properties');
         assert.ok(skel.image || skel.images, 'missing image');
       });
     }
