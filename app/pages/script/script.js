@@ -295,7 +295,8 @@ function monitor(id, timeout, callback) {
           }, timeout * 1000);
           break;
         case 'request':
-          if (document.visibilityState === 'visible') {
+          `application-status-${id}`
+          if (document.visibilityState === 'visible' && !document.querySelector(`.application-status-${id}.hidden`)) {
             cmd('monitor2.request', id);
           }
           break;
