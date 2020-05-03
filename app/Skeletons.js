@@ -132,7 +132,7 @@ async function imageToSkeleton(image) {
               name: kv[0]
             };
             if (kv[1] !== '') {
-              e.defaultValue = kv[1];
+              e.value = kv[1];
             }
             acc.push(e);
             break;
