@@ -75,7 +75,7 @@ describe('Skeletons', async function() {
           { "type": "Environment", "name": "ENABLE" },
           { "type": "Directory", "name": "/config" },
           { "type": "Port", "name": "80/tcp", "port": 80, "protocol": "TCP", "web": { "path": "/", "tab": "newtab" } },
-          {  "type": "Network", "name": "primary", "value": "home" }
+          { "type": "Network", "name": "primary", "value": "home" }
         ],
         "monitor": {
           "cmd": "",
@@ -116,12 +116,12 @@ describe('Skeletons', async function() {
           "App"
         ],
         "actions": [],
-        "delay": 0.1,
+        "delay": 1,
         "properties": [
           { "type": "Environment", "name": "ENABLE" },
           { "type": "Directory", "name": "/config" },
           { "type": "Port", "name": "80/tcp", "port": 80, "protocol": "TCP", "web": { "path": "/", "tab": "newtab" } },
-          {  "type": "Network", "name": "primary", "value": "home" }
+          { "type": "Network", "name": "primary", "value": "home" }
         ],
         "secondary": [
           {
@@ -131,6 +131,172 @@ describe('Skeletons', async function() {
               { "type": "Directory", "name": "/config" }
             ]
           }
+        ],
+        "monitor": {
+          "cmd": "",
+          "init": ""
+        }
+      };
+      const cv = this.skeletons.parseDockerCompose(dc);
+      delete cv.uuid; // This will always be different
+      assert.deepEqual(cv, sk);
+    });
+
+    it('environment as array', function() {
+      const dc = `
+        version: '3'
+        services:
+          web:
+            environment:
+            - ONE=1
+            - TWO=2
+        `;
+      const sk = {
+        "name": "web",
+        "description": "",
+        "image": undefined,
+        "tags": [
+          "App"
+        ],
+        "actions": [],
+        "properties": [
+          { "type": "Environment", "name": "ONE", "value": "1" },
+          { "type": "Environment", "name": "TWO", "value": "2" },
+          { "type": "Network", "name": "primary", "value": "home" }
+        ],
+        "monitor": {
+          "cmd": "",
+          "init": ""
+        }
+      };
+      const cv = this.skeletons.parseDockerCompose(dc);
+      delete cv.uuid; // This will always be different
+      assert.deepEqual(cv, sk);
+    });
+
+    it('environment as hash', function() {
+      const dc = `
+        version: '3'
+        services:
+          web:
+            environment:
+              ONE: 1
+              TWO: 2
+        `;
+      const sk = {
+        "name": "web",
+        "description": "",
+        "image": undefined,
+        "tags": [
+          "App"
+        ],
+        "actions": [],
+        "properties": [
+          { "type": "Environment", "name": "ONE", "value": "1" },
+          { "type": "Environment", "name": "TWO", "value": "2" },
+          { "type": "Network", "name": "primary", "value": "home" }
+        ],
+        "monitor": {
+          "cmd": "",
+          "init": ""
+        }
+      };
+      const cv = this.skeletons.parseDockerCompose(dc);
+      delete cv.uuid; // This will always be different
+      assert.deepEqual(cv, sk);
+    });
+
+    it('simple command', function() {
+      const dc = `
+        version: '3'
+        services:
+          web:
+            command: do a thing
+        `;
+      const sk = {
+        "name": "web",
+        "description": "",
+        "image": undefined,
+        "tags": [
+          "App"
+        ],
+        "actions": [],
+        "properties": [
+          { "type": "Arguments", "value": [ 'do', 'a', 'thing' ] },
+          { "type": "Network", "name": "primary", "value": "home" }
+        ],
+        "monitor": {
+          "cmd": "",
+          "init": ""
+        }
+      };
+      const cv = this.skeletons.parseDockerCompose(dc);
+      delete cv.uuid; // This will always be different
+      assert.deepEqual(cv, sk);
+    });
+
+    it('command array', function() {
+      const dc = `
+        version: '3'
+        services:
+          web:
+            command: [
+              'do',
+              'a',
+              'thing'
+            ]
+        `;
+      const sk = {
+        "name": "web",
+        "description": "",
+        "image": undefined,
+        "tags": [
+          "App"
+        ],
+        "actions": [],
+        "properties": [
+          { "type": "Arguments", "value": [ 'do', 'a', 'thing' ] },
+          { "type": "Network", "name": "primary", "value": "home" }
+        ],
+        "monitor": {
+          "cmd": "",
+          "init": ""
+        }
+      };
+      const cv = this.skeletons.parseDockerCompose(dc);
+      delete cv.uuid; // This will always be different
+      assert.deepEqual(cv, sk);
+    });
+
+    it('guess volumes are files or directories', function() {
+      const dc = `
+        version: '3'
+        services:
+          web:
+            volumes:
+            - /a:/config
+            - /b:/config.d
+            - /c:/config.dir
+            - /d:/config.json
+            - /e:/config.conf
+            - /f:/config.ini
+        `;
+      const sk = {
+        "name": "web",
+        "description": "",
+        "image": undefined,
+        "tags": [
+          "App"
+        ],
+        "actions": [],
+        "properties": [
+          { "type": "Directory", "name": "/config" },
+          { "type": "Directory", "name": "/config.d" },
+          { "type": "Directory", "name": "/config.dir" },
+          { "type": "File", "name": "/config.json" },
+          { "type": "File", "name": "/config.conf" },
+          { "type": "File", "name": "/config.ini" },
+          { "type": "Network", "name": "primary", "value": "home" }
         ],
         "monitor": {
           "cmd": "",
