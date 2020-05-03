@@ -31,7 +31,7 @@
         <div class="title" style="font-family:Futura,Trebuchet MS,Arial,sans-serif">MINKE<span style="color:red">BOX</span></div>
         <div class="operational">CPU: 0%&nbsp;&nbsp;&nbsp;Memory: 0%</div>
         {{#if configName}}<div class="subtitle">{{configName}}</div>{{/if}}
-        <button class="pure-button" onclick="openInlinePage('new/application/')">Install App</button>
+        <button class="pure-button" onclick="openInlinePage('new/application/');event.stopPropagation()">Install App</button>
         <div class="pure-menu">
           <ul class="pure-menu-list" style="padding-left:6px">
             <li class="pure-menu-heading">Tags</li>
