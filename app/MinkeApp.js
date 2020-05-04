@@ -681,7 +681,6 @@ MinkeApp.prototype = {
       }
       this._secondary.forEach(extractHost);
       config.HostConfig.ExtraHosts = extraHosts;
-      console.log('extra hosts', extraHosts);
 
       if (pNetwork !== 'host') {
 
