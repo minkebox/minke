@@ -674,6 +674,15 @@ MinkeApp.prototype = {
         }
       });
 
+      const extraHosts = [];
+      function extractHost(cf) {
+        const img = Images.withTag(cf._image).split(/[/:]/);
+        extraHosts.push(`${img[img.length - 2]}:127.0.0.1`);
+      }
+      this._secondary.forEach(extractHost);
+      config.HostConfig.ExtraHosts = extraHosts;
+      console.log('extra hosts', extraHosts);
+
       if (pNetwork !== 'host') {
 
         const helperConfig = {
