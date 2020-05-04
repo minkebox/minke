@@ -236,12 +236,13 @@ MinkeApp.prototype = {
           break;
       }
     }
-    if (skeleton.variables) {
-      for (let i = 0; i < skeleton.variables.length; i++) {
-        const variable = skeleton.variables[i];
-        this._vars[variable.name] = {
+    if (skeleton.constants) {
+      for (let i = 0; i < skeleton.constants.length; i++) {
+        const constant = skeleton.constants[i];
+        this._vars[constant.name] = {
           type: `String`,
-          value: await this.expandString(variable.value)
+          value: null, // No value, which forces defaultValue to be expanded when used
+          defaultValue: constant.value
         };
       }
     }
@@ -1356,7 +1357,7 @@ MinkeApp.prototype = {
     if (!txt) {
       return txt;
     }
-    txt = txt.toString();
+    txt = String(txt);
     // Simple strings
     if (txt.indexOf('{{') === -1) {
       return txt;
