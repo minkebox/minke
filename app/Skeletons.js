@@ -411,18 +411,17 @@ function dockerComposeToSkeleton(yml) {
       const ext = Path.extname(name);
       const dir = {
         type: null,
-        name: name
+        name: name.replace(/\/$/, "")
       };
-      // Guess at which bindings might be files and which directories
+      // Guess at which bindings might be files and which directories. We mostly choose File if
+      // there's any sort of filename extension.
       switch (ext) {
-        case '.ini':
-        case '.json':
-        case '.conf':
-        case '.xml':
-        case '.yml':
+        default:
           dir.type = 'File';
           break;
-        default:
+        case '':
+        case '.dir':
+        case '.d':
           dir.type = 'Directory';
           if (sdir[vp[0]]) {
             dir.use = sdir[vp[0]].path;

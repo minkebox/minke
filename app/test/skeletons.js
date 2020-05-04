@@ -274,13 +274,15 @@ describe('Skeletons', async function() {
           web:
             volumes:
             - /a:/config
-            - /b:/config.d
-            - /c:/config.dir
-            - /d:/config.json
-            - /e:/config.conf
-            - /f:/config.ini
-            - /g:/config.xml
-            - /h:/config.yml
+            - /b:/config/
+            - /c:/config.d
+            - /d:/config.dir
+            - /f:/config.json
+            - /g:/config.conf
+            - /h:/config.ini
+            - /i:/config.xml
+            - /j:/config.yml
+            - /k:/config.xyz
         `;
       const sk = {
         "name": "web",
@@ -292,6 +294,7 @@ describe('Skeletons', async function() {
         "actions": [],
         "properties": [
           { "type": "Directory", "name": "/config" },
+          { "type": "Directory", "name": "/config" },
           { "type": "Directory", "name": "/config.d" },
           { "type": "Directory", "name": "/config.dir" },
           { "type": "File", "name": "/config.json" },
@@ -299,6 +302,7 @@ describe('Skeletons', async function() {
           { "type": "File", "name": "/config.ini" },
           { "type": "File", "name": "/config.xml" },
           { "type": "File", "name": "/config.yml" },
+          { "type": "File", "name": "/config.xyz" },
           { "type": "Network", "name": "primary", "value": "home" }
         ],
         "monitor": {
