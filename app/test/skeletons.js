@@ -1,11 +1,10 @@
 const assert = require('assert');
 const FS = require('fs');
 
-require('./fixture/system.fixture')();
-require('./fixture/skeletons.fixture')();
-
-
 describe('Skeletons', async function() {
+
+  require('./fixture/system.fixture')();
+  require('./fixture/skeletons.fixture')();
 
   describe('Builtins', function() {
 

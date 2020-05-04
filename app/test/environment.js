@@ -1,8 +1,8 @@
 const assert = require('assert');
 
-require('./fixture/system.fixture')();
-
 describe('Environment', async function() {
+
+  require('./fixture/system.fixture')();
 
   describe('MinkeApp.expandEnvironment', async function() {
 

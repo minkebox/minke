@@ -1,9 +1,9 @@
 const assert = require('assert');
 
-require('./fixture/system.fixture')();
-require('./fixture/dns.fixture')();
-
 describe('DNS', async function() {
+
+  require('./fixture/system.fixture')();
+  require('./fixture/dns.fixture')();
 
   describe('PrivateDNS', function() {
 
