@@ -286,7 +286,12 @@ function dockerComposeToSkeleton(yml) {
     (service.volumes || []).forEach(vol => {
       const vp = vol.split(':');
       if (vp[0][0] !== '/' && vp[0][0] !== '.' && vp[0][0] !== '~' && vp[0][0] !== '$') {
-        sdir[vp[0]] = detox(vp[0]);
+        if (sdir[vp[0]]) {
+          sdir[vp[0]].count++;
+        }
+        else {
+          sdir[vp[0]] = { vol: detox(vp[0]), count: 1 };
+        }
       }
       else {
         if (cdir[vp[0]]) {
@@ -300,8 +305,13 @@ function dockerComposeToSkeleton(yml) {
   }
   // Convert common bind points into shares
   for (let dir in cdir) {
-    if (cdir[dir].length > 1) {
-      sdir[dir] = dir.replace(/[${}./~]+/g, '_').replace(/^_+/, '');
+    sdir[dir] = { path: dir.replace(/[${}./~]+/g, '_').replace(/^_+/, ''), count: cdir[dir].length };
+  }
+
+  // Remove any which aren't shared
+  for (let dir in sdir) {
+    if (sdir[dir].count === 1) {
+      delete sdir[dir];
     }
   }
 
@@ -412,7 +422,7 @@ function dockerComposeToSkeleton(yml) {
         default:
           dir.type = 'Directory';
           if (sdir[vp[0]]) {
-            dir.use = sdir[vp[0]];
+            dir.use = sdir[vp[0]].path;
           }
           break;
       }
