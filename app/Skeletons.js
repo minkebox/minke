@@ -410,6 +410,7 @@ function dockerComposeToSkeleton(yml) {
       const name = vp[1] || detox(vp[0]);
       const ext = Path.extname(name);
       const dir = {
+        type: null,
         name: name
       };
       // Guess at which bindings might be files and which directories
@@ -417,6 +418,8 @@ function dockerComposeToSkeleton(yml) {
         case '.ini':
         case '.json':
         case '.conf':
+        case '.xml':
+        case '.yml':
           dir.type = 'File';
           break;
         default:

@@ -280,6 +280,8 @@ describe('Skeletons', async function() {
             - /d:/config.json
             - /e:/config.conf
             - /f:/config.ini
+            - /g:/config.xml
+            - /h:/config.yml
         `;
       const sk = {
         "name": "web",
@@ -296,6 +298,8 @@ describe('Skeletons', async function() {
           { "type": "File", "name": "/config.json" },
           { "type": "File", "name": "/config.conf" },
           { "type": "File", "name": "/config.ini" },
+          { "type": "File", "name": "/config.xml" },
+          { "type": "File", "name": "/config.yml" },
           { "type": "Network", "name": "primary", "value": "home" }
         ],
         "monitor": {
