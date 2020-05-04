@@ -1,0 +1,107 @@
+{
+  name: `Wordpress`,
+  description: `Open source software you can use to create a beautiful website, blog, or app.`,
+  uuid: `9A6C3BAB-68EC-49BB-9914-D4F7AAFB7CA6`,
+  image: `wordpress:latest`,
+  tags: [
+    `Blog`,
+    `Web`
+  ],
+  delay: 5,
+  actions: [
+    {
+      type: `Text`,
+      text: `All configuration takes place in the Wordpress app.`
+    },
+    {
+      type: `SetEnvironment`,
+      name: `DB_NAME`,
+      value: `wp`
+    },
+    {
+      type: `SetEnvironment`,
+      name: `DB_ROOT_PASSWORD`,
+      value: `wp-password`
+    }
+  ],
+  properties: [
+    {
+      type: `Environment`,
+      name: `WORDPRESS_DB_HOST`,
+      value: `127.0.0.1`
+    },
+    {
+      type: `Environment`,
+      name: `WORDPRESS_DB_NAME`,
+      value: `{{DB_NAME}}`
+    },
+    {
+      type: `Environment`,
+      name: `WORDPRESS_DB_USER`,
+      value: `root`
+    },
+    {
+      type: `Environment`,
+      name: `WORDPRESS_DB_PASSWORD`,
+      value: `{{DB_ROOT_PASSWORD}}`
+    },
+    {
+      type: `File`,
+      name: `/usr/local/etc/php/conf.d/conf.ini`
+    },
+    {
+      type: `Directory`,
+      name: `/var/www/html`,
+      use: `wp-app`
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
+      protocol: `TCP`,
+      port: 80,
+      web: {
+        path: `/`,
+        tab: `newtab`
+      }
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      value: `home`
+    }
+  ],
+  secondary: [
+    {
+      image: `mysql:latest`,
+      properties: [
+        {
+          type: `Arguments`,
+          value: [
+            `--default_authentication_plugin=mysql_native_password`,
+            `--character-set-server=utf8mb4`,
+            `--collation-server=utf8mb4_unicode_ci`
+          ]
+        },
+        {
+          type: `Environment`,
+          name: `MYSQL_DATABASE`,
+          value: `{{DB_NAME}}`
+        },
+        {
+          type: `Environment`,
+          name: `MYSQL_ROOT_PASSWORD`,
+          value: `{{DB_ROOT_PASSWORD}}`
+        },
+        {
+          type: `Directory`,
+          name: `/docker-entrypoint-initdb.d`
+        },
+        {
+          type: `Directory`,
+          name: `/var/lib/mysql`,
+          use: `db_data`
+        }
+      ]
+    }
+  ]
+}
