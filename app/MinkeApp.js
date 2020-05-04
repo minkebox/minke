@@ -236,6 +236,15 @@ MinkeApp.prototype = {
           break;
       }
     }
+    if (skeleton.variables) {
+      for (let i = 0; i < skeleton.variables.length; i++) {
+        const variable = skeleton.variables[i];
+        this._vars[variable.name] = {
+          type: `String`,
+          value: await this.expandString(variable.value)
+        };
+      }
+    }
     //console.log('Created Vars', this._vars);
   },
 
