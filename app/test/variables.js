@@ -1,8 +1,8 @@
 const assert = require('assert');
 
-require('./fixture/system.fixture')();
-
 describe('Variables', async function() {
+
+  require('./fixture/system.fixture')();
 
   function commonTest() {
 
@@ -55,6 +55,22 @@ describe('Variables', async function() {
       it('expandString: string to bool (false)', async function() {
         this.app._vars.reallyanumber = { type: 'String', value: 'false' };
         assert.strictEqual(await this.app.expandVariable('reallyanumber'), false);
+      });
+
+    });
+
+    describe('Default values', function() {
+
+      it('expandString with simple default', async function() {
+        this.app._vars.astring = { type: 'String', defaultValue: 'a string' };
+        assert.equal(await this.app.expandVariable('astring'), 'a string');
+      });
+
+      it('expandString with variable default', async function() {
+        this.app._vars.anotherstring = { type: 'String', defaultValue: '{{astring}}' };
+        this.app._vars.astring = { type: 'String', defaultValue: 'a string' };
+        await this.app.createJS();
+        assert.equal(await this.app.expandVariable('anotherstring'), 'a string');
       });
 
     });

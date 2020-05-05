@@ -132,7 +132,7 @@ async function imageToSkeleton(image) {
               name: kv[0]
             };
             if (kv[1] !== '') {
-              e.defaultValue = kv[1];
+              e.value = kv[1];
             }
             acc.push(e);
             break;
@@ -225,7 +225,7 @@ function dockerComposeToSkeleton(yml) {
     uuid: UUID().toUpperCase(),
     image: null,
     tags: ['App'],
-    delay: 0.1,
+    delay: 1,
     actions: [
     ],
     properties: [
@@ -262,10 +262,13 @@ function dockerComposeToSkeleton(yml) {
   } while (list.length < startlen);
 
   function detox(str) {
-    return str.replace(/\${.*}/g, '');
+    return str ? str.replace(/\${.*}/g, '') : str;
   }
 
   function cmdline(str) {
+    if (Array.isArray(str)) {
+      return str;
+    }
     return str.match(/(".*?"|[^"\s]+)(?=\s*\s|\s*$)/g).map(arg => {
       if (arg[0] === '"' && arg[arg.length - 1] === '"') {
         arg = arg.slice(1, -1);
@@ -283,7 +286,12 @@ function dockerComposeToSkeleton(yml) {
     (service.volumes || []).forEach(vol => {
       const vp = vol.split(':');
       if (vp[0][0] !== '/' && vp[0][0] !== '.' && vp[0][0] !== '~' && vp[0][0] !== '$') {
-        sdir[vp[0]] = detox(vp[0]);
+        if (sdir[vp[0]]) {
+          sdir[vp[0]].count++;
+        }
+        else {
+          sdir[vp[0]] = { vol: detox(vp[0]), count: 1 };
+        }
       }
       else {
         if (cdir[vp[0]]) {
@@ -297,14 +305,20 @@ function dockerComposeToSkeleton(yml) {
   }
   // Convert common bind points into shares
   for (let dir in cdir) {
-    if (cdir[dir].length > 1) {
-      sdir[dir] = dir.replace(/[${}./~]+/g, '_').replace(/^_+/, '');
+    sdir[dir] = { path: dir.replace(/[${}./~]+/g, '_').replace(/^_+/, ''), count: cdir[dir].length };
+  }
+
+  // Remove any which aren't shared
+  for (let dir in sdir) {
+    if (sdir[dir].count === 1) {
+      delete sdir[dir];
     }
   }
 
+  const editenv = {};
+
   for (let i = 0; i < order.length; i++) {
     const service = info.services[order[i]];
-
     let skel;
     if (i === 0) {
       skel = skeleton;
@@ -347,47 +361,74 @@ function dockerComposeToSkeleton(yml) {
       });
     });
 
-    (service.environment || []).forEach(env => {
-      const ep = env.split('=');
-      if (ep[0] === 'TZ') {
+    let env;
+    if (Array.isArray(service.environment)) {
+      env = {};
+      service.environment.forEach(e => {
+        const ep = e.split('=');
+        env[ep[0]] = ep[1];
+      })
+    }
+    else {
+      env = service.environment;
+    }
+
+    for (let key in env) {
+      const value = env[key];
+      if (key === 'TZ') {
         skel.properties.push({
           type: 'Feature',
           name: 'localtime'
         });
       }
       else {
-        if (!ep[1]) {
-          skel.properties.push({
-            type: 'Environment',
-            name: ep[0]
-          });
-        }
-        else {
-          skel.properties.push({
-            type: 'Environment',
-            name: ep[0],
-            value: ep[1]
-          });
-          if (ep[1].indexOf('${') !== -1) {
-            skel.actions.push({
-              type: 'EditEnvironment',
-              name: ep[0],
-              description: ep[0]
-            });
+        const entry = {
+          type: 'Environment',
+          name: key
+        };
+        if (value) {
+          if (typeof value !== 'string') {
+            entry.value = value;
+          }
+          else {
+            const m = value.match(/\${(.*)}/);
+            if (!m) {
+              entry.value = value;
+            }
+            else {
+              entry.value = `{{${m[1]}}}`;
+              editenv[m[1]] = true;
+            }
           }
         }
+        skel.properties.push(entry);
       }
-    });
+    }
 
     (service.volumes || []).forEach(vol => {
       const vp = vol.split(':');
+      const name = vp[1] || detox(vp[0]);
+      const ext = Path.extname(name);
       const dir = {
-        type: 'Directory',
-        name: vp[1] || detox(vp[0])
+        type: null,
+        name: name.replace(/\/$/, "")
       };
-      if (sdir[vp[0]]) {
-        dir.use = sdir[vp[0]];
+      // Guess at which bindings might be files and which directories. We mostly choose File if
+      // there's any sort of filename extension.
+      switch (ext) {
+        default:
+          dir.type = 'File';
+          break;
+        case '':
+        case '.dir':
+        case '.d':
+          dir.type = 'Directory';
+          if (sdir[vp[0]]) {
+            dir.use = sdir[vp[0]].path;
+          }
+          break;
       }
+
       skel.properties.push(dir);
     });
 
@@ -410,6 +451,14 @@ function dockerComposeToSkeleton(yml) {
       if (skel === skeleton) {
         skel.properties.push(port);
       }
+    });
+  }
+
+  for (let key in editenv) {
+    skeleton.actions.push({
+      type: 'EditEnvironment',
+      name: key,
+      description: key
     });
   }
 

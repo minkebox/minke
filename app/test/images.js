@@ -1,7 +1,5 @@
 const assert = require('assert');
 
-require('./fixture/system.fixture')();
-
 beforeEach(function() {
   this.images = require('../Images');
 });
@@ -10,6 +8,8 @@ afterEach(function() {
 });
 
 describe('Images', async function() {
+
+  require('./fixture/system.fixture')();
 
   describe('withTag', function() {
 

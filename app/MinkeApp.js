@@ -236,6 +236,16 @@ MinkeApp.prototype = {
           break;
       }
     }
+    if (skeleton.constants) {
+      for (let i = 0; i < skeleton.constants.length; i++) {
+        const constant = skeleton.constants[i];
+        this._vars[constant.name] = {
+          type: `String`,
+          value: null, // No value, which forces defaultValue to be expanded when used
+          defaultValue: constant.value
+        };
+      }
+    }
     //console.log('Created Vars', this._vars);
   },
 
@@ -664,6 +674,14 @@ MinkeApp.prototype = {
           config.HostConfig.CapDrop.push(cap.substring(1));
         }
       });
+
+      const extraHosts = [];
+      function extractHost(cf) {
+        const img = Images.withTag(cf._image).split(/[/:]/);
+        extraHosts.push(`${img[img.length - 2]}:127.0.0.1`);
+      }
+      this._secondary.forEach(extractHost);
+      config.HostConfig.ExtraHosts = extraHosts;
 
       if (pNetwork !== 'host') {
 
@@ -1339,7 +1357,7 @@ MinkeApp.prototype = {
     if (!txt) {
       return txt;
     }
-    txt = txt.toString();
+    txt = String(txt);
     // Simple strings
     if (txt.indexOf('{{') === -1) {
       return txt;

@@ -146,7 +146,7 @@ _Filesystem.prototype = {
     return {
       Type: 'bind',
       Source: Filesystem.mapFilenameToNative(src),
-      Target: file.target,
+      Target: target,
       BindOptions: {
         Propagation: 'rshared'
       }
@@ -288,7 +288,7 @@ _Filesystem.prototype = {
     if (str !== undefined && str !== null) {
       return String(str);
     }
-    return defaultStr;
+    return await this._primaryApp.expandString(defaultStr);
   }
 
 }
