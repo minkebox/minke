@@ -122,6 +122,34 @@ describe('Variables', async function() {
 
     });
 
+    describe('Nested', function() {
+
+      it('2 levels', async function() {
+        this.app._vars.anotherstring = { type: 'String', defaultValue: '{{astring}}' };
+        this.app._vars.astring = { type: 'String', defaultValue: 'a string' };
+        await this.app.createJS();
+        assert.equal(await this.app.expandVariable('anotherstring'), 'a string');
+      });
+
+      it('3 levels', async function() {
+        this.app._vars.yetanotherstring = { type: 'String', defaultValue: '{{anotherstring}}' };
+        this.app._vars.anotherstring = { type: 'String', defaultValue: '{{astring}}' };
+        this.app._vars.astring = { type: 'String', defaultValue: 'a string' };
+        await this.app.createJS();
+        assert.equal(await this.app.expandVariable('yetanotherstring'), 'a string');
+      });
+
+      it('4 levels', async function() {
+        this.app._vars.andnow = { type: 'String', defaultValue: '{{yetanotherstring}}' };
+        this.app._vars.yetanotherstring = { type: 'String', defaultValue: '{{anotherstring}}' };
+        this.app._vars.anotherstring = { type: 'String', defaultValue: '{{astring}}' };
+        this.app._vars.astring = { type: 'String', defaultValue: 'a string' };
+        await this.app.createJS();
+        assert.equal(await this.app.expandVariable('andnow'), 'a string');
+      });
+
+    });
+
   });
 
 
