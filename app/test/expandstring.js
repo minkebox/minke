@@ -33,6 +33,20 @@ describe('Expand', async function() {
       assert.equal(str, 'abc5A:92:20:46:9E:8Bdef');
     });
 
+    describe('Functions', function() {
+
+      it('{{__RANDOMHEX(16)}}', async function() {
+        const str = await this.app.expandString('{{__RANDOMHEX(16)}}');
+        assert.equal(str.length, 16);
+      });
+
+      it('{{__RANDOMPORTS(1)}}', async function() {
+        const str = await this.app.expandString('{{__RANDOMPORTS(1)}}');
+        assert.notEqual(str, 0);
+        assert.equal(parseInt(str), str);
+      });
+    });
+
     describe('Newlines', function() {
 
       it('abc\\ndef', async function() {
