@@ -28,6 +28,7 @@ const APP_MIGRATIONS = Config.APP_MIGRATIONS || {};
 const CRASH_TIMEOUT = (2 * 60 * 1000); // 2 minutes
 const HELPER_STARTUP_TIMEOUT = (30 * 1000); // 30 seconds
 const JSINTERPRETER_STEPS = 100;
+const JSINTERPRETER_EXPAND_ATTEMPTS = 10;
 
 let applications = [];
 let koaApp = null;
@@ -163,7 +164,7 @@ MinkeApp.prototype = {
         case 'SetEnvironment':
           this._vars[action.name] = {
             type: 'String',
-            value: ovalue || await this.expandString(action.value),
+            value: ovalue || await this.expandString(action.initValue) || await this.expandString(action.value),
           };
           break;
         case 'EditEnvironmentAsCheckbox':
@@ -331,7 +332,7 @@ MinkeApp.prototype = {
     this._position = { tab: 0, widget: 0 };
 
     // Need JS available for configuration.
-    this.createJS();
+    await this.createJS();
 
     await this.updateFromSkeleton(skel, {});
 
@@ -520,7 +521,7 @@ MinkeApp.prototype = {
       await this.checkInstalled();
 
       // Create new JS instance which will be used to evaluation app configuration
-      this.createJS();
+      await this.createJS();
 
       this._bootcount++;
 
@@ -1584,6 +1585,14 @@ MinkeApp.prototype = {
     }
   },
 
+  isVariableConstant: function(name) {
+    const v = this._vars[name];
+    if (v && v.value && v.type !== 'Array') {
+      return true;
+    }
+    return false;
+  },
+
   expandEnvironment: async function(env) {
     const fullEnv = {};
     // Evaluate the environment
@@ -1620,8 +1629,6 @@ MinkeApp.prototype = {
 
   createJS: async function() {
     //console.log(`Creating JS for ${this._name}`);
-    const oldJS = this._js;
-
     // Create new interpreter
     const js = new JSInterpreter('');
     this._js = js;
@@ -1665,25 +1672,42 @@ MinkeApp.prototype = {
       return await this._allocateRandomNatPorts(nr);
     }));
 
-    if (oldJS) {
-      // Copy current variable state over as initial state
-      const oglb = oldJS.globalObject;
-      for (let name in this._vars) {
-        this._js.setProperty(glb, name, oldJS.getProperty(oglb, name));
+    // Start by setting properties for all constant variables. These are the ones which
+    // don't require the interpreter to be evaluated.
+    const undef = '<<UNDEFINED>>';
+    const todo = {};
+    for (let name in this._vars) {
+      if (this.isVariableConstant(name)) {
+        this._js.setProperty(glb, name, await this.expandVariable(name));
+      }
+      else {
+        this._js.setProperty(glb, name, undef);
+        todo[name] = undef;
       }
     }
-    else {
-      // Otherwise, set initial variables to undefined (we want them to exist)
-      for (let name in this._vars) {
-        this._js.setProperty(glb, name, undefined);
+    // Now we evaluate non-constants until nothing changes
+    for (let attempts = JSINTERPRETER_EXPAND_ATTEMPTS; attempts > 0 && Object.keys(todo).length; attempts--) {
+      for (let name in todo) {
+        const value = await this.expandVariable(name);
+        if (value !== todo[name]) {
+          this._js.setProperty(glb, name, value);
+          todo[name] = value;
+        }
+        if (String(value).indexOf(undef) === -1) {
+          delete todo[name];
+        }
       }
     }
+    if (Object.keys(todo).length) {
+      console.log('Variable evalulation failed for: ' + Object.keys(todo).join(' '));
+    }
+
 
     // Add current variables. Evaluating variables may, in turn, result in calls to
     // the interpreter (which is why we setup initial values).
-    for (let name in this._vars) {
+    /*for (let name in this._vars) {
       this._js.setProperty(glb, name, await this.expandVariable(name));
-    }
+    }*/
 
     return this._js;
   },
