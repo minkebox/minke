@@ -1802,6 +1802,7 @@ MinkeApp.prototype = {
   _createMonitor: function(args) {
     return Monitor.create({
       app: this,
+      target: args.target,
       cmd: args.cmd,
       init: args.init
     });;

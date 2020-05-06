@@ -1,12 +1,11 @@
 const TIMEOUT = 2000; // 2 seconds
 
-async function runCmd(app, cmd) {
-  const exec = await app._container.exec({
+async function runCmd(container, cmd) {
+  const exec = await container.exec({
     AttachStdin: false,
     AttachStdout: true,
     AttachStderr: false,
     Tty: false,
-    Env: Object.keys(app._fullEnv).map(key => `${key}=${app._fullEnv[key].value}`),
     Cmd: [ 'sh', '-c', cmd ]
   });
   const stream = await exec.start();
@@ -41,10 +40,12 @@ async function runCmd(app, cmd) {
 const Monitor = {
 
   create: function(args) {
+    const container = args.target === 'helper' ? args.app._helperContainer : args.app._container;
+    const cmd = args.cmd;
     return {
       init: args.init.replace(/{{ID}}/g, args.app._id),
       update: async () => {
-        return await runCmd(args.app, args.cmd);
+        return await runCmd(container, cmd);
       }
     }
   }
