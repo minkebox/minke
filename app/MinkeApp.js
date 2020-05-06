@@ -383,7 +383,7 @@ MinkeApp.prototype = {
       this._networks.secondary = 'none';
     }
 
-    await this._parseProperties(this, '', skel.properties, defs.binds);
+    await this._parseProperties(this, '', skel.properties, defs.binds || []);
     if (skel.secondary) {
       this._secondary = await Promise.all(skel.secondary.map(async (secondary, idx) => {
         const secondaryApp = {
