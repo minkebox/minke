@@ -117,7 +117,8 @@
     }
   ],
   monitor: {
-    cmd: `ifconfig ppp0 | grep "RX bytes" | tr '\\n' ' ' | sed "s/^.*RX bytes:\\([0-9]*\\).*TX bytes:\\([0-9]*\\).*$/\\1 \\2/"`,
+    cmd: `echo $(iptables -L RX -x -v -n | awk 'NR == 3 {print $2}') $(iptables -L TX -x -v -n | awk 'NR == 3 {print $2}')`,
+    target: `helper`,
     init: `
       <div style="min-width: 400px; height: 250px">
         <canvas style="position: absolute" id="{{ID}}"></canvas>
