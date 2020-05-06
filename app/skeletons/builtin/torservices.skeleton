@@ -20,37 +20,26 @@
       description: `Available bandwidth (in MBits)`
     },
     {
-      type: `EditEnvironment`,
-      name: `ORPort`,
-      description: `Select the port number for incoming connections`,
-      initValue: `{{__RANDOMPORTS(1)}}`
+      type: `SelectNetwork`,
+      name: `primary`,
+      description: `Select the network Tor will use to connect to the global Tor network`
     }
   ],
   properties: [
-     {
+    {
       type: `Feature`,
-      name: `ddns`
+      name: `+NET_ADMIN`
     },
     {
       type: `Directory`,
-      name: `/var/lib/tor`
+      name: `/var/lib/tor`,
+      mode: 0o700
     },
     {
       type: `File`,
       name: `/etc/tor/torrc.tmpl`,
       value: `{{torrc}}`,
       style: `boot`
-    },
-    {
-      type: `Directory`,
-      name: `/leases`,
-      style: `boot`
-    },
-    {
-      type: `Port`,
-      name: `ORPort`,
-      protocol: `TCP`,
-      port: `ORPort`
     },
     {
       type: `Network`,
@@ -68,8 +57,6 @@
       name: `torrc`,
       value: `
 ContactInfo {{EMAIL}}
-ORPort {{ORPort}}
-PortForwarding 1
 Address {{__GLOBALNAME}}
 Nickname MinkeBoxTor
 ExitRelay 0
@@ -77,8 +64,6 @@ SocksPort 0
 ControlSocket 0
 BandwidthRate {{BANDWIDTH}}MBits
 BandwidthBurst {{BANDWIDTH}}MBits
-RelayBandwidthRate {{BANDWIDTH}}MBits
-RelayBandwidthBurst {{BANDWIDTH}}MBits
 `
     }
   ]
