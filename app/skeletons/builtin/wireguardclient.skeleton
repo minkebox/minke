@@ -27,7 +27,7 @@
     },
     {
       type: `Directory`,
-      name: `/etc/leases`,
+      name: `/leases`,
       style: `boot`
     },
     {

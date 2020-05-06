@@ -42,20 +42,25 @@
   ],
   properties: [
     {
+      type: `Feature`,
+      name: `ddns`
+    },
+    {
       type: `Directory`,
-      name: `/var/lib/tor`
+      name: `/var/lib/tor`,
+      style: `store`
     },
     {
       type: `File`,
       name: `/etc/tor/torrc`,
-      value: `{{torrc}}`
+      value: `{{torrc}}`,
+      style: `boot`
     },
     {
       type: `Port`,
       name: `ORPort`,
       protocol: `TCP`,
-      port: `ORPort`,
-      nat: true
+      port: `ORPort`
     },
     {
       type: `Network`,
@@ -69,6 +74,7 @@
       value: `
 ContactInfo {{EMAIL}}
 ORPort {{ORPort}}
+PortForwarding 1
 Address {{__GLOBALNAME}}
 Nickname MinkeBoxTor
 ExitRelay 0
