@@ -137,7 +137,6 @@
       name: `torrc`,
       value: `
 ContactInfo {{EMAIL}}
-Address {{__GLOBALNAME}}
 Nickname MinkeBoxTor
 ExitRelay 0
 SocksPort 0
