@@ -38,6 +38,11 @@
       name: `ORPort`,
       description: `Select the port number for incoming connections`,
       initValue: `{{__RANDOMPORTS(1)}}`
+    },
+    {
+      type: `SelectNetwork`,
+      name: `primary`,
+      description: `Select the network used to connect to the global Tor network`
     }
   ],
   properties: [
