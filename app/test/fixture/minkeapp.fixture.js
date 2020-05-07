@@ -13,7 +13,7 @@ beforeEach(async function() {
   mock.stop('fs');
 
   MinkeApp._network = { network: {} };
-  const app = await (new MinkeApp().createFromJSON({ binds: [], vars: '' }));
+  const app = await (new MinkeApp().createFromJSON({ binds: [], vars: '', networks: { primary: { name: 'home'} , secondary: { name: 'none' } } }));
   app._globalId = '1FB44E7C-7E63-4739-A1F6-569220469E8B';
   await app.createJS();
   this.app = app;
