@@ -1,69 +1,82 @@
 {
-  name: `Shaped Network`,
-  description: `Create a network then route, shape and limit traffic crossing to a target network.`,
-  image: `registry.minkebox.net/minkebox/networkshaper`,
-  uuid: `06DB17F2-1FD1-4142-AE13-6CA3F10DB5B8`,
-  tags: [
-    `Networking`
-  ],
+  name: `Tor Relay`,
+  description: `Create a Tor middle/guard relay node`,
+  image: `registry.minkebox.net/minkebox/tor-relay`,
+  uuid: `1852E3FB-091D-4170-AB40-DC3F8D84F19E`,
+  tags: [ 'Tor', 'Secuity', 'Networking' ],
   actions: [
     {
+      type: `Help`,
+      text: `A guard relay is the first relay in the chain of 3 relays building a Tor circuit. A middle relay is neither a
+      guard nor an exit, but acts as the second hop between the two. To become a guard, a relay has to be stable and fast
+      (at least 2MByte/s) otherwise it will remain a middle relay.<p/>
+      Guard and middle relays usually do not receive abuse complaints. All relays will be listed in the public list
+      of Tor relays, so may be blocked by certain services that don't understand how Tor works or deliberately want to
+      censor Tor users. If you are running a relay from home and have one static IP, you may want to consider running a
+      bridge instead so that your non-Tor traffic doesn't get blocked as though it's coming from Tor. If you have a
+      dynamic IP address or multiple static IPs, this isn't as much of an issue.<p/>
+      A non-exit Tor relay requires minimal maintenance efforts and bandwidth usage can be highly customized in
+      the tor configuration. The so called "exit policy" of the relay decides if it is a relay allowing clients to exit
+      or not. A non-exit relay does not allow exiting in its exit policy.`
+    },
+    {
       type: `Header`,
-      title: `Configure`
+      title: `Configuration`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `EMAIL`,
+      description: `Public email associated with this node`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `BANDWIDTH`,
+      description: `Available bandwidth (in MBits)`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `ORPort`,
+      description: `Select the port number for incoming connections`,
+      initValue: `{{__RANDOMPORTS(1)}}`
     },
     {
       type: `SelectNetwork`,
       name: `primary`,
-      description: `Select target network`
-    },
-    {
-      type: `EditEnvironment`,
-      name: `IN_TO_OUT`,
-      description: `Maximum bandwidth out to target network (Kb/s)`
-    },
-    {
-      type: `EditEnvironment`,
-      name: `OUT_TO_IN`,
-      description: `Maximum bandwidth in from target network (Kb/s)`
-    },
-     {
-      type: `EditEnvironmentAsCheckbox`,
-      name: `INTERNET_ONLY`,
-      description: `Clients can <b>only</b> access the Internet`
-    },
+      description: `Select the network used to connect to the global Tor network`
+    }
   ],
   properties: [
     {
       type: `Feature`,
-      name: `+NET_ADMIN`
+      name: `ddns`
     },
     {
-      type: `Environment`,
-      name: `IN_TO_OUT`
+      type: `Directory`,
+      name: `/var/lib/tor`,
+      style: `store`
     },
     {
-      type: `Environment`,
-      name: `OUT_TO_IN`
+      type: `File`,
+      name: `/etc/tor/torrc`,
+      value: `{{torrc}}`,
+      style: `boot`
     },
     {
-      type: `Environment`,
-      name: `INTERNET_ONLY`,
-      value: false
+      type: `Port`,
+      name: `ORPort`,
+      protocol: `TCP`,
+      port: `ORPort`,
+      nat: true
     },
     {
       type: `Network`,
       name: `primary`,
       value: `home`
-    },
-    {
-      type: `Network`,
-      name: `secondary`,
-      value: `__create`
     }
   ],
   monitor: {
     cmd: `echo $(iptables -L RX -x -v -n | awk 'NR == 3 {print $2}') $(iptables -L TX -x -v -n | awk 'NR == 3 {print $2}')`,
-    target: `helper`,
+    target: 'helper',
     init: `
       <div style="min-width: 400px; height: 250px">
         <canvas style="position: absolute" id="{{ID}}"></canvas>
@@ -128,5 +141,23 @@
         })();
       </script>
     `
-  }
+  },
+  constants: [
+    {
+      name: `torrc`,
+      value: `
+ContactInfo {{EMAIL}}
+ORPort {{ORPort}}
+Address {{__GLOBALNAME}}
+Nickname MinkeBoxTor
+ExitRelay 0
+SocksPort 0
+ControlSocket 0
+BandwidthRate {{BANDWIDTH}}MBits
+BandwidthBurst {{BANDWIDTH}}MBits
+RelayBandwidthRate {{BANDWIDTH}}MBits
+RelayBandwidthBurst {{BANDWIDTH}}MBits
+`
+    }
+  ]
 }

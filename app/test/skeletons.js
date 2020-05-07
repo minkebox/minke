@@ -14,6 +14,7 @@ describe('Skeletons', async function() {
         eval(`skel=${FS.readFileSync(`./skeletons/builtin/${name}`, { encoding: 'utf8' })}`);
         assert.ok(skel);
         assert.equal(typeof skel.name, 'string', 'bad name');
+        assert.ok(skel.uuid, 'missing uuid');
         assert.equal(typeof skel.uuid, 'string', 'bad uuid');
         assert.ok(Array.isArray(skel.actions), 'bad actions');
         assert.ok(Array.isArray(skel.properties), 'bad properties');

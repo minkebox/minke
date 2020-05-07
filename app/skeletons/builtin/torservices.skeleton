@@ -1,108 +1,57 @@
 {
-  name: `PPTP`,
-  description: `PPTP client to connect to PPTP servers`,
-  image: `registry.minkebox.net/minkebox/pptpclient`,
-  uuid: `11E7B3AF-CE7B-49DF-AFCC-FB561B1628DB`,
-  tags: [ 'VPN', 'Security', 'Networking' ],
+  name: `Tor Services`,
+  description: `Create a Tor service node to connect your applications to the Tor network.`,
+  image: `registry.minkebox.net/minkebox/tor-services`,
+  uuid: `8A498764-EA8D-4366-9DC4-B7EC8F0E215A`,
+  tags: [ 'Tor', 'Secuity', 'Networking' ],
   actions: [
     {
       type: `Header`,
-      title: `Configure`
+      title: `Configuration`
     },
     {
       type: `EditEnvironment`,
-      description: `Enter your VPN server name`,
-      name: `SERVER`,
-      placeholder: `Server Name`
+      name: `EMAIL`,
+      description: `Public email associated with this node`
     },
     {
       type: `EditEnvironment`,
-      description: `Enter your VPN username`,
-      name: `USER`,
-      placeholder: `Username`
+      name: `BANDWIDTH`,
+      description: `Available bandwidth (in MBits)`
     },
     {
-      type: `EditEnvironment`,
-      description: `Enter your VPN password`,
-      name: `PASSWORD`,
-      placeholder: `Password`
+      type: `SelectNetwork`,
+      name: `primary`,
+      description: `Select the network Tor will use to connect to the global Tor network`
     },
     {
       type: `Header`,
-      title: `Advanced`,
-      visible: `property.Advanced`
+      title: `Services`,
     },
     {
-      type: `EditEnvironmentAsCheckbox`,
-      name: `PAP`,
-      description: `Enable PAP authentication`,
-      initValue: false
-    },
-    {
-      type: `EditEnvironmentAsCheckbox`,
-      name: `EAP`,
-      description: `Enable EAP authentication`,
-      initValue: false
-    },
-    {
-      type: `EditEnvironmentAsCheckbox`,
-      name: `CHAP`,
-      description: `Enable CHAP authentication`,
-      initValue: false
-    },
-    {
-      type: `EditEnvironmentAsCheckbox`,
-      name: `MSCHAP`,
-      description: `Enable MS-CHAP authentication`,
-      initValue: true
-    },
-    {
-      type: `EditEnvironmentAsCheckbox`,
-      name: `MPPE`,
-      description: `Enable encryption`,
-      initValue: true
+      type: `ShowFileAsTable`,
+      name: `/var/lib/tor/services`,
+      description: `Onion Addresses`,
+      headers: [
+        { name: `Host` },
+        { name: `Onion` }
+      ]
     }
   ],
   properties: [
     {
       type: `Feature`,
-      name: `privileged`
-    },
-    {
-      type: `Environment`,
-      name: `USER`
-    },
-    {
-      type: `Environment`,
-      name: `PASSWORD`
-    },
-    {
-      type: `Environment`,
-      name: `SERVER`
-    },
-    {
-      type: `Environment`,
-      name: `PAP`
-    },
-    {
-      type: `Environment`,
-      name: `CHAP`
-    },
-    {
-      type: `Environment`,
-      name: `EAP`
-    },
-    {
-      type: `Environment`,
-      name: `MSCHAP`
-    },
-    {
-      type: `Environment`,
-      name: `MPPE`
+      name: `+NET_ADMIN`
     },
     {
       type: `Directory`,
-      name: `/leases`,
+      name: `/var/lib/tor`,
+      mode: 0o700
+    },
+    {
+      type: `File`,
+      name: `/etc/tor/torrc.tmpl`,
+      value: `{{torrc}}`,
       style: `boot`
     },
     {
@@ -130,8 +79,8 @@
             data: {
               labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63],
               datasets: [
-                { data: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ], label: 'RX', borderColor: '#88cce7', backgroundColor: '#88cce7', fill: false, pointRadius: 0 },
-                { data: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ], label: 'TX', borderColor: '#41b376', backgroundColor: '#41b376', fill: false, pointRadius: 0 }
+                { data: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ], label: 'RX', borderColor: '#88cce7', backgroundColor: '#88cce7', fill: false, pointRadius: 0, clip: { top: 0, right: -10, bottom: 0, left: -10 } },
+                { data: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ], label: 'TX', borderColor: '#41b376', backgroundColor: '#41b376', fill: false, pointRadius: 0, clip: { top: 0, right: -10, bottom: 0, left: -10 } }
               ]
             },
             options: {
@@ -183,5 +132,19 @@
         })();
       </script>
     `
-  }
+  },
+  constants: [
+    {
+      name: `torrc`,
+      value: `
+ContactInfo {{EMAIL}}
+Nickname MinkeBoxTor
+ExitRelay 0
+SocksPort 0
+ControlSocket 0
+BandwidthRate {{BANDWIDTH}}MBits
+BandwidthBurst {{BANDWIDTH}}MBits
+`
+    }
+  ]
 }
