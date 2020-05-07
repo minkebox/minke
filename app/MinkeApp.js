@@ -61,7 +61,17 @@ MinkeApp.prototype = {
       this._vars = JSON.parse(app.vars);
     }
     // MIGRATION
-    this._networks = app.networks;
+    // MIGRATION
+    if (typeof app.networks.primary === 'string') {
+      this._networks = {
+        primary: { name: app.networks.primary },
+        secondary: { name: app.networks.secondary }
+      };
+    }
+    else {
+      this._networks = app.networks;
+    }
+    // MIGRATION
     this._bootcount = app.bootcount;
     this._position = app.position || { tab: 0, widget: 0 };
     this._secondary = (app.secondary || []).map(secondary => {
@@ -352,35 +362,38 @@ MinkeApp.prototype = {
     this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).value;
 
     this._networks = {
-      primary: 'none',
-      secondary: 'none'
+      primary: { name: 'none' },
+      secondary: { name: 'none' }
     };
     skel.properties.forEach(prop => {
       if (prop.type === 'Network') {
         if (prop.defaultValue === '__create' || prop.value === '__create') {
-          this._networks[prop.name] = this._id;
+          this._networks[prop.name].name = this._id;
         }
         else if (defs.networks && defs.networks[prop.name]) {
           this._networks[prop.name] = defs.networks[prop.name];
         }
         else if (prop.value || prop.defaultValue) {
-          this._networks[prop.name] = prop.value || prop.defaultValue;
+          this._networks[prop.name].name = prop.value || prop.defaultValue;
+        }
+        if (prop.bandwidth) {
+          this._networks[prop.name].bandwidth = prop.bandwidth;
         }
       }
     });
     // Any created network must be secondary
-    if (this._networks.primary === this._id) {
+    if (this._networks.primary.name === this._id) {
       this._networks.primary = this._networks.secondary;
-      this._networks.secondary = this._id;
+      this._networks.secondary = { name: this._id };
     }
     // If we only have one network, must be primary
-    if (this._networks.primary === 'none') {
+    if (this._networks.primary.name === 'none') {
       this._networks.primary = this._networks.secondary;
-      this._networks.secondary = 'none';
+      this._networks.secondary = { name: 'none' };
     }
     // Remove duplicate secondary
-    if (this._networks.primary === this._networks.secondary) {
-      this._networks.secondary = 'none';
+    if (this._networks.primary.name === this._networks.secondary.name) {
+      this._networks.secondary = { name: 'none' };
     }
 
     await this._parseProperties(this, '', skel.properties, defs.binds || []);
@@ -561,8 +574,8 @@ MinkeApp.prototype = {
 
       // Create network environment
       const netEnv = {};
-      const pNetwork = this._networks.primary;
-      const sNetwork = this._networks.secondary;
+      const pNetwork = this._networks.primary.name;
+      const sNetwork = this._networks.secondary.name;
       if (pNetwork !== 'none') {
         switch (pNetwork) {
           case 'home':
@@ -719,6 +732,15 @@ MinkeApp.prototype = {
 
         if (this._willCreateNetwork()) {
           helperConfig.HostConfig.Sysctls["net.ipv4.ip_forward"] = "1";
+        }
+
+        // Network shaping
+        // Note. We store values in Mbps, but the wondershaper in the helper takes kbps.
+        if (this._networks.primary.bandwidth) {
+          helperConfig.Env.push(`__DEFAULT_INTERFACE_BANDWIDTH=${1024 * await this.expandNumber(this._networks.primary.bandwidth)}`);
+        }
+        if (this._networks.secondary.bandwidth) {
+          helperConfig.Env.push(`__SECONDARY_INTERFACE_BANDWIDTH=${1024 * await this.expandNumber(this._networks.secondary.bandwidth)}`);
         }
 
         // Expand the environment before selecting ports as this could effect their values
@@ -1300,7 +1322,7 @@ MinkeApp.prototype = {
   getAvailableWebsites: async function(network) {
     const acc = [];
     await Promise.all(applications.map(async app => {
-      if (app !== this && (network === app._networks.primary || network === app._networks.secondary)) {
+      if (app !== this && (network === app._networks.primary.name || network === app._networks.secondary.name)) {
         const ports = await Promise.all(app._ports.map(async port => await app.expandPort(port)));
         const webport = ports.find(port => port.web);
         if (webport && !webport.web.private) {
@@ -1844,7 +1866,7 @@ MinkeApp.prototype = {
   },
 
   _willCreateNetwork: function() {
-    return (this._networks.primary === this._id || this._networks.secondary === this._id);
+    return (this._networks.primary.name === this._id || this._networks.secondary.name === this._id);
   },
 
   _allocateRandomNatPorts: async function(count) {
@@ -2071,7 +2093,7 @@ MinkeApp.startApps = async function(app, config) {
     await Promise.all(inherit.secondary.map(async secondary => await isAlive(secondary)));
 
     // We need a helper unless we're using the host network
-    if (app._networks.primary !== 'host' && !inherit.helperContainer) {
+    if (app._networks.primary.name !== 'host' && !inherit.helperContainer) {
       alive = false;
     }
 
@@ -2151,7 +2173,7 @@ MinkeApp.getStartupOrder = function() {
 
   // Start with all the 'host' applications.
   for (let i = 0; i < list.length; ) {
-    if (list[i]._networks.primary === 'host' && list[i]._networks.secondary === 'none') {
+    if (list[i]._networks.primary.name === 'host' && list[i]._networks.secondary.name === 'none') {
       order.push(list[i]);
       list.splice(i, 1);
     }
@@ -2171,10 +2193,10 @@ MinkeApp.getStartupOrder = function() {
     let i = 0;
     while (i < list.length) {
       const app = list[i];
-      if ((networks[app._networks.primary] || app._networks.primary === app._id) &&
-          (networks[app._networks.secondary] || app._networks.secondary === app._id)) {
-        networks[app._networks.primary] = true;
-        networks[app._networks.secondary] = true;
+      if ((networks[app._networks.primary.name] || app._networks.primary.name === app._id) &&
+          (networks[app._networks.secondary.name] || app._networks.secondary.name === app._id)) {
+        networks[app._networks.primary.name] = true;
+        networks[app._networks.secondary.name] = true;
         order.push(app);
         list.splice(i, 1);
       }
