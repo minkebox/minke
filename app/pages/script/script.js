@@ -409,6 +409,74 @@ document.addEventListener('drop', function(event) {
   }
 });
 
+/* Basic graphs */
+
+function networkTrafficGraph(config) {
+  const id = config.id;
+  const refresh = config.refresh || 1;
+  const title = config.title || 'Bandwidth (Mbps)';
+  const labelA = (config.labels && config.labels[0]) || 'RX';
+  const labelB = (config.labels && config.labels[1]) || 'TX';
+  const scale = config.sclale || (8 / 1000000);
+  const chart = new Chart(document.getElementById(id).getContext("2d"), {
+    type: 'line',
+    data: {
+      labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63],
+      datasets: [
+        { data: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ], label: labelA, borderColor: '#88cce7', backgroundColor: '#88cce7', fill: false, pointRadius: 0, clip: { top: 0, right: -10, bottom: 0, left: -10 } },
+        { data: [ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 ], label: labelB, borderColor: '#41b376', backgroundColor: '#41b376', fill: false, pointRadius: 0, clip: { top: 0, right: -10, bottom: 0, left: -10 } }
+      ]
+    },
+    options: {
+      animation: { duration: refresh * 1000, easing: 'linear' },
+      maintainAspectRatio: false,
+      adaptive: true,
+      title: { display: true, text: title },
+      scales: {
+        xAxes: [{
+          display: false
+        }],
+        yAxes: [{
+          ticks: { beginAtZero: true }
+        }]
+      }
+    }
+  });
+  const state = {
+    last: [ 0, 0 ],
+    then: 0
+  };
+  monitor(id, refresh, input => {
+    const values = input.split(' ');
+    if (values.length == 2) {
+      const now = Date.now() / 1000;
+      values[0] = parseInt(values[0]);
+      values[1] = parseInt(values[1]);
+      let elapse = Math.min(chart.data.datasets[0].data.length, Math.floor(now - state.then));
+      if (elapse > 5) {
+        if (elapse >= chart.data.datasets[0].data.length) {
+          state.last = values;
+        }
+        for (; elapse > 0; elapse--) {
+          chart.data.datasets[0].data.shift();
+          chart.data.datasets[1].data.shift();
+          chart.data.datasets[0].data.push(0);
+          chart.data.datasets[1].data.push(0);
+        }
+      }
+      chart.data.datasets[0].data.shift();
+      chart.data.datasets[1].data.shift();
+      chart.data.datasets[0].data.push((values[0] - state.last[0]) * scale / (now - state.then));
+      chart.data.datasets[1].data.push((values[1] - state.last[1]) * scale / (now - state.then));
+      state.last = values;
+      state.then = now;
+      chart.update();
+    }
+  });
+}
+
+/* Basic graphs */
+
 /* Inline page */
 
 function closeInlinePage() {
