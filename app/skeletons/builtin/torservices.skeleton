@@ -45,6 +45,12 @@
     },
     {
       type: `Directory`,
+      name: `/root/.tor`,
+      style: `store`,
+      backup: true
+    },
+    {
+      type: `Directory`,
       name: `/var/lib/tor`,
       style: `store`,
       backup: true
@@ -145,7 +151,6 @@ SocksPort 0
 ControlSocket 0
 BandwidthRate {{BANDWIDTH}}MBits
 BandwidthBurst {{BANDWIDTH}}MBits
-DataDirectory /var/lib/tor
 `
     }
   ]
