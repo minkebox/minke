@@ -37,8 +37,8 @@ function genApp(app) {
     tagcolor: tagColor(app._tags[0].toLowerCase()),
     position: app._position.tab,
     networks: [
-      app._networks.primary === 'host' ? 'home' : app._networks.primary,
-      app._networks.secondary === 'host' ? 'home' : app._networks.secondary
+      app._networks.primary.name === 'host' ? 'home' : app._networks.primary.name,
+      app._networks.secondary.name === 'host' ? 'home' : app._networks.secondary.name
     ]
   }
 }
@@ -58,8 +58,8 @@ function genAppStatus(acc, app) {
       tagcolor: tagColor(app._tags[0]),
       position: app._position.widget,
       networks: [
-        app._networks.primary === 'host' ? 'home' : app._networks.primary,
-        app._networks.secondary === 'host' ? 'home' : app._networks.secondary
+        app._networks.primary.name === 'host' ? 'home' : app._networks.primary.name,
+        app._networks.secondary.name === 'host' ? 'home' : app._networks.secondary.name
       ]
     });
   }

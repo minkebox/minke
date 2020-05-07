@@ -164,9 +164,9 @@ async function ConfigurePageHTML(ctx) {
               currentSites = app._vars[action.name].value;
             }
 
-            const websites = (await app.getAvailableWebsites(app._networks.primary)).map(site => {
+            const websites = (await app.getAvailableWebsites(app._networks.primary.name)).map(site => {
               const match = currentSites.find(cs => cs[0] === site.app._id);
-              let ip = app._networks.primary === site.app._networks.primary ? site.app._defaultIP : site.app._secondaryIP;
+              let ip = app._networks.primary.name === site.app._networks.primary.name ? site.app._defaultIP : site.app._secondaryIP;
               return {
                 appid: site.app._id,
                 name: site.app._name,
@@ -183,7 +183,7 @@ async function ConfigurePageHTML(ctx) {
         case 'SelectNetwork':
           {
             const networks = [{ _id: 'none', name: 'none' }].concat(app.getAvailableNetworks());
-            const network = app._networks[action.name] || 'none';
+            const network = app._networks[action.name].name || 'none';
             properties[`${action.type}#${action.name}`] = network;
             // If we chance the primary network then the websites we can select will also change.
             let reload = '';
@@ -592,9 +592,9 @@ async function ConfigurePageWS(ctx) {
     {
       p: /^SelectNetwork#(.+)$/, f: async (value, match) => {
         const network = match[1];
-        const ovalue = app._networks[network];
+        const ovalue = app._networks[network].name;
         if ((network in app._networks) && ovalue !== value) {
-          app._networks[network] = value;
+          app._networks[network].name = value;
           return APPCHANGE;
         }
         return NOCHANGE;
@@ -772,7 +772,7 @@ async function ConfigurePageWS(ctx) {
           {
             const primary = msg.value;
             const websites = (await app.getAvailableWebsites(primary)).map(site => {
-              let ip = primary === site.app._networks.primary ? site.app._defaultIP : site.app._secondaryIP;
+              let ip = primary === site.app._networks.primary.name ? site.app._defaultIP : site.app._secondaryIP;
               return {
                 appid: site.app._id,
                 name: site.app._name,

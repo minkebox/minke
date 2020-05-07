@@ -72,8 +72,8 @@ function MinkeSetup(savedConfig, firstUseConfig, defaultConfig) {
     { port: this._getValue('PORT') + 1, protocol: 'TCP', mdns: { type: '_ssh._tcp' } }
   ];
   this._networks = {
-    primary: 'none',
-    secondary: 'host'
+    primary: { name: 'none' },
+    secondary: { name: 'host' }
   };
   this._monitor = {};
   this._name = this._getValue('HOSTNAME');
