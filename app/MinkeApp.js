@@ -391,10 +391,6 @@ MinkeApp.prototype = {
       this._networks.primary = this._networks.secondary;
       this._networks.secondary = { name: 'none' };
     }
-    // Remove duplicate secondary
-    if (this._networks.primary.name === this._networks.secondary.name) {
-      this._networks.secondary = { name: 'none' };
-    }
 
     await this._parseProperties(this, '', skel.properties, defs.binds || []);
     if (skel.secondary) {
@@ -575,7 +571,8 @@ MinkeApp.prototype = {
       // Create network environment
       const netEnv = {};
       const pNetwork = this._networks.primary.name;
-      const sNetwork = this._networks.secondary.name;
+      // Remove secondary network during app creation. Some apps might have to option of using one or two networks.
+      const sNetwork = this._networks.secondary.name !== pNetwork ? this._networks.secondary.name : 'none';
       if (pNetwork !== 'none') {
         switch (pNetwork) {
           case 'home':
