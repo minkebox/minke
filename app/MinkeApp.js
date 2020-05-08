@@ -655,6 +655,10 @@ MinkeApp.prototype = {
           config.HostConfig.NetworkMode = vpn.id;
           configEnv.push(`__DNSSERVER=${vpnapp._secondaryIP}`);
           configEnv.push(`__GATEWAY=${vpnapp._secondaryIP}`);
+          if (sNetwork === 'home') {
+            configEnv.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
+            configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
+          }
           config.HostConfig.Dns = [ vpnapp._secondaryIP ];
           config.HostConfig.DnsSearch = [ 'local' ];
           config.HostConfig.DnsOptions = [ 'ndots:1', 'timeout:2', 'attempts:1' ];
