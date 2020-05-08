@@ -65,6 +65,7 @@ async function PageWS(ctx) {
         case 'newapp.image':
         {
           (async function() {
+            let created = false;
             const images = [];
             const skel = Skeletons.loadSkeleton(msg.value, false);
             if (skel) {
@@ -75,6 +76,7 @@ async function PageWS(ctx) {
             }
             else if (!GUID.test(msg.value)) {
               images.push(msg.value);
+              created = true;
             }
             const download = [];
             const extract = [];
@@ -88,7 +90,7 @@ async function PageWS(ctx) {
             }));
             if (images.length && success.reduce((acc, val) => acc & !!val, true)) {
               const app = await MinkeApp.create(msg.value);
-              send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: msg.src });
+              send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: created ? 'open-editor' : '' });
             }
             else {
               send({ type: 'css.class.add', selector: '.download-spinner', className: 'error' });
@@ -116,7 +118,7 @@ async function PageWS(ctx) {
             if (skel) {
               Skeletons.saveLocalSkeleton(skel);
               const app = await MinkeApp.create(skel.uuid);
-              send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: 'docker-compose' });
+              send({ type: 'page.redirect', url: `/configure/${app._id}/`, src: 'open-editor' });
             }
           })();
           break;
