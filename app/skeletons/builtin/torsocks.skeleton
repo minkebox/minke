@@ -1,0 +1,118 @@
+{
+  name: `Tor Socks`,
+  description: `Create a Tor SOCKS Proxy`,
+  image: `registry.minkebox.net/minkebox/tor-socks`,
+  uuid: `D428A132-017A-4D06-85EA-77072B797617`,
+  tags: [ 'Tor', 'Proxy', 'Dns', 'Security', 'Networking' ],
+  actions: [
+    {
+      type: `Help`,
+      text: `A Tor SOCKS proxy can be used to send any configured application's Internet traffic over the Tor network.
+             The application (such as a web browser) connects to the SOCKS proxy just like a non-Tor proxy, and Tor secures
+             the transfer. Please be aware that although the transfer is secured by Tor, your applicaiton might leak identity
+             information in other way.`
+    },
+    {
+      type: `Header`,
+      title: `Configuration`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `PROXY_PORT`,
+      description: `Select the port to use for the SOCKS proxy`,
+      initValue: `9050`
+    },
+    {
+      type: `SelectNetwork`,
+      name: `primary`,
+      description: `Select the network used to connect to the global Tor network`
+    },
+    {
+      type: `Header`,
+      title: `Browser auto-detection`,
+    },
+    {
+      type: `Text`,
+      text: `Many browser can auto-detect this proxy if you enable it here. Alternatively you can use the <b>http://{{__HOMEIP}}</b> configuration url.`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `ENABLE_WPAD`,
+      description: `Allow browsers to auto-detect proxy`,
+      initValue: false
+    }
+  ],
+  properties: [
+    {
+      type: `Environment`,
+      name: `PROXY_PORT`
+    },
+    {
+      type: `Environment`,
+      name: `ENABLE_WPAD`
+    },
+    {
+      type: `Directory`,
+      name: `/root/.tor`,
+      style: `store`,
+      backup: true
+    },
+    {
+      type: `Directory`,
+      name: `/var/lib/tor`,
+      style: `store`,
+      backup: true
+    },
+    {
+      type: `File`,
+      name: `/etc/tor/torrc`,
+      value: `{{torrc}}`,
+      style: `boot`
+    },
+    {
+      type: `Port`,
+      name: `PROXY_PORT`,
+      protocol: `TCP`,
+      port: `{{PROXY_PORT}}`
+    },
+    {
+      type: `Port`,
+      name: `53/udp`,
+      protocol: `UDP`,
+      port: 53,
+      dns: `{{ENABLE_WPAD}}`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      value: `home`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      value: `home`
+    }
+  ],
+  monitor: {
+    cmd: `echo $(iptables -L RX -x -v -n | awk 'NR == 3 {print $2}') $(iptables -L TX -x -v -n | awk 'NR == 3 {print $2}')`,
+    target: 'helper',
+    init: `
+      <div style="min-width: 400px; height: 250px">
+        <canvas style="position: absolute" id="{{ID}}"></canvas>
+      </div>
+      <script>
+         networkTrafficGraph({ id: "{{ID}}" });
+      </script>
+    `
+  },
+  constants: [
+    {
+      name: `torrc`,
+      value: `
+ExitRelay 0
+ControlSocket 0
+SocksPort 0.0.0.0:{{PROXY_PORT}}
+`
+    }
+  ]
+}
