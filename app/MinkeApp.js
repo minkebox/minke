@@ -53,15 +53,15 @@ MinkeApp.prototype = {
     this._ports = app.ports;
     this._binds = app.binds;
     this._files = app.files;
-    // MIGRATION
+    // MIGRATION - Keep May 15, 2020
     if (app.backups) {
       this._backups = app.backups;
     }
     if (app.vars) {
       this._vars = JSON.parse(app.vars);
     }
-    // MIGRATION
-    // MIGRATION
+    // MIGRATION - Keep May 15, 2020
+    // MIGRATION - Remove May 15, 2020
     if (typeof app.networks.primary === 'string') {
       this._networks = {
         primary: { name: app.networks.primary },
@@ -71,7 +71,7 @@ MinkeApp.prototype = {
     else {
       this._networks = app.networks;
     }
-    // MIGRATION
+    // MIGRATION - Remove May 15, 2020
     this._bootcount = app.bootcount;
     this._position = app.position || { tab: 0, widget: 0 };
     this._secondary = (app.secondary || []).map(secondary => {
@@ -101,7 +101,7 @@ MinkeApp.prototype = {
       this._tags = [ 'All' ];
     }
 
-    // MIGRATION
+    // MIGRATION - Remove May 15, 2020
     if (!this._vars) {
       this._vars = {};
       if (this._skeleton) {
@@ -111,7 +111,7 @@ MinkeApp.prototype = {
         await this.save();
       }
     }
-    // MIGRATION
+    // MIGRATION - Remove May 15, 2020
 
     this._setStatus('stopped');
 
@@ -260,6 +260,7 @@ MinkeApp.prototype = {
     //console.log('Created Vars', this._vars);
   },
 
+  // MIGRATION - Remove May 15, 2020
   _variableMigration: async function() {
     for (let i = 0; i < this._skeleton.actions.length; i++) {
       const action = this._skeleton.actions[i];
@@ -326,6 +327,7 @@ MinkeApp.prototype = {
       }
     }
   },
+  // MIGRATION - Remove May 15, 2020
 
   createFromSkeleton: async function(skel) {
     for (let i = 0; ; i++) {
@@ -1684,18 +1686,11 @@ MinkeApp.prototype = {
     js.setProperty(glb, '__DOMAINNAME', MinkeApp.getLocalDomainName());
     js.setProperty(glb, '__HOSTIP', MinkeApp._network.network.ip_address);
     js.setProperty(glb, '__HOMEIP', this._homeIP);
+    js.setProperty(glb, '__HOMEIP6', this.getSLAACAddress() || '');
     js.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
-    js.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress());
     js.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
-    if (!this._homeIP) {
-      js.setProperty(glb, '__HOMEADDRESSES', '');
-    }
-    else if (!this.getSLAACAddress()) {
-      js.setProperty(glb, '__HOMEADDRESSES', this._homeIP);
-    }
-    else {
-      js.setProperty(glb, '__HOMEADDRESSES', `${this._homeIP} and ${this.getSLAACAddress()}`);
-    }
+    js.setProperty(glb, '__HOMEADDRESSES', this._homeIP); // MIGRATION - Remove May 15, 2020
+    // And app functions
     js.setProperty(glb, '__RANDOMHEX', js.createNativeFunction(len => {
       return this._generateSecurePassword(len);
     }));
