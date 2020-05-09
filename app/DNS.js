@@ -209,6 +209,10 @@ const PrivateDNS = {
     delete this._ip2localname[ip6];
     delete this._ip2globalname[ip6];
   },
+
+  lookupLocalnameIP: function(localname) {
+    return this._hostname2ip4[localname.toLowerCase()];
+  }
 };
 
 //
@@ -1258,6 +1262,10 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
   unregisterHost: function(localname) {
     PrivateDNS.unregisterHost(localname);
+  },
+
+  lookupLocalnameIP: function(localname) {
+    return PrivateDNS.lookupLocalnameIP(localname);
   },
 
   squery: async function(request, response, rinfo) {

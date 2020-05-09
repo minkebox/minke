@@ -858,11 +858,13 @@ MinkeApp.prototype = {
           const homeip6 = this.getSLAACAddress();
           Network.registerIP(this._homeIP);
           DNS.registerHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
+          // If we need to be accessed remotely, register with DDNS
+          if (this._ddns) {
+            DDNS.register(this);
+          }
         }
-
-        // If we need to be accessed remotely, register with DDNS
-        if (this._ddns) {
-          DDNS.register(this);
+        else if (this._defaultIP) {
+          DNS.registerHost(this._safeName(), null, this._defaultIP, null);
         }
 
       }
@@ -1083,8 +1085,8 @@ MinkeApp.prototype = {
       this._webProxy = null;
     }
 
+    DNS.unregisterHost(this._safeName());
     if (this._homeIP) {
-      DNS.unregisterHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`);
       if (this._ddns) {
         DDNS.unregister(this);
       }
@@ -1699,6 +1701,9 @@ MinkeApp.prototype = {
     }));
     js.setProperty(glb, '__RANDOMPORTS', asyncWrap(async nr => {
       return await this._allocateRandomNatPorts(nr);
+    }));
+    js.setProperty(glb, '__LOOKUPIP', js.createNativeFunction(host => {
+      return DNS.lookupLocalnameIP(host);
     }));
 
     // Start by setting properties for all constant variables. These are the ones which
