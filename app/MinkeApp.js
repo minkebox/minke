@@ -1690,6 +1690,7 @@ MinkeApp.prototype = {
     js.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
     js.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
     js.setProperty(glb, '__HOMEADDRESSES', this._homeIP); // MIGRATION - Remove May 15, 2020
+    js.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress()); // MIGRATION - Remove May 15, 2020
     // And app functions
     js.setProperty(glb, '__RANDOMHEX', js.createNativeFunction(len => {
       return this._generateSecurePassword(len);
