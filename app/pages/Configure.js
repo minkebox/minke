@@ -182,8 +182,16 @@ async function ConfigurePageHTML(ctx) {
           }
         case 'SelectNetwork':
           {
-            const networks = [{ _id: 'none', name: 'none' }].concat(app.getAvailableNetworks());
-            const network = app._networks[action.name].name || 'none';
+            let networks;
+            let network;
+            if (action.name === 'primary') {
+              network = app._networks.primary.name || 'home';
+              networks = app.getAvailableNetworks();
+            }
+            else {
+              network = app._networks.secondary.name || 'none';
+              networks = [{ _id: 'none', name: 'none' }].concat(app.getAvailableNetwork);
+            }
             properties[`${action.type}#${action.name}`] = network;
             // If we chance the primary network then the websites we can select will also change.
             let reload = '';

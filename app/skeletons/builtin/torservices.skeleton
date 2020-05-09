@@ -3,7 +3,7 @@
   description: `Create a Tor service node to connect your applications to the Tor network.`,
   image: `registry.minkebox.net/minkebox/tor-services`,
   uuid: `8A498764-EA8D-4366-9DC4-B7EC8F0E215A`,
-  tags: [ 'Tor', 'Secuity', 'Networking' ],
+  tags: [ 'Tor', 'Security', 'Networking' ],
   actions: [
     {
       type: `Header`,

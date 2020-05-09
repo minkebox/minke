@@ -3,7 +3,7 @@
   description: `Create a Tor middle/guard relay node`,
   image: `registry.minkebox.net/minkebox/tor-relay`,
   uuid: `1852E3FB-091D-4170-AB40-DC3F8D84F19E`,
-  tags: [ 'Tor', 'Secuity', 'Networking' ],
+  tags: [ 'Tor', 'Security', 'Networking' ],
   actions: [
     {
       type: `Help`,
