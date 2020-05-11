@@ -26,9 +26,6 @@ function MinkeSetup(savedConfig, firstUseConfig, defaultConfig) {
     savedConfig = Object.assign({}, firstUseConfig);
   }
 
-  /*function getEnv(name) {
-    return { value: savedConfig[name] || defaultConfig[name] };
-  }*/
   const makeVar = (name) => {
     this._vars[name] = { type: 'String', value: savedConfig[name] || defaultConfig[name] };
   }
