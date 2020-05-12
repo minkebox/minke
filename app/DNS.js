@@ -725,6 +725,8 @@ const LocalDNSSingleton = {
     }
     this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), parseInt(base[3]) ];
     this._base[Math.floor(basebits / 8)] |= 128 >> (basebits % 8);
+
+    this._broadcast = `${base[0]}.${base[1]}.255.255`;
   },
 
   stop: async function() {
@@ -818,7 +820,7 @@ const LocalDNSSingleton = {
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'master', DNS_NETWORK ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', iface, 'up', 'address', entry.mac ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'up' ]);
-    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'dev', iface ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'broadcast', this._broadcast, 'dev', iface ]);
   },
 
   _destroyInterface: function(entry) {
