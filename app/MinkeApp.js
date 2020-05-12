@@ -1992,10 +1992,29 @@ MinkeApp.startApps = async function(app, config) {
   const dnsNet = await Network.getDNSNetwork();
   try {
     // Attach it if we don't have a system. If we do, then the dns network devices will exist in the container already.
+    // If we have a system, the dns device (a bridge) will already exist and we are sharing the namespace so we use it
+    // directly. If not, we have to craft this setup in our current namespace (we can't do it before now).
     if (!SYSTEM) {
+      const cidr = dnsNet.info.IPAM.Config[0].Subnet.split('/');
+      const base = cidr[0].split('.');
+      const bits = parseInt(cidr[1]);
+      const address = `${base[0]}.${base[1]}.0.2`;
+      const dev = 'eth1';
+
+      // Create the dns0 bridge
+      ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'name', 'dns0', 'type', 'bridge' ]);
+      ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', 'dns0', 'up' ]);
+      // Connect ourselves to the dns network.
       await dnsNet.connect({
         Container: MinkeApp._container.id
       });
+      // Enslave our original network device to it. This allows our DNS network veth devices to be on the same
+      // network as applications created by Docker on the dns network. If we have a system then this is the same
+      // bridge, but if we don't then it's two bridges connected.
+      ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', dev, 'master', 'dns0' ]);
+      ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${address}/${bits}`, 'dev', `dns0` ]);
+      ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'del', `${address}/${bits}`, 'dev', dev ]);
+
       // We have to put back the original default route. There really must be a better way ...
       ChildProcess.spawnSync('/sbin/ip', [ 'route', 'del', 'default' ]);
       ChildProcess.spawnSync('/sbin/ip', [ 'route', 'add', 'default', 'via', MinkeApp._network.network.gateway_ip ]);

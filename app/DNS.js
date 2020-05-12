@@ -7,11 +7,12 @@ const Config = require('./Config');
 const Network = require('./Network');
 const Database = require('./Database');
 const MDNS = require('./MDNS');
+const Native = require('./native/native');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
 const HOSTNAME = '/bin/hostname';
-const DNS_NETWORK = (SYSTEM ? 'dns0' : 'eth1');
+const DNS_NETWORK = 'dns0';
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
 const GLOBAL1 = { _name: 'global1', _position: { tab: Number.MAX_SAFE_INTEGER - 1 } };
@@ -705,7 +706,6 @@ const LocalDNSSingleton = {
     const homecidr = home.info.IPAM.Config[0].Subnet.split('/');
     this._bits = parseInt(homecidr[1]);
 
-    this._dev = DNS_NETWORK;
     this._network = await Network.getDNSNetwork();
 
     const cidr = this._network.info.IPAM.Config[0].Subnet.split('/');
@@ -736,7 +736,8 @@ const LocalDNSSingleton = {
           socket: null,
           lastUse: Date.now(),
           address: state.map[i].address,
-          dnsAddress: state.map[i].dnsAddress
+          dnsAddress: state.map[i].dnsAddress,
+          iface: `dns${state.map[i].address.split('.').slice(2, 4).join('_')}`
         };
         this._forwardCache[newEntry.address] = newEntry;
         this._backwardCache[newEntry.dnsAddress] = newEntry;
@@ -780,13 +781,14 @@ const LocalDNSSingleton = {
     const matchEntry = this._backwardCache[daddress];
     if (matchEntry && now > matchEntry.lastUsed + this._TIMEOUT) {
       // Found an entry. We can use as it's expired.
-      this._unbindInterface(daddress);
+      this._unbindInterface(matchEntry);
       this._releaseAddress(daddress);
       matchEntry.socket.close();
       matchEntry.socket = null;
       matchEntry.lastUse = now;
       matchEntry.address = address;
       matchEntry.dnsAddress = daddress;
+      matchEntry.iface = `dns${saddress[2]}_${saddress[3]}`;
       return matchEntry;
     }
 
@@ -811,7 +813,8 @@ const LocalDNSSingleton = {
       socket: null,
       lastUse: now,
       address: address,
-      dnsAddress: daddress
+      dnsAddress: daddress,
+      iface: `dns${saddress[2]}_${saddress[3]}`
     };
     this._forwardCache[newEntry.address] = newEntry;
     this._backwardCache[newEntry.dnsAddress] = newEntry;
@@ -827,12 +830,23 @@ const LocalDNSSingleton = {
     }
   },
 
-  _bindInterface: function(address) {
-    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${address}/${this._bits}`, 'dev', this._dev ]);
+  // We give each client on the DNS network a unique IP and mac address (the mac is derived from the IP). It's not enough to just
+  // give clients IP addesses as some DNS applications care about the mac addresses being unique too. We do this by creating
+  // veth pairs, connect one end to the dns bridge, and use the other to send DNS requests. We bind the socket we use to the specific
+  // veth endpoint so the requests go out with the correct IP and mac address.
+  _bindInterface: function(entry) {
+    const iface = entry.iface;
+    const sa = entry.dnsAddress.split('.');
+    const mac = `0a:00:${parseInt(sa[0]).toString(16)}:${parseInt(sa[1]).toString(16)}:${parseInt(sa[2]).toString(16)}:${parseInt(sa[3]).toString(16)}`;
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'dev', iface, 'type', 'veth', 'peer', 'name', `p${iface}` ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'master', DNS_NETWORK ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', iface, 'up', 'address', mac ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'up' ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'dev', iface ]);
   },
 
-  _unbindInterface: function(address) {
-    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'del', `${address}/${this._bits}`, 'dev', this._dev ]);
+  _unbindInterface: function(entry) {
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'del', 'dev', entry.iface ]);
   },
 
   _pruneAddresses: function() {
@@ -844,7 +858,7 @@ const LocalDNSSingleton = {
         const entry = active[i];
         delete this._forwardCache[entry.address];
         delete this._backwardCache[entry.daddress];
-        this._unbindInterface(entry.daddress);
+        this._unbindInterface(entry);
         this._releaseAddress(entry.daddress);
         entry.socket.close();
       }
@@ -895,7 +909,7 @@ const LocalDNSSingleton = {
       }
     }
     else {
-      const socket = await new Promise((resolve, reject) => {
+      const socket = await new Promise(async (resolve, reject) => {
         const entry = this._forwardCache[rinfo.address] || this._allocAddress(rinfo.address);
         if (entry.socket) {
           entry.lastUse = Date.now();
@@ -903,9 +917,8 @@ const LocalDNSSingleton = {
         }
         else {
           entry.socket = UDP.createSocket('udp4');
-          this._bindInterface(entry.dnsAddress);
-          entry.socket.bind(0, entry.dnsAddress);
-          entry.socket.once('error', () => reject(new Error()));
+          this._bindInterface(entry);
+          entry.socket.once('error', e => { console.error(e); reject(new Error())});
           entry.socket.once('listening', () => {
             entry.socket.on('message', (message, { port, address }) => {
               if (message.length < 2) {
@@ -916,6 +929,7 @@ const LocalDNSSingleton = {
             });
             resolve(entry.socket);
           });
+          Native.bindDGramSocketToInterface(entry.socket, entry.iface, entry.dnsAddress, 0);
         }
       });
       return (request, callback) => {
