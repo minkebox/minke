@@ -695,7 +695,6 @@ GlobalDNS.prototype = {
 
 const LocalDNSSingleton = {
 
-  _TIMEOUT: 1000 * 60 * 60 * 24,
   _qHighWater: 50,
   _qLowWater: 20,
   _forwardCache: {},
