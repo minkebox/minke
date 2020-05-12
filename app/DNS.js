@@ -112,7 +112,7 @@ const PrivateDNS = {
       case 'PTR':
       {
         const name = request.questions[0].name;
-        const m4 = REGEXP_PTR_IP4.exec(name);
+        const m4 = name.match(REGEXP_PTR_IP4);
         if (m4) {
           const ip = `${m4[4]}.${m4[3]}.${m4[2]}.${m4[1]}`;
           const localname = this._ip2localname[ip];
@@ -128,7 +128,7 @@ const PrivateDNS = {
           }
         }
         else {
-          const m6 = REGEXP_PTR_IP6.exec(name);
+          const m6 = name.match(REGEXP_PTR_IP6);
           if (m6) {
             const ip6 = `${m6[32]}${m6[31]}${m6[30]}${m6[29]}:${m6[28]}${m6[27]}${m6[26]}${m6[25]}:${m6[24]}${m6[23]}${m6[22]}${m6[21]}:${m6[20]}${m6[19]}${m6[18]}${m6[17]}:${m6[16]}${m6[15]}${m6[14]}${m6[13]}:${m6[12]}${m6[11]}${m6[10]}${m6[9]}:${m6[8]}${m6[7]}${m6[6]}${m6[5]}:${m6[4]}${m6[3]}${m6[2]}${m6[1]}`;
             const localname = this._ip2localname[ip6];
@@ -527,7 +527,7 @@ const GlobalDNS = function(address, port, timeout) {
   this._samples = Array(MAX_SAMPLES).fill(this._maxTimeout);
   this._pending = {};
   // Identify local or global forwarding addresses. We don't forward local domain lookups to global addresses.
-  if (/(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/.exec(address)) {
+  if (address.match(/(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/)) {
     this._global = false;
   }
   else {
@@ -1047,7 +1047,7 @@ const MapDNS = {
     if (request.questions[0].type !== 'PTR') {
       return false;
     }
-    const m4 = REGEXP_PTR_IP4.exec(qname);
+    const m4 = qname.match(REGEXP_PTR_IP4);
     if (!m4) {
       return false;
     }
