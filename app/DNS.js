@@ -12,6 +12,7 @@ const Native = require('./native/native');
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
 const HOSTNAME = '/bin/hostname';
+const ARPTABLE = '/proc/net/arp';
 const DNS_NETWORK = 'dns0';
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
@@ -699,59 +700,32 @@ const LocalDNSSingleton = {
   _qLowWater: 20,
   _forwardCache: {},
   _backwardCache: {},
+  _macCache: {},
   _pending: {},
 
   start: async function() {
     const home = await Network.getHomeNetwork();
     const homecidr = home.info.IPAM.Config[0].Subnet.split('/');
-    this._bits = parseInt(homecidr[1]);
+    let homebits = parseInt(homecidr[1]);
 
     this._network = await Network.getDNSNetwork();
-
     const cidr = this._network.info.IPAM.Config[0].Subnet.split('/');
     const base = cidr[0].split('.');
     const basebits = parseInt(cidr[1]);
 
-    // We need one more bit in the DNS network compared to the HOME network for simple mapping to be possible.
-    if (basebits < this._bits) {
-      // Simple mapping using mask
-      this._mask = [ 0, 0, 0, 0 ];
-      for (let i = this._bits; i < 32; i++) {
-        this._mask[Math.floor(i / 8)] |= 128 >> (i % 8);
-      }
-      this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), parseInt(base[3]) ];
-      this._base[Math.floor(basebits / 8)] |= 128 >> (basebits % 8);
-    }
-    else {
-      // Complex mapping using available
-      this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), 0 ];
-      this._available = [];
+    // Ideally we need one more bit in the DNS network compared to HOME. If we don't get that we might get some
+    // address duplications.
+    if (basebits >= homebits) {
+      homebits = basebits + 1;
     }
 
-    const state = Object.assign({ map: [], dnsBase: '' }, (await Database.getConfig('localdns')));
-    // Setup store entries as long as we're using the same dns network range.
-    if (state.dnsBase === JSON.stringify(this._base)) {
-      for (let i = 0; i < state.map.length; i++) {
-        const newEntry = {
-          socket: null,
-          lastUse: Date.now(),
-          address: state.map[i].address,
-          dnsAddress: state.map[i].dnsAddress,
-          iface: `dns${state.map[i].address.split('.').slice(2, 4).join('_')}`
-        };
-        this._forwardCache[newEntry.address] = newEntry;
-        this._backwardCache[newEntry.dnsAddress] = newEntry;
-      }
+    // Simple mapping using mask
+    this._mask = [ 0, 0, 0, 0 ];
+    for (let i = homebits; i < 32; i++) {
+      this._mask[Math.floor(i / 8)] |= 128 >> (i % 8);
     }
-
-    if (this._available) {
-      for (let i = 254; i >= 32; i--) {
-        const dnsAddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${i}`;
-        if (!this._backwardCache[dnsAddress]) {
-          this._available.push(dnsAddress);
-        }
-      }
-    }
+    this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), parseInt(base[3]) ];
+    this._base[Math.floor(basebits / 8)] |= 128 >> (basebits % 8);
   },
 
   stop: async function() {
@@ -760,110 +734,96 @@ const LocalDNSSingleton = {
       dnsBase: JSON.stringify(this._base),
       map: [],
     };
-    for (let address in this._forwardCache) {
-      state.map.push({ address: address, dnsAddress: this._forwardCache[address].dnsAddress });
-    }
     await Database.saveConfig(state);
   },
 
   _allocAddress: function(address) {
-    const now = Date.now();
+    // Find an active entry
+    const entry = this._forwardCache[address];
+    if (entry) {
+      return entry;
+    }
 
     const saddress = address.split('.');
-    let daddress;
-    if (this._mask) {
-      daddress = `${this._base[0] | (this._mask[0] & saddress[0])}.${this._base[1] | (this._mask[1] & saddress[1])}.${this._base[2] | (this._mask[2] & saddress[2])}.${this._base[3] | (this._mask[3] & saddress[3])}`;
-    }
-    else {
-      daddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${saddress[3]}`;
+    const daddress = `${this._base[0] | (this._mask[0] & saddress[0])}.${this._base[1] | (this._mask[1] & saddress[1])}.${this._base[2] | (this._mask[2] & saddress[2])}.${this._base[3] | (this._mask[3] & saddress[3])}`;
+    const maddress = this._allocMacAddress(address);
+
+    // If we have more source addresses than dns address, we may get duplicates. So look for a duplicate entry and remove it
+    // so we can reuse it.
+    const oldEntry = this._backwardCache[daddress];
+    if (oldEntry) {
+      if (oldEntry.address === address) {
+        console.error('_allocAddress: forward and backward cache inconsistency');
+      }
+      delete this._forwardCache[oldEntry.address];
+      delete this._backwardCache[oldEntry.dnsAddress];
+      delete this._macCache[oldEntry.mac];
+      this._destroyInterface(oldEntry);
+      if (oldEntry.socket) {
+        oldEntry.socket.close();
+      }
     }
 
-    const matchEntry = this._backwardCache[daddress];
-    if (matchEntry && now > matchEntry.lastUsed + this._TIMEOUT) {
-      // Found an entry. We can use as it's expired.
-      this._unbindInterface(matchEntry);
-      this._releaseAddress(daddress);
-      matchEntry.socket.close();
-      matchEntry.socket = null;
-      matchEntry.lastUse = now;
-      matchEntry.address = address;
-      matchEntry.dnsAddress = daddress;
-      matchEntry.iface = `dns${saddress[2]}_${saddress[3]}`;
-      return matchEntry;
-    }
-
-    // For complex allocation, we need to allocate a address which we try to make a close match
-    // but failing that will allocate something.
-    if (this._available) {
-      // Now see if we can just sneak the address from those available.
-      const idx = this._available.indexOf(daddress);
-      if (idx !== -1) {
-        this._available.splice(idx, 1);
-      }
-      // But if not, we just get the next available
-      else {
-        daddress = this._available.shift();
-      }
-      if (this._available.length < this._qLowWater && !this._qPrune) {
-        this._qPrune = setTimeout(() => this._pruneAddresses(), 0);
+    // If the mac address is in use (on another entry), remove that entry
+    const macEntry = this._macCache[maddress];
+    if (macEntry) {
+      delete this._forwardCache[macEntry.address];
+      delete this._backwardCache[macEntry.dnsAddress];
+      delete this._macCache[macEntry.mac];
+      this._destroyInterface(macEntry);
+      if (macEntry.socket) {
+        macEntry.socket.close();
       }
     }
 
     const newEntry = {
       socket: null,
-      lastUse: now,
       address: address,
       dnsAddress: daddress,
-      iface: `dns${saddress[2]}_${saddress[3]}`
+      mac: maddress,
+      iface: `d${maddress.replace(/:/g,'')}`
     };
-    this._forwardCache[newEntry.address] = newEntry;
-    this._backwardCache[newEntry.dnsAddress] = newEntry;
+    this._forwardCache[address] = newEntry;
+    this._backwardCache[daddress] = newEntry;
+    this._macCache[maddress] = newEntry;
+
+    this._createInterface(newEntry);
+
     return newEntry;
   },
 
-  _releaseAddress: function(address) {
-    if (this._available.indexOf(address) !== -1) {
-      console.error('Releasing address again', address);
+  _allocMacAddress: function(address) {
+    // We need to ping the address to get the mac into the cache before we look it up.
+    // (the fact that we received a UDP message from this mac doesnt appear to cache it).
+    ChildProcess.spawnSync('/bin/ping', [ '-c', '1', '-W', '1', address ]);
+    const lookup = new RegExp(`^${address.replace(/\./g, '\\.')}.* \([a-f0-9:]+) .*$`);
+    const arptable = FS.readFileSync(ARPTABLE, { encoding: 'utf8' }).split('\n');
+    for (let i = 0; i < arptable.length; i++) {
+      const match = arptable[i].match(lookup);
+      if (match) {
+        const m = match[1].split(':');
+        return `da:${m[1]}:${m[2]}:${m[3]}:${m[4]}:${m[5]}`;
+      }
     }
-    else {
-      this._available.push(address);
-    }
+    const sa = address.split('.');
+    return `da:00:${parseInt(sa[0]).toString(16)}:${parseInt(sa[1]).toString(16)}:${parseInt(sa[2]).toString(16)}:${parseInt(sa[3]).toString(16)}`;
   },
 
   // We give each client on the DNS network a unique IP and mac address (the mac is derived from the IP). It's not enough to just
   // give clients IP addesses as some DNS applications care about the mac addresses being unique too. We do this by creating
   // veth pairs, connect one end to the dns bridge, and use the other to send DNS requests. We bind the socket we use to the specific
   // veth endpoint so the requests go out with the correct IP and mac address.
-  _bindInterface: function(entry) {
+  _createInterface: function(entry) {
     const iface = entry.iface;
-    const sa = entry.dnsAddress.split('.');
-    const mac = `0a:00:${parseInt(sa[0]).toString(16)}:${parseInt(sa[1]).toString(16)}:${parseInt(sa[2]).toString(16)}:${parseInt(sa[3]).toString(16)}`;
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'dev', iface, 'type', 'veth', 'peer', 'name', `p${iface}` ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'master', DNS_NETWORK ]);
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', iface, 'up', 'address', mac ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', iface, 'up', 'address', entry.mac ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'up' ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'dev', iface ]);
   },
 
-  _unbindInterface: function(entry) {
+  _destroyInterface: function(entry) {
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'del', 'dev', entry.iface ]);
-  },
-
-  _pruneAddresses: function() {
-    const diff = this._qHighWater - this._available.length;
-    if (diff > 0) {
-      const active = Object.values(this._forwardCache);
-      active.sort((a, b) => a.lastUse - b.lastUse);
-      for (let i = 0; i < diff; i++) {
-        const entry = active[i];
-        delete this._forwardCache[entry.address];
-        delete this._backwardCache[entry.daddress];
-        this._unbindInterface(entry);
-        this._releaseAddress(entry.daddress);
-        entry.socket.close();
-      }
-    }
-    this._qPrune = null;
   },
 
   getSocket: async function(rinfo, tinfo) {
@@ -910,14 +870,12 @@ const LocalDNSSingleton = {
     }
     else {
       const socket = await new Promise(async (resolve, reject) => {
-        const entry = this._forwardCache[rinfo.address] || this._allocAddress(rinfo.address);
+        const entry = this._allocAddress(rinfo.address);
         if (entry.socket) {
-          entry.lastUse = Date.now();
           resolve(entry.socket);
         }
         else {
           entry.socket = UDP.createSocket('udp4');
-          this._bindInterface(entry);
           entry.socket.once('error', e => { console.error(e); reject(new Error())});
           entry.socket.once('listening', () => {
             entry.socket.on('message', (message, { port, address }) => {
