@@ -59,16 +59,16 @@ const PrivateDNS = {
           const ip = this._hostname2ip4[name];
           if (ip) {
             response.answers.push(
-              { name: fullname,  ttl: this._ttl, type: 'A', data: ip }
+              { name: fullname,  ttl: this._ttl, type: 'A', class: 'IN', data: ip }
             );
             const ip6 = this._hostname2ip6[name];
             if (ip6) {
               response.additionals.push(
-                { name: fullname, ttl: this._ttl, type: 'AAAA', data: ip6 }
+                { name: fullname, ttl: this._ttl, type: 'AAAA', class: 'IN', data: ip6 }
               );
             }
             if (this._soa) {
-              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
+              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
@@ -94,15 +94,15 @@ const PrivateDNS = {
           const ip6 = this._hostname2ip6[name];
           if (ip6) {
             response.answers.push(
-              { name: fullname, ttl: this._ttl, type: 'AAAA', data: ip6 }
+              { name: fullname, ttl: this._ttl, type: 'AAAA', class: 'IN', data: ip6 }
             );
             const ip = this._hostname2ip4[name];
             if (ip) {
               response.additionals.push(
-                { name: fullname, ttl: this._ttl, type: 'A', data: ip }
+                { name: fullname, ttl: this._ttl, type: 'A', class: 'IN', data: ip }
               );
             }if (this._soa) {
-              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
+              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
@@ -119,10 +119,10 @@ const PrivateDNS = {
           const localname = this._ip2localname[ip];
           if (localname) {
             response.answers.push(
-              { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
+              { name: name, ttl: this._ttl, type: 'PTR', class: 'IN', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
             );
             if (this._soa) {
-              response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', data: this._soa });
+              response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
@@ -135,10 +135,10 @@ const PrivateDNS = {
             const localname = this._ip2localname[ip6];
             if (localname) {
               response.answers.push(
-                { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
+                { name: name, ttl: this._ttl, type: 'PTR', class: 'IN', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
               );
               if (this._soa) {
-                response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', data: this._soa });
+                response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
               }
               response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
               return true;
@@ -152,7 +152,7 @@ const PrivateDNS = {
         const fullname = request.questions[0].name;
         const name = fullname.split('.');
         if (this._soa && ((name.length === 2 && name[1].toLowerCase() === this._domainName)  || (name.length === 1 && !this._domainName))) {
-          response.answers.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
+          response.answers.push({ name: fullname, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
           response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
           return true;
         }
@@ -360,7 +360,7 @@ const CachingDNS = {
     const key = soa.name.toLowerCase();
     const entry = this._cache.SOA[key];
     if (!entry) {
-      const rec = { key: 'soa', name: soa.name, type: 'SOA', expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (soa.ttl || this._defaultTTL))), data: soa.data };
+      const rec = { key: 'soa', name: soa.name, type: 'SOA', class: 'IN', expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (soa.ttl || this._defaultTTL))), data: soa.data };
       this._cache.SOA[key] = { soa: rec };
       this._q.push(rec);
     }
@@ -503,7 +503,7 @@ const MulticastDNS = {
         if (name[name.length - 1].toLowerCase() === 'local') {
           const ip = MDNS.getAddrByHostname(name[0]);
           if (ip && name.length === 2) {
-            response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, data: ip });
+            response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, class: 'IN', data: ip });
           }
           // Return true regardless of a match to stop the query process. We don't look for 'local' anywhere else.
           return true;
@@ -1035,9 +1035,9 @@ const MapDNS = {
     };
     const mresponse = {
       id: mrequest.id,
-      type: mrequest.type,
-      flags: mrequest.flags,
-      questions: mrequest.questions,
+      type: response.type,
+      flags: response.flags,
+      questions: response.questions,
       answers: [],
       authorities: [],
       additionals: []
@@ -1047,20 +1047,12 @@ const MapDNS = {
       return false;
     }
 
-    response.type = mresponse.type;
     response.flags = mresponse.flags;
     response.answers = mresponse.answers.map(answer => {
       if (answer.name === mname) {
         answer.name = qname;
       }
       return answer;
-    });
-    response.authorities = mresponse.authorities;
-    response.additionals = mresponse.additionals.map(additional => {
-      if (additional.name === mname) {
-        additional.name = qname;
-      }
-      return additional;
     });
 
     return true;
