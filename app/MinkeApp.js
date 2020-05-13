@@ -660,6 +660,7 @@ MinkeApp.prototype = {
           if (sNetwork === 'home') {
             configEnv.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
             configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
+            configEnv.push(`__DHCP_INTERFACE_MAC=${this._primaryMacAddress()}`);
           }
           config.HostConfig.Dns = [ vpnapp._secondaryIP ];
           config.HostConfig.DnsSearch = [ 'local' ];
