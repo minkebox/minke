@@ -761,7 +761,7 @@ const LocalDNSSingleton = {
         console.error('_allocAddress: forward and backward cache inconsistency');
       }
       delete this._forwardCache[oldEntry.address];
-      delete this._backwardCache[oldEntry.dnsAddress];
+      delete this._backwardCache[daddress];
       delete this._macCache[oldEntry.mac];
       this._destroyInterface(oldEntry);
       if (oldEntry.socket) {
@@ -774,7 +774,7 @@ const LocalDNSSingleton = {
     if (macEntry) {
       delete this._forwardCache[macEntry.address];
       delete this._backwardCache[macEntry.dnsAddress];
-      delete this._macCache[macEntry.mac];
+      delete this._macCache[maddress];
       this._destroyInterface(macEntry);
       if (macEntry.socket) {
         macEntry.socket.close();
@@ -786,7 +786,7 @@ const LocalDNSSingleton = {
       address: address,
       dnsAddress: daddress,
       mac: maddress,
-      iface: `d${maddress.replace(/:/g,'')}`
+      iface: maddress.replace(/:/g,'')
     };
     this._forwardCache[address] = newEntry;
     this._backwardCache[daddress] = newEntry;
@@ -820,15 +820,15 @@ const LocalDNSSingleton = {
   // veth endpoint so the requests go out with the correct IP and mac address.
   _createInterface: function(entry) {
     const iface = entry.iface;
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'dev', iface, 'type', 'veth', 'peer', 'name', `p${iface}` ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'dev', `d${iface}`, 'type', 'veth', 'peer', 'name', `p${iface}` ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'master', DNS_NETWORK ]);
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', iface, 'up', 'address', entry.mac ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `d${iface}`, 'up', 'address', entry.mac ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'up' ]);
-    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'broadcast', this._broadcast, 'dev', iface ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'broadcast', this._broadcast, 'dev', `d${iface}` ]);
   },
 
   _destroyInterface: function(entry) {
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'del', 'dev', entry.iface ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'del', 'dev', `d${entry.iface}` ]);
   },
 
   getSocket: async function(rinfo, tinfo) {
@@ -892,7 +892,7 @@ const LocalDNSSingleton = {
             });
             resolve(entry.socket);
           });
-          Native.bindDGramSocketToInterface(entry.socket, entry.iface, entry.dnsAddress, 0);
+          Native.bindDGramSocketToInterface(entry.socket, `d${entry.iface}`, entry.dnsAddress, 0);
         }
       });
       return (request, callback) => {
@@ -1006,10 +1006,10 @@ LocalDNS.prototype = {
 const MapDNS = {
 
   query: async function(request, response, rinfo) {
-    const qname = request.questions[0].name;
     if (request.questions[0].type !== 'PTR') {
       return false;
     }
+    const qname = request.questions[0].name;
     const m4 = qname.match(REGEXP_PTR_IP4);
     if (!m4) {
       return false;
@@ -1022,18 +1022,48 @@ const MapDNS = {
     if (i4.length !== 4) {
       return false;
     }
-    const nname = `${i4[3]}.${i4[2]}.${i4[1]}.${i4[0]}.in-addr.arpa`;
-    request.questions[0].name = nname;
-    const success = await DNS.query(request, response, rinfo);
-    if (success) {
-      response.answers.forEach(answer => {
-        if (answer.name === nname) {
-          answer.name = qname;
-        }
-      });
+    const mname = `${i4[3]}.${i4[2]}.${i4[1]}.${i4[0]}.in-addr.arpa`;
+
+    const mrequest = {
+      id: Math.floor(Math.random() * 65536),
+      type: request.type,
+      flags: request.flags,
+      questions: [{ name: mname, type: 'PTR', class: 'IN' }],
+      answers: [],
+      authorities: [],
+      additionals: []
+    };
+    const mresponse = {
+      id: mrequest.id,
+      type: mrequest.type,
+      flags: mrequest.flags,
+      questions: mrequest.questions,
+      answers: [],
+      authorities: [],
+      additionals: []
+    };
+    const success = await DNS.query(mrequest, mresponse, rinfo);
+    if (!success) {
+      return false;
     }
-    request.questions[0].name = qname;
-    return success;
+
+    response.type = mresponse.type;
+    response.flags = mresponse.flags;
+    response.answers = mresponse.answers.map(answer => {
+      if (answer.name === mname) {
+        answer.name = qname;
+      }
+      return answer;
+    });
+    response.authorities = mresponse.authorities;
+    response.additionals = mresponse.additionals.map(additional => {
+      if (additional.name === mname) {
+        additional.name = qname;
+      }
+      return additional;
+    });
+
+    return true;
   }
 
 }
