@@ -727,6 +727,10 @@ const LocalDNSSingleton = {
     this._base[Math.floor(basebits / 8)] |= 128 >> (basebits % 8);
 
     this._broadcast = `${base[0]}.${base[1]}.255.255`;
+
+    // Manage how ARP-replies are sent
+    // http://kb.linuxvirtualserver.org/wiki/Using_arp_announce/arp_ignore_to_disable_ARP
+    FS.writeFileSync('/proc/sys/net/ipv4/conf/all/arp_ignore', '3', { encoding: 'utf8' });
   },
 
   stop: async function() {
