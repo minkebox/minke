@@ -22,7 +22,7 @@ const MAX_SAMPLES = 128;
 const STDEV_QUERY = 4;
 const STDEV_FAIL = 2;
 
-const PARALLEL_QUERY = 1;
+const PARALLEL_QUERY = 0;
 const DEBUG_QUERY = 0;
 const DEBUG_QUERY_TIMING = 0;
 
@@ -805,7 +805,7 @@ const LocalDNSSingleton = {
     const arptable = FS.readFileSync(ARPTABLE, { encoding: 'utf8' }).split('\n');
     for (let i = 0; i < arptable.length; i++) {
       const match = arptable[i].match(lookup);
-      if (match) {
+      if (match && match[1] !== '00:00:00:00:00:00') {
         const m = match[1].split(':');
         return `da:${m[1]}:${m[2]}:${m[3]}:${m[4]}:${m[5]}`;
       }
@@ -1031,7 +1031,7 @@ const MapDNS = {
       questions: [{ name: mname, type: 'PTR', class: 'IN' }],
       answers: [],
       authorities: [],
-      additionals: []
+      additionals: request.additionals
     };
     const mresponse = {
       id: mrequest.id,
@@ -1097,13 +1097,29 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           throw Error('Bad length');
         }
         const request = DnsPkt.decode(msgin);
+        DEBUG_QUERY && console.log('request', rinfo, JSON.stringify(request, null, 2));
         response.id = request.id;
         response.flags = request.flags;
         if ((response.flags & DnsPkt.RECURSION_DESIRED) !== 0) {
           response.flags |= DnsPkt.RECURSION_AVAILABLE;
         }
         response.questions = request.questions;
-        DEBUG_QUERY && console.log('request', rinfo, JSON.stringify(request, null, 2));
+        const opt = request.additionals.find(additional => additional.type === 'OPT');
+        const client = opt && opt.options.find(option => option.type === 'CLIENT_SUBNET'); // 'type' in decode, 'code' in encode
+        if (client) {
+          rinfo.address = client.ip; // Even as a partial address this is more useful than the local address.
+        }
+        else {
+          request.additionals.push({
+            type: 'OPT', name: '.', options: [{
+              code: 'CLIENT_SUBNET',
+              family: 1,
+              sourcePrefixLength: 32,
+              scopePrefixLength: 0,
+              ip: rinfo.address,
+            }]
+          });
+        }
         await this.query(request, response, rinfo);
         // If we got no answers, and no error code set, we set notfound
         if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
@@ -1126,7 +1142,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           reuseAddr: true
         });
         this._udp.on('message', async (msgin, rinfo) => {
-          const msgout = await onMessage(msgin, { tcp: false, address: rinfo.address, port: rinfo.address });
+          const msgout = await onMessage(msgin, { tcp: false, address: rinfo.address, port: rinfo.port });
           this._udp.send(msgout, rinfo.port, rinfo.address, err => {
             if (err) {
               console.error(err);
