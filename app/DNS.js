@@ -563,7 +563,10 @@ GlobalDNS.prototype = {
   getSocket: function(rinfo) {
     const start = Date.now();
     if (rinfo.tcp) {
-      return (request, callback) => {
+      return (incomingRequest, callback) => {
+        const request = DNS._copyDNSPacket(incomingRequest, {
+          additionals: []
+        });
         const message = DnsPkt.encode(request);
         const msgout = Buffer.alloc(message.length + 2);
         msgout.writeUInt16BE(message.length);
@@ -603,7 +606,10 @@ GlobalDNS.prototype = {
       }
     }
     else {
-      return (request, callback) => {
+      return (incomingRequest, callback) => {
+        const request = DNS._copyDNSPacket(incomingRequest, {
+          additionals: []
+        });
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
@@ -835,7 +841,18 @@ const LocalDNSSingleton = {
   getSocket: async function(rinfo, tinfo) {
     const start = Date.now();
     if (rinfo.tcp) {
-      return (request, callback) => {
+      return (incomingRequest, callback) => {
+        const request = DNS._copyDNSPacket(incomingRequest, {
+          additionals: [{
+            type: 'OPT', name: '.', options: [{
+              code: 'CLIENT_SUBNET',
+              family: 1,
+              sourcePrefixLength: 32,
+              scopePrefixLength: 0,
+              ip: rinfo.address,
+            }]
+          }]
+        });
         const message = DnsPkt.encode(request);
         const msgout = Buffer.alloc(message.length + 2);
         msgout.writeUInt16BE(message.length);
@@ -897,7 +914,18 @@ const LocalDNSSingleton = {
           Native.bindDGramSocketToInterface(entry.socket, `d${entry.iface}`, entry.dnsAddress, 0);
         }
       });
-      return (request, callback) => {
+      return (incomingRequest, callback) => {
+        const request = DNS._copyDNSPacket(incomingRequest, {
+          additionals: [{
+            type: 'OPT', name: '.', options: [{
+              code: 'CLIENT_SUBNET',
+              family: 1,
+              sourcePrefixLength: 32,
+              scopePrefixLength: 0,
+              ip: rinfo.address,
+            }]
+          }]
+        });
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
@@ -1026,24 +1054,10 @@ const MapDNS = {
     }
     const mname = `${i4[3]}.${i4[2]}.${i4[1]}.${i4[0]}.in-addr.arpa`;
 
-    const mrequest = {
-      id: Math.floor(Math.random() * 65536),
-      type: request.type,
-      flags: request.flags,
+    const mrequest = DNS._copyDNSPacket(request, {
       questions: [{ name: mname, type: 'PTR', class: 'IN' }],
-      answers: [],
-      authorities: [],
-      additionals: request.additionals
-    };
-    const mresponse = {
-      id: mrequest.id,
-      type: response.type,
-      flags: response.flags,
-      questions: response.questions,
-      answers: [],
-      authorities: [],
-      additionals: []
-    };
+    });
+    const mresponse = DNS._copyDNSPacket(response);
     const success = await DNS.query(mrequest, mresponse, rinfo);
     if (!success) {
       return false;
@@ -1109,18 +1123,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         const opt = request.additionals.find(additional => additional.type === 'OPT');
         const client = opt && opt.options.find(option => option.type === 'CLIENT_SUBNET'); // 'type' in decode, 'code' in encode
         if (client) {
-          rinfo.address = client.ip; // Even as a partial address this is more useful than the local address.
-        }
-        else {
-          request.additionals.push({
-            type: 'OPT', name: '.', options: [{
-              code: 'CLIENT_SUBNET',
-              family: 1,
-              sourcePrefixLength: 32,
-              scopePrefixLength: 0,
-              ip: rinfo.address,
-            }]
-          });
+          rinfo.address = client.ip; // Even as a partial address is more useful than the local address.
         }
         await this.query(request, response, rinfo);
         // If we got no answers, and no error code set, we set notfound
@@ -1250,6 +1253,14 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     CachingDNS.flush();
   },
 
+  _copyDNSPacket: function(pkt, changes) {
+    const npkt = DnsPkt.decode(DnsPkt.encode(pkt));
+    if (changes) {
+      Object.assign(npkt, changes);
+    }
+    return npkt;
+  },
+
   removeDNSServer: function(dns) {
     for (let i = 0; i < this._proxies.length; i++) {
       if (this._proxies[i].app === dns.app) {
@@ -1339,15 +1350,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
       for(; i < this._proxies.length; i++) {
         const proxy = this._proxies[i];
         DEBUG_QUERY && console.log(`Trying ${proxy.app._name}`);
-        const presponse = {
-          id: response.id,
-          type: response.type,
-          flags: response.flags,
-          questions: response.questions,
-          answers: [],
-          authorities: [],
-          additionals: []
-        };
+        const presponse = DNS._copyDNSPacket(response);
         const idx = i;
         const start = DEBUG_QUERY_TIMING && Date.now();
         proxy.srv.query(Object.assign({}, request), presponse, rinfo).then(success => {
