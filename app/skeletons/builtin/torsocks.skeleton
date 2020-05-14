@@ -33,7 +33,7 @@
     },
     {
       type: `Text`,
-      text: `Many browser can auto-detect this proxy if you enable it here.{{__HOMEIP ? " Alternatively you can use the <b>http://" + __HOMEIP + "</b> configuration url." : ""}}`
+      text: `Many browser can auto-detect this proxy if you enable it here. However, this may not be desirable. Additionally, some versions of Windows will do this without asking first.{{__HOMEIP ? " Alternatively you can use the <b>http://" + __HOMEIP + "</b> configuration url." : ""}}`
     },
     {
       type: `EditEnvironmentAsCheckbox`,
