@@ -55,11 +55,11 @@ _Filesystem.prototype = {
     const backupset = await this._expandBackupSet(bind.target);
     const natives = Filesystem.getNativeDirectories();
 
-    // MIGRATION
+    // MIGRATION - Remove May 15, 2020
     if (target[0] !== '/') {
       return [];
     }
-    // MIGRATION
+    // MIGRATION - Remove May 15, 2020
 
     const binds = [];
 

@@ -7,11 +7,13 @@ const Config = require('./Config');
 const Network = require('./Network');
 const Database = require('./Database');
 const MDNS = require('./MDNS');
+const Native = require('./native/native');
 
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
 const HOSTNAME = '/bin/hostname';
-const DNS_NETWORK = (SYSTEM ? 'dns0' : 'eth1');
+const ARPTABLE = '/proc/net/arp';
+const DNS_NETWORK = 'dns0';
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
 const GLOBAL1 = { _name: 'global1', _position: { tab: Number.MAX_SAFE_INTEGER - 1 } };
@@ -20,7 +22,7 @@ const MAX_SAMPLES = 128;
 const STDEV_QUERY = 4;
 const STDEV_FAIL = 2;
 
-const PARALLEL_QUERY = 1;
+const PARALLEL_QUERY = 0;
 const DEBUG_QUERY = 0;
 const DEBUG_QUERY_TIMING = 0;
 
@@ -57,16 +59,16 @@ const PrivateDNS = {
           const ip = this._hostname2ip4[name];
           if (ip) {
             response.answers.push(
-              { name: fullname,  ttl: this._ttl, type: 'A', data: ip }
+              { name: fullname,  ttl: this._ttl, type: 'A', class: 'IN', data: ip }
             );
             const ip6 = this._hostname2ip6[name];
             if (ip6) {
               response.additionals.push(
-                { name: fullname, ttl: this._ttl, type: 'AAAA', data: ip6 }
+                { name: fullname, ttl: this._ttl, type: 'AAAA', class: 'IN', data: ip6 }
               );
             }
             if (this._soa) {
-              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
+              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
@@ -92,15 +94,15 @@ const PrivateDNS = {
           const ip6 = this._hostname2ip6[name];
           if (ip6) {
             response.answers.push(
-              { name: fullname, ttl: this._ttl, type: 'AAAA', data: ip6 }
+              { name: fullname, ttl: this._ttl, type: 'AAAA', class: 'IN', data: ip6 }
             );
             const ip = this._hostname2ip4[name];
             if (ip) {
               response.additionals.push(
-                { name: fullname, ttl: this._ttl, type: 'A', data: ip }
+                { name: fullname, ttl: this._ttl, type: 'A', class: 'IN', data: ip }
               );
             }if (this._soa) {
-              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
+              response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
@@ -111,32 +113,32 @@ const PrivateDNS = {
       case 'PTR':
       {
         const name = request.questions[0].name;
-        const m4 = REGEXP_PTR_IP4.exec(name);
+        const m4 = name.match(REGEXP_PTR_IP4);
         if (m4) {
           const ip = `${m4[4]}.${m4[3]}.${m4[2]}.${m4[1]}`;
           const localname = this._ip2localname[ip];
           if (localname) {
             response.answers.push(
-              { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
+              { name: name, ttl: this._ttl, type: 'PTR', class: 'IN', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
             );
             if (this._soa) {
-              response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', data: this._soa });
+              response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
             return true;
           }
         }
         else {
-          const m6 = REGEXP_PTR_IP6.exec(name);
+          const m6 = name.match(REGEXP_PTR_IP6);
           if (m6) {
             const ip6 = `${m6[32]}${m6[31]}${m6[30]}${m6[29]}:${m6[28]}${m6[27]}${m6[26]}${m6[25]}:${m6[24]}${m6[23]}${m6[22]}${m6[21]}:${m6[20]}${m6[19]}${m6[18]}${m6[17]}:${m6[16]}${m6[15]}${m6[14]}${m6[13]}:${m6[12]}${m6[11]}${m6[10]}${m6[9]}:${m6[8]}${m6[7]}${m6[6]}${m6[5]}:${m6[4]}${m6[3]}${m6[2]}${m6[1]}`;
             const localname = this._ip2localname[ip6];
             if (localname) {
               response.answers.push(
-                { name: name, ttl: this._ttl, type: 'CNAME', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
+                { name: name, ttl: this._ttl, type: 'PTR', class: 'IN', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
               );
               if (this._soa) {
-                response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', data: this._soa });
+                response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
               }
               response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
               return true;
@@ -150,7 +152,7 @@ const PrivateDNS = {
         const fullname = request.questions[0].name;
         const name = fullname.split('.');
         if (this._soa && ((name.length === 2 && name[1].toLowerCase() === this._domainName)  || (name.length === 1 && !this._domainName))) {
-          response.answers.push({ name: fullname, ttl: this._ttl, type: 'SOA', data: this._soa });
+          response.answers.push({ name: fullname, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
           response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
           return true;
         }
@@ -209,6 +211,10 @@ const PrivateDNS = {
     delete this._ip2localname[ip6];
     delete this._ip2globalname[ip6];
   },
+
+  lookupLocalnameIP: function(localname) {
+    return this._hostname2ip4[localname.toLowerCase()];
+  }
 };
 
 //
@@ -354,7 +360,7 @@ const CachingDNS = {
     const key = soa.name.toLowerCase();
     const entry = this._cache.SOA[key];
     if (!entry) {
-      const rec = { key: 'soa', name: soa.name, type: 'SOA', expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (soa.ttl || this._defaultTTL))), data: soa.data };
+      const rec = { key: 'soa', name: soa.name, type: 'SOA', class: 'IN', expires: Math.floor(Date.now() / 1000 + Math.min(this._maxTTL, (soa.ttl || this._defaultTTL))), data: soa.data };
       this._cache.SOA[key] = { soa: rec };
       this._q.push(rec);
     }
@@ -497,7 +503,7 @@ const MulticastDNS = {
         if (name[name.length - 1].toLowerCase() === 'local') {
           const ip = MDNS.getAddrByHostname(name[0]);
           if (ip && name.length === 2) {
-            response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, data: ip });
+            response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, class: 'IN', data: ip });
           }
           // Return true regardless of a match to stop the query process. We don't look for 'local' anywhere else.
           return true;
@@ -522,7 +528,7 @@ const GlobalDNS = function(address, port, timeout) {
   this._samples = Array(MAX_SAMPLES).fill(this._maxTimeout);
   this._pending = {};
   // Identify local or global forwarding addresses. We don't forward local domain lookups to global addresses.
-  if (/(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/.exec(address)) {
+  if (address.match(/(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/)) {
     this._global = false;
   }
   else {
@@ -557,7 +563,10 @@ GlobalDNS.prototype = {
   getSocket: function(rinfo) {
     const start = Date.now();
     if (rinfo.tcp) {
-      return (request, callback) => {
+      return (incomingRequest, callback) => {
+        const request = DNS._copyDNSPacket(incomingRequest, {
+          additionals: []
+        });
         const message = DnsPkt.encode(request);
         const msgout = Buffer.alloc(message.length + 2);
         msgout.writeUInt16BE(message.length);
@@ -569,7 +578,7 @@ GlobalDNS.prototype = {
             callback(null);
           }
         }, this._getTimeout());
-        const socket = Net.createConnection(this._port, this._address, () => {
+        const socket = Net.createConnection({ port: this._port, host: this._address }, () => {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
@@ -597,7 +606,10 @@ GlobalDNS.prototype = {
       }
     }
     else {
-      return (request, callback) => {
+      return (incomingRequest, callback) => {
+        const request = DNS._copyDNSPacket(incomingRequest, {
+          additionals: []
+        });
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
@@ -689,64 +701,42 @@ GlobalDNS.prototype = {
 
 const LocalDNSSingleton = {
 
-  _TIMEOUT: 1000 * 60 * 60 * 24,
   _qHighWater: 50,
   _qLowWater: 20,
   _forwardCache: {},
   _backwardCache: {},
+  _macCache: {},
   _pending: {},
 
   start: async function() {
     const home = await Network.getHomeNetwork();
     const homecidr = home.info.IPAM.Config[0].Subnet.split('/');
-    this._bits = parseInt(homecidr[1]);
+    let homebits = parseInt(homecidr[1]);
 
-    this._dev = DNS_NETWORK;
     this._network = await Network.getDNSNetwork();
-
     const cidr = this._network.info.IPAM.Config[0].Subnet.split('/');
     const base = cidr[0].split('.');
     const basebits = parseInt(cidr[1]);
 
-    // We need one more bit in the DNS network compared to the HOME network for simple mapping to be possible.
-    if (basebits < this._bits) {
-      // Simple mapping using mask
-      this._mask = [ 0, 0, 0, 0 ];
-      for (let i = this._bits; i < 32; i++) {
-        this._mask[Math.floor(i / 8)] |= 128 >> (i % 8);
-      }
-      this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), parseInt(base[3]) ];
-      this._base[Math.floor(basebits / 8)] |= 128 >> (basebits % 8);
-    }
-    else {
-      // Complex mapping using available
-      this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), 0 ];
-      this._available = [];
+    // Ideally we need one more bit in the DNS network compared to HOME. If we don't get that we might get some
+    // address duplications.
+    if (basebits >= homebits) {
+      homebits = basebits + 1;
     }
 
-    const state = Object.assign({ map: [], dnsBase: '' }, (await Database.getConfig('localdns')));
-    // Setup store entries as long as we're using the same dns network range.
-    if (state.dnsBase === JSON.stringify(this._base)) {
-      for (let i = 0; i < state.map.length; i++) {
-        const newEntry = {
-          socket: null,
-          lastUse: Date.now(),
-          address: state.map[i].address,
-          dnsAddress: state.map[i].dnsAddress
-        };
-        this._forwardCache[newEntry.address] = newEntry;
-        this._backwardCache[newEntry.dnsAddress] = newEntry;
-      }
+    // Simple mapping using mask
+    this._mask = [ 0, 0, 0, 0 ];
+    for (let i = homebits; i < 32; i++) {
+      this._mask[Math.floor(i / 8)] |= 128 >> (i % 8);
     }
+    this._base = [ parseInt(base[0]), parseInt(base[1]), parseInt(base[2]), parseInt(base[3]) ];
+    this._base[Math.floor(basebits / 8)] |= 128 >> (basebits % 8);
 
-    if (this._available) {
-      for (let i = 254; i >= 32; i--) {
-        const dnsAddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${i}`;
-        if (!this._backwardCache[dnsAddress]) {
-          this._available.push(dnsAddress);
-        }
-      }
-    }
+    this._broadcast = `${base[0]}.${base[1]}.255.255`;
+
+    // Manage how ARP-replies are sent
+    // http://kb.linuxvirtualserver.org/wiki/Using_arp_announce/arp_ignore_to_disable_ARP
+    FS.writeFileSync('/proc/sys/net/ipv4/conf/all/arp_ignore', '3', { encoding: 'utf8' });
   },
 
   stop: async function() {
@@ -755,103 +745,114 @@ const LocalDNSSingleton = {
       dnsBase: JSON.stringify(this._base),
       map: [],
     };
-    for (let address in this._forwardCache) {
-      state.map.push({ address: address, dnsAddress: this._forwardCache[address].dnsAddress });
-    }
     await Database.saveConfig(state);
   },
 
   _allocAddress: function(address) {
-    const now = Date.now();
+    // Find an active entry
+    const entry = this._forwardCache[address];
+    if (entry) {
+      return entry;
+    }
 
     const saddress = address.split('.');
-    let daddress;
-    if (this._mask) {
-      daddress = `${this._base[0] | (this._mask[0] & saddress[0])}.${this._base[1] | (this._mask[1] & saddress[1])}.${this._base[2] | (this._mask[2] & saddress[2])}.${this._base[3] | (this._mask[3] & saddress[3])}`;
-    }
-    else {
-      daddress = `${this._base[0]}.${this._base[1]}.${this._base[2]}.${saddress[3]}`;
+    const daddress = `${this._base[0] | (this._mask[0] & saddress[0])}.${this._base[1] | (this._mask[1] & saddress[1])}.${this._base[2] | (this._mask[2] & saddress[2])}.${this._base[3] | (this._mask[3] & saddress[3])}`;
+    const maddress = this._allocMacAddress(address);
+
+    // If we have more source addresses than dns address, we may get duplicates. So look for a duplicate entry and remove it
+    // so we can reuse it.
+    const oldEntry = this._backwardCache[daddress];
+    if (oldEntry) {
+      if (oldEntry.address === address) {
+        console.error('_allocAddress: forward and backward cache inconsistency');
+      }
+      delete this._forwardCache[oldEntry.address];
+      delete this._backwardCache[daddress];
+      delete this._macCache[oldEntry.mac];
+      this._destroyInterface(oldEntry);
+      if (oldEntry.socket) {
+        oldEntry.socket.close();
+      }
     }
 
-    const matchEntry = this._backwardCache[daddress];
-    if (matchEntry && now > matchEntry.lastUsed + this._TIMEOUT) {
-      // Found an entry. We can use as it's expired.
-      this._unbindInterface(daddress);
-      this._releaseAddress(daddress);
-      matchEntry.socket.close();
-      matchEntry.socket = null;
-      matchEntry.lastUse = now;
-      matchEntry.address = address;
-      matchEntry.dnsAddress = daddress;
-      return matchEntry;
-    }
-
-    // For complex allocation, we need to allocate a address which we try to make a close match
-    // but failing that will allocate something.
-    if (this._available) {
-      // Now see if we can just sneak the address from those available.
-      const idx = this._available.indexOf(daddress);
-      if (idx !== -1) {
-        this._available.splice(idx, 1);
-      }
-      // But if not, we just get the next available
-      else {
-        daddress = this._available.shift();
-      }
-      if (this._available.length < this._qLowWater && !this._qPrune) {
-        this._qPrune = setTimeout(() => this._pruneAddresses(), 0);
+    // If the mac address is in use (on another entry), remove that entry
+    const macEntry = this._macCache[maddress];
+    if (macEntry) {
+      delete this._forwardCache[macEntry.address];
+      delete this._backwardCache[macEntry.dnsAddress];
+      delete this._macCache[maddress];
+      this._destroyInterface(macEntry);
+      if (macEntry.socket) {
+        macEntry.socket.close();
       }
     }
 
     const newEntry = {
       socket: null,
-      lastUse: now,
       address: address,
-      dnsAddress: daddress
+      dnsAddress: daddress,
+      mac: maddress,
+      iface: maddress.replace(/:/g,'')
     };
-    this._forwardCache[newEntry.address] = newEntry;
-    this._backwardCache[newEntry.dnsAddress] = newEntry;
+    this._forwardCache[address] = newEntry;
+    this._backwardCache[daddress] = newEntry;
+    this._macCache[maddress] = newEntry;
+
+    this._createInterface(newEntry);
+
     return newEntry;
   },
 
-  _releaseAddress: function(address) {
-    if (this._available.indexOf(address) !== -1) {
-      console.error('Releasing address again', address);
-    }
-    else {
-      this._available.push(address);
-    }
-  },
-
-  _bindInterface: function(address) {
-    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${address}/${this._bits}`, 'dev', this._dev ]);
-  },
-
-  _unbindInterface: function(address) {
-    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'del', `${address}/${this._bits}`, 'dev', this._dev ]);
-  },
-
-  _pruneAddresses: function() {
-    const diff = this._qHighWater - this._available.length;
-    if (diff > 0) {
-      const active = Object.values(this._forwardCache);
-      active.sort((a, b) => a.lastUse - b.lastUse);
-      for (let i = 0; i < diff; i++) {
-        const entry = active[i];
-        delete this._forwardCache[entry.address];
-        delete this._backwardCache[entry.daddress];
-        this._unbindInterface(entry.daddress);
-        this._releaseAddress(entry.daddress);
-        entry.socket.close();
+  _allocMacAddress: function(address) {
+    // We need to ping the address to get the mac into the cache before we look it up.
+    // (the fact that we received a UDP message from this mac doesnt appear to cache it).
+    //ChildProcess.spawnSync('/bin/ping', [ '-c', '1', '-W', '1', address ]);
+    ChildProcess.spawnSync('/usr/sbin/arping', [ '-q', '-f', '-w', '3', '-I', Network.BRIDGE_NETWORK, address ]);
+    const lookup = new RegExp(`^${address.replace(/\./g, '\\.')}.* \([a-f0-9:]+) .*$`);
+    const arptable = FS.readFileSync(ARPTABLE, { encoding: 'utf8' }).split('\n');
+    for (let i = 0; i < arptable.length; i++) {
+      const match = arptable[i].match(lookup);
+      if (match && match[1] !== '00:00:00:00:00:00') {
+        const m = match[1].split(':');
+        return `da:${m[1]}:${m[2]}:${m[3]}:${m[4]}:${m[5]}`;
       }
     }
-    this._qPrune = null;
+    const sa = address.split('.');
+    return `da:00:${parseInt(sa[0]).toString(16)}:${parseInt(sa[1]).toString(16)}:${parseInt(sa[2]).toString(16)}:${parseInt(sa[3]).toString(16)}`;
+  },
+
+  // We give each client on the DNS network a unique IP and mac address (the mac is derived from the IP). It's not enough to just
+  // give clients IP addesses as some DNS applications care about the mac addresses being unique too. We do this by creating
+  // veth pairs, connect one end to the dns bridge, and use the other to send DNS requests. We bind the socket we use to the specific
+  // veth endpoint so the requests go out with the correct IP and mac address.
+  _createInterface: function(entry) {
+    const iface = entry.iface;
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'dev', `d${iface}`, 'type', 'veth', 'peer', 'name', `p${iface}` ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'master', DNS_NETWORK ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `d${iface}`, 'up', 'address', entry.mac ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'up' ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'broadcast', this._broadcast, 'dev', `d${iface}` ]);
+  },
+
+  _destroyInterface: function(entry) {
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'del', 'dev', `d${entry.iface}` ]);
   },
 
   getSocket: async function(rinfo, tinfo) {
     const start = Date.now();
     if (rinfo.tcp) {
-      return (request, callback) => {
+      return (incomingRequest, callback) => {
+        const request = DNS._copyDNSPacket(incomingRequest, {
+          additionals: [{
+            type: 'OPT', name: '.', options: [{
+              code: 'CLIENT_SUBNET',
+              family: 1,
+              sourcePrefixLength: 32,
+              scopePrefixLength: 0,
+              ip: rinfo.address,
+            }]
+          }]
+        });
         const message = DnsPkt.encode(request);
         const msgout = Buffer.alloc(message.length + 2);
         msgout.writeUInt16BE(message.length);
@@ -863,7 +864,8 @@ const LocalDNSSingleton = {
             callback(null);
           }
         }, this._getTimeout(tinfo));
-        const socket = Net.createConnection(tinfo._port, tinfo._address, () => {
+        const entry = this._allocAddress(rinfo.address);
+        const socket = Net.createConnection({ port: tinfo._port, host: tinfo._address, localAddress: entry.dnsAddress }, () => {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
@@ -891,17 +893,14 @@ const LocalDNSSingleton = {
       }
     }
     else {
-      const socket = await new Promise((resolve, reject) => {
-        const entry = this._forwardCache[rinfo.address] || this._allocAddress(rinfo.address);
+      const socket = await new Promise(async (resolve, reject) => {
+        const entry = this._allocAddress(rinfo.address);
         if (entry.socket) {
-          entry.lastUse = Date.now();
           resolve(entry.socket);
         }
         else {
           entry.socket = UDP.createSocket('udp4');
-          this._bindInterface(entry.dnsAddress);
-          entry.socket.bind(0, entry.dnsAddress);
-          entry.socket.once('error', () => reject(new Error()));
+          entry.socket.once('error', e => { console.error(e); reject(new Error())});
           entry.socket.once('listening', () => {
             entry.socket.on('message', (message, { port, address }) => {
               if (message.length < 2) {
@@ -912,9 +911,21 @@ const LocalDNSSingleton = {
             });
             resolve(entry.socket);
           });
+          Native.bindDGramSocketToInterface(entry.socket, `d${entry.iface}`, entry.dnsAddress, 0);
         }
       });
-      return (request, callback) => {
+      return (incomingRequest, callback) => {
+        const request = DNS._copyDNSPacket(incomingRequest, {
+          additionals: [{
+            type: 'OPT', name: '.', options: [{
+              code: 'CLIENT_SUBNET',
+              family: 1,
+              sourcePrefixLength: 32,
+              scopePrefixLength: 0,
+              ip: rinfo.address,
+            }]
+          }]
+        });
         while (this._pending[request.id]) {
           request.id = Math.floor(Math.random() * 65536);
         }
@@ -1025,11 +1036,11 @@ LocalDNS.prototype = {
 const MapDNS = {
 
   query: async function(request, response, rinfo) {
-    const qname = request.questions[0].name;
     if (request.questions[0].type !== 'PTR') {
       return false;
     }
-    const m4 = REGEXP_PTR_IP4.exec(qname);
+    const qname = request.questions[0].name;
+    const m4 = qname.match(REGEXP_PTR_IP4);
     if (!m4) {
       return false;
     }
@@ -1041,18 +1052,26 @@ const MapDNS = {
     if (i4.length !== 4) {
       return false;
     }
-    const nname = `${i4[3]}.${i4[2]}.${i4[1]}.${i4[0]}.in-addr.arpa`;
-    request.questions[0].name = nname;
-    const success = await DNS.query(request, response, rinfo);
-    if (success) {
-      response.answers.forEach(answer => {
-        if (answer.name === nname) {
-          answer.name = qname;
-        }
-      });
+    const mname = `${i4[3]}.${i4[2]}.${i4[1]}.${i4[0]}.in-addr.arpa`;
+
+    const mrequest = DNS._copyDNSPacket(request, {
+      questions: [{ name: mname, type: 'PTR', class: 'IN' }],
+    });
+    const mresponse = DNS._copyDNSPacket(response);
+    const success = await DNS.query(mrequest, mresponse, rinfo);
+    if (!success) {
+      return false;
     }
-    request.questions[0].name = qname;
-    return success;
+
+    response.flags = mresponse.flags;
+    response.answers = mresponse.answers.map(answer => {
+      if (answer.name === mname) {
+        answer.name = qname;
+      }
+      return answer;
+    });
+
+    return true;
   }
 
 }
@@ -1094,13 +1113,18 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           throw Error('Bad length');
         }
         const request = DnsPkt.decode(msgin);
+        DEBUG_QUERY && console.log('request', rinfo, JSON.stringify(request, null, 2));
         response.id = request.id;
         response.flags = request.flags;
         if ((response.flags & DnsPkt.RECURSION_DESIRED) !== 0) {
           response.flags |= DnsPkt.RECURSION_AVAILABLE;
         }
         response.questions = request.questions;
-        DEBUG_QUERY && console.log('request', rinfo, JSON.stringify(request, null, 2));
+        const opt = request.additionals.find(additional => additional.type === 'OPT');
+        const client = opt && opt.options.find(option => option.type === 'CLIENT_SUBNET'); // 'type' in decode, 'code' in encode
+        if (client) {
+          rinfo.address = client.ip; // Even as a partial address is more useful than the local address.
+        }
         await this.query(request, response, rinfo);
         // If we got no answers, and no error code set, we set notfound
         if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
@@ -1123,7 +1147,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
           reuseAddr: true
         });
         this._udp.on('message', async (msgin, rinfo) => {
-          const msgout = await onMessage(msgin, { tcp: false, address: rinfo.address, port: rinfo.address });
+          const msgout = await onMessage(msgin, { tcp: false, address: rinfo.address, port: rinfo.port });
           this._udp.send(msgout, rinfo.port, rinfo.address, err => {
             if (err) {
               console.error(err);
@@ -1229,6 +1253,14 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     CachingDNS.flush();
   },
 
+  _copyDNSPacket: function(pkt, changes) {
+    const npkt = DnsPkt.decode(DnsPkt.encode(pkt));
+    if (changes) {
+      Object.assign(npkt, changes);
+    }
+    return npkt;
+  },
+
   removeDNSServer: function(dns) {
     for (let i = 0; i < this._proxies.length; i++) {
       if (this._proxies[i].app === dns.app) {
@@ -1258,6 +1290,10 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
   unregisterHost: function(localname) {
     PrivateDNS.unregisterHost(localname);
+  },
+
+  lookupLocalnameIP: function(localname) {
+    return PrivateDNS.lookupLocalnameIP(localname);
   },
 
   squery: async function(request, response, rinfo) {
@@ -1314,15 +1350,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
       for(; i < this._proxies.length; i++) {
         const proxy = this._proxies[i];
         DEBUG_QUERY && console.log(`Trying ${proxy.app._name}`);
-        const presponse = {
-          id: response.id,
-          type: response.type,
-          flags: response.flags,
-          questions: response.questions,
-          answers: [],
-          authorities: [],
-          additionals: []
-        };
+        const presponse = DNS._copyDNSPacket(response);
         const idx = i;
         const start = DEBUG_QUERY_TIMING && Date.now();
         proxy.srv.query(Object.assign({}, request), presponse, rinfo).then(success => {

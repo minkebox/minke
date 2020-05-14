@@ -53,15 +53,15 @@ MinkeApp.prototype = {
     this._ports = app.ports;
     this._binds = app.binds;
     this._files = app.files;
-    // MIGRATION
+    // MIGRATION - Keep May 15, 2020
     if (app.backups) {
       this._backups = app.backups;
     }
     if (app.vars) {
       this._vars = JSON.parse(app.vars);
     }
-    // MIGRATION
-    // MIGRATION
+    // MIGRATION - Keep May 15, 2020
+    // MIGRATION - Remove May 15, 2020
     if (typeof app.networks.primary === 'string') {
       this._networks = {
         primary: { name: app.networks.primary },
@@ -71,7 +71,7 @@ MinkeApp.prototype = {
     else {
       this._networks = app.networks;
     }
-    // MIGRATION
+    // MIGRATION - Remove May 15, 2020
     this._bootcount = app.bootcount;
     this._position = app.position || { tab: 0, widget: 0 };
     this._secondary = (app.secondary || []).map(secondary => {
@@ -101,7 +101,7 @@ MinkeApp.prototype = {
       this._tags = [ 'All' ];
     }
 
-    // MIGRATION
+    // MIGRATION - Remove May 15, 2020
     if (!this._vars) {
       this._vars = {};
       if (this._skeleton) {
@@ -111,7 +111,7 @@ MinkeApp.prototype = {
         await this.save();
       }
     }
-    // MIGRATION
+    // MIGRATION - Remove May 15, 2020
 
     this._setStatus('stopped');
 
@@ -260,6 +260,7 @@ MinkeApp.prototype = {
     //console.log('Created Vars', this._vars);
   },
 
+  // MIGRATION - Remove May 15, 2020
   _variableMigration: async function() {
     for (let i = 0; i < this._skeleton.actions.length; i++) {
       const action = this._skeleton.actions[i];
@@ -326,6 +327,7 @@ MinkeApp.prototype = {
       }
     }
   },
+  // MIGRATION - Remove May 15, 2020
 
   createFromSkeleton: async function(skel) {
     for (let i = 0; ; i++) {
@@ -658,6 +660,7 @@ MinkeApp.prototype = {
           if (sNetwork === 'home') {
             configEnv.push(`__HOSTIP=${MinkeApp._network.network.ip_address}`);
             configEnv.push(`__DOMAINNAME=${MinkeApp.getLocalDomainName()}`);
+            configEnv.push(`__DHCP_INTERFACE_MAC=${this._primaryMacAddress()}`);
           }
           config.HostConfig.Dns = [ vpnapp._secondaryIP ];
           config.HostConfig.DnsSearch = [ 'local' ];
@@ -858,11 +861,13 @@ MinkeApp.prototype = {
           const homeip6 = this.getSLAACAddress();
           Network.registerIP(this._homeIP);
           DNS.registerHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`, this._homeIP, homeip6);
+          // If we need to be accessed remotely, register with DDNS
+          if (this._ddns) {
+            DDNS.register(this);
+          }
         }
-
-        // If we need to be accessed remotely, register with DDNS
-        if (this._ddns) {
-          DDNS.register(this);
+        else if (this._defaultIP) {
+          DNS.registerHost(this._safeName(), null, this._defaultIP, null);
         }
 
       }
@@ -1083,8 +1088,8 @@ MinkeApp.prototype = {
       this._webProxy = null;
     }
 
+    DNS.unregisterHost(this._safeName());
     if (this._homeIP) {
-      DNS.unregisterHost(this._safeName(), `${this._globalId}${GLOBALDOMAIN}`);
       if (this._ddns) {
         DDNS.unregister(this);
       }
@@ -1682,23 +1687,20 @@ MinkeApp.prototype = {
     js.setProperty(glb, '__DOMAINNAME', MinkeApp.getLocalDomainName());
     js.setProperty(glb, '__HOSTIP', MinkeApp._network.network.ip_address);
     js.setProperty(glb, '__HOMEIP', this._homeIP);
+    js.setProperty(glb, '__HOMEIP6', this.getSLAACAddress() || '');
     js.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
-    js.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress());
     js.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
-    if (!this._homeIP) {
-      js.setProperty(glb, '__HOMEADDRESSES', '');
-    }
-    else if (!this.getSLAACAddress()) {
-      js.setProperty(glb, '__HOMEADDRESSES', this._homeIP);
-    }
-    else {
-      js.setProperty(glb, '__HOMEADDRESSES', `${this._homeIP} and ${this.getSLAACAddress()}`);
-    }
+    js.setProperty(glb, '__HOMEADDRESSES', this._homeIP); // MIGRATION - Remove May 15, 2020
+    js.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress()); // MIGRATION - Remove May 15, 2020
+    // And app functions
     js.setProperty(glb, '__RANDOMHEX', js.createNativeFunction(len => {
       return this._generateSecurePassword(len);
     }));
     js.setProperty(glb, '__RANDOMPORTS', asyncWrap(async nr => {
       return await this._allocateRandomNatPorts(nr);
+    }));
+    js.setProperty(glb, '__LOOKUPIP', js.createNativeFunction(host => {
+      return DNS.lookupLocalnameIP(host);
     }));
 
     // Start by setting properties for all constant variables. These are the ones which
@@ -1991,10 +1993,29 @@ MinkeApp.startApps = async function(app, config) {
   const dnsNet = await Network.getDNSNetwork();
   try {
     // Attach it if we don't have a system. If we do, then the dns network devices will exist in the container already.
+    // If we have a system, the dns device (a bridge) will already exist and we are sharing the namespace so we use it
+    // directly. If not, we have to craft this setup in our current namespace (we can't do it before now).
     if (!SYSTEM) {
+      const cidr = dnsNet.info.IPAM.Config[0].Subnet.split('/');
+      const base = cidr[0].split('.');
+      const bits = parseInt(cidr[1]);
+      const address = `${base[0]}.${base[1]}.0.2`;
+      const dev = 'eth1';
+
+      // Create the dns0 bridge
+      ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'name', 'dns0', 'type', 'bridge' ]);
+      ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', 'dns0', 'up' ]);
+      // Connect ourselves to the dns network.
       await dnsNet.connect({
         Container: MinkeApp._container.id
       });
+      // Enslave our original network device to it. This allows our DNS network veth devices to be on the same
+      // network as applications created by Docker on the dns network. If we have a system then this is the same
+      // bridge, but if we don't then it's two bridges connected.
+      ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', dev, 'master', 'dns0' ]);
+      ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${address}/${bits}`, 'dev', `dns0` ]);
+      ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'del', `${address}/${bits}`, 'dev', dev ]);
+
       // We have to put back the original default route. There really must be a better way ...
       ChildProcess.spawnSync('/sbin/ip', [ 'route', 'del', 'default' ]);
       ChildProcess.spawnSync('/sbin/ip', [ 'route', 'add', 'default', 'via', MinkeApp._network.network.gateway_ip ]);

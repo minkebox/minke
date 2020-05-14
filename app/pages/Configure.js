@@ -190,7 +190,7 @@ async function ConfigurePageHTML(ctx) {
             }
             else {
               network = app._networks.secondary.name || 'none';
-              networks = [{ _id: 'none', name: 'none' }].concat(app.getAvailableNetwork);
+              networks = [{ _id: 'none', name: 'none' }].concat(app.getAvailableNetworks());
             }
             properties[`${action.type}#${action.name}`] = network;
             // If we chance the primary network then the websites we can select will also change.
