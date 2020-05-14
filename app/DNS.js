@@ -575,7 +575,7 @@ GlobalDNS.prototype = {
             callback(null);
           }
         }, this._getTimeout());
-        const socket = Net.createConnection(this._port, this._address, () => {
+        const socket = Net.createConnection({ port: this._port, host: this._address }, () => {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
@@ -847,7 +847,8 @@ const LocalDNSSingleton = {
             callback(null);
           }
         }, this._getTimeout(tinfo));
-        const socket = Net.createConnection(tinfo._port, tinfo._address, () => {
+        const entry = this._allocAddress(rinfo.address);
+        const socket = Net.createConnection({ port: tinfo._port, host: tinfo._address, localAddress: entry.dnsAddress }, () => {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
