@@ -843,6 +843,7 @@ const LocalDNSSingleton = {
     if (rinfo.tcp) {
       return (incomingRequest, callback) => {
         const request = DNS._copyDNSPacket(incomingRequest, {
+          flags: incomingRequest.flags & ~DnsPkt.RECURSION_DESIRED,
           additionals: [{
             type: 'OPT', name: '.', options: [{
               code: 'CLIENT_SUBNET',
@@ -916,6 +917,7 @@ const LocalDNSSingleton = {
       });
       return (incomingRequest, callback) => {
         const request = DNS._copyDNSPacket(incomingRequest, {
+          flags: incomingRequest.flags & ~DnsPkt.RECURSION_DESIRED,
           additionals: [{
             type: 'OPT', name: '.', options: [{
               code: 'CLIENT_SUBNET',
