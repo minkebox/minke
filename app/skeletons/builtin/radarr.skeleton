@@ -71,11 +71,6 @@ but you may want to use a VPN network for extra security and privacy.`
       style: `store`
     },
     {
-      type: `Directory`,
-      name: `downloads`,
-      style: `store`
-    },
-    {
       type: `Environment`,
       name: `HOME`,
       value: `/root`

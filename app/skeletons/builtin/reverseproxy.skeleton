@@ -19,7 +19,7 @@
       type: `SelectWebsites`,
       name: `WEBSITES`,
       description: `Select and name each of the websites you wish to publish`,
-      pattern: `{{V[1]}}#{{V[2]}}#{{V[3]}}#{{V[4]}}#{{V[5]}}#{{V[6]}}`,
+      pattern: `{{V[1]}}#{{V[2]}}#{{V[3]}}#{{V[4]}}#{{__LOOKUPIP(V[1])}}#{{V[6]}}`,
       join: ` `
     },
     {
@@ -97,7 +97,7 @@
     },
     {
       type: `Text`,
-      text: `UPnP is not available on your network. Please manually forward TCP ports 80 and 443 (if HTTPS is enabled) from your router to {{__HOMEADDRESSES}}.`,
+      text: `UPnP is not available on your network. Please manually forward TCP ports 80 and 443 (if HTTPS is enabled) from your router to {{__HOMEIP}}{{__HOMEIP6 ? "and " + __HOMEIP6 : ""}}.`,
       visible: `!property.UPnPAvailable && property['EditEnvironmentAsCheckbox#WEB_NAT']`
     }
   ],
