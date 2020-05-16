@@ -807,6 +807,7 @@ const LocalDNSSingleton = {
     // We need to ping the address to get the mac into the cache before we look it up.
     // (the fact that we received a UDP message from this mac doesnt appear to cache it).
     //ChildProcess.spawnSync('/bin/ping', [ '-c', '1', '-W', '1', address ]);
+    /*
     ChildProcess.spawnSync('/usr/sbin/arping', [ '-q', '-f', '-w', '3', '-I', Network.BRIDGE_NETWORK, address ]);
     const lookup = new RegExp(`^${address.replace(/\./g, '\\.')}.* \([a-f0-9:]+) .*$`);
     const arptable = FS.readFileSync(ARPTABLE, { encoding: 'utf8' }).split('\n');
@@ -816,7 +817,7 @@ const LocalDNSSingleton = {
         const m = match[1].split(':');
         return `da:${m[1]}:${m[2]}:${m[3]}:${m[4]}:${m[5]}`;
       }
-    }
+    }*/
     const sa = address.split('.');
     return `da:00:${parseInt(sa[0]).toString(16)}:${parseInt(sa[1]).toString(16)}:${parseInt(sa[2]).toString(16)}:${parseInt(sa[3]).toString(16)}`;
   },
