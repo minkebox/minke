@@ -819,7 +819,10 @@ const LocalDNSSingleton = {
       }
     }*/
     const sa = address.split('.');
-    return `da:00:${parseInt(sa[0]).toString(16)}:${parseInt(sa[1]).toString(16)}:${parseInt(sa[2]).toString(16)}:${parseInt(sa[3]).toString(16)}`;
+    function f(p) {
+      return ('0'+parseInt(sa[p]).toString(16)).slice(-2);
+    }
+    return `da:00:${f(0)}:${f(1)}:${f(2)}:${f(3)}`;
   },
 
   // We give each client on the DNS network a unique IP and mac address (the mac is derived from the IP). It's not enough to just
@@ -867,7 +870,8 @@ const LocalDNSSingleton = {
           }
         }, this._getTimeout(tinfo));
         const entry = this._allocAddress(rinfo.address);
-        const socket = Net.createConnection({ port: tinfo._port, host: tinfo._address, localAddress: entry.dnsAddress }, () => {
+        const socket = Native.getTCPSocketOnInterface(`d${entry.iface}`, entry.dnsAddress, 0);
+        socket.connect({ port: tinfo._port, host: tinfo._address }, () => {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
@@ -898,11 +902,21 @@ const LocalDNSSingleton = {
       const socket = await new Promise(async (resolve, reject) => {
         const entry = this._allocAddress(rinfo.address);
         if (entry.socket) {
-          resolve(entry.socket);
+          try {
+            entry.socket.address(); // Will throw exception if socket not yet bound
+            resolve(entry.socket);
+          }
+          catch {
+            entry.socket.once('listening', () => resolve(entry.socket));
+          }
         }
         else {
-          entry.socket = UDP.createSocket('udp4');
-          entry.socket.once('error', e => { console.error(e); reject(new Error())});
+          entry.socket = Native.getUDPSocketOnInterface(`d${entry.iface}`, entry.dnsAddress, 0);
+          entry.socket.once('error', e => {
+            entry.socket = null;
+            console.error(e);
+            reject(e);
+          });
           entry.socket.once('listening', () => {
             entry.socket.on('message', (message, { port, address }) => {
               if (message.length < 2) {
@@ -913,7 +927,6 @@ const LocalDNSSingleton = {
             });
             resolve(entry.socket);
           });
-          Native.bindDGramSocketToInterface(entry.socket, `d${entry.iface}`, entry.dnsAddress, 0);
         }
       });
       return (incomingRequest, callback) => {
@@ -1187,7 +1200,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
               const len = buffer.readUInt16BE();
               if (buffer.length >= 2 + len) {
                 const msgin = buffer.subarray(2, 2 + len);
-                const msgout = await onMessage(msgin, { tcp: true, address: socket.remoteAddress, port: socket.remotePort });
+                const msgout = await onMessage(msgin, { tcp: true, address: socket.remoteAddress.replace(/^::ffff:/, ''), port: socket.remotePort });
                 const reply = Buffer.alloc(msgout.length + 2);
                 reply.writeUInt16BE(msgout.length, 0);
                 msgout.copy(reply, 2);
