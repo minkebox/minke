@@ -880,7 +880,7 @@ const LocalDNSSingleton = {
             callback(null);
           }
         }, this._getTimeout(tinfo));
-        const entry = this._allocAddress(rinfo.address);
+        const entry = this._allocAddress(rinfo.originalAddress);
         const socket = Native.getTCPSocketOnInterface(`d${entry.iface}`, entry.dnsAddress, 0);
         socket.connect({ port: tinfo._port, host: tinfo._address }, () => {
           socket.on('error', (e) => {
@@ -911,7 +911,7 @@ const LocalDNSSingleton = {
     }
     else {
       const socket = await new Promise(async (resolve, reject) => {
-        const entry = this._allocAddress(rinfo.address);
+        const entry = this._allocAddress(rinfo.originalAddress);
         if (entry.socket) {
           try {
             entry.socket.address(); // Will throw exception if socket not yet bound
