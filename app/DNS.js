@@ -645,7 +645,7 @@ GlobalDNS.prototype = {
 
   query: async function(request, response, rinfo) {
     // Dont send a query back to a server it came from.
-    if (rinfo.address === this._address) {
+    if (rinfo.address === this._address || rinfo.originalAddress === this._address) {
       return false;
     }
 
@@ -865,7 +865,7 @@ const LocalDNSSingleton = {
               family: 1,
               sourcePrefixLength: 32,
               scopePrefixLength: 0,
-              ip: rinfo.address,
+              ip: rinfo.originalAddress,
             }]
           }]
         });
@@ -949,7 +949,7 @@ const LocalDNSSingleton = {
               family: 1,
               sourcePrefixLength: 32,
               scopePrefixLength: 0,
-              ip: rinfo.address,
+              ip: rinfo.originalAddress,
             }]
           }]
         });
@@ -1049,7 +1049,7 @@ LocalDNS.prototype = {
 
   query: async function(request, response, rinfo) {
     // Dont send a query back to a server it came from.
-    if (this._addresses.indexOf(rinfo.address) !== -1) {
+    if (this._addresses.indexOf(rinfo.address) !== -1 || this._addresses.indexOf(rinfo.originalAddress) !== -1) {
       return false;
     }
     return await LocalDNSSingleton.query(request, response, rinfo, this);
@@ -1150,7 +1150,10 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         const opt = request.additionals.find(additional => additional.type === 'OPT');
         const client = opt && opt.options.find(option => option.type === 'CLIENT_SUBNET'); // 'type' in decode, 'code' in encode
         if (client) {
-          rinfo.address = client.ip; // Even as a partial address is more useful than the local address.
+          rinfo.originalAddress = client.ip; // Even as a partial address is more useful than the local address.
+        }
+        else {
+          rinfo.originalAddress = rinfo.address;
         }
         await this.query(request, response, rinfo);
         // If we got no answers, and no error code set, we set notfound
