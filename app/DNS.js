@@ -16,6 +16,8 @@ const ARPTABLE = '/proc/net/arp';
 const DNS_NETWORK = 'dns0';
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
+const REGEXP_LOCAL_IP = /(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/;
+const REGEXP_PTR_ZC = /^(b|lb|db)\._dns-sd\._udp\.(.*)\.in-addr\.arpa$/;
 const GLOBAL1 = { _name: 'global1', _position: { tab: Number.MAX_SAFE_INTEGER - 1 } };
 const GLOBAL2 = { _name: 'global2', _position: { tab: Number.MAX_SAFE_INTEGER } };
 const MAX_SAMPLES = 128;
@@ -510,6 +512,15 @@ const MulticastDNS = {
         }
         break;
       }
+      case 'PTR':
+      {
+        const match = question.name.match(REGEXP_PTR_ZC);
+        if (match) {
+          response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
+          return true;
+        }
+        break;
+      }
       default:
         break;
     }
@@ -528,7 +539,7 @@ const GlobalDNS = function(address, port, timeout) {
   this._samples = Array(MAX_SAMPLES).fill(this._maxTimeout);
   this._pending = {};
   // Identify local or global forwarding addresses. We don't forward local domain lookups to global addresses.
-  if (address.match(/(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/)) {
+  if (address.match(REGEXP_LOCAL_IP)) {
     this._global = false;
   }
   else {
