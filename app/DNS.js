@@ -842,10 +842,11 @@ const LocalDNSSingleton = {
   // veth endpoint so the requests go out with the correct IP and mac address.
   _createInterface: function(entry) {
     const iface = entry.iface;
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'dev', `d${iface}`, 'type', 'veth', 'peer', 'name', `p${iface}` ]);
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'master', DNS_NETWORK ]);
+    //ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'dev', `d${iface}`, 'type', 'veth', 'peer', 'name', `p${iface}` ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', `d${iface}`, 'link', DNS_NETWORK, 'type', 'macvlan', 'mode', 'bridge' ]);
+    //ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'master', DNS_NETWORK ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `d${iface}`, 'up', 'address', entry.mac ]);
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'up' ]);
+    //ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'up' ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'broadcast', this._broadcast, 'dev', `d${iface}` ]);
   },
 
