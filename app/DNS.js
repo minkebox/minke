@@ -815,20 +815,6 @@ const LocalDNSSingleton = {
   },
 
   _allocMacAddress: function(address) {
-    // We need to ping the address to get the mac into the cache before we look it up.
-    // (the fact that we received a UDP message from this mac doesnt appear to cache it).
-    //ChildProcess.spawnSync('/bin/ping', [ '-c', '1', '-W', '1', address ]);
-    /*
-    ChildProcess.spawnSync('/usr/sbin/arping', [ '-q', '-f', '-w', '3', '-I', Network.BRIDGE_NETWORK, address ]);
-    const lookup = new RegExp(`^${address.replace(/\./g, '\\.')}.* \([a-f0-9:]+) .*$`);
-    const arptable = FS.readFileSync(ARPTABLE, { encoding: 'utf8' }).split('\n');
-    for (let i = 0; i < arptable.length; i++) {
-      const match = arptable[i].match(lookup);
-      if (match && match[1] !== '00:00:00:00:00:00') {
-        const m = match[1].split(':');
-        return `da:${m[1]}:${m[2]}:${m[3]}:${m[4]}:${m[5]}`;
-      }
-    }*/
     const sa = address.split('.');
     function f(p) {
       return ('0'+parseInt(sa[p]).toString(16)).slice(-2);
@@ -838,15 +824,12 @@ const LocalDNSSingleton = {
 
   // We give each client on the DNS network a unique IP and mac address (the mac is derived from the IP). It's not enough to just
   // give clients IP addesses as some DNS applications care about the mac addresses being unique too. We do this by creating
-  // veth pairs, connect one end to the dns bridge, and use the other to send DNS requests. We bind the socket we use to the specific
-  // veth endpoint so the requests go out with the correct IP and mac address.
+  // macvlan links connected to the dns bridge. We bind the socket we use to the specific endpoint so the requests go out with
+  // the correct IP and mac address.
   _createInterface: function(entry) {
     const iface = entry.iface;
-    //ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'dev', `d${iface}`, 'type', 'veth', 'peer', 'name', `p${iface}` ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', `d${iface}`, 'link', DNS_NETWORK, 'type', 'macvlan', 'mode', 'bridge' ]);
-    //ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'master', DNS_NETWORK ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `d${iface}`, 'up', 'address', entry.mac ]);
-    //ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'up' ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'broadcast', this._broadcast, 'dev', `d${iface}` ]);
   },
 
