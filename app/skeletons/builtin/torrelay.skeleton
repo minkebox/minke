@@ -26,7 +26,7 @@
     {
       type: `EditEnvironment`,
       name: `NICKNAME`,
-      description: `Nickname for the node (1-19 characters)`
+      description: `Nickname for the node (1-19 characters)`,
       initValue: `MinkeBoxTor`,
       validate: `[a-zA-Z0-9]{1,19}`
     },
