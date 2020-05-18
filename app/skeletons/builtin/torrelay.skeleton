@@ -25,6 +25,13 @@
     },
     {
       type: `EditEnvironment`,
+      name: `NICKNAME`,
+      description: `Nickname for the node (1-19 characters)`
+      initValue: `MinkeBoxTor`,
+      validate: `[a-zA-Z0-9]{1,19}`
+    },
+    {
+      type: `EditEnvironment`,
       name: `EMAIL`,
       description: `Public email associated with this node`
     },
@@ -101,7 +108,7 @@
 ContactInfo {{EMAIL}}
 ORPort {{ORPort}}
 Address {{__GLOBALNAME}}
-Nickname MinkeBoxTor
+Nickname {{NICKNAME}}
 ExitRelay 0
 SocksPort 0
 ControlSocket 0
