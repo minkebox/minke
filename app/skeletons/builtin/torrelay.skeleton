@@ -50,6 +50,16 @@
       type: `SelectNetwork`,
       name: `primary`,
       description: `Select the network used to connect to the global Tor network`
+    },
+    {
+      type: `Header`,
+      title: `Advanced`,
+      visible: `property.Advanced`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `EXIT`,
+      description: `Allow traffic to exit from this relay. <b>Use with caution</b>.`
     }
   ],
   properties: [
@@ -109,7 +119,7 @@ ContactInfo {{EMAIL}}
 ORPort {{ORPort}}
 Address {{__GLOBALNAME}}
 Nickname {{NICKNAME}}
-ExitRelay 0
+ExitRelay {{EXIT ? 1 : 0}}
 SocksPort 0
 ControlSocket 0
 BandwidthRate {{BANDWIDTH}}MBits
