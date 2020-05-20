@@ -35,13 +35,6 @@ describe('Environment', async function() {
       assert.equal(env.thing.value, '5A:92:20:46:9E:8B');
     });
 
-    it('System property: __IPV6ENABLED', async function() {
-      const env = await this.app.expandEnvironment({
-        thing: { value: '__IPV6ENABLED' }
-      });
-      assert.equal(env.thing.value, false);
-    });
-
     describe('Strings', function() {
 
       it('"abc" + __MACADDRESS + "def"', async function() {
@@ -69,13 +62,6 @@ describe('Environment', async function() {
       it('true && true', async function() {
         const env = await this.app.expandEnvironment({
           thing: { value: 'true && true' }
-        });
-        assert.equal(env.thing.value, true);
-      });
-
-      it('__IPV6ENABLED ^ true', async function() {
-        const env = await this.app.expandEnvironment({
-          thing: { value: '__IPV6ENABLED ^ true' }
         });
         assert.equal(env.thing.value, true);
       });
