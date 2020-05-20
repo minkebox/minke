@@ -101,7 +101,7 @@
     },
     {
       type: `Text`,
-      text: `UPnP is not available on your network. Please manually forward TCP port {{SERVER_PORT}} from your router to {{__HOMEADDRESSES}}.`,
+      text: `UPnP is not available on your network. Please manually forward TCP port {{SERVER_PORT}} from your router to {{__HOMEIP}}{{__HOMEIP6 ? "and " + __HOMEIP6 : ""}}.`,
       visible: `!property.UPnPAvailable`
     }
   ],

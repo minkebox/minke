@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@sindresorhus/df": "^3.1.1",
-    "ace-builds": "^1.4.9",
+    "ace-builds": "^1.4.11",
     "base64url": "^3.0.1",
     "chart.js": "^2.9.3",
     "debounce": "^1.2.0",
@@ -29,7 +29,7 @@
     "koa-proxy": "^1.0.0-alpha.3",
     "koa-router": "^7.4.0",
     "koa-websocket": "^5.0.1",
-    "moment-timezone": "^0.5.28",
+    "moment-timezone": "^0.5.29",
     "nedb": "^1.8.0",
     "netmask": "^1.0.6",
     "network": "^0.4.1",

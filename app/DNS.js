@@ -16,6 +16,8 @@ const ARPTABLE = '/proc/net/arp';
 const DNS_NETWORK = 'dns0';
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
+const REGEXP_LOCAL_IP = /(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/;
+const REGEXP_PTR_ZC = /^(b|lb|db)\._dns-sd\._udp\.(.*)$/;
 const GLOBAL1 = { _name: 'global1', _position: { tab: Number.MAX_SAFE_INTEGER - 1 } };
 const GLOBAL2 = { _name: 'global2', _position: { tab: Number.MAX_SAFE_INTEGER } };
 const MAX_SAMPLES = 128;
@@ -510,6 +512,15 @@ const MulticastDNS = {
         }
         break;
       }
+      case 'PTR':
+      {
+        const match = question.name.match(REGEXP_PTR_ZC);
+        if (match) {
+          response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
+          return true;
+        }
+        break;
+      }
       default:
         break;
     }
@@ -528,7 +539,7 @@ const GlobalDNS = function(address, port, timeout) {
   this._samples = Array(MAX_SAMPLES).fill(this._maxTimeout);
   this._pending = {};
   // Identify local or global forwarding addresses. We don't forward local domain lookups to global addresses.
-  if (address.match(/(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/)) {
+  if (address.match(REGEXP_LOCAL_IP)) {
     this._global = false;
   }
   else {
@@ -634,7 +645,7 @@ GlobalDNS.prototype = {
 
   query: async function(request, response, rinfo) {
     // Dont send a query back to a server it came from.
-    if (rinfo.address === this._address) {
+    if (rinfo.address === this._address || rinfo.originalAddress === this._address) {
       return false;
     }
 
@@ -804,33 +815,21 @@ const LocalDNSSingleton = {
   },
 
   _allocMacAddress: function(address) {
-    // We need to ping the address to get the mac into the cache before we look it up.
-    // (the fact that we received a UDP message from this mac doesnt appear to cache it).
-    //ChildProcess.spawnSync('/bin/ping', [ '-c', '1', '-W', '1', address ]);
-    ChildProcess.spawnSync('/usr/sbin/arping', [ '-q', '-f', '-w', '3', '-I', Network.BRIDGE_NETWORK, address ]);
-    const lookup = new RegExp(`^${address.replace(/\./g, '\\.')}.* \([a-f0-9:]+) .*$`);
-    const arptable = FS.readFileSync(ARPTABLE, { encoding: 'utf8' }).split('\n');
-    for (let i = 0; i < arptable.length; i++) {
-      const match = arptable[i].match(lookup);
-      if (match && match[1] !== '00:00:00:00:00:00') {
-        const m = match[1].split(':');
-        return `da:${m[1]}:${m[2]}:${m[3]}:${m[4]}:${m[5]}`;
-      }
-    }
     const sa = address.split('.');
-    return `da:00:${parseInt(sa[0]).toString(16)}:${parseInt(sa[1]).toString(16)}:${parseInt(sa[2]).toString(16)}:${parseInt(sa[3]).toString(16)}`;
+    function f(p) {
+      return ('0'+parseInt(sa[p]).toString(16)).slice(-2);
+    }
+    return `da:00:${f(0)}:${f(1)}:${f(2)}:${f(3)}`;
   },
 
   // We give each client on the DNS network a unique IP and mac address (the mac is derived from the IP). It's not enough to just
   // give clients IP addesses as some DNS applications care about the mac addresses being unique too. We do this by creating
-  // veth pairs, connect one end to the dns bridge, and use the other to send DNS requests. We bind the socket we use to the specific
-  // veth endpoint so the requests go out with the correct IP and mac address.
+  // macvlan links connected to the dns bridge. We bind the socket we use to the specific endpoint so the requests go out with
+  // the correct IP and mac address.
   _createInterface: function(entry) {
     const iface = entry.iface;
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', 'dev', `d${iface}`, 'type', 'veth', 'peer', 'name', `p${iface}` ]);
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'master', DNS_NETWORK ]);
+    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'add', `d${iface}`, 'link', DNS_NETWORK, 'type', 'macvlan', 'mode', 'bridge' ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `d${iface}`, 'up', 'address', entry.mac ]);
-    ChildProcess.spawnSync('/sbin/ip', [ 'link', 'set', `p${iface}`, 'up' ]);
     ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'add', `${entry.dnsAddress}/16`, 'broadcast', this._broadcast, 'dev', `d${iface}` ]);
   },
 
@@ -843,13 +842,14 @@ const LocalDNSSingleton = {
     if (rinfo.tcp) {
       return (incomingRequest, callback) => {
         const request = DNS._copyDNSPacket(incomingRequest, {
+          flags: incomingRequest.flags & ~DnsPkt.RECURSION_DESIRED,
           additionals: [{
             type: 'OPT', name: '.', options: [{
               code: 'CLIENT_SUBNET',
               family: 1,
               sourcePrefixLength: 32,
               scopePrefixLength: 0,
-              ip: rinfo.address,
+              ip: rinfo.originalAddress,
             }]
           }]
         });
@@ -864,8 +864,9 @@ const LocalDNSSingleton = {
             callback(null);
           }
         }, this._getTimeout(tinfo));
-        const entry = this._allocAddress(rinfo.address);
-        const socket = Net.createConnection({ port: tinfo._port, host: tinfo._address, localAddress: entry.dnsAddress }, () => {
+        const entry = this._allocAddress(rinfo.originalAddress);
+        const socket = Native.getTCPSocketOnInterface(`d${entry.iface}`, entry.dnsAddress, 0);
+        socket.connect({ port: tinfo._port, host: tinfo._address }, () => {
           socket.on('error', (e) => {
             console.error(e);
             if (timeout) {
@@ -894,13 +895,23 @@ const LocalDNSSingleton = {
     }
     else {
       const socket = await new Promise(async (resolve, reject) => {
-        const entry = this._allocAddress(rinfo.address);
+        const entry = this._allocAddress(rinfo.originalAddress);
         if (entry.socket) {
-          resolve(entry.socket);
+          try {
+            entry.socket.address(); // Will throw exception if socket not yet bound
+            resolve(entry.socket);
+          }
+          catch {
+            entry.socket.once('listening', () => resolve(entry.socket));
+          }
         }
         else {
-          entry.socket = UDP.createSocket('udp4');
-          entry.socket.once('error', e => { console.error(e); reject(new Error())});
+          entry.socket = Native.getUDPSocketOnInterface(`d${entry.iface}`, entry.dnsAddress, 0);
+          entry.socket.once('error', e => {
+            entry.socket = null;
+            console.error(e);
+            reject(e);
+          });
           entry.socket.once('listening', () => {
             entry.socket.on('message', (message, { port, address }) => {
               if (message.length < 2) {
@@ -911,18 +922,18 @@ const LocalDNSSingleton = {
             });
             resolve(entry.socket);
           });
-          Native.bindDGramSocketToInterface(entry.socket, `d${entry.iface}`, entry.dnsAddress, 0);
         }
       });
       return (incomingRequest, callback) => {
         const request = DNS._copyDNSPacket(incomingRequest, {
+          flags: incomingRequest.flags & ~DnsPkt.RECURSION_DESIRED,
           additionals: [{
             type: 'OPT', name: '.', options: [{
               code: 'CLIENT_SUBNET',
               family: 1,
               sourcePrefixLength: 32,
               scopePrefixLength: 0,
-              ip: rinfo.address,
+              ip: rinfo.originalAddress,
             }]
           }]
         });
@@ -1022,7 +1033,7 @@ LocalDNS.prototype = {
 
   query: async function(request, response, rinfo) {
     // Dont send a query back to a server it came from.
-    if (this._addresses.indexOf(rinfo.address) !== -1) {
+    if (this._addresses.indexOf(rinfo.address) !== -1 || this._addresses.indexOf(rinfo.originalAddress) !== -1) {
       return false;
     }
     return await LocalDNSSingleton.query(request, response, rinfo, this);
@@ -1123,7 +1134,10 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         const opt = request.additionals.find(additional => additional.type === 'OPT');
         const client = opt && opt.options.find(option => option.type === 'CLIENT_SUBNET'); // 'type' in decode, 'code' in encode
         if (client) {
-          rinfo.address = client.ip; // Even as a partial address is more useful than the local address.
+          rinfo.originalAddress = client.ip; // Even as a partial address is more useful than the local address.
+        }
+        else {
+          rinfo.originalAddress = rinfo.address;
         }
         await this.query(request, response, rinfo);
         // If we got no answers, and no error code set, we set notfound
@@ -1184,7 +1198,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
               const len = buffer.readUInt16BE();
               if (buffer.length >= 2 + len) {
                 const msgin = buffer.subarray(2, 2 + len);
-                const msgout = await onMessage(msgin, { tcp: true, address: socket.remoteAddress, port: socket.remotePort });
+                const msgout = await onMessage(msgin, { tcp: true, address: socket.remoteAddress.replace(/^::ffff:/, ''), port: socket.remotePort });
                 const reply = Buffer.alloc(msgout.length + 2);
                 reply.writeUInt16BE(msgout.length, 0);
                 msgout.copy(reply, 2);

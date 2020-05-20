@@ -25,6 +25,13 @@
     },
     {
       type: `EditEnvironment`,
+      name: `NICKNAME`,
+      description: `Nickname for the node (1-19 characters)`,
+      initValue: `MinkeBoxTor`,
+      validate: `[a-zA-Z0-9]{1,19}`
+    },
+    {
+      type: `EditEnvironment`,
       name: `EMAIL`,
       description: `Public email associated with this node`
     },
@@ -43,6 +50,16 @@
       type: `SelectNetwork`,
       name: `primary`,
       description: `Select the network used to connect to the global Tor network`
+    },
+    {
+      type: `Header`,
+      title: `Advanced`,
+      visible: `property.Advanced`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `EXIT`,
+      description: `Allow traffic to exit from this relay. <b>Use with caution</b>.`
     }
   ],
   properties: [
@@ -101,8 +118,8 @@
 ContactInfo {{EMAIL}}
 ORPort {{ORPort}}
 Address {{__GLOBALNAME}}
-Nickname MinkeBoxTor
-ExitRelay 0
+Nickname {{NICKNAME}}
+ExitRelay {{EXIT ? 1 : 0}}
 SocksPort 0
 ControlSocket 0
 BandwidthRate {{BANDWIDTH}}MBits
