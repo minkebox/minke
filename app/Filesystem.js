@@ -53,16 +53,9 @@ _Filesystem.prototype = {
     const src = await this._expandPathWithDefault(await this._expandString(bind.dir), bind.src);
     const pathset = await this._expandPathSet(bind.target);
     const backupset = await this._expandBackupSet(bind.target);
-    const natives = Filesystem.getNativeDirectories();
-
-    // MIGRATION - Remove May 15, 2020
-    if (target[0] !== '/') {
-      return [];
-    }
-    // MIGRATION - Remove May 15, 2020
+    const natives = Filesystem.getNativeDirectories()
 
     const binds = [];
-
     if (src) {
       FS.mkdirSync(src, { recursive: true, mode: 0o777 });
       binds.push({
