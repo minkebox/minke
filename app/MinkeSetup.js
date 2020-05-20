@@ -363,6 +363,24 @@ MinkeSetup.prototype = {
     return Images.MINKE;
   },
 
+  restartReason: function(newReason) {
+    let reason;
+    try {
+      reason = FS.readFileSync(RESTART_REASON, { encoding: 'utf8' }).trim();
+    }
+    catch (_) {
+      reason = 'restart';
+    }
+    try {
+      if (newReason) {
+        FS.writeFileSync(RESTART_REASON, newReason);
+      }
+    }
+    catch (_) {
+    }
+    return reason;
+  },
+
   systemRestart: async function(reason) {
     try {
       FS.writeFileSync(RESTART_REASON, reason);
