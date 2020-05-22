@@ -25,6 +25,22 @@
       description: `Select the network Tor will use to connect to the global Tor network`
     },
     {
+      type: `SelectNetwork`,
+      name: `secondary`,
+      description: `Select the network Tor will find services to publish from`
+    },
+    {
+      type: `Header`,
+      title: `Websites`
+    },
+    {
+      type: `SelectWebsites`,
+      name: `WEBSITES`,
+      description: `Select the websites you wish to publish on Tor`,
+      pattern: `{{V[4]}}#{{__LOOKUPIP(V[1])}}#{{V[2]}}#{{V[1]}}`,
+      join: ` `
+    },
+    {
       type: `Header`,
       title: `Services`,
     },
@@ -42,6 +58,10 @@
     {
       type: `Feature`,
       name: `+NET_ADMIN`
+    },
+    {
+      type: `Environment`,
+      name: `WEBSITES`
     },
     {
       type: `Directory`,
@@ -69,7 +89,8 @@
     {
       type: `Network`,
       name: `secondary`,
-      value: `__create`
+      value: `home`,
+      create: true
     }
   ],
   monitor: {
