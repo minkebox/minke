@@ -266,7 +266,7 @@ MinkeApp.prototype = {
     this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).value;
 
     this._networks = {
-      primary: { name: 'none' },
+      primary: { name: 'home' },
       secondary: { name: 'none' }
     };
     skel.properties.forEach(prop => {
@@ -282,6 +282,9 @@ MinkeApp.prototype = {
         }
         if (prop.bandwidth) {
           this._networks[prop.name].bandwidth = prop.bandwidth;
+        }
+        if (prop.create) {
+          this._networks[prop.name].canCreate = true;
         }
       }
     });
@@ -433,6 +436,7 @@ MinkeApp.prototype = {
       this._setStatus('starting');
 
       if (this._willCreateNetwork()) {
+        this._createdNetwork = true;
         Root.emit('net.create', { app: this });
       }
 
@@ -1105,8 +1109,9 @@ MinkeApp.prototype = {
 
     this._setStatus('stopped');
 
-    if (this._willCreateNetwork()) {
+    if (this._createdNetwork) {
       Root.emit('net.remove', { app: this });
+      this._createdNetwork = false;
     }
 
     return this;

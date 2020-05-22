@@ -192,6 +192,9 @@ async function ConfigurePageHTML(ctx) {
               network = app._networks.secondary.name || 'none';
               networks = [{ _id: 'none', name: 'none' }].concat(app.getAvailableNetworks());
             }
+            if (app._networks[action.name].canCreate && !networks.find(network => network._id === app._id)) {
+              networks.push({ _id: app._id, name: 'Create network' });
+            }
             properties[`${action.type}#${action.name}`] = network;
             // If we chance the primary network then the websites we can select will also change.
             let reload = '';
