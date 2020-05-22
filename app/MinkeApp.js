@@ -502,7 +502,9 @@ MinkeApp.prototype = {
             case 'home':
               netEnv.SECONDARY_INTERFACE = 1;
               netEnv.DHCP_INTERFACE = 1;
-              netEnv.NAT_INTERFACE = 1;
+              if (!('NAT_INTERFACE' in netEnv)) {
+                netEnv.NAT_INTERFACE = 1;
+              }
               break;
             case 'dns':
               netEnv.SECONDARY_INTERFACE = 1;
