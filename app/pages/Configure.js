@@ -164,9 +164,17 @@ async function ConfigurePageHTML(ctx) {
               currentSites = app._vars[action.name].value;
             }
 
-            const websites = (await app.getAvailableWebsites(app._networks.primary.name)).map(site => {
+            // Select websites on the secondary network if we're using it, otherwise use the primary
+            // Generally we're sending traffic from the secondary to the primary network (hence secondary is checked first).
+            // We track temporary network name changes because they effect what websites we can offer
+            this._tempnetworks = {
+              primary: app._networks.primary.name,
+              secondary: app._networks.secondary.name
+            };
+            const networkName = this._tempnetworks.secondary !== 'none' ? this._tempnetworks.secondary : this._tempnetworks.primary;
+            const websites = (await app.getAvailableWebsites(networkName)).map(site => {
               const match = currentSites.find(cs => cs[0] === site.app._id);
-              let ip = app._networks.primary.name === site.app._networks.primary.name ? site.app._defaultIP : site.app._secondaryIP;
+              let ip = networkName === site.app._networks.primary.name ? site.app._defaultIP : site.app._secondaryIP;
               return {
                 appid: site.app._id,
                 name: site.app._name,
@@ -196,10 +204,10 @@ async function ConfigurePageHTML(ctx) {
               networks.push({ _id: app._id, name: 'Create network' });
             }
             properties[`${action.type}#${action.name}`] = network;
-            // If we chance the primary network then the websites we can select will also change.
+            // If we chance the networks then the websites we can select will also change.
             let reload = '';
-            if (action.name === 'primary' && skeleton.actions.find(action => action.type === 'SelectWebsites')) {
-              reload = `;window.cmd('app.update-websites',this.value)`;
+            if (skeleton.actions.find(action => action.type === 'SelectWebsites')) {
+              reload = `;window.cmd('app.update-websites',['${action.name}',this.value])`;
             }
             return Object.assign({
               action: `window.action('${action.type}#${action.name}',this.value)` + reload,
@@ -781,9 +789,10 @@ async function ConfigurePageWS(ctx) {
           }
         case 'app.update-websites':
           {
-            const primary = msg.value;
-            const websites = (await app.getAvailableWebsites(primary)).map(site => {
-              let ip = primary === site.app._networks.primary.name ? site.app._defaultIP : site.app._secondaryIP;
+            this._tempnetworks[msg.value[0]] = msg.value[1];
+            const networkName = this._tempnetworks.secondary !== 'none' ? this._tempnetworks.secondary : this._tempnetworks.primary;
+            const websites = (await app.getAvailableWebsites(networkName)).map(site => {
+              let ip = networkName === site.app._networks.primary.name ? site.app._defaultIP : site.app._secondaryIP;
               return {
                 appid: site.app._id,
                 name: site.app._name,
