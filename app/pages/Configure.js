@@ -87,6 +87,7 @@ async function ConfigurePageHTML(ctx) {
   let help = false;
   const navbuttons = [];
   const nskeleton = {
+    id: app._id,
     name: skeleton.name,
     value: app._name,
     description: await expandString(skeleton.description),

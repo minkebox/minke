@@ -34,6 +34,7 @@
             <a class="pure-button" data-popbox-target="halt">Power Off</a>
             {{/if}}
             {{else}}
+            <a class="pure-button admin-only" onclick="openConsoleWindow('{{id}}')" {{#if ../firstUse}}disabled{{/if}}>Console</a>
             {{#each ../navbuttons}}
             <a class="pure-button" href="{{link}}" target="{{linktarget}}" {{#if ../../firstUse}}disabled{{/if}}>{{name}}</a>
             {{/each}}
