@@ -43,9 +43,9 @@ try{
     logs.destroy();
   });
 
-  function write(data) {
+  function write(prefix, data) {
     try {
-      ctx.websocket.send(JSON.stringify({ type: 'console.to', data: data.toString('utf8') }));
+      ctx.websocket.send(JSON.stringify({ type: 'console.to', data: `${prefix}${data.toString('utf8')}` }));
     }
     catch (_) {
     }
@@ -79,7 +79,7 @@ try{
     logs.on('close', () => {
       ctx.websocket.close();
     });
-    docker.modem.demuxStream(logs, { write: write }, { write: write });
+    docker.modem.demuxStream(logs, { write: data => write('\033[37m', data) }, { write: data => write('\033[33m', data) });
   }
   else {
     const fs = Filesystem.create(app);
@@ -95,11 +95,11 @@ try{
         break;
     }
     const logs = fs.getLogs(ext);
-    write('[STDOUT]\n\n');
-    write(logs.stdout);
-    write('\n[STDERR]\n\n');
-    write(logs.stderr);
-    write('\n[TERMINATED]\n');
+    write('\033[37m', '[STDOUT]\n');
+    write('\033[37m', logs.stdout);
+    write('\033[33m', '\n[STDERR]\n');
+    write('\033[33m', logs.stderr);
+    write('\033[31m', '\n[TERMINATED]\n');
   }
 } catch(e) { console.log(e); }
 }
