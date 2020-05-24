@@ -642,9 +642,7 @@ function openConsole(id, name) {
   xtermConsole.loadAddon(xtermConsoleFit);
   xtermConsole.open(document.getElementById(id));
   xtermConsoleFit.fit();
-  xtermConsole.onData(toSend => {
-    cmd('console.from', toSend);
-  });
+  xtermConsole.onData(toSend => cmd('console.from', toSend));
   document.title = name;
 }
 
