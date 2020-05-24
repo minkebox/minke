@@ -626,7 +626,7 @@ function openConsoleWindow(id, container) {
   const HEIGHT = 420;
   const left = (screen.width - WIDTH) / 2;
   const top = (screen.height - HEIGHT) / 2;
-  window.open(`/console/${id}/${container ? '?c=' + container : ''}`, '', `left=${left},top=${top},width=${WIDTH},height=${HEIGHT},resizeable`);
+  window.open(`/console/${id}/${container ? '?c=' + container : ''}`, 'Console', `left=${left},top=${top},width=${WIDTH},height=${HEIGHT}`);
 }
 
 function openConsole(id, name) {
@@ -634,7 +634,8 @@ function openConsole(id, name) {
     theme: {
       background: '#ffffff',
       foreground: '#000000',
-      cursor: '#888888'
+      cursor: '#888888',
+      selection: '#0000ff55'
     }
   });
   xtermConsoleFit = new FitAddon.FitAddon();
@@ -658,7 +659,7 @@ function openLogWindow(id, container) {
   const HEIGHT = 420;
   const left = (screen.width - WIDTH) / 2;
   const top = (screen.height - HEIGHT) / 2;
-  window.open(`/log/${id}/${container ? '?c=' + container : ''}`, '', `left=${left},top=${top},width=${WIDTH},height=${HEIGHT},resizeable`);
+  window.open(`/log/${id}/${container ? '?c=' + container : ''}`, 'Log', `left=${left},top=${top},width=${WIDTH},height=${HEIGHT}`);
 }
 
 function openLog(id, name) {
@@ -667,7 +668,8 @@ function openLog(id, name) {
     convertEol: true,
     theme: {
       background: '#000000',
-      foreground: '#ffffff'
+      foreground: '#ffffff',
+      cursor: '#000000'
     }
   });
   xtermConsoleFit = new FitAddon.FitAddon();
