@@ -253,6 +253,14 @@ _Filesystem.prototype = {
     FS.writeFileSync(`${root}/stderr.txt`, stderr);
   },
 
+  getLogs: function(ext) {
+    const root = Filesystem.getNativePath(this._primaryApp._id, 'boot', `/logs${ext}`);
+    return {
+      stdout: FS.readFileSync(`${root}/stdout.txt`, { encoding: 'utf8' }),
+      stderr: FS.readFileSync(`${root}/stderr.txt`, { encoding: 'utf8' })
+    };
+  },
+
   _expandString: async function(str) {
     return await this._primaryApp.expandString(str);
   },

@@ -10,7 +10,8 @@ const Pages = {
   '/new/application': require('./Applications'),
   '/configure/:id':   require('./Configure'),
   '/minkebox.config': require('../ConfigBackup'),
-  '/console/:id':     require('./Console')
+  '/console/:id':     require('./Console'),
+  '/log/:id':         require('./Log')
 };
 
 const JSPages = {

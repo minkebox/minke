@@ -45,7 +45,7 @@ async function PageWS(ctx) {
       break;
   }
   if (!container) {
-    console.log(`Missing container ${ctx.query.c} for ${app._name}`);
+    console.log(`Missing container ${ctx.query.c || 'm'} for ${app._name}`);
     return;
   }
   const exec = await container.exec({

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="console">
+<html class="log">
   <head>
     <link href="/css/xterm.css" rel="stylesheet" type="text/css">
     <script src="/js/script.js" type="text/javascript"></script>
@@ -9,14 +9,14 @@
       html, body, #console {
         margin: 0px;
         height: 100%;
-        background-color: #ffffff;
+        background-color: black;
       }
     </style>
   </head>
   <body>
-    <div id="console"></div>
+    <div id="log"></div>
     <script>
-      openConsole('console', '{{name}}');
+      openLog('log', '{{name}}');
     </script>
   </body>
 </html>

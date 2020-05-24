@@ -1637,16 +1637,8 @@ MinkeApp.prototype = {
       }
     }
     if (Object.keys(todo).length) {
-      console.log('Variable evalulation failed for: ' + Object.keys(todo).join(' '));
+      console.log('Variable evaluation failed for: ' + Object.keys(todo).join(' '));
     }
-
-
-    // Add current variables. Evaluating variables may, in turn, result in calls to
-    // the interpreter (which is why we setup initial values).
-    /*for (let name in this._vars) {
-      this._js.setProperty(glb, name, await this.expandVariable(name));
-    }*/
-
     return this._js;
   },
 

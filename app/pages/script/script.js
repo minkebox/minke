@@ -619,7 +619,7 @@ function saveTable(action, table) {
 
 /* Tables */
 
-/* Console */
+/* Console and Log */
 
 function openConsoleWindow(id, container) {
   const WIDTH = 740;
@@ -630,7 +630,13 @@ function openConsoleWindow(id, container) {
 }
 
 function openConsole(id, name) {
-  xtermConsole = new Terminal();
+  xtermConsole = new Terminal({
+    theme: {
+      background: '#ffffff',
+      foreground: '#000000',
+      cursor: '#888888'
+    }
+  });
   xtermConsoleFit = new FitAddon.FitAddon();
   xtermConsole.loadAddon(xtermConsoleFit);
   xtermConsole.open(document.getElementById(id));
@@ -645,6 +651,30 @@ function consoleWrite(data) {
   if (xtermConsole) {
     xtermConsole.write(data);
   }
+}
+
+function openLogWindow(id, container) {
+  const WIDTH = 740;
+  const HEIGHT = 420;
+  const left = (screen.width - WIDTH) / 2;
+  const top = (screen.height - HEIGHT) / 2;
+  window.open(`/log/${id}/${container ? '?c=' + container : ''}`, '', `left=${left},top=${top},width=${WIDTH},height=${HEIGHT},resizeable`);
+}
+
+function openLog(id, name) {
+  xtermConsole = new Terminal({
+    disableStdin: true,
+    convertEol: true,
+    theme: {
+      background: '#000000',
+      foreground: '#ffffff'
+    }
+  });
+  xtermConsoleFit = new FitAddon.FitAddon();
+  xtermConsole.loadAddon(xtermConsoleFit);
+  xtermConsole.open(document.getElementById(id));
+  xtermConsoleFit.fit();
+  document.title = name;
 }
 
 /* Popbox */
