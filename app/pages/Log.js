@@ -8,20 +8,16 @@ const logTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Log.ht
 
 async function PageHTML(ctx) {
   const app = MinkeApp.getAppById(ctx.params.id);
-  let name = `Logs for ${app._name}`;
-  switch (ctx.query.c || 'm') {
-    case 'm':
-      break;
-    case 'h':
-      name += ' (helper)';
-      break;
-    default:
-      name += ` (secondary ${ctx.query.c})`;
-      break;
-  }
+  const tab = [
+    { name: 'Main', cid: '', selected: (ctx.query.c || 'm') === 'm' },
+    { name: 'Helper', cid: 'h', selected: (ctx.query.c === 'h' ) }
+  ];
+  app._secondary.forEach((_, idx) => tab.push({ name: `#${idx}`, cid: `${idx}`, selected: ctx.query.c == idx }));
   ctx.type = 'text/html';
   ctx.body = logTemplate({
-    name: name
+    id: app._id,
+    name: `Logs for ${app._name}`,
+    tab: tab
   });
 }
 

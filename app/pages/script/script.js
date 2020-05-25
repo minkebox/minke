@@ -626,7 +626,7 @@ function openConsoleWindow(id, container) {
   const HEIGHT = 420;
   const left = (screen.width - WIDTH) / 2;
   const top = (screen.height - HEIGHT) / 2;
-  window.open(`/console/${id}/${container ? '?c=' + container : ''}`, `Console${id}${container}`, `left=${left},top=${top},width=${WIDTH},height=${HEIGHT}`);
+  window.open(`/console/${id}/${container ? '?c=' + container : ''}`, `Console${id}`, `left=${left},top=${top},width=${WIDTH},height=${HEIGHT}`);
 }
 
 function openConsole(id, name) {
@@ -657,7 +657,7 @@ function openLogWindow(id, container) {
   const HEIGHT = 420;
   const left = (screen.width - WIDTH) / 2;
   const top = (screen.height - HEIGHT) / 2;
-  window.open(`/log/${id}/${container ? '?c=' + container : ''}`, `Log${id}${container}`, `left=${left},top=${top},width=${WIDTH},height=${HEIGHT}`);
+  window.open(`/log/${id}/${container ? '?c=' + container : ''}`, `Log${id}`, `left=${left},top=${top},width=${WIDTH},height=${HEIGHT}`);
 }
 
 function openLog(id, name) {
