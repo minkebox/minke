@@ -62,17 +62,30 @@
     },
     {
       type: 'Header',
-      title: 'Network',
+      title: 'Networks',
       visible: `property.Advanced`
     },
     {
       type: 'Text',
-      text: 'Select which network this application will use. You probably want <b>home</b> unless this application is being used on a VPN or private network.'
+      text: `Select which networks this web proxy will use. You probably want <b>home</b> for both in most cases. If not, the source
+             network should be the network which is shared with the websites you wish to proxy. The target network should be the
+             network on which these proxied websites will be visible.`
+    },
+    {
+      type: `Help`,
+      text: `For example, you might want to proxy you internal websites onto a VPN network (perhaps to hide you IP address).
+             Alternatively, you might want to keep your internal websites on their own network (isolating them from your other applications)
+             and proxy them onto your home network.`
+    },
+    {
+      type: 'SelectNetwork',
+      name: 'secondary',
+      description: 'Select source network'
     },
     {
       type: 'SelectNetwork',
       name: 'primary',
-      description: 'Select network'
+      description: 'Select target network'
     },
     {
       type: `Header`,
@@ -172,6 +185,12 @@
       type: `Network`,
       name: `primary`,
       value: `home`
+    },
+    {
+      type: `Network`,
+      name: `secondary`,
+      value: `home`,
+      create: true
     }
   ]
 }

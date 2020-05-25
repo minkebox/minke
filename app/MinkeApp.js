@@ -53,25 +53,8 @@ MinkeApp.prototype = {
     this._ports = app.ports;
     this._binds = app.binds;
     this._files = app.files;
-    // MIGRATION - Keep May 15, 2020
-    if (app.backups) {
-      this._backups = app.backups;
-    }
-    if (app.vars) {
-      this._vars = JSON.parse(app.vars);
-    }
-    // MIGRATION - Keep May 15, 2020
-    // MIGRATION - Remove May 15, 2020
-    if (typeof app.networks.primary === 'string') {
-      this._networks = {
-        primary: { name: app.networks.primary },
-        secondary: { name: app.networks.secondary }
-      };
-    }
-    else {
-      this._networks = app.networks;
-    }
-    // MIGRATION - Remove May 15, 2020
+    this._vars = JSON.parse(app.vars || '{}');
+    this._networks = app.networks;
     this._bootcount = app.bootcount;
     this._position = app.position || { tab: 0, widget: 0 };
     this._secondary = (app.secondary || []).map(secondary => {
@@ -100,18 +83,6 @@ MinkeApp.prototype = {
       this._delay = 0;
       this._tags = [ 'All' ];
     }
-
-    // MIGRATION - Remove May 15, 2020
-    if (!this._vars) {
-      this._vars = {};
-      if (this._skeleton) {
-        await this.updateVariables(this._skeleton, {});
-        await this._variableMigration();
-        await this.updateFromSkeleton(this._skeleton, this.toJSON());
-        await this.save();
-      }
-    }
-    // MIGRATION - Remove May 15, 2020
 
     this._setStatus('stopped');
 
@@ -260,75 +231,6 @@ MinkeApp.prototype = {
     //console.log('Created Vars', this._vars);
   },
 
-  // MIGRATION - Remove May 15, 2020
-  _variableMigration: async function() {
-    for (let i = 0; i < this._skeleton.actions.length; i++) {
-      const action = this._skeleton.actions[i];
-      const env = this._env[action.name];
-      switch (action.type) {
-        case 'EditEnvironment':
-          if (env && ('value' in env)) {
-            this._vars[action.name].value = await this.expandString(env.value);
-            this._env[action.name] = {};
-          }
-          break;
-        case 'EditEnvironmentAsCheckbox':
-          if (env && ('value' in env)) {
-            this._vars[action.name].value = !!env.value;
-            this._env[action.name] = {};
-          }
-          break;
-        case 'EditEnvironmentAsTable':
-        case 'SelectWebsites':
-          if (env && env.altValue) {
-            this._vars[action.name].value = JSON.parse(env.altValue);
-            this._env[action.name] = {};
-          }
-          break;
-        case 'EditFileAsTable':
-        {
-          const file = this._files.find(f => f.target === action.name);
-          if (file && file.altData) {
-            this._vars[action.name].value = JSON.parse(file.altData);
-            delete file.altData;
-          }
-          break;
-        }
-        case 'SelectBackups':
-          if (this._backups && this._backups.length) {
-            this._vars[action.name].value = this._backups;
-            delete this._backups;
-          }
-          break;
-        case 'SelectDirectory':
-        {
-          const bind = this._binds && this._binds.find(bind => bind.target === action.name);
-          if (bind && bind.src) {
-            this._vars[action.name].value = bind.src;
-          }
-          break;
-        }
-        case 'SelectShares':
-        {
-          const bind = this._binds && this._binds.find(bind => bind.target === action.name);
-          if (bind && bind.shares.length) {
-            this._vars[action.name].value = bind.shares;
-            bind.share = [];
-          }
-          break;
-        }
-        case 'EditFile':
-        case 'ShowFile':
-        case 'DownloadFile':
-        case 'ShowFileAsTable':
-        case 'EditShares':
-        default:
-          break;
-      }
-    }
-  },
-  // MIGRATION - Remove May 15, 2020
-
   createFromSkeleton: async function(skel) {
     for (let i = 0; ; i++) {
       const name = (i === 0 ? skel.name : `${skel.name} ${i}`);
@@ -364,7 +266,7 @@ MinkeApp.prototype = {
     this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).value;
 
     this._networks = {
-      primary: { name: 'none' },
+      primary: { name: 'home' },
       secondary: { name: 'none' }
     };
     skel.properties.forEach(prop => {
@@ -380,6 +282,9 @@ MinkeApp.prototype = {
         }
         if (prop.bandwidth) {
           this._networks[prop.name].bandwidth = prop.bandwidth;
+        }
+        if (prop.create) {
+          this._networks[prop.name].canCreate = true;
         }
       }
     });
@@ -531,6 +436,7 @@ MinkeApp.prototype = {
       this._setStatus('starting');
 
       if (this._willCreateNetwork()) {
+        this._createdNetwork = true;
         Root.emit('net.create', { app: this });
       }
 
@@ -596,7 +502,9 @@ MinkeApp.prototype = {
             case 'home':
               netEnv.SECONDARY_INTERFACE = 1;
               netEnv.DHCP_INTERFACE = 1;
-              netEnv.NAT_INTERFACE = 1;
+              if (!('NAT_INTERFACE' in netEnv)) {
+                netEnv.NAT_INTERFACE = 1;
+              }
               break;
             case 'dns':
               netEnv.SECONDARY_INTERFACE = 1;
@@ -1203,8 +1111,9 @@ MinkeApp.prototype = {
 
     this._setStatus('stopped');
 
-    if (this._willCreateNetwork()) {
+    if (this._createdNetwork) {
       Root.emit('net.remove', { app: this });
+      this._createdNetwork = false;
     }
 
     return this;
@@ -1690,8 +1599,6 @@ MinkeApp.prototype = {
     js.setProperty(glb, '__HOMEIP6', this.getSLAACAddress() || '');
     js.setProperty(glb, '__DNSSERVER',  MinkeApp._network.network.ip_address);
     js.setProperty(glb, '__MACADDRESS', this._primaryMacAddress().toUpperCase());
-    js.setProperty(glb, '__HOMEADDRESSES', this._homeIP); // MIGRATION - Remove May 15, 2020
-    js.setProperty(glb, '__IPV6ENABLED', !!this.getSLAACAddress()); // MIGRATION - Remove May 15, 2020
     // And app functions
     js.setProperty(glb, '__RANDOMHEX', js.createNativeFunction(len => {
       return this._generateSecurePassword(len);
@@ -1730,16 +1637,8 @@ MinkeApp.prototype = {
       }
     }
     if (Object.keys(todo).length) {
-      console.log('Variable evalulation failed for: ' + Object.keys(todo).join(' '));
+      console.log('Variable evaluation failed for: ' + Object.keys(todo).join(' '));
     }
-
-
-    // Add current variables. Evaluating variables may, in turn, result in calls to
-    // the interpreter (which is why we setup initial values).
-    /*for (let name in this._vars) {
-      this._js.setProperty(glb, name, await this.expandVariable(name));
-    }*/
-
     return this._js;
   },
 

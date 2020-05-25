@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html class="log" style="background-color: black">
+  <head>
+    <link href="/css/xterm.css" rel="stylesheet" type="text/css">
+    <link href="/css/console.css" rel="stylesheet" type="text/css">
+    <script src="/js/script.js" type="text/javascript"></script>
+    <script src="/js/xterm.js" type="text/javascript"></script>
+    <script src="/js/xterm-addon-fit.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="tabs">
+    {{#each tab}}
+      <a {{#if selected}}class="selected"{{/if}} href="/log/{{../id}}/{{#if cid}}?c={{cid}}{{/if}}">{{name}}</a>
+    {{/each}}
+    </div>
+    <div id="log"></div>
+    <script>
+      openLog('log', '{{name}}');
+    </script>
+  </body>
+</html>

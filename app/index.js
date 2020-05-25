@@ -15,6 +15,7 @@ global.Root = new Events(); // System events
 
 const Pages = require('./pages/pages');
 const MinkeApp = require('./MinkeApp');
+const MinkeSetup = require('./MinkeSetup');
 const UPNP = require('./UPNP');
 
 const PORT = Config.WEB_PORT;
@@ -63,7 +64,9 @@ App.ws.use(async (ctx, next) => {
   }
 });
 
-MinkeApp.startApps(App, { inherit: !process.env.RESTART_REASON || process.env.RESTART_REASON === 'restart' || process.env.RESTART_REASON === 'update', port: PORT });
+// MIGRATION - RESTART_REASON Remove May 26, 2020
+const restart = process.env.RESTART_REASON || MinkeSetup.restartReason('exit');
+MinkeApp.startApps(App, { inherit: restart === 'restart' || restart === 'update', port: PORT });
 
 process.on('uncaughtException', (e) => {
   console.error(e)

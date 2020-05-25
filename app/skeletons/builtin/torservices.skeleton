@@ -20,13 +20,42 @@
       description: `Available bandwidth (in MBits)`
     },
     {
+      type: `Header`,
+      title: `Networks`
+    },
+    {
+      type: `Text`,
+      text: `Select which networks Tor will use. You probably want home for both in most cases. If not, the source network should be the network which is shared with the websites and applications you wish to proxy.
+             The target network should be the network use to connect to the rest of the global Tor network.`
+    },
+    {
+      type: `SelectNetwork`,
+      name: `secondary`,
+      description: `Select the source network Tor will find services to publish from`
+    },
+    {
       type: `SelectNetwork`,
       name: `primary`,
-      description: `Select the network Tor will use to connect to the global Tor network`
+      description: `Select the target network Tor will use to connect to the global Tor network`
+    },
+    {
+      type: `Header`,
+      title: `Websites`
+    },
+    {
+      type: `SelectWebsites`,
+      name: `WEBSITES`,
+      description: `Select the websites you wish to publish on Tor`,
+      pattern: `{{V[4]}}#{{__LOOKUPIP(V[1])}}#{{V[2]}}#{{V[1]}}`,
+      join: ` `
     },
     {
       type: `Header`,
       title: `Services`,
+    },
+    {
+      type: `Text`,
+      text: `Your published apps, with associated Onion addresses, are listed below.`
     },
     {
       type: `ShowFileAsTable`,
@@ -42,6 +71,10 @@
     {
       type: `Feature`,
       name: `+NET_ADMIN`
+    },
+    {
+      type: `Environment`,
+      name: `WEBSITES`
     },
     {
       type: `Directory`,
@@ -69,7 +102,8 @@
     {
       type: `Network`,
       name: `secondary`,
-      value: `__create`
+      value: `home`,
+      create: true
     }
   ],
   monitor: {

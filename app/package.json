@@ -41,7 +41,9 @@
     "tar-stream": "^2.1.2",
     "uuid": "^3.4.0",
     "ws": "^6.2.1",
-    "xml-js": "^1.6.11"
+    "xml-js": "^1.6.11",
+    "xterm": "^4.6.0",
+    "xterm-addon-fit": "^0.4.0"
   },
   "devDependencies": {
     "mocha": "^7.1.2",

@@ -1,0 +1,40 @@
+html, body {
+  margin: 0px;
+  height: 100%;
+}
+body {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+#tabs {
+  position: fixed;
+  top: 0px;
+  width: 100%;
+  background: rgb(61, 79, 93);
+  color: #cccccc;
+  padding: 10px 5px;
+  margin-bottom: 5px;
+  font-family: sans-serif;
+  z-index: 1;
+}
+#tabs a {
+  display: inline-block;
+  padding: 0px 7px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+#tabs a:hover {
+  color: rgb(61, 146, 201);
+}
+#tabs a.selected {
+  color: #ffffff;
+  cursor: default;
+}
+#log, #console {
+  position: absolute;
+  width: 100%;
+  top: 0px;
+  bottom: 0px;
+  padding-top: 43px;
+}

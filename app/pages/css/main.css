@@ -2,6 +2,8 @@ body {
   margin: 0px;
   height: 100%;
   color: #333;
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 * {

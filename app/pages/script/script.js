@@ -1,8 +1,11 @@
 let ws = { send: () => {} };
 const monitorQ = {};
+/* Console */
+let xtermConsole = null;
+let xtermConsoleFit = null;
 
 function onPageShow() {
-  ws = new WebSocket(`ws://${location.host}${location.pathname}ws`);
+  ws = new WebSocket(`ws://${location.host}${location.pathname}ws${location.search}`);
   ws.addEventListener('message', function(event) {
     const msg = JSON.parse(event.data);
     switch (msg.type) {
@@ -72,6 +75,12 @@ function onPageShow() {
         break;
       case 'system.captcha':
         openInlinePage(msg.url);
+        break;
+      case 'console.to':
+        consoleWrite(msg.data);
+        break;
+      case 'console.close':
+        consoleClose();
         break;
       default:
         break;
@@ -539,6 +548,9 @@ function onResizePage() {
       }
     });
   }
+  if (xtermConsoleFit) {
+    xtermConsoleFit.fit();
+  }
 }
 
 /* Inline page */
@@ -609,6 +621,70 @@ function saveTable(action, table) {
 }
 
 /* Tables */
+
+/* Console and Log */
+
+function openConsoleWindow(id, container) {
+  const WIDTH = 740;
+  const HEIGHT = 420;
+  const left = (screen.width - WIDTH) / 2;
+  const top = (screen.height - HEIGHT) / 2;
+  window.open(`/console/${id}/${container ? '?c=' + container : ''}`, `Console${id}`, `left=${left},top=${top},width=${WIDTH},height=${HEIGHT}`);
+}
+
+function openConsole(id, name) {
+  xtermConsole = new Terminal({
+    theme: {
+      background: '#ffffff',
+      foreground: '#000000',
+      cursor: '#888888',
+      selection: '#0000ff55'
+    }
+  });
+  xtermConsoleFit = new FitAddon.FitAddon();
+  xtermConsole.loadAddon(xtermConsoleFit);
+  xtermConsole.open(document.getElementById(id));
+  xtermConsoleFit.fit();
+  xtermConsole.onData(toSend => cmd('console.from', toSend));
+  document.title = name;
+}
+
+function consoleWrite(data) {
+  if (xtermConsole) {
+    xtermConsole.write(data);
+  }
+}
+
+function consoleClose() {
+  if (xtermConsole) {
+    window.close();
+  }
+}
+
+function openLogWindow(id, container) {
+  const WIDTH = 740;
+  const HEIGHT = 420;
+  const left = (screen.width - WIDTH) / 2;
+  const top = (screen.height - HEIGHT) / 2;
+  window.open(`/log/${id}/${container ? '?c=' + container : ''}`, `Log${id}`, `left=${left},top=${top},width=${WIDTH},height=${HEIGHT}`);
+}
+
+function openLog(id, name) {
+  xtermConsole = new Terminal({
+    disableStdin: true,
+    convertEol: true,
+    theme: {
+      background: '#000000',
+      foreground: '#ffffff',
+      cursor: '#000000'
+    }
+  });
+  xtermConsoleFit = new FitAddon.FitAddon();
+  xtermConsole.loadAddon(xtermConsoleFit);
+  xtermConsole.open(document.getElementById(id));
+  xtermConsoleFit.fit();
+  document.title = name;
+}
 
 /* Popbox */
 
