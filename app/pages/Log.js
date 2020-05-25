@@ -8,10 +8,10 @@ const logTemplate = Handlebars.compile(FS.readFileSync(`${__dirname}/html/Log.ht
 
 async function PageHTML(ctx) {
   const app = MinkeApp.getAppById(ctx.params.id);
-  const tab = [
-    { name: 'Main', cid: '', selected: (ctx.query.c || 'm') === 'm' },
-    { name: 'Helper', cid: 'h', selected: (ctx.query.c === 'h' ) }
-  ];
+  const tab = [{ name: 'Main', cid: '', selected: (ctx.query.c || 'm') === 'm' }];
+  if (app._networks.primary.name !== 'host') {
+    tab.push({ name: 'Helper', cid: 'h', selected: (ctx.query.c === 'h' ) });
+  }
   app._secondary.forEach((_, idx) => tab.push({ name: `#${idx}`, cid: `${idx}`, selected: ctx.query.c == idx }));
   ctx.type = 'text/html';
   ctx.body = logTemplate({
