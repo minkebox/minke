@@ -79,6 +79,9 @@ function onPageShow() {
       case 'console.to':
         consoleWrite(msg.data);
         break;
+      case 'console.close':
+        consoleClose();
+        break;
       default:
         break;
     }
@@ -649,6 +652,12 @@ function openConsole(id, name) {
 function consoleWrite(data) {
   if (xtermConsole) {
     xtermConsole.write(data);
+  }
+}
+
+function consoleClose() {
+  if (xtermConsole) {
+    window.close();
   }
 }
 

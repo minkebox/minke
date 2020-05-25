@@ -49,7 +49,7 @@ async function PageWS(ctx) {
     AttachStdout: true,
     AttachStderr: true,
     Tty: true,
-    Cmd: [ 'sh' ]
+    Cmd: [ 'sh', '-c', 'test -x /bin/bash && exec /bin/bash; exec sh' ]
   });
   const stream = await exec.start({
     stdin: true
@@ -87,7 +87,12 @@ async function PageWS(ctx) {
   }
   docker.modem.demuxStream(stream.output, { write: write }, { write: write });
 
-  stream.output.on('close', () => {
+  stream.output.on('end', () => {
+    try {
+      ctx.websocket.send(JSON.stringify({ type: 'console.close' }));
+    }
+    catch (_) {
+    }
     ctx.websocket.close();
   });
 }
