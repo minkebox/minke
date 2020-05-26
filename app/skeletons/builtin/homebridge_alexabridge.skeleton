@@ -13,7 +13,15 @@
       type: `EditEnvironment`,
       description: `Pin used to add this device to your network using the Home app`,
       name: `BRIDGE_PIN`,
-      initValue: `111-11-111`
+      initValue: `111-11-111`,
+      id: 'pin'
+    },
+    {
+      type: `EditEnvironment`,
+      name: `BRIDGE_SETUPID`,
+      initValue: `{{__RANDOMHEX(4)}}`,
+      id: 'setupid',
+      visible: false
     },
     {
       type: `Header`,
@@ -71,6 +79,41 @@
       ],
       pattern: `{ "accessory": "DelaySwitch", "name": "{{V[0]}}", "delay": 20, "disableSensor": false }`,
       join: `,`
+    },
+    {
+      type: `Header`,
+      title: `Homekit Code`
+    },
+    {
+      type: `Text`,
+      text: ``,
+      id: `qrcode`
+    },
+    {
+      type: `Script`,
+      include: `qrcode`
+    },
+    {
+      type: `Script`,
+      script: `
+        const rqr = document.querySelector('#qrcode');
+        const rpin = document.querySelector('#pin .value');
+        const rsetupid = document.querySelector('#setupid .value');
+        function uri(pin, setupid) {
+          const CATEGORY_BRIDGE = 2;
+          const SUPPORTS_IP = 1 << 28;
+          const lval = BigInt(SUPPORTS_IP | parseInt(pin.replace(/-/g, '')) | ((CATEGORY_BRIDGE & 1) << 31));
+          const hval = BigInt(CATEGORY_BRIDGE >> 1);
+          const payload = ('000000000' + ((hval << BigInt(32)) + lval).toString(36).toUpperCase()).substr(-9);
+          return 'X-HM://' + payload + setupid;
+        }
+        function qr() {
+          const content = uri(rpin.value, rsetupid.value);
+          rqr.innerHTML = '<div style="margin-left:33%">' + new QRCode({ join: true, content: content }).svg() + '</div>';
+        }
+        rpin.addEventListener('input', qr);
+        qr();
+      `
     }
   ],
   properties: [
@@ -100,6 +143,10 @@
     {
       type: `Environment`,
       name: `BRIDGE_PIN`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_SETUPID`
     },
     {
       type: `Environment`,

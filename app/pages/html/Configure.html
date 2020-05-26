@@ -167,7 +167,11 @@
             {{> EditShares}}
           </div>
           {{else if (eq type "Script")}}
+          {{#if script}}
           <script>(function(){ {{{script}}} })()</script>
+          {{else if include}}
+          <script src="/js/{{include}}.js" type="text/javascript"></script>
+          {{/if}}
           {{else if (eq type "__Disks")}}
           <div class="action disks pure-control-group">
             {{> Disks}}

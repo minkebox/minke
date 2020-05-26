@@ -36,7 +36,10 @@ function pages(root, wsroot) {
   }
 
   root.get('/js/:script', async (ctx) => {
-    ctx.body = FS.readFileSync(`${__dirname}/script/${ctx.params.script}`, { encoding: 'utf8' });
+    const script = ctx.params.script;
+    if (Path.dirname(script) === '.') {
+      ctx.body = FS.readFileSync(`${__dirname}/script/${script}`, { encoding: 'utf8' });
+    }
     ctx.type = 'text/javascript';
     if (!debug) {
       ctx.cacheControl = { maxAge: CACHE_MAXAGE };
@@ -53,14 +56,20 @@ function pages(root, wsroot) {
     ctx.cacheControl = { maxAge: CACHE_MAXAGE };
   });
   root.get('/css/:style', async (ctx) => {
-    ctx.body = FS.readFileSync(`${__dirname}/css/${ctx.params.style}`, { encoding: 'utf8' });
+    const style = ctx.params.style;
+    if (Path.dirname(style) === '.') {
+      ctx.body = FS.readFileSync(`${__dirname}/css/${style}`, { encoding: 'utf8' });
+    }
     ctx.type = 'text/css';
     if (!debug) {
       ctx.cacheControl = { maxAge: CACHE_MAXAGE };
     }
   });
   root.get('/img/:img', async (ctx) => {
-    ctx.body = FS.readFileSync(`${__dirname}/img/${ctx.params.img}`);
+    const img = ctx.params.img;
+    if (Path.dirname(img) === '.') {
+      ctx.body = FS.readFileSync(`${__dirname}/img/${img}`);
+    }
     ctx.type = 'image/png';
     ctx.cacheControl = { maxAge: CACHE_MAXAGE };
   });
