@@ -45,7 +45,7 @@ body {
 }
 .sidebar nav {
   position: relative;
-  height: 47px;
+  min-height: 47px;
 }
 .sidebar nav a {
   background: transparent;
