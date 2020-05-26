@@ -486,6 +486,7 @@ async function ConfigurePageHTML(ctx) {
         case 'Header':
         case 'Script':
         case 'Argument':
+        case 'SetEnvironment':
         default:
           return action;
       }
