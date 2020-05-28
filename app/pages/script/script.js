@@ -309,9 +309,24 @@ function monitor(id, timeout, callback) {
             fn('request');
           }, timeout * 1000);
           break;
+        case 'delay':
+          timer = setTimeout(() => {
+            timer = null;
+            fn('request');
+          }, Math.min(1, timeout * 1000));
+          break;
         case 'request':
           if (document.visibilityState === 'visible' && !document.querySelector('.inline-page') && !document.querySelector(`.application-status-${id}.hidden`)) {
-            cmd('monitor2.request', id);
+            const elem = document.querySelector(`.application-status-${id}`);
+            if (elem) {
+              const rect = elem.getBoundingClientRect();
+              if (rect.top < window.innerHeight && rect.bottom >= 0) {
+                cmd('monitor2.request', id);
+              }
+              else {
+                fn('delay');
+              }
+            }
           }
           break;
         case 'reply':
