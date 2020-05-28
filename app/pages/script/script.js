@@ -310,7 +310,6 @@ function monitor(id, timeout, callback) {
           }, timeout * 1000);
           break;
         case 'request':
-          `application-status-${id}`
           if (document.visibilityState === 'visible' && !document.querySelector('.inline-page') && !document.querySelector(`.application-status-${id}.hidden`)) {
             cmd('monitor2.request', id);
           }
