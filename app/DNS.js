@@ -12,7 +12,6 @@ const Native = require('./native/native');
 const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
 const HOSTNAME = '/bin/hostname';
-const ARPTABLE = '/proc/net/arp';
 const DNS_NETWORK = 'dns0';
 const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
 const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
