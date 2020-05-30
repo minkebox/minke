@@ -747,7 +747,13 @@ const LocalDNSSingleton = {
 
     // Manage how ARP-replies are sent
     // http://kb.linuxvirtualserver.org/wiki/Using_arp_announce/arp_ignore_to_disable_ARP
-    FS.writeFileSync('/proc/sys/net/ipv4/conf/all/arp_ignore', '3', { encoding: 'utf8' });
+    FS.writeFileSync('/proc/sys/net/ipv4/conf/all/arp_announce', '1', { encoding: 'utf8' });
+    FS.writeFileSync('/proc/sys/net/ipv4/conf/all/arp_ignore', '2', { encoding: 'utf8' });
+
+    // Remove my address from main interface, we don't use it.
+    // And although we don't use it, the ip address still keeps turning up on the network for unknown reasons unless
+    // we explicitly remove it.
+    ChildProcess.spawnSync('/sbin/ip', [ 'addr', 'del', `${this._network.info.IPAM.Config[0].Gateway}/16`, 'dev', DNS_NETWORK ]);
   },
 
   stop: async function() {
