@@ -22,7 +22,6 @@ async function PageHTML(ctx) {
 }
 
 async function PageWS(ctx) {
-try{
   const app = MinkeApp.getAppById(ctx.params.id);
   if (!app) {
     console.log(`Missing app ${ctx.params.id}`);
@@ -97,7 +96,6 @@ try{
     write('\033[33m', logs.stderr);
     write('\033[31m', '\n[TERMINATED]\n');
   }
-} catch(e) { console.log(e); }
 }
 
 module.exports = {

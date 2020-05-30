@@ -11,11 +11,6 @@
     },
     {
       type: `EditEnvironment`,
-      name: `EMAIL`,
-      description: `Public email associated with this node`
-    },
-    {
-      type: `EditEnvironment`,
       name: `BANDWIDTH`,
       description: `Available bandwidth (in MBits)`
     },
@@ -25,7 +20,7 @@
     },
     {
       type: `Text`,
-      text: `Select which networks Tor will use. You probably want home for both in most cases. If not, the source network should be the network which is shared with the websites and applications you wish to proxy.
+      text: `Select which networks Tor will use. You probably want <b>home</b> for both in most cases. If not, the source network should be the network which is shared with the websites and applications you wish to proxy.
              The target network should be the network use to connect to the rest of the global Tor network.`
     },
     {
@@ -122,8 +117,6 @@
     {
       name: `torrc`,
       value: `
-ContactInfo {{EMAIL}}
-Nickname MinkeBoxTor
 ExitRelay 0
 SocksPort 0
 ControlSocket 0

@@ -69,11 +69,12 @@ function MinkeSetup(savedConfig, firstUseConfig, defaultConfig) {
     { port: this._getValue('PORT') + 1, protocol: 'TCP', mdns: { type: '_ssh._tcp' } }
   ];
   this._networks = {
-    primary: { name: 'none' },
-    secondary: { name: 'host' }
+    primary: { name: 'host' },
+    secondary: { name: 'none' }
   };
   this._monitor = {};
   this._name = this._getValue('HOSTNAME');
+  this._container = MinkeApp._container;
   this._homeIP = this._getValue('IPADDRESS');
   this._defaultIP = this._homeIP;
   this._globalId = this._getValue('GLOBALID');

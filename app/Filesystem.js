@@ -132,8 +132,8 @@ _Filesystem.prototype = {
     if (data !== null && data !== undefined) {
       FS.writeFileSync(src, data, { mode: ('mode' in file ? file.mode : 0o666) });
     }
-    else if (!FS.existsSync(file.src)) {
-      FS.writeFileSync(src, '', { mode: ('mode' in file ? file.mode : 0o666) });
+    else if (!FS.existsSync(src)) {
+      FS.closeSync(FS.openSync(src, 'a', ('mode' in file ? file.mode : 0o666)));
     }
 
     return {

@@ -1792,7 +1792,7 @@ MinkeApp.prototype = {
   },
 
   _generateSecurePassword: function(len) {
-    return Crypto.randomBytes(len / 2).toString('hex');
+    return Crypto.randomBytes(len / 2).toString('hex').toUpperCase();
   }
 }
 

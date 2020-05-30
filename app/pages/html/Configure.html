@@ -22,6 +22,8 @@
           {{#if ../Build}}<div class="build">Build {{../Build}}</div>{{/if}}
           <nav>
             {{#if ../minkeConfig}}
+            <a class="pure-button admin-only" onclick="openConsoleWindow('minke')">Console</a>
+            <a class="pure-button admin-only" onclick="openLogWindow('minke')">Logs</a>
             {{#if ../help}}<a class="pure-button" onclick="toggleHelp()">Help</a>{{/if}}
             {{#if ../NoSystemControl}}
             <a class="pure-button admin-only" data-popbox-target="update">Update</a>
@@ -58,11 +60,11 @@
           {{#if (eq type "Header")}}
           </div>
           <div class="section {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}>
-          <div class="content-header">{{title}}</div>
+          <div class="content-header value">{{title}}</div>
           {{else if (eq type "Text")}}
-          <div class="content-text {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}>{{{text}}}</div>
+          <div class="content-text {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}><div class="value">{{{text}}}</div></div>
           {{else if (eq type "Help")}}
-          <div class="help-text {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}><div class="help-text-content">{{{text}}}</div></div>
+          <div class="help-text {{#if visible}}invisible{{/if}}" {{#if id}}id="{{id}}"{{/if}}><div class="help-text-content value">{{{text}}}</div></div>
           {{else if (eq type "EditEnvironment")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
@@ -76,6 +78,12 @@
             <input class="pure-input-rounded pure-u-16-24 value can-disable" type="text" spellcheck="false" placeholder="{{placeholder}}" value="{{value}}" oninput="{{action}}" {{#if validate}}pattern="^{{validate}}$"{{/if}}>
             {{/if}}
           </div>
+          {{else if (eq type "SetEnvironment")}}
+          {{#if id}}
+          <div id="{{id}}" class="action environment table pure-control-group invisible">
+            <input class="value" type="text" value="{{value}}">
+          </div>
+          {{/if}}
           {{else if (eq type "EditEnvironmentAsCheckbox")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action environment table pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
@@ -126,7 +134,7 @@
           {{else if (eq type "SelectNetwork")}}
           <div {{#if id}}id="{{id}}"{{/if}} class="action network pure-control-group {{#if visible}}invisible{{/if}}">
             <label class="description">{{{description}}}</label>
-            <select onchange="{{action}}">
+            <select class="value" onchange="{{action}}">
               {{#each networks}}
               {{#if _id}}
               <option value="{{_id}}" {{#if (eq ../value _id)}}selected{{/if}}>{{name}}</option>
