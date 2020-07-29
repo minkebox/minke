@@ -1562,8 +1562,10 @@ MinkeApp.prototype = {
 
   expandArguments: async function(args) {
     const results = [];
-    for (let i = 0; i < args.length; i++) {
-      results.push(await this.expandString(args[i]));
+    if (args) {
+      for (let i = 0; i < args.length; i++) {
+        results.push(await this.expandString(args[i]));
+      }
     }
     return results;
   },
