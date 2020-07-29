@@ -263,7 +263,6 @@ MinkeApp.prototype = {
     await this.updateVariables(skel, this._vars || {});
 
     this._description = skel.description;
-    this._args = (skel.properties.find(prop => prop.type === 'Arguments') || {}).value;
 
     this._networks = {
       primary: { name: 'home' },
@@ -304,7 +303,6 @@ MinkeApp.prototype = {
       this._secondary = await Promise.all(skel.secondary.map(async (secondary, idx) => {
         const secondaryApp = {
           _image: secondary.image,
-          _args: (secondary.properties.find(prop => prop.type === 'Arguments') || {}).value,
           _delay: secondary.delay || 0
         };
         await this._parseProperties(secondaryApp, `${idx}`, secondary.properties, []);
@@ -328,6 +326,7 @@ MinkeApp.prototype = {
     target._ports = [];
     target._binds = [];
     target._files = [];
+    target._args = [];
     await Promise.all(properties.map(async prop => {
       switch (prop.type) {
         case 'Environment':
@@ -399,6 +398,9 @@ MinkeApp.prototype = {
           target._ports.push(port);
           break;
         }
+        case 'Arguments':
+          target._args = prop.value;
+          break;
         default:
           break;
       }
@@ -457,7 +459,6 @@ MinkeApp.prototype = {
         name: `${this._safeName()}__${this._id}`,
         Hostname: this._safeName(),
         Image: Images.withTag(this._image),
-        Cmd: this._args,
         HostConfig: {
           Mounts: this._mounts,
           Devices: [],
@@ -783,6 +784,7 @@ MinkeApp.prototype = {
       // Expand environment (again) after the helper has set some variables
       this._fullEnv = await this.expandEnvironment(this._env, this._skeleton.properties);
 
+      config.Cmd = await this.expandArguments(this._args);
       config.Env = Object.keys(this._fullEnv).map(key => `${key}=${this._fullEnv[key].value}`).concat(configEnv);
 
       const ports = await Promise.all(this._ports.map(async port => await this.expandPort(port)));
@@ -902,7 +904,7 @@ MinkeApp.prototype = {
             const sconfig = {
               name: `${this._safeName()}__${this._id}__${c}`,
               Image: Images.withTag(secondary._image),
-              Cmd: secondary._args,
+              Cmd: await this.expandArguments(secondary._args),
               HostConfig: {
                 Mounts: secondary._mounts,
                 Devices: [],
@@ -1558,6 +1560,14 @@ MinkeApp.prototype = {
     return fullEnv;
   },
 
+  expandArguments: async function(args) {
+    const results = [];
+    for (let i = 0; i < args.length; i++) {
+      results.push(await this.expandString(args[i]));
+    }
+    return results;
+  },
+
   _eval: async function(code, extras) {
     try {
       const result = await this.execJS(code, extras);
@@ -1729,7 +1739,7 @@ MinkeApp.prototype = {
       target: args.target,
       cmd: args.cmd,
       init: args.init
-    });;
+    });
   },
 
   _setStatus: function(status) {
