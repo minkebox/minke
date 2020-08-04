@@ -384,7 +384,12 @@ MinkeApp.prototype = {
         }
         case 'Feature':
         {
-          target._features[prop.name] = true;
+          if ('value' in prop) {
+            target._features[prop.name] = prop.value;
+          }
+          else {
+            target._features[prop.name] = true;
+          }
           break;
         }
         case 'Port':
@@ -881,15 +886,10 @@ MinkeApp.prototype = {
         config.Env.push(`TZ=${this.getTimezone()}`);
       }
 
-      // Use system shared memory (temporary)
-      config.HostConfig.Mounts.push({
-        Type: 'bind',
-        Source: '/dev/shm',
-        Target: '/dev/shm',
-        BindOptions: {
-          Propagation: 'rshared'
-        }
-      });
+      // Shared memory
+      if (this._features.shm) {
+        config.HostConfig.ShmSize = this._features.shm * 1024 * 1024;
+      }
 
       if (inherit.container) {
         this._container = inherit.container;
