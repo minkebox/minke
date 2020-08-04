@@ -881,6 +881,16 @@ MinkeApp.prototype = {
         config.Env.push(`TZ=${this.getTimezone()}`);
       }
 
+      // Use system shared memory (temporary)
+      config.HostConfig.Mounts.push({
+        Type: 'bind',
+        Source: '/dev/shm',
+        Target: '/dev/shm',
+        BindOptions: {
+          Propagation: 'rshared'
+        }
+      });
+
       if (inherit.container) {
         this._container = inherit.container;
         if (inherit.secondary.length) {
