@@ -23,6 +23,10 @@ const MAX_SAMPLES = 128;
 const STDEV_QUERY = 4;
 const STDEV_FAIL = 2;
 
+const NOERROR = 0;
+const SERVFAIL = 2;
+const NOTFOUND = 3;
+
 const PARALLEL_QUERY = 0;
 const DEBUG_QUERY = 0;
 const DEBUG_QUERY_TIMING = 0;
@@ -72,7 +76,7 @@ const PrivateDNS = {
               response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
-            return true;
+            return NOERROR;
           }
         }
         break;
@@ -106,7 +110,7 @@ const PrivateDNS = {
               response.authorities.push({ name: fullname, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
-            return true;
+            return NOERROR;
           }
         }
         break;
@@ -126,7 +130,7 @@ const PrivateDNS = {
               response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
             response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
-            return true;
+            return NOERROR;
           }
         }
         else {
@@ -142,7 +146,7 @@ const PrivateDNS = {
                 response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
               }
               response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
-              return true;
+              return NOERROR;
             }
           }
         }
@@ -155,14 +159,14 @@ const PrivateDNS = {
         if (this._soa && ((name.length === 2 && name[1].toLowerCase() === this._domainName)  || (name.length === 1 && !this._domainName))) {
           response.answers.push({ name: fullname, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
           response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
-          return true;
+          return NOERROR;
         }
         break;
       }
       default:
         break;
     }
-    return false;
+    return NOTFOUND;
   },
 
   setDomainName: function(name) {
@@ -239,7 +243,7 @@ const CachingDNS = {
     SOA: {}
   },
 
-  add: function(response) {
+  add: function(response, error) {
     // Dont cache truncated response
     if ((response.flags & DnsPkt.TRUNCATED_RESPONSE) !== 0) {
       return;
@@ -250,7 +254,7 @@ const CachingDNS = {
     // If we didn't answer the question, create a negative entry
     const question = response.questions[0];
     if (!response.answers.find(answer => answer.type === question.type)) {
-      this._addNegative(question)
+      this._addNegative(question, error)
     }
   },
 
@@ -286,7 +290,7 @@ const CachingDNS = {
     }
   },
 
-  _addNegative: function(question) {
+  _addNegative: function(question, error) {
     switch (question.type) {
       case 'A':
       case 'AAAA':
@@ -294,7 +298,7 @@ const CachingDNS = {
         // Need SOA information to set the TTL of the negative cache entry. If we don't
         // have it we'll use a default (which should be quite short).
         const soa = this._findSOA(question.name);
-        const ttl = Math.min(this._maxTTL, (soa && soa.data.minimum ? soa.data.minimum : this._defaultNegTTL));
+        const ttl = error === SERVFAIL ? this._defaultNegTTL : Math.min(this._maxTTL, (soa && soa.data.minimum ? soa.data.minimum : this._defaultNegTTL));
         const name = question.name.toLowerCase();
         const R = this._cache[question.type][name] || (this._cache[question.type][name] = {});
         const expires = Math.floor(Date.now() / 1000 + ttl);
@@ -437,7 +441,7 @@ const CachingDNS = {
         const a = this._findAnswer(question.type, question.name);
         if (a) {
           response.answers.push.apply(response.answers, a);
-          return true;
+          return NOERROR;
         }
         const cname = this._findAnswer('CNAME', question.name);
         if (cname) {
@@ -445,22 +449,22 @@ const CachingDNS = {
           if (ac) {
             response.answers.push.apply(response.answers, cname);
             response.answers.push.apply(response.answers, ac);
-            return true;
+            return NOERROR;
           }
         }
 
         if (!this._findNegative(question.type, question.name)) {
-          return false;
+          return NOTFOUND;
         }
 
         const soa = this._findSOA(question.name);
         if (soa) {
           response.answers.push.apply(response.answers, cname);
           response.authorities.push(soa);
-          return true;
+          return NOERROR;
         }
 
-        return false;
+        return NOTFOUND;
       }
       case 'CNAME':
       {
@@ -476,13 +480,12 @@ const CachingDNS = {
           if (aaaa) {
             response.additionals.push.apply(response.additionals, aaaa);
           }
-          return true;
+          return NOERROR;
         }
-
-        return false;
+        return NOTFOUND;
       }
       default:
-        return false;
+        return NOTFOUND;
     }
   }
 
@@ -507,7 +510,7 @@ const MulticastDNS = {
             response.answers.push({ name: question.name, type: 'A', ttl: this._defaultTTL, class: 'IN', data: ip });
           }
           // Return true regardless of a match to stop the query process. We don't look for 'local' anywhere else.
-          return true;
+          return NOERROR;
         }
         break;
       }
@@ -515,15 +518,15 @@ const MulticastDNS = {
       {
         const match = question.name.match(REGEXP_PTR_ZC);
         if (match) {
-          response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
-          return true;
+          response.flags = (response.flags & 0xFFF0) | NOTFOUND;
+          return NOERROR;
         }
         break;
       }
       default:
         break;
     }
-    return false;
+    return NOTFOUND;
   }
 
 };
@@ -645,7 +648,7 @@ GlobalDNS.prototype = {
   query: async function(request, response, rinfo) {
     // Dont send a query back to a server it came from.
     if (rinfo.address === this._address || rinfo.originalAddress === this._address) {
-      return false;
+      return NOTFOUND;
     }
 
     // Check we're not trying to looking up local addresses globally
@@ -653,21 +656,24 @@ GlobalDNS.prototype = {
       const name = request.questions[0].name.split('.');
       const domain = name[name.length - 1].toLowerCase();
       if (domain === 'local' || domain === PrivateDNS._domainName) {
-        return false;
+        return NOTFOUND;
       }
     }
 
     return new Promise((resolve, reject) => {
       try {
         this.getSocket(rinfo)(request, (pkt) => {
-          if (pkt && pkt.rcode === 'NOERROR') {
-            response.flags = pkt.flags;
-            response.answers = pkt.answers;
-            response.additionals = pkt.additionals;
-            response.authorities = pkt.authorities;
-            return resolve(true);
+          if (pkt) {
+            if (pkt.rcode === 'NOERROR') {
+              response.flags = pkt.flags;
+              response.answers = pkt.answers;
+              response.additionals = pkt.additionals;
+              response.authorities = pkt.authorities;
+              return resolve(NOERROR);
+            }
+            return resolve(NOTFOUND);
           }
-          resolve(false);
+          resolve(SERVFAIL);
         });
       }
       catch (e) {
@@ -968,14 +974,17 @@ const LocalDNSSingleton = {
     return new Promise(async (resolve, reject) => {
       try {
         (await this.getSocket(rinfo, tinfo))(request, (pkt) => {
-          if (pkt && pkt.rcode === 'NOERROR') {
-            response.flags = pkt.flags;
-            response.answers = pkt.answers;
-            response.additionals = pkt.additionals;
-            response.authorities = pkt.authorities;
-            return resolve(true);
+          if (pkt) {
+            if (pkt.rcode === 'NOERROR') {
+              response.flags = pkt.flags;
+              response.answers = pkt.answers;
+              response.additionals = pkt.additionals;
+              response.authorities = pkt.authorities;
+              return resolve(NOERROR);
+            }
+            return resolve(NOTFOUND);
           }
-          resolve(false);
+          resolve(SERVFAIL);
         });
       }
       catch (e) {
@@ -1039,7 +1048,7 @@ LocalDNS.prototype = {
   query: async function(request, response, rinfo) {
     // Dont send a query back to a server it came from.
     if (this._addresses.indexOf(rinfo.address) !== -1 || this._addresses.indexOf(rinfo.originalAddress) !== -1) {
-      return false;
+      return NOTFOUND;
     }
     return await LocalDNSSingleton.query(request, response, rinfo, this);
   }
@@ -1053,20 +1062,20 @@ const MapDNS = {
 
   query: async function(request, response, rinfo) {
     if (request.questions[0].type !== 'PTR') {
-      return false;
+      return NOTFOUND;
     }
     const qname = request.questions[0].name;
     const m4 = qname.match(REGEXP_PTR_IP4);
     if (!m4) {
-      return false;
+      return NOTFOUND;
     }
     const address = LocalDNSSingleton.translateDNSNetworkAddress(`${m4[4]}.${m4[3]}.${m4[2]}.${m4[1]}`);
     if (!address) {
-      return false;
+      return NOTFOUND;
     }
     const i4 = address.split('.');
     if (i4.length !== 4) {
-      return false;
+      return NOTFOUND;
     }
     const mname = `${i4[3]}.${i4[2]}.${i4[1]}.${i4[0]}.in-addr.arpa`;
 
@@ -1074,9 +1083,9 @@ const MapDNS = {
       questions: [{ name: mname, type: 'PTR', class: 'IN' }],
     });
     const mresponse = DNS._copyDNSPacket(response);
-    const success = await DNS.query(mrequest, mresponse, rinfo);
-    if (!success) {
-      return false;
+    const error = await DNS.query(mrequest, mresponse, rinfo);
+    if (error !== NOERROR) {
+      return error;
     }
 
     response.flags = mresponse.flags;
@@ -1087,7 +1096,7 @@ const MapDNS = {
       return answer;
     });
 
-    return true;
+    return NOERROR;
   }
 
 }
@@ -1147,12 +1156,12 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         await this.query(request, response, rinfo);
         // If we got no answers, and no error code set, we set notfound
         if (response.answers.length === 0 && (response.flags & 0x0F) === 0) {
-          response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
+          response.flags = (response.flags & 0xFFF0) | NOTFOUND;
         }
       }
       catch (e) {
         console.error(e);
-        response.flags = (response.flags & 0xFFF0) | 2; // SERVFAIL
+        response.flags = (response.flags & 0xFFF0) | SERVFAIL;
       }
       DEBUG_QUERY && console.log('response', rinfo.tcp ? 'tcp' : 'udp', rinfo, JSON.stringify(DnsPkt.decode(DnsPkt.encode(response)), null, 2));
       DEBUG_QUERY_TIMING && console.log(`Query time ${Date.now() - start}ms: ${response.questions[0].name} ${response.questions[0].type}`);
@@ -1320,22 +1329,24 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
     if (!question) {
       throw new Error('Missing question');
     }
+    let error = SERVFAIL;
     for (let i = 0; i < this._proxies.length; i++) {
       const proxy = this._proxies[i];
       DEBUG_QUERY && console.log(`Trying ${proxy.app._name}`);
-      if (await proxy.srv.query(request, response, rinfo)) {
+      error = await proxy.srv.query(request, response, rinfo);
+      if (error === NOERROR) {
         DEBUG_QUERY && console.log('Found');
         if (proxy.cache) {
-          CachingDNS.add(response);
+          CachingDNS.add(response, NOERROR);
         }
         return true;
       }
     }
-    DEBUG_QUERY && console.log('Not found');
+    DEBUG_QUERY && console.log('Not found', error);
     if (response.authorities.length) {
-      CachingDNS.add(response);
+      CachingDNS.add(response, error);
     }
-    response.flags = (response.flags & 0xFFF0) | 3; // NOTFOUND
+    response.flags = (response.flags & 0xFFF0) | error;
     return false;
   },
 
@@ -1352,17 +1363,18 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         break;
       }
       DEBUG_QUERY && console.log(`Trying local ${proxy.app._name}`);
-      if (await proxy.srv.query(request, response, rinfo)) {
+      const lerror = await proxy.srv.query(request, response, rinfo);
+      if (lerror === NOERROR) {
         DEBUG_QUERY && console.log('Found');
         if (proxy.cache) {
-          CachingDNS.add(response);
+          CachingDNS.add(response, NOERROR);
         }
         return true;
       }
       done[i] = 'fail';
     }
     if (i >= this._proxies.length) {
-      return false;
+      return NOTFOUND;
     }
     const vresponse = await new Promise(resolve => {
       let replied = false;
@@ -1372,11 +1384,11 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
         const presponse = DNS._copyDNSPacket(response);
         const idx = i;
         const start = DEBUG_QUERY_TIMING && Date.now();
-        proxy.srv.query(Object.assign({}, request), presponse, rinfo).then(success => {
-          DEBUG_QUERY && console.log(`Reply ${this._proxies[idx].app._name}`, success);
+        proxy.srv.query(Object.assign({}, request), presponse, rinfo).then(error => {
+          DEBUG_QUERY && console.log(`Reply ${this._proxies[idx].app._name}`, error);
           DEBUG_QUERY_TIMING && console.log(`Query time ${Date.now() - start}ms ${this._proxies[idx].app._name}: ${question.name} ${question.type}`);
           if (!replied) {
-            done[idx] = success ? presponse : 'fail';
+            done[idx] = error === NOERROR ? presponse : 'fail';
             for (let k = 0; k < this._proxies.length; k++) {
               if (!done[k]) {
                 // Query pending before we find an answer - need to wait for it to complete
@@ -1387,7 +1399,7 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
                 replied = true;
                 DEBUG_QUERY && console.log(`Success ${this._proxies[idx].app._name}`);
                 if (this._proxies[k].cache) {
-                  CachingDNS.add(done[k]);
+                  CachingDNS.add(done[k], NOERROR);
                 }
                 return resolve(done[k]);
               }
@@ -1401,10 +1413,10 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
       }
     });
     if (!vresponse) {
-      return false;
+      return NOTFOUND;
     }
     Object.assign(response, vresponse);
-    return true;
+    return NOERROR;
   }
 
 };
