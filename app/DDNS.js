@@ -5,7 +5,7 @@ const UPNP = require('./UPNP');
 
 const FALLBACK_GETIP = 'http://api.ipify.org';
 const DDNS_URL = `${Config.DDNS_UPDATE}`;
-const TICKS = 30 * 60 * 1000; // 30 minutes
+const TICKS = 10 * 60 * 1000; // 10 minutes
 const FORCE_TICKS = 24 * 60 * 60 * 1000; // 1 day
 const RETRY = 60 * 1000; // 1 minute
 const DELAY = 10 * 1000; // 10 seconds
