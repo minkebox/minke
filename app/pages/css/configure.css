@@ -419,7 +419,7 @@ html.popbox_locked {
   transition:opacity 0.3s ease;
   opacity:0;
   will-change: opacity;
-  background: rgba(60, 52, 66, 0.7);
+  background: var(--popbox-overlay-color);
   padding:18px;
   padding-top:5%;
   overflow-y: auto;
@@ -427,11 +427,11 @@ html.popbox_locked {
 }
 
 .popbox_container {
-  border-radius:5px;
-  margin-bottom:18px;
+  border-radius: 5px;
+  margin-bottom: 18px;
   padding: 18px;
-  margin-left:auto;
-  margin-right:auto;
-  background:var(--config-input-background-color);
-  max-width:400px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: var(--config-input-background-color);
+  max-width: 400px;
 }

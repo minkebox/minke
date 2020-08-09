@@ -39,6 +39,8 @@
   --newapp-icon-border-size: 5px;
 
   --graph-grid-color: #f2f2f2;
+
+  --popbox-overlay-color: rgba(60, 52, 66, 0.7);
 }
 
 :root.darkmode {
@@ -82,4 +84,6 @@
   --newapp-icon-border-size: 3px;
 
   --graph-grid-color: ##606060;
+
+  --popbox-overlay-color: rgba(0,0,0,0.7);
 }

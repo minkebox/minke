@@ -130,19 +130,11 @@ body {
   letter-spacing: 0.05em;
   padding-bottom: 0.1em;
 }
-.skel .description {
-
-}
 
 .download-button {
   padding-top: 20px;
 }
-.popbox .button-cancel {
-  background: rgb(202, 60, 60); /* this is a maroon */
-  color: white;
-  border-radius: 4px;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-}
+
 .download-spinner.error {
   display: none;
 }
@@ -353,7 +345,12 @@ html:not(.advanced-mode) .admin-only, html.advanced-mode .user-only {
   border-radius: 4px;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
-
+.popbox .button-cancel {
+  background: rgb(202, 60, 60); /* this is a maroon */
+  color: white;
+  border-radius: 4px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
 .popbox .popbox_container {
   max-width: 420px;
 }
@@ -396,22 +393,22 @@ html.popbox_locked {
   top: 0;
   left: 0;
   will-change: opacity;
-  transition:opacity 0.3s ease;
+  transition: opacity 0.3s ease;
   opacity:0;
   will-change: opacity;
-  background: rgba(60, 52, 66, 0.7);
-  padding:18px;
-  padding-top:5%;
+  background-color: var(--popbox-overlay-color);
+  padding: 18px;
+  padding-top: 5%;
   overflow-y: auto;
   display: none;
 }
 
 .popbox_container {
-  border-radius:5px;
-  margin-bottom:18px;
+  border-radius: 5px;
+  margin-bottom: 18px;
   padding: 18px;
-  margin-left:auto;
-  margin-right:auto;
-  background:#fff;
-  max-width:400px;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--config-input-background-color);
+  max-width: 400px;
 }

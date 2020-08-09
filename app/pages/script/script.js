@@ -440,7 +440,7 @@ function networkTrafficGraph(config) {
   const title = config.title || 'Bandwidth (Mbps)';
   const labelA = (config.labels && config.labels[0]) || 'RX';
   const labelB = (config.labels && config.labels[1]) || 'TX';
-  const scale = config.sclale || (8 / 1000000);
+  const scale = config.scale || (8 / 1000000);
   const doc = getComputedStyle(document.documentElement);
   const textcolor = doc.getPropertyValue('--secondary-text-color');
   const chart = new Chart(document.getElementById(id).getContext("2d"), {
