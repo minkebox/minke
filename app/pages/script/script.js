@@ -441,6 +441,8 @@ function networkTrafficGraph(config) {
   const labelA = (config.labels && config.labels[0]) || 'RX';
   const labelB = (config.labels && config.labels[1]) || 'TX';
   const scale = config.sclale || (8 / 1000000);
+  const doc = getComputedStyle(document.documentElement);
+  const textcolor = doc.getPropertyValue('--secondary-text-color');
   const chart = new Chart(document.getElementById(id).getContext("2d"), {
     type: 'line',
     data: {
@@ -454,13 +456,17 @@ function networkTrafficGraph(config) {
       animation: { duration: refresh * 1000, easing: 'linear' },
       maintainAspectRatio: false,
       adaptive: true,
-      title: { display: true, text: title },
+      title: { display: true, text: title, fontColor: textcolor },
+      legend: {
+        //labels: { fontColor: textcolor }
+      },
       scales: {
         xAxes: [{
           display: false
         }],
         yAxes: [{
-          ticks: { beginAtZero: true }
+          ticks: { beginAtZero: true, fontColor: textcolor },
+          gridLines: { color: doc.getPropertyValue('--graph-grid-color') }
         }]
       }
     }

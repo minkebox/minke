@@ -70,8 +70,9 @@ body {
   width: 100%;
   border-bottom: 2px solid rgb(176, 202, 219);
 }
-.configure .header .name input {
-  background: inherit;
+.configure .header .name input[type="text"] {
+  color: white;
+  background-color: transparent;
   font-size: 2em;
   text-align: right;
   outline: none;
@@ -100,7 +101,7 @@ body {
   margin: 20px 0;
 }
 .configure .content-text {
-  color: var(config-text-color);
+  color: var(--config-text-color);
   line-height: 1.4em;
   padding-bottom: 1em;
 }
@@ -114,12 +115,12 @@ body {
   overflow: hidden;
 }
 .configure .help-text-content {
-  color: var(config-text-color);
+  color: var(--config-text-color);
   line-height: 1.4em;
   padding: 1em;
   margin-bottom: 1em;
   border-radius: 8px;
-  background-color: #dbeef5;
+  background-color: var(--help-background-color);
 }
 html:not(.help-available) .help-text {
   height: 0px;
@@ -431,6 +432,6 @@ html.popbox_locked {
   padding: 18px;
   margin-left:auto;
   margin-right:auto;
-  background:#fff;
+  background:var(--config-input-background-color);
   max-width:400px;
 }

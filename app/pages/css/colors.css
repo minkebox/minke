@@ -31,6 +31,10 @@
   --config-input-shadow-color: #ddd;
   --config-sidebar-background-color: rgb(61, 79, 93);
   --config-sidebar-text-color: #fff;
+
+  --help-background-color: #dbeef5;
+
+  --graph-grid-color: #f2f2f2;
 }
 
 :root.darkmode {
@@ -66,4 +70,8 @@
   --config-input-shadow-color: transparent;
   --config-sidebar-background-color: #2e2e2e;
   --config-sidebar-text-color: #e0e0e0;
+
+  --help-background-color: #202040;
+
+  --graph-grid-color: ##606060;
 }
