@@ -34,6 +34,10 @@
 
   --help-background-color: #dbeef5;
 
+  --newapp-icon-shadow-color: #999;
+  --newapp-icon-background-color: #fcfcfc;
+  --newapp-icon-border-size: 5px;
+
   --graph-grid-color: #f2f2f2;
 }
 
@@ -72,6 +76,10 @@
   --config-sidebar-text-color: #e0e0e0;
 
   --help-background-color: #202040;
+
+  --newapp-icon-shadow-color: transparent;
+  --newapp-icon-background-color: #101010;
+  --newapp-icon-border-size: 3px;
 
   --graph-grid-color: ##606060;
 }
