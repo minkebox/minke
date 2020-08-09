@@ -241,6 +241,9 @@ function setEditMode(edit) {
       tabSize: 2,
       printMargin: false
     });
+    if (document.querySelector('html.darkmode')) {
+      editor.setTheme('ace/theme/twilight');
+    }
     editor.on('change', () => {
       const content = editor.getValue();
       try {

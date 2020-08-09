@@ -16,6 +16,7 @@ const Pages = {
 
 const JSPages = {
   '/js/ace.js':                 `${__dirname}/../node_modules/ace-builds/${debug ? 'src' : 'src-min'}/ace.js`,
+  '/js/theme-twilight.js':      `${__dirname}/../node_modules/ace-builds/${debug ? 'src' : 'src-min'}/theme-twilight.js`,
   '/js/chart.js':               `${__dirname}/../node_modules/chart.js/dist/${debug ? 'Chart.js' : 'Chart.min.js'}`,
   '/js/sortable.js':            `${__dirname}/../node_modules/sortablejs/${debug ? 'Sortable.js' : 'Sortable.min.js'}`,
   '/js/xterm.js':               `${__dirname}/../node_modules/xterm/lib/xterm.js`,
