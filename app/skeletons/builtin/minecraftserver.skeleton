@@ -529,8 +529,8 @@
     header: `
       <style>
         .mc-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
-        .mc-b { color: grey; text-align: right; padding: 0 5px 10px 0; }
-        .mc-r { display: inline-block; font-size: 18px; color: black; }
+        .mc-b { color: var(--secondary-text-color); text-align: right; padding: 0 5px 10px 0; }
+        .mc-r { display: inline-block; font-size: 18px; color: var(--primary-text-color); }
         .mc-p { font-size: 75%; padding-left: 4px; }
       </style>
     `,

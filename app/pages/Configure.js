@@ -496,6 +496,7 @@ async function ConfigurePageHTML(ctx) {
   ctx.body = template({
     minkeConfig: minkeConfig,
     Advanced: advanced,
+    DarkMode: MinkeApp.getDarkMode(),
     skeleton: nskeleton,
     skeletonType: !minkeConfig && skel.type === 'local' ? 'Personal' : null,
     properties: JSON.stringify(properties),

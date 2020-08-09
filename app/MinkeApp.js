@@ -1977,6 +1977,7 @@ MinkeApp.startApps = async function(app, config) {
     ADMINMODE: 'DISABLED',
     GLOBALID: UUID().toLowerCase(),
     POSITION: 0,
+    DARKMODEENABLED: false,
     HUMAN: 'unknown'
   }, {
     HOSTNAME: 'MinkeBox',
@@ -2159,6 +2160,10 @@ MinkeApp.getStartupOrder = function() {
 
 MinkeApp.getAdvancedMode = function() {
   return setup ? setup.getAdvancedMode() : false;
+}
+
+MinkeApp.getDarkMode = function() {
+  return setup ? setup.getDarkMode() : false;
 }
 
 MinkeApp.getLocalDomainName = function() {

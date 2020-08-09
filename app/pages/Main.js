@@ -117,6 +117,7 @@ async function MainPageHTML(ctx) {
   ctx.body = mainTemplate({
     configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME,
     Advanced: MinkeApp.getAdvancedMode(),
+    DarkMode: MinkeApp.getDarkMode(),
     tags: tagsToMap(tags),
     networks: networks,
     apps: apps,

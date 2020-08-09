@@ -63,6 +63,7 @@ function MinkeSetup(savedConfig, firstUseConfig, defaultConfig) {
   makeVar('HUMAN');
   makeVar('HOSTNAME');
   makeVar('POSITION');
+  makeVar('DARKMODEENABLED');
   this._secondary = [];
   this._ports = [
     { port: this._getValue('PORT'), protocol: 'TCP', mdns: { type: '_minkebox._tcp' } },
@@ -232,6 +233,7 @@ MinkeSetup.prototype = {
       GLOBALID: null,
       UPDATETIME: null,
       TIMEZONE: null,
+      DARKMODEENABLED: null,
       HUMAN: null
     };
     for (let key in config) {
@@ -278,6 +280,10 @@ MinkeSetup.prototype = {
 
   getAdvancedMode: function() {
     return this._getValue('ADMINMODE') === 'ENABLED';
+  },
+
+  getDarkMode: function() {
+    return this._getValue('DARKMODEENABLED');
   },
 
   getLocalDomainName: function() {

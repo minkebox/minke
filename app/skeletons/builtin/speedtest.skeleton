@@ -84,8 +84,8 @@
     init: `
       <style>
         .ist-o { display: inline-block; width: 220px; padding-top: 20px; float: right; }
-        .ist-b { color: grey; text-align: right; padding: 0 5px 10px 0; }
-        .ist-l { display: inline-block; font-size: 24px; color: black; width: 200px; }
+        .ist-b { color: var(--secondary-text-color); text-align: right; padding: 0 5px 10px 0; }
+        .ist-l { display: inline-block; font-size: 24px; color: var(--primary-text-color); width: 200px; }
         .ist-g { padding-bottom: 30px }
       </style>
       <div class='ist-o'>
