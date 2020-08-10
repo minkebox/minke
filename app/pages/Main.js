@@ -241,7 +241,7 @@ async function MainPageWS(ctx) {
   }
 
   function openCaptcha(data) {
-    send({ type: 'system.captcha', url: Config.CAPTCH_QUESTION });
+    send({ type: 'system.captcha', url: `${Config.CAPTCH_QUESTION}${MinkeApp.getDarkMode() ? '?darkmode=true' : ''}` });
     Root.emit('system.captcha.token', { token: 'maybe' });
   }
 
