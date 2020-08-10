@@ -656,13 +656,20 @@ function openConsoleWindow(id, container) {
 }
 
 function openConsole(id, name) {
+  let theme = {
+    background: '#ffffff',
+    foreground: '#000000',
+    cursor: '#888888',
+    selection: '#0000ff55'
+  };
+  if (document.querySelector('html.darkmode')) {
+    theme = {
+      background: '#000000',
+      foreground: '#ffffff'
+    };
+  }
   xtermConsole = new Terminal({
-    theme: {
-      background: '#ffffff',
-      foreground: '#000000',
-      cursor: '#888888',
-      selection: '#0000ff55'
-    }
+    theme: theme
   });
   xtermConsoleFit = new FitAddon.FitAddon();
   xtermConsole.loadAddon(xtermConsoleFit);

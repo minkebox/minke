@@ -16,7 +16,8 @@ async function PageHTML(ctx) {
   ctx.body = consoleTemplate({
     id: app._id,
     name: app._name,
-    tab: tab
+    tab: tab,
+    DarkMode: MinkeApp.getDarkMode()
   });
 }
 

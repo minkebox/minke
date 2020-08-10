@@ -6,6 +6,9 @@ body {
   overflow: hidden;
   overscroll-behavior: contain;
 }
+html.darkmode body {
+  background-color: black;
+}
 #tabs {
   position: fixed;
   top: 0px;
