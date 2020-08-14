@@ -1,12 +1,12 @@
 html {
-  background-color: #f8f8f8;
+  background-color: var(--config-background-color);
   height: 100%;
   overflow: hidden;
 }
 body {
   margin: 0px;
   height: 100%;
-  color: #777;
+  color: var(--config-text-color);
   overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -18,8 +18,8 @@ body {
 }
 
 .sidebar {
-  background: rgb(61, 79, 93);
-  color: #fff;
+  background-color: var(--config-sidebar-background-color);
+  color: var(--config-sidebar-text-color);
 }
 .header {
   position: relative;
@@ -70,8 +70,9 @@ body {
   width: 100%;
   border-bottom: 2px solid rgb(176, 202, 219);
 }
-.configure .header .name input {
-  background: inherit;
+.configure .header .name input[type="text"] {
+  color: white;
+  background-color: transparent;
   font-size: 2em;
   text-align: right;
   outline: none;
@@ -100,7 +101,7 @@ body {
   margin: 20px 0;
 }
 .configure .content-text {
-  color: #777;
+  color: var(--config-text-color);
   line-height: 1.4em;
   padding-bottom: 1em;
 }
@@ -114,12 +115,12 @@ body {
   overflow: hidden;
 }
 .configure .help-text-content {
-  color: #777;
+  color: var(--config-text-color);
   line-height: 1.4em;
   padding: 1em;
   margin-bottom: 1em;
   border-radius: 8px;
-  background-color: #dbeef5;
+  background-color: var(--help-background-color);
 }
 html:not(.help-available) .help-text {
   height: 0px;
@@ -130,19 +131,29 @@ html:not(.help-available) .help-text {
 .configure .actions label.wide {
   width: 60% !important;
 }
-.configure .actions input[type="text"]::placeholder {
-  color: #ccc;
+.configure .pure-g input[type="text"],
+.configure .pure-g select {
+  background-color: var(--config-input-background-color);
+  color: var(--config-text-color);
+  box-shadow: inset 0 1px 3px var(--config-input-shadow-color);
+}
+.configure .pure-g .actions input[type="text"]::placeholder {
+  color: var(--config-placeholder-text-color);
+}
+.configure .pure-g input[type="text"][disabled] {
+  color: var(--config-input-disabled-text-color);
+  background-color: var(--config-input-disabled-background-color);
 }
 .configure .actions .file .value {
   border: 1px solid #ccc;
-  box-shadow: inset 0 1px 3px #ddd;
+  box-shadow: inset 0 1px 3px var(--config-input-shadow-color);
   height: 150px;
   padding: 10px 15px;
   overflow: scroll;
   font-family: monospace;
   font-size: 14px;
   white-space: pre;
-  background-color: #fff;
+  background-color: var(--config-input-background-color);
   resize: vertical;
 }
 .configure .actions .file .value:focus {
@@ -151,13 +162,14 @@ html:not(.help-available) .help-text {
 }
 .configure .actions .table table {
   display: inline-block;
-  background-color: #fff;
-  box-shadow: inset 0 1px 3px #ddd;
+  background-color: var(--config-input-background-color);
+  box-shadow: inset 0 1px 3px var(--config-input-shadow-color);
   overflow-x: hidden;
   overflow-y: scroll;
   max-height: 400px;
 }
 .configure .actions .table table thead {
+  color: var(--primary-text-color);
   background-color: transparent;
 }
 .configure .actions .table table thead th {
@@ -168,7 +180,7 @@ html:not(.help-available) .help-text {
   width: 0px;
 }
 .configure .actions .table table .add, .configure .actions .table table .remove {
-  color: black;
+  color: var(--primary-text-color);
   font-weight: bold;
   cursor: pointer;
 }
@@ -212,13 +224,14 @@ html:not(.help-available) .help-text {
 }
 .configure .actions .shareables table {
   display: inline-block;
-  background-color: #fff;
-  box-shadow: inset 0 1px 3px #ddd;
+  background-color: var(--config-input-background-color);
+  box-shadow: inset 0 1px 3px var(--config-input-shadow-color);
   overflow-x: hidden;
   overflow-y: scroll;
   max-height: 400px;
 }
 .configure .actions .shareables thead {
+  color: var(--primary-text-color);
   background-color: transparent;
 }
 .configure .actions .shareables thead th {
@@ -240,26 +253,27 @@ html:not(.help-available) .help-text {
   text-overflow: ellipsis;
 }
 .configure .actions .shareables input[type="text"]::placeholder {
-  color: #ccc;
+  color: var(--config-placeholder-text-color);
 }
 .configure .actions .shareables .add, .configure .actions .shareables .remove {
-  color: black;
+  color: var(--primary-text-color);
   font-weight: bold;
   cursor: pointer;
 }
 .configure .actions .shareables .no-remove {
-  color: #ccc;
+  color: var(--config-placeholder-text-color);
 }
 
 .configure .actions .backups table {
   display: inline-block;
-  background-color: #fff;
-  box-shadow: inset 0 1px 3px #ddd;
+  background-color: var(--config-input-background-color);
+  box-shadow: inset 0 1px 3px var(--config-input-shadow-color);
   overflow-x: hidden;
   overflow-y: scroll;
   max-height: 400px;
 }
 .configure .actions .backups thead {
+  color: var(--primary-text-color);
   background-color: transparent;
 }
 .configure .actions .backups thead th {
@@ -272,11 +286,12 @@ html:not(.help-available) .help-text {
 
 .configure .actions .websites table {
   display: inline-block;
-  background-color: #fff;
-  box-shadow: inset 0 1px 3px #ddd;
+  background-color: var(--config-input-background-color);
+  box-shadow: inset 0 1px 3px var(--config-input-shadow-color);
   overflow: hidden;
 }
 .configure .actions .websites thead {
+  color: var(--primary-text-color);
   background-color: transparent;
 }
 .configure .actions .websites thead th {
@@ -300,10 +315,10 @@ html:not(.help-available) .help-text {
 }
 .configure .actions .disks .meter {
   position: relative;
-  background-color: white;
+  background-color: var(--config-input-background-color);
   height: 36px;
   border: 1px solid #ccc;
-  box-shadow: inset 0 1px 3px #ddd;
+  box-shadow: inset 0 1px 3px var(--config-input-shadow-color);
   padding: 0.4em;
   z-index: 0;
   margin-bottom: 8px;
@@ -373,26 +388,26 @@ html:not(.advanced-mode) .admin-only, html.advanced-mode .user-only {
 }
 
 /* Popbox */
-.popbox.visible{
+.popbox.visible {
   opacity:1;
   z-index: 999;
   transition:opacity 0.3s ease;
 }
-.popbox.opened{
+.popbox.opened {
   display: block;
 }
 
-.popbox_locked .popbox_main_content.popbox_blur{
+.popbox_locked .popbox_main_content.popbox_blur {
   filter:blur(15px);
 }
 
-html.popbox_locked{
+html.popbox_locked {
   overflow: hidden;
   -ms-touch-action: none;
   touch-action: none;
 }
 
-.popbox{
+.popbox {
   z-index: -999;
   position: fixed;
   width: 100%;
@@ -404,19 +419,19 @@ html.popbox_locked{
   transition:opacity 0.3s ease;
   opacity:0;
   will-change: opacity;
-  background: rgba(60, 52, 66, 0.7);
+  background: var(--popbox-overlay-color);
   padding:18px;
   padding-top:5%;
   overflow-y: auto;
   display: none;
 }
 
-.popbox_container{
-  border-radius:5px;
-  margin-bottom:18px;
+.popbox_container {
+  border-radius: 5px;
+  margin-bottom: 18px;
   padding: 18px;
-  margin-left:auto;
-  margin-right:auto;
-  background:#fff;
-  max-width:400px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: var(--config-input-background-color);
+  max-width: 400px;
 }

@@ -72,8 +72,8 @@
     init: `
       <style>
         .up-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
-        .up-b { color: grey; text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
-        .up-r { display: inline-block; font-size: 24px; color: black; }
+        .up-b { color: var(--secondary-text-color); text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
+        .up-r { display: inline-block; font-size: 24px; color: var(--primary-text-color); }
       </style>
       <div class="up-o">
         <div id="{{ID}}_a" class="up-b"><div class="up-r">0</div><div>Active Ports</div></div>

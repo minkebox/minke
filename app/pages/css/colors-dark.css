@@ -1,0 +1,44 @@
+:root.darkmode-true, :root.darkmode-auto {
+  --default-text-color: #e0e0e0;
+  --alt-text-color: #999;
+
+  --nav-text-color: white;
+  --nav-background-color: #2e2e2e;
+
+  --app-list-border-color: #505050;
+  --app-list-background-color: #252525;
+  --app-background-color: #252525;
+  --app-border-color: #505050;
+  --app-border-size: 6px;
+  --app-background-hover-color: #3e3e3e;
+  --app-background-hover-color2: rgba(255,255,255,0.07);
+
+  --widget-page-background-color: #1e1e1e;
+  --widget-background-color: #2e2e2e;
+  --widget-border-size: 1px;
+  --widget-background-hover-color: #3e3e3e;
+  --widget-border-color: transparent;
+  --widget-shadow-color: transparent;
+  --primary-text-color: #e0e0e0;
+  --secondary-text-color: #c0c0c0;
+
+  --config-background-color: #1e1e1e;
+  --config-text-color: #e0e0e0;
+  --config-input-background-color: #404040;
+  --config-placeholder-text-color: #a0a0a0;
+  --config-input-disabled-background-color: #2e2e2e;
+  --config-input-disabled-text-color: #606060;
+  --config-input-shadow-color: transparent;
+  --config-sidebar-background-color: #2e2e2e;
+  --config-sidebar-text-color: #e0e0e0;
+
+  --help-background-color: #202040;
+
+  --newapp-icon-shadow-color: transparent;
+  --newapp-icon-background-color: #101010;
+  --newapp-icon-border-size: 3px;
+
+  --graph-grid-color: #666666;
+
+  --popbox-overlay-color: rgba(0,0,0,0.7);
+}

@@ -115,7 +115,7 @@ async function imageToSkeleton(image) {
         }
       }),
       // Environment - ignore some variables we don't want to include by default.
-      info.ContainerConfig.Env.reduce((acc, env) => {
+      (info.ContainerConfig.Env || []).reduce((acc, env) => {
         const kv = env.split('=');
         switch (kv[0]) {
           case 'PATH':

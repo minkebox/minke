@@ -99,8 +99,8 @@
     init: `
       <style>
         .ph-o { display: inline-block; width: 200px; padding-top: 20px; float: right; }
-        .ph-b { color: grey; text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
-        .ph-r { display: inline-block; font-size: 24px; color: black; }
+        .ph-b { color: var(--secondary-text-color); text-align: right; padding: 0 5px 10px 0; font-size: 12px; }
+        .ph-r { display: inline-block; font-size: 24px; color: var(--primary-text-color); }
       </style>
       <div class="ph-o">
         <div class="ph-b"><div id="{{ID}}_b" class="ph-r">0</div><div>Blocked in last 24 hours</div></div>

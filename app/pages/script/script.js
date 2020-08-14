@@ -241,6 +241,9 @@ function setEditMode(edit) {
       tabSize: 2,
       printMargin: false
     });
+    if (document.querySelector('html.darkmode-true') || (document.querySelector('html.darkmode-auto') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      editor.setTheme('ace/theme/twilight');
+    }
     editor.on('change', () => {
       const content = editor.getValue();
       try {
@@ -440,7 +443,9 @@ function networkTrafficGraph(config) {
   const title = config.title || 'Bandwidth (Mbps)';
   const labelA = (config.labels && config.labels[0]) || 'RX';
   const labelB = (config.labels && config.labels[1]) || 'TX';
-  const scale = config.sclale || (8 / 1000000);
+  const scale = config.scale || (8 / 1000000);
+  const doc = getComputedStyle(document.documentElement);
+  const textcolor = doc.getPropertyValue('--secondary-text-color');
   const chart = new Chart(document.getElementById(id).getContext("2d"), {
     type: 'line',
     data: {
@@ -454,13 +459,17 @@ function networkTrafficGraph(config) {
       animation: { duration: refresh * 1000, easing: 'linear' },
       maintainAspectRatio: false,
       adaptive: true,
-      title: { display: true, text: title },
+      title: { display: true, text: title, fontColor: textcolor },
+      legend: {
+        //labels: { fontColor: textcolor }
+      },
       scales: {
         xAxes: [{
           display: false
         }],
         yAxes: [{
-          ticks: { beginAtZero: true }
+          ticks: { beginAtZero: true, fontColor: textcolor },
+          gridLines: { color: doc.getPropertyValue('--graph-grid-color') }
         }]
       }
     }
@@ -647,13 +656,20 @@ function openConsoleWindow(id, container) {
 }
 
 function openConsole(id, name) {
+  let theme = {
+    background: '#ffffff',
+    foreground: '#000000',
+    cursor: '#888888',
+    selection: '#0000ff55'
+  };
+  if (document.querySelector('html.darkmode-true') || (document.querySelector('html.darkmode-auto') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    theme = {
+      background: '#000000',
+      foreground: '#ffffff'
+    };
+  }
   xtermConsole = new Terminal({
-    theme: {
-      background: '#ffffff',
-      foreground: '#000000',
-      cursor: '#888888',
-      selection: '#0000ff55'
-    }
+    theme: theme
   });
   xtermConsoleFit = new FitAddon.FitAddon();
   xtermConsole.loadAddon(xtermConsoleFit);

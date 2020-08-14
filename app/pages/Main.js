@@ -117,6 +117,7 @@ async function MainPageHTML(ctx) {
   ctx.body = mainTemplate({
     configName: Config.CONFIG_NAME === 'Production' ? null : Config.CONFIG_NAME,
     Advanced: MinkeApp.getAdvancedMode(),
+    DarkMode: MinkeApp.getDarkMode(),
     tags: tagsToMap(tags),
     networks: networks,
     apps: apps,
@@ -240,7 +241,7 @@ async function MainPageWS(ctx) {
   }
 
   function openCaptcha(data) {
-    send({ type: 'system.captcha', url: Config.CAPTCH_QUESTION });
+    send({ type: 'system.captcha', url: `${Config.CAPTCH_QUESTION}?darkmode=${MinkeApp.getDarkMode()}` });
     Root.emit('system.captcha.token', { token: 'maybe' });
   }
 

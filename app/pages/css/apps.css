@@ -5,7 +5,8 @@
 }
 
 html {
-  background-color: #f8f8f8;
+  background-color: var(--config-background-color);
+  color: var(--config-text-color);
   height: 100%;
   overflow: hidden;
 }
@@ -18,8 +19,8 @@ body {
 }
 
 .sidebar {
-  background: rgb(61, 79, 93);
-  color: #fff;
+  background: var(--config-sidebar-background-color);
+  color: var(--config-sidebar-text-color);
 }
 .header {
   text-align: left;
@@ -57,16 +58,21 @@ body {
   margin-top: 10px;
 }
 .content label {
-  color: #777;
+  color: var(--config-text-color);
 }
 .content .text {
   line-height: 1.4em;
   padding-bottom: 1em;
-  color: #777;
+  color: var(--config-text-color);
 }
 .content .bar-title {
   display: flex;
-  color: #777;
+  color: var(--config-text-color);
+}
+.content .pure-form input[type="text"] {
+  background-color: var(--config-input-background-color);
+  color: var(--config-text-color);
+  box-shadow: inset 0 1px 3px var(--config-input-shadow-color);
 }
 .content .download, .content .extract {
   flex: 1;
@@ -84,12 +90,12 @@ body {
   padding: 10px;
   border: 1px solid #999;
   border-radius: 5px;
-  background-color: #f8f8f8;
+  background-color: var(--config-background-color);
   overflow: hidden;
 }
 .skel .inner:hover {
   border-color: #129FEA;
-  background-color: #fff;
+  background-color: var(--config-input-background-color);
 }
 .skel .icon {
   display: inline-block;
@@ -97,9 +103,9 @@ body {
   width: 80px;
   font-size: 200%;
   border-radius: 5px;
-  border: 5px solid transparent;
+  border: var(--newapp-icon-border-size) solid transparent;
   text-transform: lowercase;
-  box-shadow: 1px 1px 5px #999;
+  box-shadow: 1px 1px 5px var(--newapp-icon-shadow-color);
 }
 .skel .icon::first-letter {
   text-transform: uppercase;
@@ -108,7 +114,7 @@ body {
   height: 100%;
   padding: 5px;
   border-radius: 3px;
-  background-color: #fcfcfc;
+  background-color: var(--newapp-icon-background-color);
 }
 .skel .info {
   display: inline-block;
@@ -124,19 +130,11 @@ body {
   letter-spacing: 0.05em;
   padding-bottom: 0.1em;
 }
-.skel .description {
-
-}
 
 .download-button {
   padding-top: 20px;
 }
-.popbox .button-cancel {
-  background: rgb(202, 60, 60); /* this is a maroon */
-  color: white;
-  border-radius: 4px;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-}
+
 .download-spinner.error {
   display: none;
 }
@@ -145,8 +143,6 @@ body {
 
 .lds-dual-ring {
   display: inline-block;
-  xwidth: 64px;
-  xheight: 64px;
   padding-left: 20px;
 }
 
@@ -349,7 +345,12 @@ html:not(.advanced-mode) .admin-only, html.advanced-mode .user-only {
   border-radius: 4px;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
-
+.popbox .button-cancel {
+  background: rgb(202, 60, 60); /* this is a maroon */
+  color: white;
+  border-radius: 4px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
 .popbox .popbox_container {
   max-width: 420px;
 }
@@ -392,22 +393,22 @@ html.popbox_locked {
   top: 0;
   left: 0;
   will-change: opacity;
-  transition:opacity 0.3s ease;
+  transition: opacity 0.3s ease;
   opacity:0;
   will-change: opacity;
-  background: rgba(60, 52, 66, 0.7);
-  padding:18px;
-  padding-top:5%;
+  background-color: var(--popbox-overlay-color);
+  padding: 18px;
+  padding-top: 5%;
   overflow-y: auto;
   display: none;
 }
 
 .popbox_container {
-  border-radius:5px;
-  margin-bottom:18px;
+  border-radius: 5px;
+  margin-bottom: 18px;
   padding: 18px;
-  margin-left:auto;
-  margin-right:auto;
-  background:#fff;
-  max-width:400px;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--config-input-background-color);
+  max-width: 400px;
 }

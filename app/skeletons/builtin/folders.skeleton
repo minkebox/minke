@@ -59,6 +59,9 @@
       </div>
       <script>
         (function(){
+          const doc = getComputedStyle(document.documentElement);
+          const textcolor = doc.getPropertyValue('--secondary-text-color');
+          const linecolor = doc.getPropertyValue('--graph-grid-color');
           const chart = new Chart(document.getElementById("{{ID}}").getContext("2d"), {
             type: 'horizontalBar',
             data: {
@@ -73,13 +76,15 @@
               maintainAspectRatio: false,
               adaptive: true,
               legend: { display: false },
-              title: { display: true, text: 'File Usage (GB)' },
+              title: { display: true, text: 'File Usage (GB)', fontColor: textcolor },
               scales: {
                 xAxes: [{
-                  ticks: {
-                    precision: 2,
-                    beginAtZero: true
-                  }
+                  ticks: { precision: 2, beginAtZero: true, fontColor: textcolor },
+                  gridLines: { zeroLineColor: linecolor, color: linecolor }
+                }],
+                yAxes: [{
+                  ticks: { fontColor: textcolor },
+                  gridLines: { display: false }
                 }]
               }
             }
