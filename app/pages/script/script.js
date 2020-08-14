@@ -241,7 +241,7 @@ function setEditMode(edit) {
       tabSize: 2,
       printMargin: false
     });
-    if (document.querySelector('html.darkmode')) {
+    if (document.querySelector('html.darkmode-true') || (document.querySelector('html.darkmode-auto') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       editor.setTheme('ace/theme/twilight');
     }
     editor.on('change', () => {
@@ -662,7 +662,7 @@ function openConsole(id, name) {
     cursor: '#888888',
     selection: '#0000ff55'
   };
-  if (document.querySelector('html.darkmode')) {
+  if (document.querySelector('html.darkmode-true') || (document.querySelector('html.darkmode-auto') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     theme = {
       background: '#000000',
       foreground: '#ffffff'

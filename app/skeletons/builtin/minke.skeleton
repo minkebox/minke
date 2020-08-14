@@ -777,9 +777,14 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
       title: 'Advanced'
     },
     {
-      type: 'EditEnvironmentAsCheckbox',
+      type: 'EditEnvironment',
       name: 'DARKMODEENABLED',
-      description: 'Enable dark mode'
+      options: [
+        { name: 'Disabled', value: false },
+        { name: 'Enabled', value: true },
+        { name: 'Auto', value: 'auto' }
+      ],
+      description: 'Select dark mode'
     },
     {
       type: 'EditEnvironment',

@@ -1977,7 +1977,7 @@ MinkeApp.startApps = async function(app, config) {
     ADMINMODE: 'DISABLED',
     GLOBALID: UUID().toLowerCase(),
     POSITION: 0,
-    DARKMODEENABLED: false,
+    DARKMODEENABLED: 'auto',
     HUMAN: 'unknown'
   }, {
     HOSTNAME: 'MinkeBox',
