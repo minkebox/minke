@@ -11,6 +11,9 @@ const Docker = require('dockerode');
 const Config = require('./Config');
 const Events = require('./utils/Events');
 
+// More listeners
+EventEmitter.defaultMaxListeners = 50;
+
 global.Root = new Events(); // System events
 
 const Pages = require('./pages/pages');
