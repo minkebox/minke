@@ -8,8 +8,12 @@ const Router = require('koa-router');
 const Websockify = require('koa-websocket');
 const CacheControl = require('koa-cache-control');
 const Docker = require('dockerode');
+const EventEmitter = require('events');
 const Config = require('./Config');
 const Events = require('./utils/Events');
+
+// More listeners
+EventEmitter.defaultMaxListeners = 50;
 
 global.Root = new Events(); // System events
 

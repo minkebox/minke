@@ -221,12 +221,15 @@ const UPNP = {
           'SOAPAction': JSON.stringify(`${service}#${action}`)
         },
         timeout: REQ_TIMEOUT
-      }, (res) => {
+      }, res => {
         let xml = '';
         res.on('data', chunk => {
           xml += chunk.toString();
         });
         res.on('end', () => {
+          resolve(xml.replace(/[\n\r]/g, ''));
+        });
+        res.on('error', () => {
           resolve(xml.replace(/[\n\r]/g, ''));
         });
       });
