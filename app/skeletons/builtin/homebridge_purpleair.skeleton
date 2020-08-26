@@ -44,6 +44,16 @@
       defaultValue: `900`
     },
     {
+      type: `EditEnvironment`,
+      description: `Adjustment of raw PM2.5 reading based on environment`,
+      name: `ADJUST`,
+      options: [
+        { name: 'None', value: 'NONE' },
+        { name: 'LRAPA', value: 'LRAPA' },
+        { name: 'AQandU', value: 'AQANDU' }
+      ]
+    },
+    {
       type: `Header`,
       title: `Homekit Code`
     },
@@ -111,6 +121,10 @@
     {
       type: `Environment`,
       name: `UPDATE_FREQ`
+    },
+    {
+      type: `Environment`,
+      name: `ADJUST`
     },
     {
       type: `Directory`,
