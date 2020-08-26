@@ -1,0 +1,121 @@
+{
+  name: `Purple Air`,
+  description: `Air quality monitoring using Purple Air`,
+  image: `registry.minkebox.net/minkebox/homebridge_purpleair`,
+  uuid: `B2BC1F21-CC72-4F94-BE77-67668F05479A`,
+  tags: [ 'HomeKit' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure HomeKit`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Pin used to add this device to your network using the Home app`,
+      name: `BRIDGE_PIN`,
+      initValue: `111-11-111`,
+      id: 'pin'
+    },
+    {
+      type: `EditEnvironment`,
+      name: `BRIDGE_SETUPID`,
+      initValue: `{{__RANDOMHEX(4)}}`,
+      id: 'setupid',
+      visible: false
+    },
+    {
+      type: `Header`,
+      title: `Configure Purple Air`
+    },
+    {
+      type: `Text`,
+      text: `Select the Purple Air sensor you wish to monitor.  Instructions on how to find this can be found <a href="https://github.com/SANdood/homebridge-purpleair#readme">here</a>`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Sensor ID`,
+      name: `PURPLEAIR_ID`,
+      defaultValue: `37123`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Update frequency (in seconds)`,
+      name: `UPDATE_FREQ`,
+      defaultValue: `900`
+    },
+    {
+      type: `Header`,
+      title: `Homekit Code`
+    },
+    {
+      type: `Text`,
+      text: ``,
+      id: `qrcode`
+    },
+    {
+      type: `Script`,
+      include: `qrcode`
+    },
+    {
+      type: `Script`,
+      script: `
+        const rqr = document.querySelector('#qrcode');
+        const rpin = document.querySelector('#pin .value');
+        const rsetupid = document.querySelector('#setupid .value');
+        function uri(pin, setupid) {
+          const CATEGORY_BRIDGE = 2;
+          const SUPPORTS_IP = 1 << 28;
+          const lval = BigInt(SUPPORTS_IP | parseInt(pin.replace(/-/g, '')) | ((CATEGORY_BRIDGE & 1) << 31));
+          const hval = BigInt(CATEGORY_BRIDGE >> 1);
+          const payload = ('000000000' + ((hval << BigInt(32)) + lval).toString(36).toUpperCase()).substr(-9);
+          return 'X-HM://' + payload + setupid;
+        }
+        function qr() {
+          const content = uri(rpin.value, rsetupid.value);
+          rqr.innerHTML = '<div style="margin-left:33%">' + new QRCode({ join: true, content: content }).svg() + '</div>';
+        }
+        rpin.addEventListener('input', qr);
+        qr();
+      `
+    }
+  ],
+  properties: [
+    {
+      type: `Port`,
+      name: `51826/tcp`,
+      port: 51826,
+      protocol: 'TCP'
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      value: `home`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_USERNAME`,
+      value: `{{__MACADDRESS}}`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_PIN`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_SETUPID`
+    },
+    {
+      type: `Environment`,
+      name: `PURPLEAIR_ID`
+    },
+    {
+      type: `Environment`,
+      name: `UPDATE_FREQ`
+    },
+    {
+      type: `Directory`,
+      name: `/app/homebridge`,
+      style: 'store'
+    }
+  ]
+}
