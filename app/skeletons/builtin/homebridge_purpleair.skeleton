@@ -29,7 +29,7 @@
     },
     {
       type: `Text`,
-      text: `Select the Purple Air sensor you wish to monitor.  Instructions on how to find this can be found <a href="https://github.com/SANdood/homebridge-purpleair#readme">here</a>`
+      text: `Select the Purple Air sensor you wish to monitor.  Instructions on how to find this can be found <a href="https://github.com/aanon4/homebridge-purpleair#readme">here</a>`
     },
     {
       type: `EditEnvironment`,
@@ -42,6 +42,20 @@
       description: `Update frequency (in seconds)`,
       name: `UPDATE_FREQ`,
       defaultValue: `900`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Sensor averaging`,
+      name: `STATSKEY`,
+      options: [
+        { name: 'Real time', value: 'v' },
+        { name: '10 minutes', value: 'v1' },
+        { name: '30 minutes', value: 'v2' },
+        { name: '1 hour', value: 'v3' },
+        { name: '6 hours', value: 'v4' },
+        { name: '24 hours', value: 'v5' },
+        { name: '1 week', value: 'v6' }
+      ]
     },
     {
       type: `EditEnvironment`,
@@ -91,6 +105,10 @@
   ],
   properties: [
     {
+      type: `Feature`,
+      name: `localtime`
+    },
+    {
       type: `Port`,
       name: `51826/tcp`,
       port: 51826,
@@ -125,6 +143,10 @@
     {
       type: `Environment`,
       name: `ADJUST`
+    },
+    {
+      type: `Environment`,
+      name: `STATSKEY`
     },
     {
       type: `Directory`,
