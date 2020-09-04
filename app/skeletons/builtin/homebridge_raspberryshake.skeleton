@@ -1,0 +1,185 @@
+{
+  name: `Raspberry Shake`,
+  description: `Integrate Raspberry Pi Seismograph as a HomeKit motion sensor`,
+  image: `registry.minkebox.net/minkebox/homebridge_raspberryshake`,
+  uuid: `ECFCD7FF-FE34-4CB1-B513-10FC05FB127E`,
+  tags: [ 'HomeKit' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure HomeKit`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `BRIDGE_SETUPID`,
+      initValue: `{{__RANDOMHEX(4)}}`,
+      id: `setupid`,
+      visible: false
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Pin used to add this device to your network using the Home app`,
+      name: `BRIDGE_PIN`,
+      initValue: `111-11-111`,
+      id: `pin`
+    },
+    {
+      type: `Header`,
+      title: `Configure Seismograph`
+    },
+    {
+      type: `Text`,
+      text: `Instructions on how to change the configuration can be found <a href="https://raspishake.github.io/rsudp/">here</a>`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Station ID`,
+      name: `STATION`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Lowpass filter`,
+      name: `LOW`,
+      defaultValue: `9`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Highpass filter`,
+      name: `HIGH`,
+      defaultValue: `0.8`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `STA`,
+      name: `STA`,
+      defaultValue: `6`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `LTA`,
+      name: `LTA`,
+      defaultValue: `30`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Threshold`,
+      name: `THRESHOLD`,
+      defaultValue: `4.5`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Reset`,
+      name: `RESET`,
+      defaultValue: `0.5`
+    },
+    {
+      type: `Header`,
+      title: `Homekit Code`
+    },
+    {
+      type: `Text`,
+      text: ``,
+      id: `qrcode`
+    },
+    {
+      type: `Script`,
+      include: `qrcode`
+    },
+    {
+      type: `Script`,
+      script: `
+        const rqr = document.querySelector('#qrcode');
+        const rpin = document.querySelector('#pin .value');
+        const rsetupid = document.querySelector('#setupid .value');
+        function uri(pin, setupid) {
+          const CATEGORY_BRIDGE = 2;
+          const SUPPORTS_IP = 1 << 28;
+          const lval = BigInt(SUPPORTS_IP | parseInt(pin.replace(/-/g, '')) | ((CATEGORY_BRIDGE & 1) << 31));
+          const hval = BigInt(CATEGORY_BRIDGE >> 1);
+          const payload = ('000000000' + ((hval << BigInt(32)) + lval).toString(36).toUpperCase()).substr(-9);
+          return 'X-HM://' + payload + setupid;
+        }
+        function qr() {
+          const content = uri(rpin.value, rsetupid.value);
+          rqr.innerHTML = '<div style="margin-left:33%">' + new QRCode({ join: true, content: content }).svg() + '</div>';
+        }
+        rpin.addEventListener('input', qr);
+        qr();
+      `
+    }
+  ],
+  properties: [
+    {
+      type: `Feature`,
+      name: `localtime`
+    },
+    {
+      type: `Port`,
+      name: `51826/tcp`,
+      port: 51826,
+      protocol: `TCP`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      value: `home`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_USERNAME`,
+      value: `{{__MACADDRESS}}`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_PIN`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_SETUPID`
+    },
+    {
+      type: `Environment`,
+      name: `STATION`
+    },
+    {
+      type: `Environment`,
+      name: `LOW`
+    },
+    {
+      type: `Environment`,
+      name: `HIGH`
+    },
+    {
+      type: `Environment`,
+      name: `STA`
+    },
+    {
+      type: `Environment`,
+      name: `LTA`
+    },
+    {
+      type: `Environment`,
+      name: `THRESHOLD`
+    },
+    {
+      type: `Environment`,
+      name: `RESET`
+    },
+    {
+      type: `Directory`,
+      name: `/root/homebridge`,
+      style: `boot`
+    },
+    {
+      type: `Directory`,
+      name: `/root/rsudp/screenshots`,
+      style: `store`,
+      shares: [
+        {
+          name: `/`,
+          description: `Screenshots`
+        }
+      ]
+    }
+  ]
+}
