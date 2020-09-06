@@ -239,7 +239,7 @@ async function ConfigurePageHTML(ctx) {
         case 'DownloadFile':
         case 'EditFile':
           {
-            if (app._fs) {
+            if (app._fs && app.isRunning()) {
               app.setVariable(action.name, await app._fs.readFromFile(action.name));
             }
             const data = app._vars[action.name].value;
