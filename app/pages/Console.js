@@ -84,6 +84,7 @@ async function PageWS(ctx) {
       ctx.websocket.send(JSON.stringify({ type: 'console.to', data: data.toString('utf8') }));
     }
     catch (_) {
+      stream.output.destroy();
     }
   }
   docker.modem.demuxStream(stream.output, { write: write }, { write: write });
