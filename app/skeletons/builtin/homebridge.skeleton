@@ -49,6 +49,11 @@
 ]`
     },
     {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `INSECURE`,
+      description: `Support insecure operations`
+    },
+    {
       type: `Header`,
       title: `Homekit Code`
     },
@@ -107,6 +112,10 @@
     {
       type: `Environment`,
       name: `PACKAGES`
+    },
+    {
+      type: `Environment`,
+      name: `INSECURE`
     },
     {
       type: `File`,
