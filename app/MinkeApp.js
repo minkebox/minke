@@ -1879,8 +1879,7 @@ MinkeApp._monitorEvents = async function() {
               break;
           }
         }
-        catch (e) {
-          console.error(e);
+        catch (_) {
         }
       });
     });
