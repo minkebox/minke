@@ -291,13 +291,13 @@ const Network = {
     }
     if (Object.keys(promisc).length) {
       // Set bridge as hub
-      ChildProcess.spawnSync('/sbin/brctl', [
+      ChildProcess.spawnSync('/usr/sbin/brctl', [
         'setageing', BRIDGE_NETWORK, '0'
       ]);
     }
     else {
       // Set brige as switch
-      ChildProcess.spawnSync('/sbin/brctl', [
+      ChildProcess.spawnSync('/usr/sbin/brctl', [
         'setageing', BRIDGE_NETWORK, '300'
       ]);
     }
