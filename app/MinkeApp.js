@@ -1729,6 +1729,11 @@ MinkeApp.prototype = {
           if (idx !== -1) {
             this._remoteIP = data.replace(/.*MINKE:REMOTE:IP (.*)\n.*/, '$1');
           }
+          idx = data.indexOf('MINKE:DEFAULT:FLAGS 0x');
+          if (idx !== -1) {
+            const flags = parseInt(data.replace(/.*MINKE:DEFAULT:FLAGS 0x(.*)\n.*/, '$1'), 16);
+            Network.updateBridge(this._defaultIP, flags);
+          }
           if (data.indexOf('MINKE:UP') !== -1) {
             clearTimeout(timeout);
             resolve(true);

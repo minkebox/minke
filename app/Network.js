@@ -21,6 +21,7 @@ const WIRED_NETWORK_FALLBACK = "192.168.1.200/24";
 const FALLBACK_NETWORK = 'eth0';
 
 const networks = {};
+const promisc = {};
 let wifiAvailable = null;
 let MinkeApp = null;
 
@@ -279,6 +280,27 @@ const Network = {
     ChildProcess.spawnSync('/sbin/ip', [
       'route', 'del', `${ip}/32`, 'dev', BRIDGE_NETWORK, 'metric', '50'
     ]);
+  },
+
+  updateBridge: function(ip, flags) {
+    if (!(flags & 0x100)) {
+      delete promisc[ip];
+    }
+    else {
+      promisc[ip] = true;
+    }
+    if (Object.keys(promisc).length) {
+      // Set bridge as hub
+      ChildProcess.spawnSync('/sbin/brctl', [
+        'setageing', BRIDGE_NETWORK, '0'
+      ]);
+    }
+    else {
+      // Set brige as switch
+      ChildProcess.spawnSync('/sbin/brctl', [
+        'setageing', BRIDGE_NETWORK, '300'
+      ]);
+    }
   },
 
   _getNetwork: async function(config) {
