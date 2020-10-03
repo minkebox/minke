@@ -1,11 +1,9 @@
 {
-  name: `HomeBridge`,
-  description: `Add HomeKit devices using HomeBridge`,
-  image: `registry.minkebox.net/minkebox/homebridge`,
-  uuid: `DB46A1EB-63B6-4BAC-94B3-B897807D3312`,
-  tags: [
-    `HomeKit`
-  ],
+  name: `Broadlink`,
+  description: `Control IR and RF devices in HomeKit using a Broadlink Univeral Remote`,
+  image: `registry.minkebox.net/minkebox/homebridge_broadlink`,
+  uuid: `82F67F61-4F02-43CC-8FF4-55BE45A83D72`,
+  tags: [ 'HomeKit' ],
   actions: [
     {
       type: `Header`,
@@ -27,12 +25,11 @@
     },
     {
       type: `Header`,
-      title: `Configure HomeBridge`
+      title: `Configure Broadlink`
     },
     {
-      type: `EditEnvironment`,
-      name: `PACKAGES`,
-      description: `Plugins`
+      type: `Text`,
+      text: `Configure your accessories below (see <a href='https://lprhodes.github.io/slate/'>here</a> for more information).`
     },
     {
       type: `EditFile`,
@@ -40,18 +37,6 @@
       description: `Accessories`,
       initValue: `[
 ]`
-    },
-    {
-      type: `EditFile`,
-      name: `/app/platforms-config.json`,
-      description: `Platforms`,
-      initValue: `[
-]`
-    },
-    {
-      type: `EditEnvironmentAsCheckbox`,
-      name: `INSECURE`,
-      description: `Support insecure operations`
     },
     {
       type: `Header`,
@@ -91,10 +76,19 @@
   ],
   properties: [
     {
+      type: `Feature`,
+      name: `localtime`
+    },
+    {
       type: `Port`,
       name: `51826/tcp`,
       port: 51826,
-      protocol: `TCP`
+      protocol: 'TCP'
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      value: `home`
     },
     {
       type: `Environment`,
@@ -110,32 +104,14 @@
       name: `BRIDGE_SETUPID`
     },
     {
-      type: `Environment`,
-      name: `PACKAGES`
-    },
-    {
-      type: `Environment`,
-      name: `INSECURE`
+      type: `Directory`,
+      name: `/app/homebridge`,
+      style: 'store'
     },
     {
       type: `File`,
       name: `/app/accessories-config.json`,
       style: `boot`
-    },
-    {
-      type: `File`,
-      name: `/app/platforms-config.json`,
-      style: `boot`
-    },
-    {
-      type: `Directory`,
-      name: `/app/homebridge`,
-      style: `boot`
-    },
-    {
-      type: `Network`,
-      name: `primary`,
-      value: `home`
-    },
+    }
   ]
 }

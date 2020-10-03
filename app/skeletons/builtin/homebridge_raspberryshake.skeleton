@@ -1,11 +1,9 @@
 {
-  name: `HomeBridge`,
-  description: `Add HomeKit devices using HomeBridge`,
-  image: `registry.minkebox.net/minkebox/homebridge`,
-  uuid: `DB46A1EB-63B6-4BAC-94B3-B897807D3312`,
-  tags: [
-    `HomeKit`
-  ],
+  name: `Raspberry Shake`,
+  description: `Integrate Raspberry Pi Seismograph as a HomeKit motion sensor`,
+  image: `registry.minkebox.net/minkebox/homebridge_raspberryshake`,
+  uuid: `ECFCD7FF-FE34-4CB1-B513-10FC05FB127E`,
+  tags: [ 'HomeKit' ],
   actions: [
     {
       type: `Header`,
@@ -13,45 +11,66 @@
     },
     {
       type: `EditEnvironment`,
-      description: `Pin used to add this device to your network using the Home app`,
-      name: `BRIDGE_PIN`,
-      initValue: `111-11-111`,
-      id: 'pin'
-    },
-    {
-      type: `EditEnvironment`,
       name: `BRIDGE_SETUPID`,
       initValue: `{{__RANDOMHEX(4)}}`,
-      id: 'setupid',
+      id: `setupid`,
       visible: false
     },
     {
+      type: `EditEnvironment`,
+      description: `Pin used to add this device to your network using the Home app`,
+      name: `BRIDGE_PIN`,
+      initValue: `111-11-111`,
+      id: `pin`
+    },
+    {
       type: `Header`,
-      title: `Configure HomeBridge`
+      title: `Configure Seismograph`
+    },
+    {
+      type: `Text`,
+      text: `Instructions on how to change the configuration can be found <a href="https://raspishake.github.io/rsudp/">here</a>`
     },
     {
       type: `EditEnvironment`,
-      name: `PACKAGES`,
-      description: `Plugins`
+      description: `Station ID`,
+      name: `STATION`
     },
     {
-      type: `EditFile`,
-      name: `/app/accessories-config.json`,
-      description: `Accessories`,
-      initValue: `[
-]`
+      type: `EditEnvironment`,
+      description: `Lowpass filter`,
+      name: `LOW`,
+      defaultValue: `9`
     },
     {
-      type: `EditFile`,
-      name: `/app/platforms-config.json`,
-      description: `Platforms`,
-      initValue: `[
-]`
+      type: `EditEnvironment`,
+      description: `Highpass filter`,
+      name: `HIGH`,
+      defaultValue: `0.8`
     },
     {
-      type: `EditEnvironmentAsCheckbox`,
-      name: `INSECURE`,
-      description: `Support insecure operations`
+      type: `EditEnvironment`,
+      description: `STA`,
+      name: `STA`,
+      defaultValue: `6`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `LTA`,
+      name: `LTA`,
+      defaultValue: `30`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Threshold`,
+      name: `THRESHOLD`,
+      defaultValue: `4.5`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Reset`,
+      name: `RESET`,
+      defaultValue: `0.5`
     },
     {
       type: `Header`,
@@ -91,10 +110,19 @@
   ],
   properties: [
     {
+      type: `Feature`,
+      name: `localtime`
+    },
+    {
       type: `Port`,
       name: `51826/tcp`,
       port: 51826,
       protocol: `TCP`
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      value: `home`
     },
     {
       type: `Environment`,
@@ -111,31 +139,47 @@
     },
     {
       type: `Environment`,
-      name: `PACKAGES`
+      name: `STATION`
     },
     {
       type: `Environment`,
-      name: `INSECURE`
+      name: `LOW`
     },
     {
-      type: `File`,
-      name: `/app/accessories-config.json`,
-      style: `boot`
+      type: `Environment`,
+      name: `HIGH`
     },
     {
-      type: `File`,
-      name: `/app/platforms-config.json`,
+      type: `Environment`,
+      name: `STA`
+    },
+    {
+      type: `Environment`,
+      name: `LTA`
+    },
+    {
+      type: `Environment`,
+      name: `THRESHOLD`
+    },
+    {
+      type: `Environment`,
+      name: `RESET`
+    },
+    {
+      type: `Directory`,
+      name: `/root/homebridge`,
       style: `boot`
     },
     {
       type: `Directory`,
-      name: `/app/homebridge`,
-      style: `boot`
-    },
-    {
-      type: `Network`,
-      name: `primary`,
-      value: `home`
-    },
+      name: `/root/rsudp/screenshots`,
+      style: `store`,
+      shares: [
+        {
+          name: `/`,
+          description: `Screenshots`
+        }
+      ]
+    }
   ]
 }

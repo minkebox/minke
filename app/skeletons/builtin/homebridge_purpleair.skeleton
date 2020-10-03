@@ -1,11 +1,9 @@
 {
-  name: `HomeBridge`,
-  description: `Add HomeKit devices using HomeBridge`,
-  image: `registry.minkebox.net/minkebox/homebridge`,
-  uuid: `DB46A1EB-63B6-4BAC-94B3-B897807D3312`,
-  tags: [
-    `HomeKit`
-  ],
+  name: `Purple Air`,
+  description: `Air quality monitoring using Purple Air`,
+  image: `registry.minkebox.net/minkebox/homebridge_purpleair`,
+  uuid: `B2BC1F21-CC72-4F94-BE77-67668F05479A`,
+  tags: [ 'HomeKit' ],
   actions: [
     {
       type: `Header`,
@@ -27,31 +25,56 @@
     },
     {
       type: `Header`,
-      title: `Configure HomeBridge`
+      title: `Configure Purple Air`
+    },
+    {
+      type: `Text`,
+      text: `Select the Purple Air sensor you wish to monitor.  Instructions on how to find this can be found <a href="https://github.com/aanon4/homebridge-purpleair#readme">here</a>`
     },
     {
       type: `EditEnvironment`,
-      name: `PACKAGES`,
-      description: `Plugins`
+      description: `Sensor ID`,
+      name: `PURPLEAIR_ID`,
+      defaultValue: `37123`
     },
     {
-      type: `EditFile`,
-      name: `/app/accessories-config.json`,
-      description: `Accessories`,
-      initValue: `[
-]`
+      type: `EditEnvironment`,
+      description: `Update frequency (in seconds)`,
+      name: `UPDATE_FREQ`,
+      defaultValue: `900`
     },
     {
-      type: `EditFile`,
-      name: `/app/platforms-config.json`,
-      description: `Platforms`,
-      initValue: `[
-]`
+      type: `EditEnvironment`,
+      description: `PM2.5 averaging`,
+      name: `STATSKEY`,
+      options: [
+        { name: 'Real time', value: 'v' },
+        { name: '10 minutes', value: 'v1' },
+        { name: '30 minutes', value: 'v2' },
+        { name: '1 hour', value: 'v3' },
+        { name: '6 hours', value: 'v4' },
+        { name: '24 hours', value: 'v5' },
+        { name: '1 week', value: 'v6' }
+      ]
     },
     {
-      type: `EditEnvironmentAsCheckbox`,
-      name: `INSECURE`,
-      description: `Support insecure operations`
+      type: `EditEnvironment`,
+      description: `Adjustment of raw PM2.5 reading based on environment`,
+      name: `ADJUST`,
+      options: [
+        { name: 'None', value: 'NONE' },
+        { name: 'LRAPA', value: 'LRAPA' },
+        { name: 'AQandU', value: 'AQANDU' }
+      ]
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Include PM10 reading in AQI calculation`,
+      name: `INCLUDEPM10`,
+      options: [
+        { name: 'Yes', value: true },
+        { name: 'No', value: false }
+      ]
     },
     {
       type: `Header`,
@@ -91,10 +114,19 @@
   ],
   properties: [
     {
+      type: `Feature`,
+      name: `localtime`
+    },
+    {
       type: `Port`,
       name: `51826/tcp`,
       port: 51826,
-      protocol: `TCP`
+      protocol: 'TCP'
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      value: `home`
     },
     {
       type: `Environment`,
@@ -111,31 +143,28 @@
     },
     {
       type: `Environment`,
-      name: `PACKAGES`
+      name: `PURPLEAIR_ID`
     },
     {
       type: `Environment`,
-      name: `INSECURE`
+      name: `UPDATE_FREQ`
     },
     {
-      type: `File`,
-      name: `/app/accessories-config.json`,
-      style: `boot`
+      type: `Environment`,
+      name: `ADJUST`
     },
     {
-      type: `File`,
-      name: `/app/platforms-config.json`,
-      style: `boot`
+      type: `Environment`,
+      name: `STATSKEY`
+    },
+    {
+      type: `Environment`,
+      name: `INCLUDEPM10`
     },
     {
       type: `Directory`,
       name: `/app/homebridge`,
-      style: `boot`
-    },
-    {
-      type: `Network`,
-      name: `primary`,
-      value: `home`
-    },
+      style: 'store'
+    }
   ]
 }
