@@ -1731,7 +1731,7 @@ MinkeApp.prototype = {
           }
           idx = data.indexOf('MINKE:DEFAULT:FLAGS 0x');
           if (idx !== -1) {
-            const flags = parseInt(data.replace(/.*MINKE:DEFAULT:FLAGS 0x(.*)\n.*/, '$1'), 16);
+            let flags = parseInt(data.replace(/.*MINKE:DEFAULT:FLAGS 0x(.*)\n.*/, '$1'), 16);
             if (!this._features.promiscuous) {
               flags &= 0xfeff;
             }
