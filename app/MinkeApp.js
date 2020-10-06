@@ -1732,6 +1732,9 @@ MinkeApp.prototype = {
           idx = data.indexOf('MINKE:DEFAULT:FLAGS 0x');
           if (idx !== -1) {
             const flags = parseInt(data.replace(/.*MINKE:DEFAULT:FLAGS 0x(.*)\n.*/, '$1'), 16);
+            if (!this._features.promiscuous) {
+              flags &= 0xfeff;
+            }
             Network.updateBridge(this._defaultIP, flags);
           }
           if (data.indexOf('MINKE:UP') !== -1) {
@@ -1747,6 +1750,9 @@ MinkeApp.prototype = {
     if (this._helperLog) {
       this._helperLog.destroy();
       this._helperLog = null;
+    }
+    if (this._defaultIP) {
+      Network.updateBridge(this._defaultIP, 0);
     }
   },
 
