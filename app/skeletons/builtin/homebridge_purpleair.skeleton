@@ -63,6 +63,7 @@
       name: `ADJUST`,
       options: [
         { name: 'None', value: 'NONE' },
+        { name: 'EPA', value: 'EPA' },
         { name: 'LRAPA', value: 'LRAPA' },
         { name: 'AQandU', value: 'AQANDU' }
       ]
@@ -72,8 +73,8 @@
       description: `Include PM10 reading in AQI calculation`,
       name: `INCLUDEPM10`,
       options: [
-        { name: 'Yes', value: true },
-        { name: 'No', value: false }
+        { name: 'Yes', value: 'true' },
+        { name: 'No', value: 'false' }
       ]
     },
     {
