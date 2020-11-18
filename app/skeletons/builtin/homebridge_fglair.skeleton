@@ -1,0 +1,238 @@
+{
+  name: `FGLair`,
+  description: `Add FGLair Fujitsu HVAC to your HomeKit network using HomeBridge`,
+  image: `registry.minkebox.net/minkebox/homebridge_fglair`,
+  uuid: `433C997D-7D5C-48BA-B761-7ABC5F5D9799`,
+  tags: [ 'HomeKit' ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Configure HomeKit`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Pin used to add this device to your network using the Home app`,
+      name: `BRIDGE_PIN`,
+      initValue: `111-11-111`,
+      id: 'pin'
+    },
+    {
+      type: `EditEnvironment`,
+      name: `BRIDGE_SETUPID`,
+      initValue: `{{__RANDOMHEX(4)}}`,
+      id: 'setupid',
+      visible: false
+    },
+    {
+      type: `Header`,
+      title: `Configure FGLair`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `FGLair username`,
+      name: `USERNAME`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `FGLair password`,
+      name: `PASSWORD`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Polling interval (in seconds)`,
+      name: `INTERVAL`,
+      initValue: `60`
+    },
+    {
+      type: `Header`,
+      title: `Configure Mii`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Mii username`,
+      name: `MII_USERNAME`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Mii password`,
+      name: `MII_PASSWORD`
+    },
+    {
+      type: `Header`,
+      title: `Configure Schedule`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Units`,
+      name: `SMART_UNIT`,
+      options: [
+        { name: 'F', value: 'F' },
+        { name: 'C', value: 'C' }
+      ]
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Hold Time`,
+      name: `SMART_HOLD`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      description: `Feels Like Temperature`,
+      name: `SMART_FEELSLIKE`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Reference Room`,
+      name: `SMART_REFERENCE`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Reference Room`,
+      name: `SMART_REFERENCE`
+    },
+    {
+      type: `Header`,
+      title: `Configure Weather`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `OpenWeatherMap API key`,
+      name: `SMART_WEATHER_KEY`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Zipcode`,
+      name: `SMART_WEATHER_ZIPCODE`
+    },
+    {
+      type: `Header`,
+      title: `Homekit Code`
+    },
+    {
+      type: `Text`,
+      text: ``,
+      id: `qrcode`
+    },
+    {
+      type: `Script`,
+      include: `qrcode`
+    },
+    {
+      type: `Script`,
+      script: `
+        const rqr = document.querySelector('#qrcode');
+        const rpin = document.querySelector('#pin .value');
+        const rsetupid = document.querySelector('#setupid .value');
+        function uri(pin, setupid) {
+          const CATEGORY_BRIDGE = 2;
+          const SUPPORTS_IP = 1 << 28;
+          const lval = BigInt(SUPPORTS_IP | parseInt(pin.replace(/-/g, '')) | ((CATEGORY_BRIDGE & 1) << 31));
+          const hval = BigInt(CATEGORY_BRIDGE >> 1);
+          const payload = ('000000000' + ((hval << BigInt(32)) + lval).toString(36).toUpperCase()).substr(-9);
+          return 'X-HM://' + payload + setupid;
+        }
+        function qr() {
+          const content = uri(rpin.value, rsetupid.value);
+          rqr.innerHTML = '<div style="margin-left:33%">' + new QRCode({ join: true, content: content }).svg() + '</div>';
+        }
+        rpin.addEventListener('input', qr);
+        qr();
+      `
+    }
+  ],
+  properties: [
+    {
+      type: `Port`,
+      name: `51826/tcp`,
+      port: 51826,
+      protocol: 'TCP'
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      value: `home`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_USERNAME`,
+      value: `{{__MACADDRESS}}`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_PIN`
+    },
+    {
+      type: `Environment`,
+      name: `BRIDGE_SETUPID`
+    },
+    {
+      type: `Environment`,
+      name: `USERNAME`
+    },
+    {
+      type: `Environment`,
+      name: `PASSWORD`
+    },
+    {
+      type: `Environment`,
+      name: `REGION`,
+      value: `us`
+    },
+    {
+      type: `Environment`,
+      name: `MII_USERNAME`
+    },
+    {
+      type: `Environment`,
+      name: `MII_PASSWORD`
+    },
+    {
+      type: `Environment`,
+      name: `MODEL`,
+      value: `ARU36RGLX`
+    },
+    {
+      type: `Environment`,
+      name: `INTERVAL`
+    },
+    {
+      type: `Environment`,
+      name: `MII_REGION`,
+      value: `cn`
+    },
+    {
+      type: `Environment`,
+      name: `SMART_HOLD`
+    },
+    {
+      type: `Environment`,
+      name: `SMART_FEELSLIKE`
+    },
+    {
+      type: `Environment`,
+      name: `SMART_REFERENCE`
+    },
+    {
+      type: `Environment`,
+      name: `SMART_UNIT`
+    },
+    {
+      type: `Directory`,
+      name: `/app/homebridge`,
+      style: 'store'
+    },
+    {
+      type: `Port`,
+      name: `8080/tcp`,
+      port: 8080,
+      protocol: `TCP`,
+      web: {
+        tab: `inline`,
+        path: '/'
+      },
+      mdns: {
+        type: `_http._tcp`
+      }
+    }
+  ]
+}
