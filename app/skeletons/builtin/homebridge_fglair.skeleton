@@ -76,19 +76,14 @@
       name: `SMART_HOLD`
     },
     {
+      type: `EditEnvironment`,
+      description: `Reference Room`,
+      name: `SMART_REFERENCE`
+    },
+    {
       type: `EditEnvironmentAsCheckbox`,
       description: `Feels Like Temperature`,
       name: `SMART_FEELSLIKE`
-    },
-    {
-      type: `EditEnvironment`,
-      description: `Reference Room`,
-      name: `SMART_REFERENCE`
-    },
-    {
-      type: `EditEnvironment`,
-      description: `Reference Room`,
-      name: `SMART_REFERENCE`
     },
     {
       type: `Header`,
@@ -217,17 +212,25 @@
       name: `SMART_UNIT`
     },
     {
+      type: `Environment`,
+      name: `SMART_WEATHER_KEY`
+    },
+    {
+      type: `Environment`,
+      name: `SMART_WEATHER_ZIPCODE`
+    },
+    {
       type: `Directory`,
       name: `/app/homebridge`,
       style: 'store'
     },
     {
       type: `Port`,
-      name: `8080/tcp`,
-      port: 8080,
+      name: `80/tcp`,
+      port: 80,
       protocol: `TCP`,
       web: {
-        tab: `inline`,
+        tab: `newtab`,
         path: '/'
       },
       mdns: {
