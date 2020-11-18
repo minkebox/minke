@@ -309,7 +309,7 @@ html:not(.advanced-mode) .admin-only, html.advanced-mode .user-only {
   text-transform: uppercase;
   font-size: 8px;
   bottom: 22px;
-  left: 46px;
+  left: 22px;
 }
 
 .popbox.dialog {
