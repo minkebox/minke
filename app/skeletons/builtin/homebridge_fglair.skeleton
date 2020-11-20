@@ -76,11 +76,6 @@
       name: `SMART_HOLD`
     },
     {
-      type: `EditEnvironment`,
-      description: `Reference Room`,
-      name: `SMART_REFERENCE`
-    },
-    {
       type: `EditEnvironmentAsCheckbox`,
       description: `Feels Like Temperature`,
       name: `SMART_FEELSLIKE`
@@ -137,10 +132,27 @@
   ],
   properties: [
     {
+      type; `Feature`,
+      name: `localtime`
+    },
+    {
       type: `Port`,
       name: `51826/tcp`,
       port: 51826,
       protocol: 'TCP'
+    },
+    {
+      type: `Port`,
+      name: `80/tcp`,
+      port: 80,
+      protocol: `TCP`,
+      web: {
+        tab: `newtab`,
+        path: '/'
+      },
+      mdns: {
+        type: `_http._tcp`
+      }
     },
     {
       type: `Network`,
@@ -205,10 +217,6 @@
     },
     {
       type: `Environment`,
-      name: `SMART_REFERENCE`
-    },
-    {
-      type: `Environment`,
       name: `SMART_UNIT`
     },
     {
@@ -223,19 +231,6 @@
       type: `Directory`,
       name: `/app/homebridge`,
       style: 'store'
-    },
-    {
-      type: `Port`,
-      name: `80/tcp`,
-      port: 80,
-      protocol: `TCP`,
-      web: {
-        tab: `newtab`,
-        path: '/'
-      },
-      mdns: {
-        type: `_http._tcp`
-      }
     }
   ]
 }
