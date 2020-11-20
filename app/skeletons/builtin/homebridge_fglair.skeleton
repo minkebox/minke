@@ -38,12 +38,6 @@
       name: `PASSWORD`
     },
     {
-      type: `EditEnvironment`,
-      description: `Polling interval (in seconds)`,
-      name: `INTERVAL`,
-      initValue: `60`
-    },
-    {
       type: `Header`,
       title: `Configure Mii`
     },
@@ -197,10 +191,6 @@
       type: `Environment`,
       name: `MODEL`,
       value: `ARU36RGLX`
-    },
-    {
-      type: `Environment`,
-      name: `INTERVAL`
     },
     {
       type: `Environment`,
