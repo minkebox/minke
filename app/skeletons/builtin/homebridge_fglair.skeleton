@@ -132,7 +132,7 @@
   ],
   properties: [
     {
-      type; `Feature`,
+      type: `Feature`,
       name: `localtime`
     },
     {
