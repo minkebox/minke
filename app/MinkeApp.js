@@ -2138,10 +2138,30 @@ MinkeApp.getStartupOrder = function() {
 
   // Now with the base networks (or none), add applications which depend on already existing networks.
   // If apps create networks, they are added after any neworks they depend on.
+  // Exclude proxy apps so we let things they will proxy start first.
   const networks = {
     none: true, host: true, home: true, dns: true
   };
   let len;
+  do {
+    len = list.length;
+    let i = 0;
+    while (i < list.length) {
+      const app = list[i];
+      if (!app._features.proxy &&
+          (networks[app._networks.primary.name] || app._networks.primary.name === app._id) &&
+          (networks[app._networks.secondary.name] || app._networks.secondary.name === app._id)) {
+        networks[app._networks.primary.name] = true;
+        networks[app._networks.secondary.name] = true;
+        order.push(app);
+        list.splice(i, 1);
+      }
+      else {
+        i++;
+      }
+    }
+  } while (list.length < len);
+  // Now include proxy apps
   do {
     len = list.length;
     let i = 0;
