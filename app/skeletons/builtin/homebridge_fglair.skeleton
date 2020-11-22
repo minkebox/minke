@@ -65,11 +65,6 @@
       ]
     },
     {
-      type: `EditEnvironment`,
-      description: `Hold Time`,
-      name: `SMART_HOLD`
-    },
-    {
       type: `EditEnvironmentAsCheckbox`,
       description: `Feels Like Temperature`,
       name: `SMART_FEELSLIKE`
@@ -196,10 +191,6 @@
       type: `Environment`,
       name: `MII_REGION`,
       value: `cn`
-    },
-    {
-      type: `Environment`,
-      name: `SMART_HOLD`
     },
     {
       type: `Environment`,
