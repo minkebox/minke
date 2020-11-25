@@ -53,24 +53,6 @@
     },
     {
       type: `Header`,
-      title: `Configure Schedule`
-    },
-    {
-      type: `EditEnvironment`,
-      description: `Units`,
-      name: `SMART_UNIT`,
-      options: [
-        { name: 'F', value: 'F' },
-        { name: 'C', value: 'C' }
-      ]
-    },
-    {
-      type: `EditEnvironmentAsCheckbox`,
-      description: `Feels Like Temperature`,
-      name: `SMART_FEELSLIKE`
-    },
-    {
-      type: `Header`,
       title: `Configure Weather`
     },
     {
@@ -82,6 +64,29 @@
       type: `EditEnvironment`,
       description: `Zipcode`,
       name: `SMART_WEATHER_ZIPCODE`
+    },
+    {
+      type: `Header`,
+      title: `Configure Schedule`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Units`,
+      name: `SMART_UNIT`,
+      options: [
+        { name: 'F', value: 1 },
+        { name: 'C', value: 0 }
+      ]
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      description: `Feels Like Temperature`,
+      name: `SMART_FEELSLIKE`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      description: `Exclude fan when checking for overrides`,
+      name: `EXCLUDE_FAN`
     },
     {
       type: `Header`,
@@ -186,6 +191,10 @@
       type: `Environment`,
       name: `MODEL`,
       value: `ARU36RGLX`
+    },
+    {
+      type: `Environment`,
+      name: `EXCLUDE_FAN`
     },
     {
       type: `Environment`,

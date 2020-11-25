@@ -2,10 +2,10 @@ const Handlebars = require('handlebars');
 
 Handlebars.registerHelper({
   eq: function (v1, v2) {
-    return v1 === v2;
+    return v1 == v2;
   },
   ne: function (v1, v2) {
-    return v1 !== v2;
+    return v1 != v2;
   },
   lt: function (v1, v2) {
     return v1 < v2;
