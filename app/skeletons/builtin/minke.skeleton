@@ -780,8 +780,8 @@ Note that MinkeBox does <b>not</b> automatically use DNS servers provided by you
       type: 'EditEnvironment',
       name: 'DARKMODEENABLED',
       options: [
-        { name: 'Disabled', value: false },
-        { name: 'Enabled', value: true },
+        { name: 'Disabled', value: 'false' },
+        { name: 'Enabled', value: 'true' },
         { name: 'Auto', value: 'auto' }
       ],
       description: 'Select dark mode'

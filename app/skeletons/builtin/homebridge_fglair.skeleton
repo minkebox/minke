@@ -84,11 +84,6 @@
       name: `SMART_FEELSLIKE`
     },
     {
-      type: `EditEnvironmentAsCheckbox`,
-      description: `Exclude fan when checking for overrides`,
-      name: `EXCLUDE_FAN`
-    },
-    {
       type: `Header`,
       title: `Homekit Code`
     },
@@ -191,10 +186,6 @@
       type: `Environment`,
       name: `MODEL`,
       value: `ARU36RGLX`
-    },
-    {
-      type: `Environment`,
-      name: `EXCLUDE_FAN`
     },
     {
       type: `Environment`,
