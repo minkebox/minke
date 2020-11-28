@@ -18,7 +18,7 @@ echo "nameserver 127.0.0.1" > /etc/resolv.conf
 
 # MinkeBox
 trap "killall node" INT TERM
-/usr/bin/node --expose-gc /app/index.js &
+/usr/bin/node --expose-gc --inspect /app/index.js &
 wait "$!"
 wait "$!"
 
