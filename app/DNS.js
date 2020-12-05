@@ -1201,7 +1201,9 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
     // Super primitive DNS over TCP handler
     await new Promise(resolve => {
-      this._tcp = Net.createServer((socket) => {
+      this._tcp = Net.createServer({
+        allowHalfOpen: true
+      }, socket => {
         socket.on('error', (e) => {
           console.error(e);
           socket.destroy();
@@ -1216,14 +1218,17 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
                 const reply = Buffer.alloc(msgout.length + 2);
                 reply.writeUInt16BE(msgout.length, 0);
                 msgout.copy(reply, 2);
-                socket.write(reply);
+                socket.end(reply);
+              }
+              else {
+                socket.end();
               }
             }
           }
           catch (e) {
             console.error(e);
+            socket.destroy();
           }
-          socket.end();
         });
       });
       this._tcp.on('error', (e) => {
