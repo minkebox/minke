@@ -80,9 +80,10 @@ const Updater = {
   updateApp: async function(app) {
     let updated = false;
     try {
-      updated = await Pull.updateImage(Images.withTag(app._image));
+      const appimage = Images.withTag(app._image);
+      updated = await Pull.updateImage(appimage);
       if (updated) {
-        await Skeletons.updateInternalSkeleton(app._image);
+        await Skeletons.updateInternalSkeleton(appimage);
       }
       updated |= await Pull.updateImage(Images.withTag(Images.MINKE_HELPER));
       await Promise.all(app._secondary.map(async secondary => {
@@ -124,7 +125,7 @@ const Updater = {
         const pimage = Images.withTag(apps[i]._image);
         if (!(pimage in images)) {
           images[pimage] = await Pull.updateImage(pimage);
-          await Skeletons.updateInternalSkeleton(apps[i]._image);
+          await Skeletons.updateInternalSkeleton(pimage);
         }
         await Promise.all(apps[i]._secondary.map(async secondary => {
           const simage = Images.withTag(secondary._image);

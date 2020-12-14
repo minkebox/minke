@@ -120,6 +120,10 @@
       name: `ddns`
     },
     {
+      type: `Feature`,
+      name: `proxy`
+    },
+    {
       type: `Environment`,
       name: `WEBSITES`
     },

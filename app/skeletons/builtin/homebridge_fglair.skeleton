@@ -1,8 +1,8 @@
 {
-  name: `Purple Air`,
-  description: `Air quality monitoring using Purple Air`,
-  image: `registry.minkebox.net/minkebox/homebridge_purpleair`,
-  uuid: `B2BC1F21-CC72-4F94-BE77-67668F05479A`,
+  name: `FGLair`,
+  description: `Add FGLair Fujitsu HVAC to your HomeKit network using HomeBridge`,
+  image: `registry.minkebox.net/minkebox/homebridge_fglair`,
+  uuid: `433C997D-7D5C-48BA-B761-7ABC5F5D9799`,
   tags: [ 'HomeKit' ],
   actions: [
     {
@@ -25,57 +25,63 @@
     },
     {
       type: `Header`,
-      title: `Configure Purple Air`
-    },
-    {
-      type: `Text`,
-      text: `Select the Purple Air sensor you wish to monitor.  Instructions on how to find this can be found <a href="https://github.com/aanon4/homebridge-purpleair#readme">here</a>`
+      title: `Configure FGLair`
     },
     {
       type: `EditEnvironment`,
-      description: `Sensor ID`,
-      name: `PURPLEAIR_ID`,
-      defaultValue: `37123`
+      description: `FGLair username`,
+      name: `USERNAME`
     },
     {
       type: `EditEnvironment`,
-      description: `Update frequency (in seconds)`,
-      name: `UPDATE_FREQ`,
-      defaultValue: `900`
+      description: `FGLair password`,
+      name: `PASSWORD`
+    },
+    {
+      type: `Header`,
+      title: `Configure Mii`
     },
     {
       type: `EditEnvironment`,
-      description: `PM2.5 averaging`,
-      name: `STATSKEY`,
+      description: `Mii username`,
+      name: `MII_USERNAME`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Mii password`,
+      name: `MII_PASSWORD`
+    },
+    {
+      type: `Header`,
+      title: `Configure Weather`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `OpenWeatherMap API key`,
+      name: `SMART_WEATHER_KEY`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Zipcode`,
+      name: `SMART_WEATHER_ZIPCODE`
+    },
+    {
+      type: `Header`,
+      title: `Configure Schedule`
+    },
+    {
+      type: `EditEnvironment`,
+      description: `Units`,
+      name: `SMART_UNIT`,
       options: [
-        { name: 'Real time', value: 'v' },
-        { name: '10 minutes', value: 'v1' },
-        { name: '30 minutes', value: 'v2' },
-        { name: '1 hour', value: 'v3' },
-        { name: '6 hours', value: 'v4' },
-        { name: '24 hours', value: 'v5' },
-        { name: '1 week', value: 'v6' }
+        { name: 'F', value: 1 },
+        { name: 'C', value: 0 }
       ]
     },
     {
-      type: `EditEnvironment`,
-      description: `Adjustment of raw PM2.5 reading based on environment`,
-      name: `ADJUST`,
-      options: [
-        { name: 'None', value: 'NONE' },
-        { name: 'EPA', value: 'EPA' },
-        { name: 'LRAPA', value: 'LRAPA' },
-        { name: 'AQandU', value: 'AQANDU' }
-      ]
-    },
-    {
-      type: `EditEnvironment`,
-      description: `Include PM10 reading in AQI calculation`,
-      name: `INCLUDEPM10`,
-      options: [
-        { name: 'Yes', value: 'true' },
-        { name: 'No', value: 'false' }
-      ]
+      type: `EditEnvironmentAsCheckbox`,
+      description: `Feels Like Temperature`,
+      name: `SMART_FEELSLIKE`
     },
     {
       type: `Header`,
@@ -125,6 +131,19 @@
       protocol: 'TCP'
     },
     {
+      type: `Port`,
+      name: `80/tcp`,
+      port: 80,
+      protocol: `TCP`,
+      web: {
+        tab: `newtab`,
+        path: '/'
+      },
+      mdns: {
+        type: `_http._tcp`
+      }
+    },
+    {
       type: `Network`,
       name: `primary`,
       value: `home`
@@ -144,23 +163,50 @@
     },
     {
       type: `Environment`,
-      name: `PURPLEAIR_ID`
+      name: `USERNAME`
     },
     {
       type: `Environment`,
-      name: `UPDATE_FREQ`
+      name: `PASSWORD`
     },
     {
       type: `Environment`,
-      name: `ADJUST`
+      name: `REGION`,
+      value: `us`
     },
     {
       type: `Environment`,
-      name: `STATSKEY`
+      name: `MII_USERNAME`
     },
     {
       type: `Environment`,
-      name: `INCLUDEPM10`
+      name: `MII_PASSWORD`
+    },
+    {
+      type: `Environment`,
+      name: `MODEL`,
+      value: `ARU36RGLX`
+    },
+    {
+      type: `Environment`,
+      name: `MII_REGION`,
+      value: `cn`
+    },
+    {
+      type: `Environment`,
+      name: `SMART_FEELSLIKE`
+    },
+    {
+      type: `Environment`,
+      name: `SMART_UNIT`
+    },
+    {
+      type: `Environment`,
+      name: `SMART_WEATHER_KEY`
+    },
+    {
+      type: `Environment`,
+      name: `SMART_WEATHER_ZIPCODE`
     },
     {
       type: `Directory`,

@@ -13,8 +13,6 @@ const ETC = (DEBUG ? '/tmp/' : '/etc/');
 const HOSTNAME_FILE = `${ETC}hostname`;
 const HOSTNAME = '/bin/hostname';
 const DNS_NETWORK = 'dns0';
-const REGEXP_PTR_IP4 = /^(.*)\.(.*)\.(.*)\.(.*)\.in-addr\.arpa/;
-const REGEXP_PTR_IP6 = /^(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.(.*)\.ip6\.arpa/;
 const REGEXP_LOCAL_IP = /(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/;
 const REGEXP_PTR_ZC = /^(b|lb|db)\._dns-sd\._udp\.(.*)$/;
 const GLOBAL1 = { _name: 'global1', _position: { tab: Number.MAX_SAFE_INTEGER - 1 } };
@@ -118,9 +116,9 @@ const PrivateDNS = {
       case 'PTR':
       {
         const name = request.questions[0].name;
-        const m4 = name.match(REGEXP_PTR_IP4);
-        if (m4) {
-          const ip = `${m4[4]}.${m4[3]}.${m4[2]}.${m4[1]}`;
+        if (name.endsWith('.in-addr.arpa')) {
+          const m4 = name.split('.');
+          const ip = `${m4[3]}.${m4[2]}.${m4[1]}.${m4[0]}`;
           const localname = this._ip2localname[ip];
           if (localname) {
             response.answers.push(
@@ -133,21 +131,19 @@ const PrivateDNS = {
             return NOERROR;
           }
         }
-        else {
-          const m6 = name.match(REGEXP_PTR_IP6);
-          if (m6) {
-            const ip6 = `${m6[32]}${m6[31]}${m6[30]}${m6[29]}:${m6[28]}${m6[27]}${m6[26]}${m6[25]}:${m6[24]}${m6[23]}${m6[22]}${m6[21]}:${m6[20]}${m6[19]}${m6[18]}${m6[17]}:${m6[16]}${m6[15]}${m6[14]}${m6[13]}:${m6[12]}${m6[11]}${m6[10]}${m6[9]}:${m6[8]}${m6[7]}${m6[6]}${m6[5]}:${m6[4]}${m6[3]}${m6[2]}${m6[1]}`;
-            const localname = this._ip2localname[ip6];
-            if (localname) {
-              response.answers.push(
-                { name: name, ttl: this._ttl, type: 'PTR', class: 'IN', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
-              );
-              if (this._soa) {
-                response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
-              }
-              response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
-              return NOERROR;
+        else if (name.endsWith('.ip6.arpa')) {
+          const m6 = name.split('.');
+          const ip6 = `${m6[31]}${m6[30]}${m6[29]}${m6[28]}:${m6[27]}${m6[26]}${m6[25]}${m6[24]}:${m6[23]}${m6[22]}${m6[21]}${m6[20]}:${m6[19]}${m6[18]}${m6[17]}${m6[16]}:${m6[15]}${m6[14]}${m6[13]}${m6[12]}:${m6[11]}${m6[10]}${m6[9]}${m6[8]}:${m6[7]}${m6[6]}${m6[5]}${m6[4]}:${m6[3]}${m6[2]}${m6[1]}${m6[0]}`;
+          const localname = this._ip2localname[ip6];
+          if (localname) {
+            response.answers.push(
+              { name: name, ttl: this._ttl, type: 'PTR', class: 'IN', data: `${localname}${this._domainName ? '.' + this._domainName : ''}` }
+            );
+            if (this._soa) {
+              response.authorities.push({ name: name, ttl: this._ttl, type: 'SOA', class: 'IN', data: this._soa });
             }
+            response.flags |= DnsPkt.AUTHORITATIVE_ANSWER;
+            return NOERROR;
           }
         }
         break;
@@ -1065,11 +1061,11 @@ const MapDNS = {
       return NOTFOUND;
     }
     const qname = request.questions[0].name;
-    const m4 = qname.match(REGEXP_PTR_IP4);
-    if (!m4) {
+    if (!qname.endsWith('.in-addr.arpa')) {
       return NOTFOUND;
     }
-    const address = LocalDNSSingleton.translateDNSNetworkAddress(`${m4[4]}.${m4[3]}.${m4[2]}.${m4[1]}`);
+    const m4 = qname.split('.');
+    const address = LocalDNSSingleton.translateDNSNetworkAddress(`${m4[3]}.${m4[2]}.${m4[1]}.${m4[0]}`);
     if (!address) {
       return NOTFOUND;
     }
@@ -1201,7 +1197,9 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
 
     // Super primitive DNS over TCP handler
     await new Promise(resolve => {
-      this._tcp = Net.createServer((socket) => {
+      this._tcp = Net.createServer({
+        allowHalfOpen: true
+      }, socket => {
         socket.on('error', (e) => {
           console.error(e);
           socket.destroy();
@@ -1216,14 +1214,17 @@ const DNS = { // { app: app, srv: proxy, cache: cache }
                 const reply = Buffer.alloc(msgout.length + 2);
                 reply.writeUInt16BE(msgout.length, 0);
                 msgout.copy(reply, 2);
-                socket.write(reply);
+                socket.end(reply);
+              }
+              else {
+                socket.end();
               }
             }
           }
           catch (e) {
             console.error(e);
+            socket.destroy();
           }
-          socket.end();
         });
       });
       this._tcp.on('error', (e) => {

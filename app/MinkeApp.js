@@ -1731,7 +1731,10 @@ MinkeApp.prototype = {
           }
           idx = data.indexOf('MINKE:DEFAULT:FLAGS 0x');
           if (idx !== -1) {
-            const flags = parseInt(data.replace(/.*MINKE:DEFAULT:FLAGS 0x(.*)\n.*/, '$1'), 16);
+            let flags = parseInt(data.replace(/.*MINKE:DEFAULT:FLAGS 0x(.*)\n.*/, '$1'), 16);
+            if (!this._features.promiscuous) {
+              flags &= 0xfeff;
+            }
             Network.updateBridge(this._defaultIP, flags);
           }
           if (data.indexOf('MINKE:UP') !== -1) {
@@ -1747,6 +1750,9 @@ MinkeApp.prototype = {
     if (this._helperLog) {
       this._helperLog.destroy();
       this._helperLog = null;
+    }
+    if (this._defaultIP) {
+      Network.updateBridge(this._defaultIP, 0);
     }
   },
 
@@ -2132,10 +2138,30 @@ MinkeApp.getStartupOrder = function() {
 
   // Now with the base networks (or none), add applications which depend on already existing networks.
   // If apps create networks, they are added after any neworks they depend on.
+  // Exclude proxy apps so we let things they will proxy start first.
   const networks = {
     none: true, host: true, home: true, dns: true
   };
   let len;
+  do {
+    len = list.length;
+    let i = 0;
+    while (i < list.length) {
+      const app = list[i];
+      if (!app._features.proxy &&
+          (networks[app._networks.primary.name] || app._networks.primary.name === app._id) &&
+          (networks[app._networks.secondary.name] || app._networks.secondary.name === app._id)) {
+        networks[app._networks.primary.name] = true;
+        networks[app._networks.secondary.name] = true;
+        order.push(app);
+        list.splice(i, 1);
+      }
+      else {
+        i++;
+      }
+    }
+  } while (list.length < len);
+  // Now include proxy apps
   do {
     len = list.length;
     let i = 0;
