@@ -31,7 +31,7 @@
     "koa-websocket": "^5.0.1",
     "moment-timezone": "^0.5.31",
     "nedb": "^1.8.0",
-    "netmask": "^1.0.6",
+    "netmask": "^2.0.1",
     "network": "^0.4.1",
     "node-addon-api": "^3.0.0",
     "node-fetch": "^2.6.0",
