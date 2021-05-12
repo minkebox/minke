@@ -14,7 +14,7 @@
     "@sindresorhus/df": "^3.1.1",
     "ace-builds": "^1.4.12",
     "base64url": "^3.0.1",
-    "chart.js": "^2.9.3",
+    "chart.js": "^2.9.4",
     "debounce": "^1.2.0",
     "detect-rpi": "^1.4.0",
     "dns-packet": "^5.2.1",
